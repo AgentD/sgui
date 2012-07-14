@@ -54,8 +54,6 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 
             sgui_window_draw_box( wnd, 10, 320, 80, 25, SGUI_WINDOW_COLOR, -1 );
 
-            sgui_window_draw_text( wnd, 20, 337, (const unsigned char*)"Bla Bla Bla kerning: fi", 23 );
-
 
             sgui_window_draw_fancy_lines( wnd, 420, 30, length, 4, 1 );
 

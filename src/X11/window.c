@@ -15,8 +15,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     sgui_window* wnd;
     XSizeHints* hints;
     XWindowAttributes attr;
-    XRenderColor xrcolor;
-    int screen;
 
     if( !width || !height )
         return NULL;
@@ -48,24 +46,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         sgui_window_destroy( wnd );
         return NULL;
     }
-
-    /* try to load the default GUI font */
-    screen = DefaultScreen( wnd->dpy );
-
-    wnd->font = XftFontOpenName( wnd->dpy, screen, X11_GUI_FONT );
-
-    wnd->xftdraw = XftDrawCreate( wnd->dpy, wnd->wnd,
-                                  DefaultVisual(wnd->dpy, screen),
-                                  DefaultColormap(wnd->dpy, screen) );
-
-    xrcolor.red   = 65535.0f * (float)( SGUI_DEFAULT_TEXT     &0xFF) / 255.0f;
-    xrcolor.green = 65535.0f * (float)((SGUI_DEFAULT_TEXT>>8 )&0xFF) / 255.0f;
-    xrcolor.blue  = 65535.0f * (float)((SGUI_DEFAULT_TEXT>>16)&0xFF) / 255.0f;
-    xrcolor.alpha = 0xFFFF;
-
-    XftColorAllocValue( wnd->dpy, DefaultVisual(wnd->dpy,screen),
-                        DefaultColormap(wnd->dpy,screen),
-                        &xrcolor, &wnd->xftcolor );
 
     /* make the window non resizeable if required */
     if( !resizeable )
@@ -127,10 +107,9 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->event_fun )
             wnd->event_fun( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
-        if( wnd->xftdraw ) XftDrawDestroy( wnd->xftdraw );
-        if( wnd->gc      ) XFreeGC( wnd->dpy, wnd->gc );
-        if( wnd->wnd     ) XDestroyWindow( wnd->dpy, wnd->wnd );
-        if( wnd->dpy     ) XCloseDisplay( wnd->dpy );
+        if( wnd->gc  ) XFreeGC( wnd->dpy, wnd->gc );
+        if( wnd->wnd ) XDestroyWindow( wnd->dpy, wnd->wnd );
+        if( wnd->dpy ) XCloseDisplay( wnd->dpy );
         free( wnd );
     }
 }
@@ -469,25 +448,5 @@ void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
         XLIB_FILL_RECT( wnd, x+3, y+4, 6, 4 );
         XLIB_FILL_RECT( wnd, x+4, y+3, 4, 6 );
     }
-}
-
-void sgui_window_draw_text( sgui_window* wnd, int x, int y,
-                            const unsigned char* str, int length )
-{
-    XftDrawStringUtf8( wnd->xftdraw, &wnd->xftcolor, wnd->font,
-                       x, y, (const XftChar8*)str, length );
-}
-
-void sgui_window_get_text_extents( sgui_window* wnd,
-                                   const unsigned char* str,
-                                   int length, int* width, int* height )
-{
-    XGlyphInfo extents;
-
-    XftTextExtentsUtf8( wnd->dpy, wnd->font, (const FcChar8*)str, length,
-                        &extents );
-
-    *height = extents.yOff;
-    *width  = extents.xOff;
 }
 
