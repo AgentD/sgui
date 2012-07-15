@@ -1,6 +1,4 @@
-#include "sgui_window.h"
-#include "sgui_colors.h"
-#include "sgui_progress_bar.h"
+#include "sgui.h"
 
 #include <stdio.h>
 

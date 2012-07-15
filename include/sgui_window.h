@@ -1,5 +1,5 @@
-#ifndef SGUI_H
-#define SGUI_H
+#ifndef SGUI_WINDOW_H
+#define SGUI_WINDOW_H
 
 
 

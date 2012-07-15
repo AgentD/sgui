@@ -1,0 +1,16 @@
+#ifndef SGUI_H
+#define SGUI_H
+
+
+
+#include "sgui_colors.h"
+#include "sgui_event.h"
+#include "sgui_window.h"
+
+#include "sgui_widget.h"
+#include "sgui_progress_bar.h"
+
+
+
+#endif /* SGUI_H */
+

@@ -7,6 +7,12 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 typedef struct sgui_widget_struct
 {
     int x;                  /**< \brief x component of widget position */
@@ -77,6 +83,11 @@ void sgui_widget_draw( sgui_widget* widget, sgui_window* wnd, int x, int y,
                        unsigned int w, unsigned int h );
 
 
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SGUI_WIDGET_H */
 

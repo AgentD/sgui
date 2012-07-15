@@ -7,6 +7,10 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief Create a progress bar widget
  *
@@ -42,6 +46,10 @@ float sgui_progress_bar_get_progress( sgui_widget* bar );
 void sgui_progress_bar_delete( sgui_widget* bar );
 
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SGUI_PROGRESS_BAR_H */
 
