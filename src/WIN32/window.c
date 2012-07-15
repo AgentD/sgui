@@ -356,6 +356,22 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
         wnd->event_fun = fun;
 }
 
+void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
+                               unsigned int width, unsigned int height )
+{
+    RECT r;
+
+    if( wnd )
+    {
+        r.left   = x;
+        r.top    = y;
+        r.right  = x + (int)width;
+        r.bottom = y + (int)height;
+
+        InvalidateRect( wnd->hWnd, &r, TRUE );
+    }
+}
+
 
 
 

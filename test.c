@@ -32,6 +32,12 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
     case SGUI_MOUSE_MOVE_EVENT:
         printf( "Window %s: mouse moved to (%d,%d)\n", w, e->mouse_move.x,
                                                           e->mouse_move.y );
+
+        if( wnd == a )
+        {
+            sgui_progress_bar_set_progress(prog_bar, e->mouse_move.x/800.0f);
+            sgui_window_force_redraw( wnd, 10, 10, 300, 30 );
+        }
         break;
     case SGUI_MOUSE_PRESS_EVENT:
         printf( "Window %s: %s mouse button %s\n", w,
@@ -79,8 +85,6 @@ int main( void )
 
     /* widget test */
     prog_bar = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
-
-    sgui_progress_bar_set_progress( prog_bar, 0.3f );
 
     while( a_active || b_active )
     {

@@ -337,7 +337,27 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
         wnd->event_fun = fun;
 }
 
+void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
+                               unsigned int width, unsigned int height )
+{
+    XExposeEvent ev;
 
+    if( wnd )
+    {
+        ev.type       = Expose;
+        ev.serial     = 0;
+        ev.send_event = 1;
+        ev.display    = wnd->dpy;
+        ev.window     = wnd->wnd;
+        ev.x          = x;
+        ev.y          = y;
+        ev.width      = (int)width;
+        ev.height     = (int)height;
+        ev.count      = 0;
+
+        XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&ev );
+    }
+}
 
 
 
