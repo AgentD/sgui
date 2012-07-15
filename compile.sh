@@ -6,7 +6,7 @@ CFLAGS="-ansi -pedantic -W -Wall -Wextra -Wconversion -Wshadow
 MINGW="i586-mingw32msvc-gcc"
 
 # Common source code files
-SOURCE_COMMON="test.c"
+SOURCE_COMMON="test.c src/widget.c"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c"
