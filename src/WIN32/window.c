@@ -27,8 +27,8 @@ struct sgui_window
 
 
 
-#define SGUI_COLORREF( c ) RGB( ((c) & 0xFF), (((c)>>8) & 0xFF),\
-                                (((c)>>16) & 0xFF) )
+#define SGUI_COLORREF( c ) RGB( ((c>>16) & 0xFF), (((c)>>8) & 0xFF),\
+                                ((c) & 0xFF) )
 
 
 

@@ -5,7 +5,7 @@
 
 
 sgui_window *a, *b;
-sgui_widget* prog_bar;
+sgui_widget *p0, *p1, *p2, *p3;
 
 
 
@@ -35,8 +35,13 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 
         if( wnd == a )
         {
-            sgui_progress_bar_set_progress(prog_bar, e->mouse_move.x/800.0f);
-            sgui_window_force_redraw( wnd, 10, 10, 300, 30 );
+            sgui_progress_bar_set_progress( p0, e->mouse_move.x/800.0f );
+            sgui_progress_bar_set_progress( p1, e->mouse_move.x/800.0f );
+            sgui_window_force_redraw( wnd, 10, 10, 300, 65 );
+
+            sgui_progress_bar_set_progress( p2, 1.0f-e->mouse_move.y/600.0f );
+            sgui_progress_bar_set_progress( p3, 1.0f-e->mouse_move.y/600.0f );
+            sgui_window_force_redraw( wnd, 320, 10, 65, 300 );
         }
         break;
     case SGUI_MOUSE_PRESS_EVENT:
@@ -53,8 +58,17 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
     case SGUI_DRAW_EVENT:
         if( wnd==a )
         {
-            sgui_widget_draw( prog_bar, wnd, e->draw.x, e->draw.y,
-                                             e->draw.w, e->draw.h );
+            sgui_widget_draw( p0, wnd, e->draw.x, e->draw.y,
+                                       e->draw.w, e->draw.h );
+
+            sgui_widget_draw( p1, wnd, e->draw.x, e->draw.y,
+                                       e->draw.w, e->draw.h );
+
+            sgui_widget_draw( p2, wnd, e->draw.x, e->draw.y,
+                                       e->draw.w, e->draw.h );
+
+            sgui_widget_draw( p3, wnd, e->draw.x, e->draw.y,
+                                       e->draw.w, e->draw.h );
         }
     };
 }
@@ -84,7 +98,22 @@ int main( void )
     sgui_window_set_size( b, 200, 100 );
 
     /* widget test */
-    prog_bar = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
+    p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
+    p1 = sgui_progress_bar_create( 10, 45, 300, 30, 0.5f );
+
+    p2 = sgui_progress_bar_create( 320, 10, 30, 300, 0.5f );
+    p3 = sgui_progress_bar_create( 355, 10, 30, 300, 0.5f );
+
+    sgui_progress_bar_set_style( p0, 0, 1 );
+    sgui_progress_bar_set_style( p1, 1, 0 );
+    sgui_progress_bar_set_style( p2, 0, 1 );
+    sgui_progress_bar_set_style( p3, 1, 0 );
+
+    sgui_progress_bar_set_color( p1, SGUI_YELLOW );
+    sgui_progress_bar_set_color( p3, SGUI_YELLOW );
+
+    sgui_progress_bar_set_direction( p2, SGUI_PROGRESS_BAR_VERTICAL );
+    sgui_progress_bar_set_direction( p3, SGUI_PROGRESS_BAR_VERTICAL );
 
     while( a_active || b_active )
     {
@@ -101,7 +130,10 @@ int main( void )
         }
     }
 
-    sgui_progress_bar_delete( prog_bar );
+    sgui_progress_bar_delete( p0 );
+    sgui_progress_bar_delete( p1 );
+    sgui_progress_bar_delete( p2 );
+    sgui_progress_bar_delete( p3 );
 
     return 0;
 }

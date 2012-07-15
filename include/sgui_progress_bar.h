@@ -7,6 +7,14 @@
 
 
 
+#define SGUI_PROGRESS_BAR_CONTINUOUS  1
+#define SGUI_PROGRESS_BAR_STIPPLED    0
+#define SGUI_PROGRESS_BAR_OFFSET      1
+#define SGUI_PROGRESS_BAR_NO_OFFSET   0
+#define SGUI_PROGRESS_BAR_HORIZONTAL  0
+#define SGUI_PROGRESS_BAR_VERTICAL    1
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,6 +45,34 @@ void sgui_progress_bar_set_progress( sgui_widget* bar, float progress );
  * \param bar The progress bar to alter.
  */
 float sgui_progress_bar_get_progress( sgui_widget* bar );
+
+/**
+ * \brief Set the style of a progress bar
+ *
+ * \param bar        The progress bar to set the style of.
+ * \param continuous Whether the progress bar should be one continuous stripe
+ *                   or stippled. Default is stippled.
+ * \param offset     Whether the progress bar should touch the borders around
+ *                   it or keep some distance. Default is offset.
+ */
+void sgui_progress_bar_set_style( sgui_widget* bar, int continuous,
+                                  int offset );
+
+/**
+ * \brief Set the color of a progress bar
+ *
+ * \param bar   The progress bar to set the color of.
+ * \param color The color to use for the progress bar. Default is white.
+ */
+void sgui_progress_bar_set_color( sgui_widget* bar, unsigned long color );
+
+/**
+ * \brief Set the direction of a progress bar
+ *
+ * \param bar      The progress bar to set the direction of.
+ * \param vertical Whether the bar should be vertical (default: horizontal).
+ */
+void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical );
 
 /**
  * \brief Delete a progress bar widget

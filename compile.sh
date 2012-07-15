@@ -1,7 +1,7 @@
 #!/bin/sh
 
-CFLAGS="-ansi -pedantic -W -Wall -Wextra -Wconversion -Wshadow
-        -Wcast-qual -Wwrite-strings -I./include"
+CFLAGS="-ansi -pedantic -W -Wall -Wextra -Wshadow
+        -Wwrite-strings -I./include"
 
 MINGW="i586-mingw32msvc-gcc"
 

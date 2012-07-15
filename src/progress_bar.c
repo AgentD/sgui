@@ -10,6 +10,10 @@ typedef struct
     sgui_widget widget;
 
     float progress;
+    int continuous;
+    int offset;
+    unsigned long color;
+    int vertical;
 }
 sgui_progress_bar;
 
@@ -18,12 +22,11 @@ sgui_progress_bar;
 void sgui_progress_bar_draw( sgui_widget* widget, sgui_window* wnd,
                              int x, int y, unsigned int w, unsigned int h )
 {
-    sgui_progress_bar* b;
-    unsigned int width;
+    sgui_progress_bar* b = (sgui_progress_bar*)widget;
+    unsigned int width, height, segments, i;
+    int ox, oy;
 
     (void)x; (void)y; (void)w; (void)h;
-
-    b = (sgui_progress_bar*)widget;
 
     /* draw background box */
     sgui_window_draw_box( wnd, widget->x, widget->y,
@@ -31,13 +34,62 @@ void sgui_progress_bar_draw( sgui_widget* widget, sgui_window* wnd,
                                SGUI_INSET_FILL_COLOR_L1, 1 );
 
     /* draw bar */
-    width = (unsigned int)(((float)(widget->width - 10)) * b->progress);
+    if( b->offset )
+        ox = oy = 5;
+    else
+        ox = oy = 1;
 
-    if( width )
+    if( b->vertical )
     {
-        sgui_window_draw_box( wnd, widget->x+5, widget->y+5,
-                                   width, widget->height - 10,
-                                   SGUI_PROGRESS_BAR_COLOR, 0 );
+        height = (widget->height - 2*oy) * b->progress;
+        width  =  widget->width  - 2*ox;
+
+        if( height )
+        {
+            if( b->continuous )
+            {
+                sgui_window_draw_box( wnd, widget->x+ox,
+                                      widget->y+widget->height-oy-height,
+                                      width, height-1, b->color, 0 );
+            }
+            else
+            {
+                segments = height / 12;
+
+                for( i=0; i<segments; ++i )
+                {
+                    sgui_window_draw_box( wnd, widget->x+ox,
+                                          widget->y+widget->height-oy -
+                                          (int)i*12 - 7,
+                                          width, 7, b->color, 0 );
+                }
+            }
+        }
+    }
+    else
+    {
+        width  = (widget->width - 2*ox) * b->progress;
+        height = widget->height - 2*oy;
+
+        if( width )
+        {
+            if( b->continuous )
+            {
+                sgui_window_draw_box( wnd, widget->x+ox, widget->y+oy,
+                                      width, height, b->color, 0 );
+            }
+            else
+            {
+                segments = width / 12;
+
+                for( i=0; i<segments; ++i )
+                {
+                    sgui_window_draw_box( wnd, widget->x+ox+(int)i*12,
+                                               widget->y+oy,
+                                               7, height, b->color, 0 );
+                }
+            }
+        }
     }
 }
 
@@ -61,6 +113,10 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
     b->widget.height        = height;
     b->widget.draw_callback = sgui_progress_bar_draw;
     b->progress             = progress;
+    b->continuous           = SGUI_PROGRESS_BAR_STIPPLED;
+    b->offset               = SGUI_PROGRESS_BAR_OFFSET;
+    b->color                = SGUI_WHITE;
+    b->vertical             = 0;
 
     return (sgui_widget*)b;
 }
@@ -80,6 +136,34 @@ float sgui_progress_bar_get_progress( sgui_widget* bar )
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
 
     return b ? b->progress : 0.0f;
+}
+
+void sgui_progress_bar_set_style( sgui_widget* bar, int continuous,
+                                  int offset )
+{
+    sgui_progress_bar* b = (sgui_progress_bar*)bar;
+
+    if( b )
+    {
+        b->continuous = continuous;
+        b->offset     = offset;
+    }
+}
+
+void sgui_progress_bar_set_color( sgui_widget* bar, unsigned long color )
+{
+    sgui_progress_bar* b = (sgui_progress_bar*)bar;
+
+    if( b )
+        b->color = color;
+}
+
+void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical )
+{
+    sgui_progress_bar* b = (sgui_progress_bar*)bar;
+
+    if( b )
+        b->vertical = vertical;
 }
 
 void sgui_progress_bar_delete( sgui_widget* bar )
