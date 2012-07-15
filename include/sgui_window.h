@@ -237,6 +237,18 @@ void sgui_window_draw_fancy_lines( sgui_window* wnd, int x, int y,
 void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
                                     int selected );
 
+/**
+ * \brief Draw a check box
+ *
+ * \param wnd      The window to draw to
+ * \param x        The distance to the left of the window.
+ * \param y        The distance to the top of the window.
+ * \param selected If zero the check box is emtpy, otherwise it contains
+ *                 a tick that indicats selection.
+ */
+void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
+                                int selected );
+
 
 
 

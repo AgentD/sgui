@@ -61,10 +61,13 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
             sgui_window_draw_radio_button( wnd, 440, 65, 0 );
             sgui_window_draw_radio_button( wnd, 440, 80, 1 );
 
+            sgui_window_draw_checkbox( wnd, 440, 100, 0 );
+            sgui_window_draw_checkbox( wnd, 440, 115, 0 );
+            sgui_window_draw_checkbox( wnd, 440, 130, 1 );
 
-            sgui_window_draw_box( wnd, 440, 100, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
-            sgui_window_draw_box( wnd, 440, 115, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
-            sgui_window_draw_box( wnd, 440, 130, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
+            sgui_window_draw_box( wnd, 10, 380, 300, 30, SGUI_INSET_FILL_COLOR_L1, 1 );
+
+            sgui_window_draw_box( wnd, 15, 385, 100, 20, SGUI_OUTSET_COLOR, 0 );
         }
     };
 }

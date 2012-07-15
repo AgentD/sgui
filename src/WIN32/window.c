@@ -538,3 +538,26 @@ void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
     }
 }
 
+void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
+                                int selected )
+{
+    int i;
+    COLORREF c = SGUI_COLORREF(SGUI_CHECKBOX_TICK_COLOR);
+
+    sgui_window_draw_box( wnd, x, y, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
+
+    if( selected )
+    {
+        for( i=0; i<3; ++i )
+        {
+            SetPixel( wnd->dc, x+2, y+4+i, c );
+            SetPixel( wnd->dc, x+3, y+5+i, c );
+            SetPixel( wnd->dc, x+4, y+6+i, c );
+            SetPixel( wnd->dc, x+5, y+5+i, c );
+            SetPixel( wnd->dc, x+6, y+4+i, c );
+            SetPixel( wnd->dc, x+7, y+3+i, c );
+            SetPixel( wnd->dc, x+8, y+2+i, c );
+        }
+    }
+}
+

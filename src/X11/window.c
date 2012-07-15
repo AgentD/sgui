@@ -450,3 +450,22 @@ void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
     }
 }
 
+void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
+                                int selected )
+{
+    sgui_window_draw_box( wnd, x, y, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
+
+    if( selected )
+    {
+        XLIB_DRAW_COLOR( wnd, SGUI_CHECKBOX_TICK_COLOR );
+
+        XLIB_DRAW_LINE( wnd, x+2, y+4, x+2, y+6 );
+        XLIB_DRAW_LINE( wnd, x+3, y+5, x+3, y+7 );
+        XLIB_DRAW_LINE( wnd, x+4, y+6, x+4, y+8 );
+        XLIB_DRAW_LINE( wnd, x+5, y+5, x+5, y+7 );
+        XLIB_DRAW_LINE( wnd, x+6, y+4, x+6, y+6 );
+        XLIB_DRAW_LINE( wnd, x+7, y+3, x+7, y+5 );
+        XLIB_DRAW_LINE( wnd, x+8, y+2, x+8, y+4 );
+    }
+}
+
