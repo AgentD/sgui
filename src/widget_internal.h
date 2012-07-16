@@ -17,20 +17,6 @@ struct sgui_widget
     int need_redraw;        /**< \brief non-zero if need for redrawing */
 
     /**
-     * \brief Callback that is called to redraw a widget
-     *
-     * \param widget A pointer to the widget to redraw (for C++
-     *               people: practically a this pointer).
-     * \param wnd    The window to draw to.
-     * \param x      Window relative x coordinate of a region to draw into
-     * \param y      Window relative x coordinate of a region to draw into
-     * \param w      Width of the region to draw into
-     * \param h      Height of the region to draw into
-     */
-    void (* draw_callback )( sgui_widget* widget, sgui_window* wnd,
-                             int x, int y, unsigned int w, unsigned int h );
-
-    /**
      * \brief Callback that is called to update a widget
      *
      * \param widget A pointer to the widget to update (for C++
@@ -43,11 +29,12 @@ struct sgui_widget
      *
      * \param widget A pointer to the widget to update (for C++
      *               people: practically a this pointer).
+     * \param wnd    The window that sent the event
      * \param type   The event type.
      * \param event  The window event that occoured.
      */
-    void (* window_event_callback )( sgui_widget* widget, int type,
-                                     sgui_event* event );
+    void (* window_event_callback )( sgui_widget* widget, sgui_window* wnd,
+                                     int type, sgui_event* event );
 };
 
 

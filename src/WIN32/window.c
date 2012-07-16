@@ -40,12 +40,14 @@ struct sgui_window
 
 LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 {
-    sgui_window* wnd = (sgui_window*)GetWindowLong( hWnd, GWL_USERDATA );
+    sgui_window* wnd;
     sgui_event e;
     int type = -1;
     RECT r;
     PAINTSTRUCT ps;
     unsigned int i;
+
+    wnd = (sgui_window*)GetWindowLong( hWnd, GWL_USERDATA );
 
     if( wnd )
     {
@@ -110,7 +112,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
             type = SGUI_SIZE_CHANGE_EVENT;
             break;
         case WM_PAINT:
-            if( wnd->event_fun && GetUpdateRect( hWnd, &r, TRUE ) )
+            if( GetUpdateRect( hWnd, &r, TRUE ) )
             {
                 e.draw.x = r.left;
                 e.draw.y = r.top;
@@ -125,13 +127,13 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
                                                      e.draw.x, e.draw.y,
                                                      e.draw.w, e.draw.h ) )
                     {
-                        sgui_widget_draw( wnd->widgets[i], wnd,
-                                          e.draw.x, e.draw.y,
-                                          e.draw.w, e.draw.h );
+                        sgui_widget_send_window_event( wnd->widgets[i], wnd,
+                                                       SGUI_DRAW_EVENT, &e );
                     }
                 }
 
-                wnd->event_fun( wnd, SGUI_DRAW_EVENT, &e );
+                if( wnd->event_fun )
+                    wnd->event_fun( wnd, SGUI_DRAW_EVENT, &e );
 
                 EndPaint( hWnd, &ps );
 
@@ -147,7 +149,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         if( (type >= 0) )
         {
             for( i=0; i<wnd->num_widgets; ++i )
-               sgui_widget_send_window_event( wnd->widgets[i], type, &e );
+               sgui_widget_send_window_event(wnd->widgets[i], wnd, type, &e);
         }
 
         return 0;

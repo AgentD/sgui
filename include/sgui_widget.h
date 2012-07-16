@@ -56,19 +56,6 @@ int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
                                  unsigned int width, unsigned int height );
 
 /**
- * \brief Redraw a widget
- *
- * \param widget A pointer to the widget to redraw.
- * \param wnd    The window to draw to.
- * \param x      Window relative x coordinate of a clip region to draw into
- * \param y      Window relative x coordinate of a clip region to draw into
- * \param w      Width of the clip region to draw into
- * \param h      Height of the clip region to draw into
- */
-void sgui_widget_draw( sgui_widget* widget, sgui_window* wnd, int x, int y,
-                       unsigned int w, unsigned int h );
-
-/**
  * \brief Update a widget (e.g. advance animations, et cetera)
  *
  * This is called inside the sgui_window_update function to update widgets
@@ -85,11 +72,12 @@ void sgui_widget_update( sgui_widget* widget );
  * interact with user input.
  *
  * \param widget The widget to send the event to
+ * \param wnd    The window that sent the event
  * \param type   The event type
  * \param event  The event to send
  */
-void sgui_widget_send_window_event( sgui_widget* widget, int type,
-                                    sgui_event* event );
+void sgui_widget_send_window_event( sgui_widget* widget, sgui_window* wnd,
+                                    int type, sgui_event* event );
 
 /**
  * \brief Returns non-zero if a widget needs to be redrawn

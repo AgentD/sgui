@@ -380,9 +380,8 @@ int sgui_window_update( sgui_window* wnd )
                                                  se.draw.x, se.draw.y,
                                                  se.draw.w, se.draw.h ) )
                 {
-                    sgui_widget_draw( wnd->widgets[i], wnd,
-                                      se.draw.x, se.draw.y,
-                                      se.draw.w, se.draw.h );
+                    sgui_widget_send_window_event( wnd->widgets[i], wnd,
+                                                   st, &se );
                 }
             }
             break;
@@ -393,7 +392,7 @@ int sgui_window_update( sgui_window* wnd )
 
         if( st >= 0 )
             for( i=0; i<wnd->num_widgets; ++i )
-                sgui_widget_send_window_event( wnd->widgets[i], st, &se );
+                sgui_widget_send_window_event(wnd->widgets[i], wnd, st, &se);
     }
 
     return wnd->mapped;

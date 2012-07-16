@@ -22,14 +22,17 @@ sgui_progress_bar;
 
 
 
-void sgui_progress_bar_draw( sgui_widget* widget, sgui_window* wnd,
-                             int x, int y, unsigned int w, unsigned int h )
+void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
+                                 int type, sgui_event* event )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)widget;
     unsigned int width, height, segments, i;
     int ox, oy;
+    (void)wnd;
+    (void)event;
 
-    (void)x; (void)y; (void)w; (void)h;
+    if( type != SGUI_DRAW_EVENT )
+        return;
 
     /* draw background box */
     sgui_window_draw_box( wnd, widget->x, widget->y,
@@ -112,16 +115,16 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
 
     memset( b, 0, sizeof(sgui_progress_bar) );
 
-    b->widget.x               = x;
-    b->widget.y               = y;
-    b->widget.width           = width;
-    b->widget.height          = height;
-    b->widget.draw_callback   = sgui_progress_bar_draw;
-    b->widget.need_redraw     = 1;
-    b->progress               = progress;
-    b->continuous             = SGUI_PROGRESS_BAR_STIPPLED;
-    b->offset                 = SGUI_PROGRESS_BAR_OFFSET;
-    b->color                  = SGUI_WHITE;
+    b->widget.x                     = x;
+    b->widget.y                     = y;
+    b->widget.width                 = width;
+    b->widget.height                = height;
+    b->widget.window_event_callback = sgui_progress_bar_on_event;
+    b->widget.need_redraw           = 1;
+    b->progress                     = progress;
+    b->continuous                   = SGUI_PROGRESS_BAR_STIPPLED;
+    b->offset                       = SGUI_PROGRESS_BAR_OFFSET;
+    b->color                        = SGUI_WHITE;
 
     return (sgui_widget*)b;
 }

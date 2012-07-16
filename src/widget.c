@@ -46,26 +46,17 @@ int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
     return 1;
 }
 
-void sgui_widget_draw( sgui_widget* widget, sgui_window* wnd, int x, int y,
-                       unsigned int w, unsigned int h )
-{
-    if( widget && wnd && widget->draw_callback )
-    {
-        widget->draw_callback( widget, wnd, x, y, w, h );
-    }
-}
-
 void sgui_widget_update( sgui_widget* widget )
 {
     if( widget && widget->update_callback )
         widget->update_callback( widget );
 }
 
-void sgui_widget_send_window_event( sgui_widget* widget, int type,
-                                    sgui_event* event )
+void sgui_widget_send_window_event( sgui_widget* widget, sgui_window* wnd,
+                                    int type, sgui_event* event )
 {
     if( widget && widget->window_event_callback )
-        widget->window_event_callback( widget, type, event );
+        widget->window_event_callback( widget, wnd, type, event );
 }
 
 int sgui_widget_need_redraw( sgui_widget* widget )
