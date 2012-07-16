@@ -276,7 +276,33 @@ void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
 void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
                                 int selected );
 
+/**
+ * \brief Draw a UTF8 text string onto a window
+ *
+ * \param wnd    The window to draw to.
+ * \param x      The distance of the left border of the text to the left of
+ *               the window.
+ * \param y      The distance of the lower border of the text to the top of
+ *               the window.
+ * \param str    The text string to render
+ * \param length The number of bytes to read from the string
+ */
+void sgui_window_draw_text( sgui_window* wnd, int x, int y,
+                            const unsigned char* str, unsigned int length );
 
+/**
+ * \brief Get the extends of a text string
+ *
+ * \param wnd    The window to draw to.
+ * \param str    The text string to render.
+ * \param length The number of bytes to read from the string.
+ * \param width  Returns the width of the rendered text.
+ * \param height Returns the height of the rendered text.
+ */
+void sgui_window_get_text_extents( sgui_window* wnd,
+                                   const unsigned char* str,
+                                   unsigned int length, unsigned int* width,
+                                   unsigned int* height );
 
 
 #ifdef __cplusplus

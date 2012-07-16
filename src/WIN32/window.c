@@ -674,3 +674,37 @@ void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
     }
 }
 
+void sgui_window_draw_text( sgui_window* wnd, int x, int y,
+                            const unsigned char* str, unsigned int length )
+{
+    int last_mode;
+
+    if( wnd && str && length )
+    {
+        SetTextColor( wnd->dc, SGUI_COLORREF( SGUI_DEFAULT_TEXT ) );
+        last_mode = SetBkMode( wnd->dc, TRANSPARENT );
+
+        /* TODO: Does this work with UTF8!? */
+        TextOut( wnd->dc, x, y, (LPCTSTR)str, length );
+
+        SetBkMode( wnd->dc, last_mode );
+    }
+}
+
+void sgui_window_get_text_extents( sgui_window* wnd,
+                                   const unsigned char* str,
+                                   unsigned int length, unsigned int* width,
+                                   unsigned int* height )
+{
+    SIZE size;
+
+    if( wnd )
+    {
+        /* TODO: Point size != pixel size! Does this work with UTF8!? */
+        GetTextExtentPoint32( wnd->dc, (LPCTSTR)str, length, &size );
+
+        if( width  ) *width  = size.cx;
+        if( height ) *height = size.cy;
+    }
+}
+

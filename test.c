@@ -12,6 +12,7 @@ sgui_widget *p0, *p1, *p2, *p3;
 void window_callback( sgui_window* wnd, int type, sgui_event* e )
 {
     const char* w = (wnd==a) ? "A" : "B";
+    unsigned int width, height;
 
     switch( type )
     {
@@ -52,6 +53,16 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
     case SGUI_MOUSE_WHEEL_EVENT:
         printf( "Window %s: mouse wheel moved %s\n", w,
                 e->mouse_wheel.direction>0 ? "up" : "down" );
+        break;
+    case SGUI_DRAW_EVENT:
+        if( wnd == b )
+        {
+            sgui_window_get_text_extents( b, (const unsigned char*)"Test", 4,
+                                          &width, &height );
+
+            sgui_window_draw_text( b, 100-width/2, 50-height/2,
+                                   (const unsigned char*)"Test", 4 );
+        }
         break;
     };
 }
