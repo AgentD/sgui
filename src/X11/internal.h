@@ -48,6 +48,10 @@ struct sgui_window
     int resizeable;
     int mapped;
 
+    sgui_widget** widgets;
+    unsigned int num_widgets;
+    unsigned int widgets_avail;
+
     sgui_window_callback event_fun;
 };
 

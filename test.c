@@ -37,11 +37,9 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
         {
             sgui_progress_bar_set_progress( p0, e->mouse_move.x/800.0f );
             sgui_progress_bar_set_progress( p1, e->mouse_move.x/800.0f );
-            sgui_window_force_redraw( wnd, 10, 10, 300, 65 );
 
             sgui_progress_bar_set_progress( p2, 1.0f-e->mouse_move.y/600.0f );
             sgui_progress_bar_set_progress( p3, 1.0f-e->mouse_move.y/600.0f );
-            sgui_window_force_redraw( wnd, 320, 10, 65, 300 );
         }
         break;
     case SGUI_MOUSE_PRESS_EVENT:
@@ -55,21 +53,6 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
         printf( "Window %s: mouse wheel moved %s\n", w,
                 e->mouse_wheel.direction>0 ? "up" : "down" );
         break;
-    case SGUI_DRAW_EVENT:
-        if( wnd==a )
-        {
-            sgui_widget_draw( p0, wnd, e->draw.x, e->draw.y,
-                                       e->draw.w, e->draw.h );
-
-            sgui_widget_draw( p1, wnd, e->draw.x, e->draw.y,
-                                       e->draw.w, e->draw.h );
-
-            sgui_widget_draw( p2, wnd, e->draw.x, e->draw.y,
-                                       e->draw.w, e->draw.h );
-
-            sgui_widget_draw( p3, wnd, e->draw.x, e->draw.y,
-                                       e->draw.w, e->draw.h );
-        }
     };
 }
 
@@ -114,6 +97,12 @@ int main( void )
 
     sgui_progress_bar_set_direction( p2, SGUI_PROGRESS_BAR_VERTICAL );
     sgui_progress_bar_set_direction( p3, SGUI_PROGRESS_BAR_VERTICAL );
+
+
+    sgui_window_add_widget( a, p0 );
+    sgui_window_add_widget( a, p1 );
+    sgui_window_add_widget( a, p2 );
+    sgui_window_add_widget( a, p3 );
 
     while( a_active || b_active )
     {

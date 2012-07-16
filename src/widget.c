@@ -21,6 +21,16 @@ void sgui_widget_get_position( sgui_widget* w, int* x, int* y )
     }
 }
 
+void sgui_widget_get_size( sgui_widget* w,
+                           unsigned int* width, unsigned int* height )
+{
+    if( w )
+    {
+        if( width  ) *width  = w->width;
+        if( height ) *height = w->height;
+    }
+}
+
 int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
                                  unsigned int width, unsigned int height )
 {
@@ -43,5 +53,25 @@ void sgui_widget_draw( sgui_widget* widget, sgui_window* wnd, int x, int y,
     {
         widget->draw_callback( widget, wnd, x, y, w, h );
     }
+}
+
+void sgui_widget_update( sgui_widget* widget )
+{
+    if( widget && widget->update_callback )
+        widget->update_callback( widget );
+}
+
+int sgui_widget_need_redraw( sgui_widget* widget )
+{
+    int result = 0;
+
+    if( widget )
+    {
+        result = widget->need_redraw;
+
+        widget->need_redraw = 0;
+    }
+
+    return result;
 }
 

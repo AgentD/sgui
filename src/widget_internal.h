@@ -14,6 +14,8 @@ struct sgui_widget
     unsigned int width;     /**< \brief widget width */
     unsigned int height;    /**< \brief widget height */
 
+    int need_redraw;        /**< \brief non-zero if need for redrawing */
+
     /**
      * \brief Callback that is called to redraw a widget
      *
@@ -27,6 +29,14 @@ struct sgui_widget
      */
     void (* draw_callback )( sgui_widget* widget, sgui_window* wnd,
                              int x, int y, unsigned int w, unsigned int h );
+
+    /**
+     * \brief Callback that is called to update a widget
+     *
+     * \param widget A pointer to the widget to update (for C++
+     *               people: practically a this pointer).
+     */
+    void (* update_callback )( sgui_widget* widget );
 };
 
 

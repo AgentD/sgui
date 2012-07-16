@@ -1,4 +1,5 @@
 #include "internal.h"
+#include "sgui_widget.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +27,19 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
 
     memset( wnd, 0, sizeof(sgui_window) );
+
+    /* try to allocate space for the widget array */
+    wnd->widgets       = malloc( sizeof(sgui_widget*)*10 );
+    wnd->num_widgets   = 0;
+    wnd->widgets_avail = 10;
+
+    if( !wnd->widgets )
+    {
+        free( wnd );
+        return NULL;
+    }
+
+    memset( wnd->widgets, 0, sizeof(sgui_widget*)*10 );
 
     /* try to connect to the X server */
     wnd->dpy = XOpenDisplay( 0 );
@@ -110,6 +124,8 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->gc  ) XFreeGC( wnd->dpy, wnd->gc );
         if( wnd->wnd ) XDestroyWindow( wnd->dpy, wnd->wnd );
         if( wnd->dpy ) XCloseDisplay( wnd->dpy );
+
+        free( wnd->widgets );
         free( wnd );
     }
 }
@@ -250,11 +266,27 @@ int sgui_window_update( sgui_window* wnd )
     XEvent e;
     char* atom;
     sgui_event se;
-    int st;
+    int st, x, y;
+    unsigned int i, w, h;
 
     if( !wnd || !wnd->mapped )
         return 0;
 
+    /* update the widgets */
+    for( i=0; i<wnd->num_widgets; ++i )
+    {
+        sgui_widget_update( wnd->widgets[i] );
+
+        if( sgui_widget_need_redraw( wnd->widgets[i] ) )
+        {
+            sgui_widget_get_position( wnd->widgets[i], &x, &y );
+            sgui_widget_get_size( wnd->widgets[i], &w, &h );
+
+            sgui_window_force_redraw( wnd, x, y, w, h );
+        }
+    }
+
+    /* message loop */
     while( XPending( wnd->dpy )>0 )
     {
         XNextEvent( wnd->dpy, &e );
@@ -321,6 +353,18 @@ int sgui_window_update( sgui_window* wnd )
             se.draw.y = e.xexpose.y     <0 ? 0 : e.xexpose.y;
             se.draw.w = e.xexpose.width <0 ? 0 : (unsigned)e.xexpose.width;
             se.draw.h = e.xexpose.height<0 ? 0 : (unsigned)e.xexpose.height;
+
+            for( i=0; i<wnd->num_widgets; ++i )
+            {
+                if( sgui_widget_intersects_area( wnd->widgets[i],
+                                                 se.draw.x, se.draw.y,
+                                                 se.draw.w, se.draw.h ) )
+                {
+                    sgui_widget_draw( wnd->widgets[i], wnd,
+                                      se.draw.x, se.draw.y,
+                                      se.draw.w, se.draw.h );
+                }
+            }
             break;
         };
 
@@ -360,6 +404,54 @@ void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
 }
 
 
+
+
+void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
+{
+    sgui_widget** nw;
+
+    if( !wnd )
+        return;
+
+    /* try to resize widget array if required */
+    if( wnd->num_widgets == wnd->widgets_avail )
+    {
+        wnd->widgets_avail += 10;
+
+        nw = realloc( wnd->widgets, wnd->widgets_avail*sizeof(sgui_widget*) );
+
+        if( !nw )
+        {
+            wnd->widgets_avail -= 10;
+            return;
+        }
+
+        wnd->widgets = nw;
+    }
+
+    /* add widget */
+    wnd->widgets[ wnd->num_widgets++ ] = widget;
+}
+
+void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
+{
+    unsigned int i;
+
+    if( !wnd )
+        return;
+
+    for( i=0; i<wnd->num_widgets; ++i )
+    {
+        if( wnd->widgets[ i ] == widget )
+        {
+            for( ; i<(wnd->num_widgets-1); ++i )
+                wnd->widgets[ i ] = wnd->widgets[ i+1 ];
+
+            --wnd->num_widgets;
+            break;
+        }
+    }
+}
 
 
 

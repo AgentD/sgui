@@ -183,6 +183,25 @@ void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
                                unsigned int width, unsigned int height );
 
 
+/**
+ * \brief Add a widget to a window
+ *
+ * Ownership remains with the caller.
+ *
+ * \param wnd    The window to add the widget to
+ * \param widget The widget to add
+ */
+void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
+
+/**
+ * \brief Remove a widget from a window
+ *
+ * \param wnd    The window to remove the widget from
+ * \param widget The widget to remove
+ */
+void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
+
+
 
 /**
  * \brief Draw a rectangle/box

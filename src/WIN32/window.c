@@ -1,5 +1,6 @@
 #include "sgui_window.h"
 #include "sgui_colors.h"
+#include "sgui_widget.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRA_LEAN
@@ -22,6 +23,10 @@ struct sgui_window
 
     int visible;
 
+    sgui_widget** widgets;
+    unsigned int num_widgets;
+    unsigned int widgets_avail;
+
     sgui_window_callback event_fun;
 };
 
@@ -40,6 +45,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     int type = -1;
     RECT r;
     PAINTSTRUCT ps;
+    unsigned int i;
 
     if( wnd )
     {
@@ -113,6 +119,18 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
                 wnd->dc = BeginPaint( hWnd, &ps );
 
+                for( i=0; i<wnd->num_widgets; ++i )
+                {
+                    if( sgui_widget_intersects_area( wnd->widgets[i],
+                                                     e.draw.x, e.draw.y,
+                                                     e.draw.w, e.draw.h ) )
+                    {
+                        sgui_widget_draw( wnd->widgets[i], wnd,
+                                          e.draw.x, e.draw.y,
+                                          e.draw.w, e.draw.h );
+                    }
+                }
+
                 wnd->event_fun( wnd, SGUI_DRAW_EVENT, &e );
 
                 EndPaint( hWnd, &ps );
@@ -155,6 +173,19 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
 
     memset( wnd, 0, sizeof(sgui_window) );
+
+    /* try to allocate space for the widget array */
+    wnd->widgets       = malloc( sizeof(sgui_widget*)*10 );
+    wnd->num_widgets   = 0;
+    wnd->widgets_avail = 10;
+
+    if( !wnd->widgets )
+    {
+        free( wnd );
+        return NULL;
+    }
+
+    memset( wnd->widgets, 0, sizeof(sgui_widget*)*10 );
 
     /* */
     wnd->hInstance = GetModuleHandle( NULL );
@@ -220,6 +251,7 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->bgcolor )
             DeleteObject( wnd->bgcolor );
 
+        free( wnd->widgets );
         free( wnd );
     }
 }
@@ -337,11 +369,28 @@ void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
 int sgui_window_update( sgui_window* wnd )
 {
     MSG msg;
+    int x, y;
+    unsigned int i, w, h;
 
     if( !wnd || !wnd->visible )
         return 0;
 
-    if( PeekMessage( &msg, wnd->hWnd, 0, 0, PM_REMOVE ) )
+    /* update the widgets */
+    for( i=0; i<wnd->num_widgets; ++i )
+    {
+        sgui_widget_update( wnd->widgets[i] );
+
+        if( sgui_widget_need_redraw( wnd->widgets[i] ) )
+        {
+            sgui_widget_get_position( wnd->widgets[i], &x, &y );
+            sgui_widget_get_size( wnd->widgets[i], &w, &h );
+
+            sgui_window_force_redraw( wnd, x, y, w, h );
+        }
+    }
+
+    /* message loop */
+    while( PeekMessage( &msg, wnd->hWnd, 0, 0, PM_REMOVE ) )
     {
         TranslateMessage( &msg );
         DispatchMessage( &msg );
@@ -372,6 +421,54 @@ void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
     }
 }
 
+
+
+void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
+{
+    sgui_widget** nw;
+
+    if( !wnd )
+        return;
+
+    /* try to resize widget array if required */
+    if( wnd->num_widgets == wnd->widgets_avail )
+    {
+        wnd->widgets_avail += 10;
+
+        nw = realloc( wnd->widgets, wnd->widgets_avail*sizeof(sgui_widget*) );
+
+        if( !nw )
+        {
+            wnd->widgets_avail -= 10;
+            return;
+        }
+
+        wnd->widgets = nw;
+    }
+
+    /* add widget */
+    wnd->widgets[ wnd->num_widgets++ ] = widget;
+}
+
+void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
+{
+    unsigned int i;
+
+    if( !wnd )
+        return;
+
+    for( i=0; i<wnd->num_widgets; ++i )
+    {
+        if( wnd->widgets[ i ] == widget )
+        {
+            for( ; i<(wnd->num_widgets-1); ++i )
+                wnd->widgets[ i ] = wnd->widgets[ i+1 ];
+
+            --wnd->num_widgets;
+            break;
+        }
+    }
+}
 
 
 
