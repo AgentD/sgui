@@ -144,6 +144,12 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         if( (type >= 0) && wnd->event_fun )
             wnd->event_fun( wnd, type, &e );
 
+        if( (type >= 0) )
+        {
+            for( i=0; i<wnd->num_widgets; ++i )
+               sgui_widget_send_window_event( wnd->widgets[i], type, &e );
+        }
+
         return 0;
     }
 

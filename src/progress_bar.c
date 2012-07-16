@@ -4,6 +4,7 @@
 #include "widget_internal.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 
@@ -109,18 +110,18 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
 
     b = malloc( sizeof(sgui_progress_bar) );
 
+    memset( b, 0, sizeof(sgui_progress_bar) );
+
     b->widget.x               = x;
     b->widget.y               = y;
     b->widget.width           = width;
     b->widget.height          = height;
     b->widget.draw_callback   = sgui_progress_bar_draw;
-    b->widget.update_callback = NULL;
     b->widget.need_redraw     = 1;
     b->progress               = progress;
     b->continuous             = SGUI_PROGRESS_BAR_STIPPLED;
     b->offset                 = SGUI_PROGRESS_BAR_OFFSET;
     b->color                  = SGUI_WHITE;
-    b->vertical               = 0;
 
     return (sgui_widget*)b;
 }

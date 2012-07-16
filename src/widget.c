@@ -61,6 +61,13 @@ void sgui_widget_update( sgui_widget* widget )
         widget->update_callback( widget );
 }
 
+void sgui_widget_send_window_event( sgui_widget* widget, int type,
+                                    sgui_event* event )
+{
+    if( widget && widget->window_event_callback )
+        widget->window_event_callback( widget, type, event );
+}
+
 int sgui_widget_need_redraw( sgui_widget* widget )
 {
     int result = 0;

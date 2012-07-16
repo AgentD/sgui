@@ -5,6 +5,7 @@
 
 #include "sgui_window.h"
 #include "sgui_predef.h"
+#include "sgui_event.h"
 
 
 
@@ -78,6 +79,19 @@ void sgui_widget_draw( sgui_widget* widget, sgui_window* wnd, int x, int y,
 void sgui_widget_update( sgui_widget* widget );
 
 /**
+ * \brief Send a window event to a widget
+ *
+ * This is called inside the sgui_window_update function to make widgets
+ * interact with user input.
+ *
+ * \param widget The widget to send the event to
+ * \param type   The event type
+ * \param event  The event to send
+ */
+void sgui_widget_send_window_event( sgui_widget* widget, int type,
+                                    sgui_event* event );
+
+/**
  * \brief Returns non-zero if a widget needs to be redrawn
  *
  * After calling, the internal state of the widget is reset, so it no longer
@@ -89,7 +103,6 @@ void sgui_widget_update( sgui_widget* widget );
  * \param widget The widget to test
  */
 int sgui_widget_need_redraw( sgui_widget* widget );
-
 
 
 

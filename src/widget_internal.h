@@ -37,6 +37,17 @@ struct sgui_widget
      *               people: practically a this pointer).
      */
     void (* update_callback )( sgui_widget* widget );
+
+    /**
+     * \brief Callback that is called to inject window events
+     *
+     * \param widget A pointer to the widget to update (for C++
+     *               people: practically a this pointer).
+     * \param type   The event type.
+     * \param event  The window event that occoured.
+     */
+    void (* window_event_callback )( sgui_widget* widget, int type,
+                                     sgui_event* event );
 };
 
 

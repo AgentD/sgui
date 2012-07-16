@@ -390,6 +390,10 @@ int sgui_window_update( sgui_window* wnd )
 
         if( wnd->event_fun && (st >= 0) )
             wnd->event_fun( wnd, st, &se );
+
+        if( st >= 0 )
+            for( i=0; i<wnd->num_widgets; ++i )
+                sgui_widget_send_window_event( wnd->widgets[i], st, &se );
     }
 
     return wnd->mapped;
