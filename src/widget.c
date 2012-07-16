@@ -1,4 +1,5 @@
 #include "sgui_widget.h"
+#include "widget_internal.h"
 
 
 

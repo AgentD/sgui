@@ -4,38 +4,13 @@
 
 
 #include "sgui_window.h"
+#include "sgui_predef.h"
 
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-
-typedef struct sgui_widget_struct
-{
-    int x;                  /**< \brief x component of widget position */
-    int y;                  /**< \brief y component of widget position */
-    unsigned int width;     /**< \brief widget width */
-    unsigned int height;    /**< \brief widget height */
-
-    /**
-     * \brief Callback that is called to redraw a widget
-     *
-     * \param widget A pointer to the widget to redraw (for C++
-     *               people: practically a this pointer).
-     * \param wnd    The window to draw to.
-     * \param x      Window relative x coordinate of a region to draw into
-     * \param y      Window relative x coordinate of a region to draw into
-     * \param w      Width of the region to draw into
-     * \param h      Height of the region to draw into
-     */
-    void (* draw_callback )( struct sgui_widget_struct* widget,
-                             sgui_window* wnd, int x, int y,
-                             unsigned int w, unsigned int h );
-}
-sgui_widget;
 
 
 

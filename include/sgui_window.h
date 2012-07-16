@@ -4,6 +4,7 @@
 
 
 #include "sgui_event.h"
+#include "sgui_predef.h"
 
 
 
@@ -18,10 +19,6 @@ extern "C" {
 
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
-
-
-
-typedef struct sgui_window sgui_window;
 
 
 

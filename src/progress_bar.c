@@ -1,6 +1,8 @@
 #include "sgui_progress_bar.h"
 #include "sgui_colors.h"
 
+#include "widget_internal.h"
+
 #include <stdlib.h>
 
 
