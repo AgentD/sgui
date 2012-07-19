@@ -459,6 +459,75 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
+
+sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
+                                        unsigned int height,
+                                        unsigned char* data )
+{
+    sgui_pixmap* pixmap;
+    unsigned char *buffer, *src, *dst;
+    unsigned int x, y;
+
+    /* sanity check */
+    if( !wnd || !width || !height || !data )
+        return NULL;
+
+    /* create pixmap structure */
+    pixmap = malloc( sizeof(sgui_pixmap) );
+
+    if( !pixmap )
+        return NULL;
+
+    /* create conversion buffer */
+    buffer = malloc( width*height*4 );
+
+    if( !buffer )
+    {
+        free( pixmap );
+        return NULL;
+    }
+
+    /* fill conversion buffer */
+    for( src=data, dst=buffer, y=0; y<height; ++y )
+    {
+        for( x=0; x<width; ++x, src+=3, dst+=4 )
+        {
+            dst[0] = src[2];
+            dst[1] = src[1];
+            dst[2] = src[0];
+            dst[3] = 0xFF;
+        }
+    }
+
+    /* create and upload pixmap */
+    pixmap->image = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
+	                              (char*)buffer, width, height, 32, 0 );
+
+    pixmap->width = width;
+    pixmap->height = height;
+
+    return pixmap;
+}
+
+void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
+                              int x, int y )
+{
+    if( wnd && pixmap )
+        XPutImage( wnd->dpy, wnd->wnd, wnd->gc, pixmap->image, 0, 0,
+                   x, y, pixmap->width, pixmap->height );
+}
+
+void sgui_window_delete_pixmap( sgui_pixmap* pixmap )
+{
+    if( pixmap )
+        XDestroyImage( pixmap->image );
+
+    free( pixmap );
+}
+
+
+
+
 void sgui_window_draw_box( sgui_window* wnd, int x, int y,
                            unsigned int width, unsigned int height,
                            unsigned long bgcolor, int inset )

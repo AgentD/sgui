@@ -6,6 +6,7 @@
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3;
+sgui_pixmap *pix;
 
 
 
@@ -54,6 +55,8 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
                 e->mouse_wheel.direction>0 ? "up" : "down" );
         break;
     case SGUI_DRAW_EVENT:
+        if( wnd==a )
+            sgui_window_draw_pixmap( a, pix, 10, 100 );
         break;
     };
 }
@@ -62,7 +65,8 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 
 int main( void )
 {
-    int a_active=1, b_active=1;
+    int a_active=1, b_active=1, x, y;
+    unsigned char image[128*128*3];
 
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
     b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
@@ -81,6 +85,17 @@ int main( void )
 
     sgui_window_set_size( a, 800, 600 );
     sgui_window_set_size( b, 200, 100 );
+
+    /* pixmap test */
+    for( y=0; y<128; ++y )
+        for( x=0; x<128; ++x )
+        {
+            image[ (y*128 + x)*3     ] = 0xFF * (x/128.0f);
+            image[ (y*128 + x)*3 + 1 ] = 0xFF * (y/128.0f);
+            image[ (y*128 + x)*3 + 2 ] = 0x00;
+        }
+
+    pix = sgui_window_create_pixmap( a, 128, 128, image );
 
     /* widget test */
     p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
@@ -120,6 +135,8 @@ int main( void )
             sgui_window_destroy( b );
         }
     }
+
+    sgui_window_delete_pixmap( pix );
 
     sgui_progress_bar_delete( p0 );
     sgui_progress_bar_delete( p1 );

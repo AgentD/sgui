@@ -54,6 +54,12 @@ struct sgui_window
     sgui_window_callback event_fun;
 };
 
+struct sgui_pixmap
+{
+    unsigned int width, height;
+    XImage* image;
+};
+
 
 
 #endif /* INTERNAL_H */

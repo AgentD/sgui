@@ -203,6 +203,42 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
 
 
 
+
+/**
+ * \brief Create a pixmap
+ *
+ * \param wnd    The window to create the pixmap for
+ * \param width  The width of the pixmap
+ * \param height The height of the pixmap
+ * \param data   The RGB image data to load into the pixmap
+ *
+ * \return A pixmap object
+ */
+sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
+                                        unsigned int height,
+                                        unsigned char* data );
+
+/**
+ * \brief Draw a pixmap
+ *
+ * \param wnd    The window to draw the pixmap onto
+ * \param pixmap The pixmap to draw
+ * \param x      The distance from the left of the window
+ * \param y      The distance from the top of the window
+ */
+void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
+                              int x, int y );
+
+/**
+ * \brief Delete a pixmap
+ *
+ * \param pixmap The pixmap to delete
+ */
+void sgui_window_delete_pixmap( sgui_pixmap* pixmap );
+
+
+
+
 /**
  * \brief Draw a rectangle/box
  *
