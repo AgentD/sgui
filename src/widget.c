@@ -46,6 +46,20 @@ int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
     return 1;
 }
 
+int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
+{
+    if( !w )
+        return 0;
+
+    if( (x < w->x) || (y < w->y) )
+        return 0;
+
+    if( (x >= (w->x + (int)w->width)) || (y >= (w->y + (int)w->height)) )
+        return 0;
+
+    return 1;
+}
+
 void sgui_widget_update( sgui_widget* widget )
 {
     if( widget && widget->update_callback )

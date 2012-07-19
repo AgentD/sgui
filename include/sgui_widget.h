@@ -56,6 +56,15 @@ int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
                                  unsigned int width, unsigned int height );
 
 /**
+ * \brief Returns non-zero if a point is inside the bounding box of a widget
+ *
+ * \param w The widget to test
+ * \param x The x component of the position to test
+ * \param y The y component of the position to test
+ */
+int sgui_widget_is_point_inside( sgui_widget* w, int x, int y );
+
+/**
  * \brief Update a widget (e.g. advance animations, et cetera)
  *
  * This is called inside the sgui_window_update function to update widgets

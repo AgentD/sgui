@@ -16,7 +16,11 @@
 #define SGUI_MOUSE_MOVE_EVENT         4
 #define SGUI_MOUSE_PRESS_EVENT        5
 #define SGUI_MOUSE_WHEEL_EVENT        6
-#define SGUI_DRAW_EVENT               8
+#define SGUI_MOUSE_ENTER_EVENT        7
+#define SGUI_MOUSE_LEAVE_EVENT        8
+#define SGUI_DRAW_EVENT               9
+
+
 
 typedef union
 {

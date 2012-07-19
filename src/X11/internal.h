@@ -11,9 +11,6 @@
 #include <X11/Xutil.h>
 #include <X11/Xft/Xft.h>
 
-#define X11_GUI_FONT "*:pixelsize=12"
-#define X11_GUI_FONT_HEIGHT 12
-
 #define DPY_WIDTH DisplayWidth( wnd->dpy, DefaultScreen(wnd->dpy) )
 #define DPY_HEIGHT DisplayHeight( wnd->dpy, DefaultScreen(wnd->dpy) )
 
@@ -44,10 +41,6 @@ struct sgui_window
     Window wnd;
     Atom wmDelete;
     GC gc;
-
-    XftFont* font;
-    XftDraw* xftdraw;
-    XftColor xftcolor;
 
     int x, y;
     unsigned int w, h;

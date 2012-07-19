@@ -16,8 +16,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     sgui_window* wnd;
     XSizeHints* hints;
     XWindowAttributes attr;
-    int screen;
-    XRenderColor xrcolor;
 
     if( !width || !height )
         return NULL;
@@ -62,24 +60,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         sgui_window_destroy( wnd );
         return NULL;
     }
-
-    /* try to load the default GUI font */
-    screen = DefaultScreen( wnd->dpy );
-
-    wnd->font = XftFontOpenName( wnd->dpy, screen, X11_GUI_FONT );
-
-    wnd->xftdraw = XftDrawCreate( wnd->dpy, wnd->wnd,
-                                  DefaultVisual(wnd->dpy, screen),
-                                  DefaultColormap(wnd->dpy, screen) );
-
-    xrcolor.red   = 65535.0f * (float)((SGUI_DEFAULT_TEXT>>16)&0xFF) / 255.0f;
-    xrcolor.green = 65535.0f * (float)((SGUI_DEFAULT_TEXT>>8 )&0xFF) / 255.0f;
-    xrcolor.blue  = 65535.0f * (float)((SGUI_DEFAULT_TEXT    )&0xFF) / 255.0f;
-    xrcolor.alpha = 0xFFFF;
-
-    XftColorAllocValue( wnd->dpy, DefaultVisual(wnd->dpy,screen),
-                        DefaultColormap(wnd->dpy,screen),
-                        &xrcolor, &wnd->xftcolor );
 
     /* make the window non resizeable if required */
     if( !resizeable )
@@ -601,33 +581,6 @@ void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
         XLIB_DRAW_LINE( wnd, x+6, y+4, x+6, y+6 );
         XLIB_DRAW_LINE( wnd, x+7, y+3, x+7, y+5 );
         XLIB_DRAW_LINE( wnd, x+8, y+2, x+8, y+4 );
-    }
-}
-
-void sgui_window_draw_text( sgui_window* wnd, int x, int y,
-                            const unsigned char* str, unsigned int length )
-{
-    if( wnd )
-    {
-        XftDrawStringUtf8( wnd->xftdraw, &wnd->xftcolor, wnd->font, x, y,
-                           (const XftChar8*)str, length );
-    }
-}
-
-void sgui_window_get_text_extents( sgui_window* wnd,
-                                   const unsigned char* str,
-                                   unsigned int length, unsigned int* width,
-                                   unsigned int* height )
-{
-    XGlyphInfo extents;
-
-    if( wnd )
-    {
-        XftTextExtentsUtf8( wnd->dpy, wnd->font, (const FcChar8*)str, length,
-                            &extents );
-
-        if( width  ) *width  = extents.xOff;
-        if( height ) *height = extents.yOff;
     }
 }
 
