@@ -65,8 +65,9 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 
 int main( void )
 {
-    int a_active=1, b_active=1, x, y;
-    unsigned char image[128*128*3];
+    int a_active=1, b_active=1, x, y, len;
+    unsigned char image[128*128*3], color[3];
+    sgui_font* font;
 
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
     b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
@@ -86,7 +87,9 @@ int main( void )
     sgui_window_set_size( a, 800, 600 );
     sgui_window_set_size( b, 200, 100 );
 
-    /* pixmap test */
+    /* pixmap and font test */
+    sgui_font_init( );
+
     for( y=0; y<128; ++y )
         for( x=0; x<128; ++x )
         {
@@ -95,7 +98,23 @@ int main( void )
             image[ (y*128 + x)*3 + 2 ] = 0x00;
         }
 
+    font = sgui_font_load_from_file( "FreeSans.ttf" );
+
+    color[0] = 0xFF;
+    color[1] = 0xFF;
+    color[2] = 0xFF;
+
+    len = sgui_font_extents( (const unsigned char*)"Test AV", font, 16 );
+
+    sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
+                      64 - len/2, 64 - 8, 128, 128, color );
+
+    sgui_font_delete( font );
+
+
     pix = sgui_window_create_pixmap( a, 128, 128, image );
+
+    sgui_font_deinit( );
 
     /* widget test */
     p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );

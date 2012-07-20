@@ -6,17 +6,18 @@ CFLAGS="-ansi -pedantic -W -Wall -Wextra -Wshadow
 MINGW="i586-mingw32msvc-gcc"
 
 # Common source code files
-SOURCE_COMMON="test.c src/widget.c src/progress_bar.c"
+SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/font_manager.c"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c"
-SOURCE_WINDOSE="src/WIN32/window.c"
+SOURCE_WIN="src/WIN32/window.c"
 
 # Platform specific libraries
-INCLUDE_X11="-I/usr/include/freetype2"
+INCLUDE_X11="-I/usr/include -I/usr/include/freetype2"
+INCLUDE_WIN="-Iwin32_dep/include"
 
-LIBS_X11="-lX11 -lXft"
-LIBS_WINDOSE="-lgdi32"
+LIBS_X11="-lX11 -lfreetype"
+LIBS_WIN="-Lwin32_dep/lib -llibfreetype -lgdi32"
 
 # Do the compilation
 if [ ! -f ./compile.sh ]; then
@@ -24,6 +25,6 @@ if [ ! -f ./compile.sh ]; then
 else
     gcc $SOURCE_COMMON $SOURCE_X11 $CFLAGS $INCLUDE_X11 $LIBS_X11
 
-    $MINGW $SOURCE_COMMON $SOURCE_WINDOSE $CFLAGS $LIBS_WINDOSE
+    $MINGW $SOURCE_COMMON $SOURCE_WIN $CFLAGS $INCLUDE_WIN $LIBS_WIN
 fi
 
