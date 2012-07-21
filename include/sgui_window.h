@@ -170,18 +170,6 @@ int sgui_window_update( sgui_window* wnd );
  */
 void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun );
 
-/**
- * \brief Force redrawing of a window region
- *
- * \param wnd    The window to force to redraw.
- * \param x      The x component of the position of the redraw region.
- * \param y      The y component of the position of the redraw region.
- * \param width  The width of the redraw region.
- * \param height The height of the redraw region.
- */
-void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
-                               unsigned int width, unsigned int height );
-
 
 /**
  * \brief Add a widget to a window

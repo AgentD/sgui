@@ -10,6 +10,43 @@ const char* wmDeleteWindow = "WM_DELETE_WINDOW";
 
 
 
+
+
+void send_event( sgui_window* wnd, int event, sgui_event* e )
+{
+    unsigned int i;
+
+    if( wnd->event_fun )
+        wnd->event_fun( wnd, event, e );
+
+    for( i=0; i<wnd->num_widgets; ++i )
+        sgui_widget_send_window_event( wnd->widgets[i], wnd, event, e );
+}
+
+void force_redraw( sgui_window* wnd )
+{
+    XExposeEvent ev;
+
+    if( wnd )
+    {
+        ev.type       = Expose;
+        ev.serial     = 0;
+        ev.send_event = 1;
+        ev.display    = wnd->dpy;
+        ev.window     = wnd->wnd;
+        ev.x          = 0;
+        ev.y          = 0;
+        ev.width      = (int)wnd->w;
+        ev.height     = (int)wnd->h;
+        ev.count      = 0;
+
+        XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&ev );
+    }
+}
+
+
+
+
 sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                  int resizeable )
 {
@@ -103,8 +140,19 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
-    /* get a GC */
-    wnd->gc = XCreateGC( wnd->dpy, wnd->wnd, 0, 0 );
+    /* create a pixmap for the window */
+    wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd, wnd->w, wnd->h, 24 );
+
+    wnd->gc = XCreateGC( wnd->dpy, wnd->pixmap, 0, 0 );
+
+    if( !wnd->pixmap || !wnd->gc )
+    {
+        sgui_window_destroy( wnd );
+        return NULL;
+    }
+
+    XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
+    XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
 
     /* store the remaining information */
     wnd->resizeable = resizeable;
@@ -118,12 +166,12 @@ void sgui_window_destroy( sgui_window* wnd )
 {
     if( wnd )
     {
-        if( wnd->event_fun )
-            wnd->event_fun( wnd, SGUI_API_DESTROY_EVENT, NULL );
+        send_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
-        if( wnd->gc  ) XFreeGC( wnd->dpy, wnd->gc );
-        if( wnd->wnd ) XDestroyWindow( wnd->dpy, wnd->wnd );
-        if( wnd->dpy ) XCloseDisplay( wnd->dpy );
+        if( wnd->pixmap ) XFreePixmap( wnd->dpy, wnd->pixmap );
+        if( wnd->gc     ) XFreeGC( wnd->dpy, wnd->gc );
+        if( wnd->wnd    ) XDestroyWindow( wnd->dpy, wnd->wnd );
+        if( wnd->dpy    ) XCloseDisplay( wnd->dpy );
 
         free( wnd->widgets );
         free( wnd );
@@ -144,8 +192,7 @@ void sgui_window_set_visible( sgui_window* wnd, int visible )
         {
             XUnmapWindow( wnd->dpy, wnd->wnd );
 
-            if( wnd->event_fun )
-                wnd->event_fun( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
+            send_event( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
         }
 
         XFlush( wnd->dpy );
@@ -171,6 +218,7 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     XSizeHints* hints;
     XWindowAttributes attr;
+    sgui_event se;
 
     if( !wnd || !width || !height )
         return;
@@ -217,7 +265,22 @@ void sgui_window_set_size( sgui_window* wnd,
         XFree( hints );
     }
 
+    /* recreate the pixmap */
+    XFreePixmap( wnd->dpy, wnd->pixmap );
+    wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd, wnd->w, wnd->h, 24 );
+
     XFlush( wnd->dpy );
+
+    XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
+    XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
+
+    /* redraw everything */
+    se.draw.x = 0;
+    se.draw.y = 0;
+    se.draw.w = wnd->w;
+    se.draw.h = wnd->h;
+
+    send_event( wnd, SGUI_DRAW_EVENT, &se );
 }
 
 void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
@@ -266,7 +329,7 @@ int sgui_window_update( sgui_window* wnd )
     XEvent e;
     char* atom;
     sgui_event se;
-    int st, x, y;
+    int x, y;
     unsigned int i, w, h;
 
     if( !wnd || !wnd->mapped )
@@ -282,7 +345,15 @@ int sgui_window_update( sgui_window* wnd )
             sgui_widget_get_position( wnd->widgets[i], &x, &y );
             sgui_widget_get_size( wnd->widgets[i], &w, &h );
 
-            sgui_window_force_redraw( wnd, x, y, w, h );
+            se.draw.x = x;
+            se.draw.y = y;
+            se.draw.w = w;
+            se.draw.h = h;
+
+            sgui_widget_send_window_event( wnd->widgets[i], wnd,
+                                           SGUI_DRAW_EVENT, &se );
+
+            force_redraw( wnd );
         }
     }
 
@@ -290,7 +361,6 @@ int sgui_window_update( sgui_window* wnd )
     while( XPending( wnd->dpy )>0 )
     {
         XNextEvent( wnd->dpy, &e );
-        st = -1;
 
         switch( e.type )
         {
@@ -300,12 +370,12 @@ int sgui_window_update( sgui_window* wnd )
                 e.type==ButtonPress )
             {
                 se.mouse_wheel.direction = (e.xbutton.button==Button4)?1:-1;
-                st = SGUI_MOUSE_WHEEL_EVENT;
+
+                send_event( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
             }
             else
             {
                 se.mouse_press.pressed = (e.type==ButtonPress);
-                st = SGUI_MOUSE_PRESS_EVENT;
 
                 if( e.xbutton.button == Button1 )
                     se.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
@@ -314,13 +384,16 @@ int sgui_window_update( sgui_window* wnd )
                 else if( e.xbutton.button == Button3 )
                     se.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
                 else
-                    st = -1;
+                    break;
+
+                send_event( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
             }
             break;
         case MotionNotify:
             se.mouse_move.x = e.xmotion.x<0 ? 0 : e.xmotion.x;
             se.mouse_move.y = e.xmotion.y<0 ? 0 : e.xmotion.y;
-            st = SGUI_MOUSE_MOVE_EVENT;
+
+            send_event( wnd, SGUI_MOUSE_MOVE_EVENT, &se );
             break;
         case ConfigureNotify:
             if( ((int)wnd->w)!=e.xconfigure.width ||
@@ -328,51 +401,46 @@ int sgui_window_update( sgui_window* wnd )
             {
                 se.size.new_width  = wnd->w;
                 se.size.new_height = wnd->h;
-                st = SGUI_SIZE_CHANGE_EVENT;
             }
 
             wnd->x = e.xconfigure.x;
             wnd->y = e.xconfigure.y;
             wnd->w = (unsigned int)e.xconfigure.width;
             wnd->h = (unsigned int)e.xconfigure.height;
+
+            /* resize the pixmap */
+            XFreePixmap( wnd->dpy, wnd->pixmap );
+            wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd,
+                                         wnd->w, wnd->h, 24 );
+
+            XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
+            XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
+
+            send_event( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
+
+            /* redraw everything */
+            se.draw.x = 0;
+            se.draw.y = 0;
+            se.draw.w = wnd->w;
+            se.draw.h = wnd->h;
+
+            send_event( wnd, SGUI_DRAW_EVENT, &se );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );
 
             if( *atom == *wmDeleteWindow )
-            {
                 wnd->mapped = 0;
-                st = SGUI_USER_CLOSED_EVENT;
-            }
 
             XFree( atom );
+
+            send_event( wnd, SGUI_USER_CLOSED_EVENT, NULL );
             break;
         case Expose:
-            st = SGUI_DRAW_EVENT;
-            se.draw.x = e.xexpose.x     <0 ? 0 : e.xexpose.x;
-            se.draw.y = e.xexpose.y     <0 ? 0 : e.xexpose.y;
-            se.draw.w = e.xexpose.width <0 ? 0 : (unsigned)e.xexpose.width;
-            se.draw.h = e.xexpose.height<0 ? 0 : (unsigned)e.xexpose.height;
-
-            for( i=0; i<wnd->num_widgets; ++i )
-            {
-                if( sgui_widget_intersects_area( wnd->widgets[i],
-                                                 se.draw.x, se.draw.y,
-                                                 se.draw.w, se.draw.h ) )
-                {
-                    sgui_widget_send_window_event( wnd->widgets[i], wnd,
-                                                   st, &se );
-                }
-            }
+            XCopyArea( wnd->dpy, wnd->pixmap, wnd->wnd, wnd->gc,
+                       0, 0, wnd->w, wnd->h, 0, 0 );
             break;
         };
-
-        if( wnd->event_fun && (st >= 0) )
-            wnd->event_fun( wnd, st, &se );
-
-        if( st >= 0 )
-            for( i=0; i<wnd->num_widgets; ++i )
-                sgui_widget_send_window_event(wnd->widgets[i], wnd, st, &se);
     }
 
     return wnd->mapped;
@@ -383,29 +451,6 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
     if( wnd )
         wnd->event_fun = fun;
 }
-
-void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
-                               unsigned int width, unsigned int height )
-{
-    XExposeEvent ev;
-
-    if( wnd )
-    {
-        ev.type       = Expose;
-        ev.serial     = 0;
-        ev.send_event = 1;
-        ev.display    = wnd->dpy;
-        ev.window     = wnd->wnd;
-        ev.x          = x;
-        ev.y          = y;
-        ev.width      = (int)width;
-        ev.height     = (int)height;
-        ev.count      = 0;
-
-        XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&ev );
-    }
-}
-
 
 
 
@@ -464,28 +509,19 @@ sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
                                         unsigned int height,
                                         unsigned char* data )
 {
-    sgui_pixmap* pixmap;
     unsigned char *buffer, *src, *dst;
     unsigned int x, y;
+    XImage* img;
 
     /* sanity check */
     if( !wnd || !width || !height || !data )
-        return NULL;
-
-    /* create pixmap structure */
-    pixmap = malloc( sizeof(sgui_pixmap) );
-
-    if( !pixmap )
         return NULL;
 
     /* create conversion buffer */
     buffer = malloc( width*height*4 );
 
     if( !buffer )
-    {
-        free( pixmap );
         return NULL;
-    }
 
     /* fill conversion buffer */
     for( src=data, dst=buffer, y=0; y<height; ++y )
@@ -499,30 +535,25 @@ sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
         }
     }
 
-    /* create and upload pixmap */
-    pixmap->image = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
-	                              (char*)buffer, width, height, 32, 0 );
+    /* create and return image */
+    img = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
+                        (char*)buffer, width, height, 32, 0 );
 
-    pixmap->width = width;
-    pixmap->height = height;
-
-    return pixmap;
+    return (sgui_pixmap*)img;
 }
 
 void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
                               int x, int y )
 {
     if( wnd && pixmap )
-        XPutImage( wnd->dpy, wnd->wnd, wnd->gc, pixmap->image, 0, 0,
-                   x, y, pixmap->width, pixmap->height );
+        XPutImage( wnd->dpy, wnd->pixmap, wnd->gc, (XImage*)pixmap, 0, 0,
+                   x, y, pixmap->image.width, pixmap->image.height );
 }
 
 void sgui_window_delete_pixmap( sgui_pixmap* pixmap )
 {
     if( pixmap )
-        XDestroyImage( pixmap->image );
-
-    free( pixmap );
+        XDestroyImage( (XImage*)pixmap );
 }
 
 

@@ -25,13 +25,13 @@
 #define XLIB_DRAW_COLOR( wnd, c ) XSetForeground( wnd->dpy, wnd->gc, c )
 
 #define XLIB_DRAW_LINE( wnd, x0, y0, x1, y1 ) \
-        XDrawLine( wnd->dpy, wnd->wnd, wnd->gc, x0, y0, x1, y1 )
+        XDrawLine( wnd->dpy, wnd->pixmap, wnd->gc, x0, y0, x1, y1 )
 
 #define XLIB_DRAW_POINT( wnd, x, y ) \
-        XDrawPoint( wnd->dpy, wnd->wnd, wnd->gc, x, y )
+        XDrawPoint( wnd->dpy, wnd->pixmap, wnd->gc, x, y )
 
 #define XLIB_FILL_RECT( wnd, x, y, w, h ) \
-        XFillRectangle( wnd->dpy, wnd->wnd, wnd->gc, x, y, w, h )
+        XFillRectangle( wnd->dpy, wnd->pixmap, wnd->gc, x, y, w, h )
 
 
 
@@ -41,6 +41,8 @@ struct sgui_window
     Window wnd;
     Atom wmDelete;
     GC gc;
+
+    Pixmap pixmap;
 
     int x, y;
     unsigned int w, h;
@@ -56,8 +58,7 @@ struct sgui_window
 
 struct sgui_pixmap
 {
-    unsigned int width, height;
-    XImage* image;
+    XImage image;
 };
 
 

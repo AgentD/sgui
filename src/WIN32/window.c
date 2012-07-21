@@ -44,6 +44,17 @@ struct sgui_pixmap
 
 
 
+void force_redraw( HWND hWnd, int x, int y,
+                   unsigned int width, unsigned int height )
+{
+    RECT r;
+
+    SetRect( &r, x, y, x + (int)width, y + (int)height );
+    InvalidateRect( hWnd, &r, TRUE );
+}
+
+
+
 LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 {
     sgui_window* wnd;
@@ -399,7 +410,7 @@ int sgui_window_update( sgui_window* wnd )
             sgui_widget_get_position( wnd->widgets[i], &x, &y );
             sgui_widget_get_size( wnd->widgets[i], &w, &h );
 
-            sgui_window_force_redraw( wnd, x, y, w, h );
+            force_redraw( wnd->hWnd, x, y, w, h );
         }
     }
 
@@ -417,22 +428,6 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
 {
     if( wnd )
         wnd->event_fun = fun;
-}
-
-void sgui_window_force_redraw( sgui_window* wnd, int x, int y,
-                               unsigned int width, unsigned int height )
-{
-    RECT r;
-
-    if( wnd )
-    {
-        r.left   = x;
-        r.top    = y;
-        r.right  = x + (int)width;
-        r.bottom = y + (int)height;
-
-        InvalidateRect( wnd->hWnd, &r, TRUE );
-    }
 }
 
 
