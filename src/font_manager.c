@@ -11,8 +11,8 @@ FT_Library freetype;
 
 struct sgui_font
 {
-	FT_Face face;
-	void* buffer;
+    FT_Face face;
+    void* buffer;
 };
 
 
@@ -88,15 +88,15 @@ sgui_font* sgui_font_load_from_file( const char* filename )
         return NULL;
 
     /* load font */
-	if( FT_New_Face( freetype, filename, 0, &font->face ) )
-	{
-		free( font );
-		return NULL;
-	}
+    if( FT_New_Face( freetype, filename, 0, &font->face ) )
+    {
+        free( font );
+        return NULL;
+    }
 
-	font->buffer = NULL;
+    font->buffer = NULL;
 
-	return font;
+    return font;
 }
 
 sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
@@ -104,8 +104,8 @@ sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
     sgui_font* font;
 
     /* sanity check */
-	if( !buffer || !buffersize )
-		return NULL;
+    if( !buffer || !buffersize )
+        return NULL;
 
     /* allocate font structure */
     font = malloc( sizeof(sgui_font) );
@@ -114,16 +114,16 @@ sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
         return NULL;
 
     /* load font */
-	if( FT_New_Memory_Face( freetype, buffer, buffersize, 0, &font->face ) )
-	{
-		free( font );
-		free( buffer );
-		return NULL;
-	}
+    if( FT_New_Memory_Face( freetype, buffer, buffersize, 0, &font->face ) )
+    {
+        free( font );
+        free( buffer );
+        return NULL;
+    }
 
-	font->buffer = buffer;
+    font->buffer = buffer;
 
-	return font;
+    return font;
 }
 
 void sgui_font_delete( sgui_font* font )
@@ -139,125 +139,125 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
                       int x, int y, unsigned int width, unsigned int height,
                       unsigned char* color )
 {
-	FT_UInt glyph_index = 0;
-	FT_UInt previous = 0;
-	int len = 0, X, Y, bearing;
-	FT_Bool useKerning;
-	unsigned long character;
-	unsigned char *src, *dst;
+    FT_UInt glyph_index = 0;
+    FT_UInt previous = 0;
+    int len = 0, X, Y, bearing;
+    FT_Bool useKerning;
+    unsigned long character;
+    unsigned char *src, *dst;
 
-	FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
+    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
 
-	useKerning = FT_HAS_KERNING( font_face->face ); 
+    useKerning = FT_HAS_KERNING( font_face->face ); 
 
-	for( ; (*text) && (*text!='\n'); text+=len )
-	{
-		if( *text == ' ' )
-		{
-			x += ((int)font_height/2);
-			continue;
-		}
+    for( ; (*text) && (*text!='\n'); text+=len )
+    {
+        if( *text == ' ' )
+        {
+            x += ((int)font_height/3);
+            continue;
+        }
 
         /* UTF8 -> UTF32 -> glyph index */
         character = to_utf32( text, &len );
 
-		glyph_index = FT_Get_Char_Index( font_face->face, character );
+        glyph_index = FT_Get_Char_Index( font_face->face, character );
 
         /* load and render glyph */
-		FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_FORCE_AUTOHINT );
-		FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
+        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
 
         /* apply kerning */
-		if( useKerning && previous && glyph_index )
-		{
-			FT_Vector delta;
-			FT_Get_Kerning( font_face->face, previous, glyph_index,
-			                FT_KERNING_DEFAULT, &delta );
-			x -= abs( delta.x ) >> 6;
-		} 
+        if( useKerning && previous && glyph_index )
+        {
+            FT_Vector delta;
+            FT_Get_Kerning( font_face->face, previous, glyph_index,
+                            FT_KERNING_DEFAULT, &delta );
+            x -= abs( delta.x ) >> 6;
+        } 
 
         /* blend onto destination buffer */
-		bearing = font_height - font_face->face->glyph->bitmap_top;
-	    src = font_face->face->glyph->bitmap.buffer;
+        bearing = font_height - font_face->face->glyph->bitmap_top;
+        src = font_face->face->glyph->bitmap.buffer;
 
-		for( Y=0; Y<font_face->face->glyph->bitmap.rows; ++Y )
-		{
-		    dst = buffer + ((y+Y+bearing)*width + x)*3;
+        for( Y=0; Y<font_face->face->glyph->bitmap.rows; ++Y )
+        {
+            dst = buffer + ((y+Y+bearing)*width + x)*3;
 
             if( ((y+Y+bearing) < 0) || ((y+Y+bearing) >= (int)height) )
                 continue;
 
             for( X=0; X<font_face->face->glyph->bitmap.width; ++X, ++src,
                                                               dst+=3 )
-			{
-				float value = (*src) / 255.0f;
+            {
+                float value = (*src) / 255.0f;
 
                 if( ((x+X) < 0) || ((x+X) >= (int)width) )
                     continue;
 
-				dst[0] = color[0]*value + dst[0]*(1.0f-value);
-				dst[1] = color[1]*value + dst[1]*(1.0f-value);
-				dst[2] = color[2]*value + dst[2]*(1.0f-value);
-			}
-		}
+                dst[0] = color[0]*value + dst[0]*(1.0f-value);
+                dst[1] = color[1]*value + dst[1]*(1.0f-value);
+                dst[2] = color[2]*value + dst[2]*(1.0f-value);
+            }
+        }
 
-        x += font_face->face->glyph->bitmap.width;
-		previous = glyph_index;
-	}
+        x += font_face->face->glyph->bitmap.width + 1;
+        previous = glyph_index;
+    }
 }
 
 unsigned int sgui_font_extents( const unsigned char* text,
                                 sgui_font* font_face,
                                 unsigned int height )
 {
-	unsigned int x = 0;
-	unsigned long character;
-	int len = 0;
-	FT_UInt glyph_index = 0;
-	FT_UInt previous = 0;
-	FT_Bool useKerning;
+    unsigned int x = 0;
+    unsigned long character;
+    int len = 0;
+    FT_UInt glyph_index = 0;
+    FT_UInt previous = 0;
+    FT_Bool useKerning;
 
     /* sanity check */
-	if( !text || !font_face || !height )
-		return 0;
+    if( !text || !font_face || !height )
+        return 0;
 
     /* set rendering pixel size */
-	FT_Set_Pixel_Sizes( font_face->face, 0, height );
+    FT_Set_Pixel_Sizes( font_face->face, 0, height );
 
-	useKerning = FT_HAS_KERNING( font_face->face ); 
+    useKerning = FT_HAS_KERNING( font_face->face );
 
-	for( ; (*text) && (*text!='\n'); text+=len )
-	{
-		if( *text == ' ' )
-		{
-			x += (height/2);
-			continue;
-		}
+    for( ; (*text) && (*text!='\n'); text+=len )
+    {
+        if( *text == ' ' )
+        {
+            x += (height/3);
+            continue;
+        }
 
-        /* UTF8->UTF32->glyph index */
+        /* UTF8 -> UTF32 -> glyph index */
         character = to_utf32( text, &len );
 
-		glyph_index = FT_Get_Char_Index( font_face->face, character );
+        glyph_index = FT_Get_Char_Index( font_face->face, character );
 
-	    /* load and render */
-		FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_FORCE_AUTOHINT );
-		FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
+        /* load and render */
+        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
 
         /* apply kerning */
-		if( useKerning && previous && glyph_index )
-		{
-			FT_Vector delta;
-			FT_Get_Kerning( font_face->face, previous, glyph_index,
-			                FT_KERNING_DEFAULT, &delta );
-			x -= (abs( delta.x ) >> 6);
-		} 
+        if( useKerning && previous && glyph_index )
+        {
+            FT_Vector delta;
+            FT_Get_Kerning( font_face->face, previous, glyph_index,
+                            FT_KERNING_DEFAULT, &delta );
+            x -= (abs( delta.x ) >> 6);
+        }
 
         /* advance */
-		x += font_face->face->glyph->bitmap.width + 1;
+        x += font_face->face->glyph->bitmap.width + 1;
 
-		previous = glyph_index;
-	}
+        previous = glyph_index;
+    }
 
-	return x;
+    return x;
 }
 

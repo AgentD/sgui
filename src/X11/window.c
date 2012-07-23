@@ -223,7 +223,7 @@ void sgui_window_set_size( sgui_window* wnd,
     if( !wnd || !width || !height )
         return;
 
-    /* Make the window resizeable */
+    /* adjust the fixed size for nonresizeable windows */
     if( !wnd->resizeable )
     {
         hints = XAllocSizeHints( );
@@ -231,45 +231,27 @@ void sgui_window_set_size( sgui_window* wnd,
         if( !hints )
             return;
 
-        hints->flags       = PSize | PMinSize | PMaxSize;
-        hints->min_width   = (int)MIN( wnd->w, width );
-        hints->min_height  = (int)MIN( wnd->h, height );
-        hints->base_width  = (int)width;
-        hints->base_height = (int)height;
-        hints->max_width   = (int)MAX( wnd->w, width );
-        hints->max_height  = (int)MAX( wnd->h, height );
-
-        XSetWMNormalHints( wnd->dpy, wnd->wnd, hints );
-    }
-
-    /* resize the window */
-    XResizeWindow( wnd->dpy, wnd->wnd, width, height );
-    wnd->w = width;
-    wnd->h = height;
-
-    /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( wnd->dpy, wnd->wnd, &attr );
-    width  = wnd->w = (unsigned int)attr.width;
-    height = wnd->h = (unsigned int)attr.height;
-
-    /* make the window non resizeable */
-    if( !wnd->resizeable )
-    {
-        hints->max_width  = (int)width;
-        hints->max_height = (int)height;
-        hints->min_width  = hints->base_width  = hints->max_width;
-        hints->min_height = hints->base_height = hints->max_height;
+        hints->flags = PSize | PMinSize | PMaxSize;
+        hints->min_width =hints->base_width =hints->max_width =(int)width;
+        hints->min_height=hints->base_height=hints->max_height=(int)height;
 
         XSetWMNormalHints( wnd->dpy, wnd->wnd, hints );
 
         XFree( hints );
     }
 
+    /* resize the window */
+    XResizeWindow( wnd->dpy, wnd->wnd, width, height );
+    XFlush( wnd->dpy );
+
+    /* get the real geometry as the window manager is free to change it */
+    XGetWindowAttributes( wnd->dpy, wnd->wnd, &attr );
+    wnd->w = (unsigned int)attr.width;
+    wnd->h = (unsigned int)attr.height;
+
     /* recreate the pixmap */
     XFreePixmap( wnd->dpy, wnd->pixmap );
     wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd, wnd->w, wnd->h, 24 );
-
-    XFlush( wnd->dpy );
 
     XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
     XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
@@ -399,9 +381,12 @@ int sgui_window_update( sgui_window* wnd )
             if( ((int)wnd->w)!=e.xconfigure.width ||
                 ((int)wnd->h)!=e.xconfigure.height )
             {
-                se.size.new_width  = wnd->w;
-                se.size.new_height = wnd->h;
+                se.size.new_width  = e.xconfigure.width;
+                se.size.new_height = e.xconfigure.height;
             }
+
+            if( !se.size.new_width || !se.size.new_height )
+                break;
 
             wnd->x = e.xconfigure.x;
             wnd->y = e.xconfigure.y;
