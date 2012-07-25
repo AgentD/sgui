@@ -62,7 +62,8 @@ struct sgui_window
 
 struct sgui_pixmap
 {
-    XImage image;
+    XImage* image;
+    Display* dpy;
 };
 
 

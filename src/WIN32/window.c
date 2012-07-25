@@ -1,49 +1,4 @@
-#include "sgui_window.h"
-#include "sgui_colors.h"
-#include "sgui_widget_manager.h"
-
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRA_LEAN
-#define NOMINMAX
-
-#include <windows.h>
-
-#include <stdlib.h>
-
-
-
-struct sgui_window
-{
-    HWND hWnd;
-    HINSTANCE hInstance;
-    HDC dc;
-    HBITMAP bitmap;
-    HBITMAP old_bitmap;
-
-    unsigned int w, h;
-
-    int visible;
-
-    sgui_widget_manager* mgr;
-    sgui_window_callback event_fun;
-};
-
-struct sgui_pixmap
-{
-    HBITMAP bitmap;
-    unsigned int width, height;
-};
-
-
-
-#define SGUI_COLORREF( c ) RGB( ((c>>16) & 0xFF), (((c)>>8) & 0xFF),\
-                                ((c) & 0xFF) )
-
-#define SEND_EVENT( wnd, event, e )\
-            if( wnd->event_fun )\
-                wnd->event_fun( wnd, event, e );\
-            sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
-
+#include "internal.h"
 
 
 
@@ -435,52 +390,6 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 }
 
 
-sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
-                                        unsigned int height,
-                                        unsigned char* data )
-{
-    unsigned int x, y;
-    unsigned char *buffer, *dst, *src;
-    sgui_pixmap* pixmap;
-    (void)wnd;
-
-    pixmap = malloc( sizeof(sgui_pixmap) );
-
-    if( !pixmap )
-        return NULL;
-
-    /* allocate conversion buffer */
-    buffer = malloc( width*height*4 );
-
-    if( !buffer )
-    {
-        free( pixmap );
-        return NULL;
-    }
-
-    /* convert data */
-    for( src = data, dst = buffer, y=0; y<height; ++y )
-    {
-        for( x=0; x<width; ++x, dst+=4, src+=3 )
-        {
-            dst[0] = src[2];
-            dst[1] = src[1];
-            dst[2] = src[0];
-            dst[3] = 0xFF;
-        }
-    }
-
-    /* create bitmap and upload data */
-    pixmap->bitmap = CreateBitmap( width, height, 1, 32, buffer );
-
-    pixmap->width = width;
-    pixmap->height = height;
-
-    /* cleanup */
-    free( buffer );
-
-    return pixmap;
-}
 
 void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
                               int x, int y )
@@ -496,16 +405,6 @@ void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
         DeleteDC( memdc );
     }
 }
-
-void sgui_window_delete_pixmap( sgui_pixmap* pixmap )
-{
-    if( pixmap )
-    {
-        DeleteObject( pixmap->bitmap );
-        free( pixmap );
-    }
-}
-
 
 void sgui_window_draw_box( sgui_window* wnd, int x, int y,
                            unsigned int width, unsigned int height,

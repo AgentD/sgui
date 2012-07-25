@@ -10,8 +10,8 @@ SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/font_manager.c
                       src/widget_manager.c"
 
 # Platform specific source code files
-SOURCE_X11="src/X11/window.c"
-SOURCE_WIN="src/WIN32/window.c"
+SOURCE_X11="src/X11/window.c src/X11/pixmap.c"
+SOURCE_WIN="src/WIN32/window.c src/WIN32/pixmap.c"
 
 # Platform specific libraries
 INCLUDE_X11="-I/usr/include -I/usr/include/freetype2"

@@ -276,6 +276,8 @@ int sgui_window_update( sgui_window* wnd )
     {
         XNextEvent( wnd->dpy, &e );
 
+        memset( &se, 0, sizeof(sgui_event) );
+
         switch( e.type )
         {
         case ButtonPress:
@@ -386,60 +388,13 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
-
-sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
-                                        unsigned int height,
-                                        unsigned char* data )
-{
-    unsigned char *buffer, *src, *dst;
-    unsigned int x, y;
-    XImage* img;
-
-    /* sanity check */
-    if( !wnd || !width || !height || !data )
-        return NULL;
-
-    /* create conversion buffer */
-    buffer = malloc( width*height*4 );
-
-    if( !buffer )
-        return NULL;
-
-    /* fill conversion buffer */
-    for( src=data, dst=buffer, y=0; y<height; ++y )
-    {
-        for( x=0; x<width; ++x, src+=3, dst+=4 )
-        {
-            dst[0] = src[2];
-            dst[1] = src[1];
-            dst[2] = src[0];
-            dst[3] = 0xFF;
-        }
-    }
-
-    /* create and return image */
-    img = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
-                        (char*)buffer, width, height, 32, 0 );
-
-    return (sgui_pixmap*)img;
-}
-
 void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
                               int x, int y )
 {
     if( wnd && pixmap )
-        XPutImage( wnd->dpy, wnd->pixmap, wnd->gc, (XImage*)pixmap, 0, 0,
-                   x, y, pixmap->image.width, pixmap->image.height );
+        XPutImage( wnd->dpy, wnd->pixmap, wnd->gc, pixmap->image, 0, 0,
+                   x, y, pixmap->image->width, pixmap->image->height );
 }
-
-void sgui_window_delete_pixmap( sgui_pixmap* pixmap )
-{
-    if( pixmap )
-        XDestroyImage( (XImage*)pixmap );
-}
-
-
-
 
 void sgui_window_draw_box( sgui_window* wnd, int x, int y,
                            unsigned int width, unsigned int height,

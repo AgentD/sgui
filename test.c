@@ -112,7 +112,7 @@ int main( void )
     sgui_font_delete( font );
 
 
-    pix = sgui_window_create_pixmap( a, 128, 128, image );
+    pix = sgui_pixmap_create( 128, 128, image );
 
     sgui_font_deinit( );
 
@@ -157,7 +157,7 @@ int main( void )
         }
     }
 
-    sgui_window_delete_pixmap( pix );
+    sgui_pixmap_delete( pix );
 
     sgui_progress_bar_delete( p0 );
     sgui_progress_bar_delete( p1 );
