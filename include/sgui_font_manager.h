@@ -77,11 +77,12 @@ void sgui_font_delete( sgui_font* font );
  * \param width       The width of the target buffer in texels
  * \param height      The height of the target buffer in texels
  * \param color       The 8 bit per channel RGB text color
+ * \param length      The number of characters to read from the text string.
  */
 void sgui_font_print( const unsigned char* text, sgui_font* font_face,
                       unsigned int font_height, unsigned char* buffer,
                       int x, int y, unsigned int width, unsigned int height,
-                      unsigned char* color );
+                      unsigned char* color, unsigned int length );
 
 /**
  * \brief Predict the length of a string in pixels for a given font
@@ -90,12 +91,13 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
  *                  Linefeed characters are treeted as the end of the string.
  * \param font_face The font face to use
  * \param height    The height of the text in texels
+ * \param length    The number of characters to read from the text string.
  *
  * \returns The horizontal length of the printed string in pixels
  */
 unsigned int sgui_font_extents( const unsigned char* text,
                                 sgui_font* font_face,
-                                unsigned int height );
+                                unsigned int height, unsigned int length );
 
 
 

@@ -104,10 +104,10 @@ int main( void )
     color[1] = 0xFF;
     color[2] = 0xFF;
 
-    len = sgui_font_extents( (const unsigned char*)"Test AV", font, 16 );
+    len = sgui_font_extents( (const unsigned char*)"Test AV", font, 16, 7 );
 
     sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
-                      64 - len/2, 64 - 8, 128, 128, color );
+                      64 - len/2, 64 - 8, 128, 128, color, 7 );
 
     sgui_font_delete( font );
 

@@ -137,7 +137,7 @@ void sgui_font_delete( sgui_font* font )
 void sgui_font_print( const unsigned char* text, sgui_font* font_face,
                       unsigned int font_height, unsigned char* buffer,
                       int x, int y, unsigned int width, unsigned int height,
-                      unsigned char* color )
+                      unsigned char* color, unsigned int length )
 {
     FT_UInt glyph_index = 0;
     FT_UInt previous = 0;
@@ -145,12 +145,13 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
     FT_Bool useKerning;
     unsigned long character;
     unsigned char *src, *dst;
+    unsigned int i;
 
     FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
 
     useKerning = FT_HAS_KERNING( font_face->face ); 
 
-    for( ; (*text) && (*text!='\n'); text+=len )
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, ++i )
     {
         if( *text == ' ' )
         {
@@ -208,7 +209,7 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
 
 unsigned int sgui_font_extents( const unsigned char* text,
                                 sgui_font* font_face,
-                                unsigned int height )
+                                unsigned int height, unsigned int length )
 {
     unsigned int x = 0;
     unsigned long character;
@@ -216,6 +217,7 @@ unsigned int sgui_font_extents( const unsigned char* text,
     FT_UInt glyph_index = 0;
     FT_UInt previous = 0;
     FT_Bool useKerning;
+    unsigned int i;
 
     /* sanity check */
     if( !text || !font_face || !height )
@@ -226,7 +228,7 @@ unsigned int sgui_font_extents( const unsigned char* text,
 
     useKerning = FT_HAS_KERNING( font_face->face );
 
-    for( ; (*text) && (*text!='\n'); text+=len )
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, ++i )
     {
         if( *text == ' ' )
         {
