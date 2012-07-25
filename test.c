@@ -116,6 +116,8 @@ int main( void )
 
     sgui_font_deinit( );
 
+    sgui_window_draw_pixmap( a, pix, 10, 100 );
+
     /* widget test */
     p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
     p1 = sgui_progress_bar_create( 10, 45, 300, 30, 0.5f );

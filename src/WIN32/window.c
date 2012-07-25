@@ -18,8 +18,10 @@ struct sgui_window
     HWND hWnd;
     HINSTANCE hInstance;
     HDC dc;
+    HBITMAP bitmap;
+    HBITMAP old_bitmap;
 
-    HBRUSH bgcolor;
+    unsigned int w, h;
 
     int visible;
 
@@ -44,6 +46,17 @@ struct sgui_pixmap
 
 
 
+void send_event( sgui_window* wnd, int event, sgui_event* e )
+{
+    unsigned int i;
+
+    if( wnd->event_fun )
+        wnd->event_fun( wnd, event, e );
+
+    for( i=0; i<wnd->num_widgets; ++i )
+        sgui_widget_send_window_event( wnd->widgets[i], wnd, event, e );
+}
+
 void force_redraw( HWND hWnd, int x, int y,
                    unsigned int width, unsigned int height )
 {
@@ -59,10 +72,8 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 {
     sgui_window* wnd;
     sgui_event e;
-    int type = -1;
-    RECT r;
     PAINTSTRUCT ps;
-    unsigned int i;
+    HDC hDC;
 
     wnd = (sgui_window*)GetWindowLong( hWnd, GWL_USERDATA );
 
@@ -72,101 +83,86 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         {
         case WM_DESTROY:
             wnd->visible = 0;
-
-            type = SGUI_USER_CLOSED_EVENT;
+            send_event( wnd, SGUI_USER_CLOSED_EVENT, NULL );
             break;
         case WM_MOUSEMOVE:
             e.mouse_move.x = GET_X_LPARAM( lp );
             e.mouse_move.y = GET_Y_LPARAM( lp );
-
-            type = SGUI_MOUSE_MOVE_EVENT;
+            send_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
             break;
         case WM_MOUSEWHEEL:
             e.mouse_wheel.direction = GET_WHEEL_DELTA_WPARAM( wp )/120;
-
-            type = SGUI_MOUSE_WHEEL_EVENT;
+            send_event( wnd, SGUI_MOUSE_WHEEL_EVENT, &e );
             break;
         case WM_LBUTTONDOWN:
             e.mouse_press.pressed = 1;
             e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-
-            type = SGUI_MOUSE_PRESS_EVENT;
+            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
             break;
         case WM_LBUTTONUP:
             e.mouse_press.pressed = 0;
             e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-
-            type = SGUI_MOUSE_PRESS_EVENT;
+            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
             break;
         case WM_MBUTTONDOWN:
             e.mouse_press.pressed = 1;
             e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-
-            type = SGUI_MOUSE_PRESS_EVENT;
+            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
             break;
         case WM_MBUTTONUP:
             e.mouse_press.pressed = 0;
             e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-
-            type = SGUI_MOUSE_PRESS_EVENT;
+            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
             break;
         case WM_RBUTTONDOWN:
             e.mouse_press.pressed = 1;
             e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-
-            type = SGUI_MOUSE_PRESS_EVENT;
+            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
             break;
         case WM_RBUTTONUP:
             e.mouse_press.pressed = 0;
             e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-
-            type = SGUI_MOUSE_PRESS_EVENT;
+            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
             break;
         case WM_SIZE:
-            e.size.new_width  = LOWORD( lp );
-            e.size.new_height = HIWORD( lp );
+            wnd->w = LOWORD( lp );
+            wnd->h = HIWORD( lp );
 
-            type = SGUI_SIZE_CHANGE_EVENT;
+            /* resize the double buffering context/bitmap */
+            SelectObject( wnd->dc, wnd->old_bitmap );
+            DeleteObject( wnd->bitmap );
+            DeleteDC( wnd->dc );
+
+            wnd->dc = CreateCompatibleDC( NULL );
+            wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+            wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
+
+            sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h,
+                                  SGUI_WINDOW_COLOR, 0 );
+
+            /* send size change event */
+            e.size.new_width  = wnd->w;
+            e.size.new_height = wnd->h;
+
+            send_event( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
+
+            /* redraw everything */
+            e.draw.x = 0;
+            e.draw.y = 0;
+            e.draw.w = wnd->w;
+            e.draw.h = wnd->h;
+
+            send_event( wnd, SGUI_DRAW_EVENT, &e );
             break;
         case WM_PAINT:
-            if( GetUpdateRect( hWnd, &r, TRUE ) )
-            {
-                e.draw.x = r.left;
-                e.draw.y = r.top;
-                e.draw.w = r.right  - r.left;
-                e.draw.h = r.bottom - r.top;
+            hDC = BeginPaint( hWnd, &ps );
 
-                wnd->dc = BeginPaint( hWnd, &ps );
+            BitBlt( hDC, 0, 0, wnd->w, wnd->h, wnd->dc, 0, 0, SRCCOPY );
 
-                for( i=0; i<wnd->num_widgets; ++i )
-                {
-                    if( sgui_widget_intersects_area( wnd->widgets[i],
-                                                     e.draw.x, e.draw.y,
-                                                     e.draw.w, e.draw.h ) )
-                    {
-                        sgui_widget_send_window_event( wnd->widgets[i], wnd,
-                                                       SGUI_DRAW_EVENT, &e );
-                    }
-                }
-
-                if( wnd->event_fun )
-                    wnd->event_fun( wnd, SGUI_DRAW_EVENT, &e );
-
-                EndPaint( hWnd, &ps );
-
-                wnd->dc = 0;
-            }
+            EndPaint( hWnd, &ps );
+            break;
         default:
             return DefWindowProc( hWnd, msg, wp, lp );
-        }
-
-        if( (type >= 0) && wnd->event_fun )
-            wnd->event_fun( wnd, type, &e );
-
-        if( (type >= 0) )
-        {
-            for( i=0; i<wnd->num_widgets; ++i )
-               sgui_widget_send_window_event(wnd->widgets[i], wnd, type, &e);
         }
 
         return 0;
@@ -214,7 +210,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     /* */
     wnd->hInstance = GetModuleHandle( NULL );
-    wnd->bgcolor = CreateSolidBrush( SGUI_COLORREF( SGUI_WINDOW_COLOR ) );
 
     classname = MAKEINTRESOURCE( (WORD)wnd );
 
@@ -228,9 +223,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     memset( &wc, 0, sizeof(WNDCLASSEX) );
 
     wc.cbSize        = sizeof(WNDCLASSEX);
+    wc.style         = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc   = WindowProcFun;
     wc.hInstance     = wnd->hInstance;
-    wc.hbrBackground = wnd->bgcolor;
     wc.lpszClassName = classname;
     wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
 
@@ -253,6 +248,16 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     SetWindowLong( wnd->hWnd, GWL_USERDATA, (LONG)wnd );
 
+    wnd->w = width;
+    wnd->h = height;
+
+    /* create double buffering context/bitmap */
+    wnd->dc = CreateCompatibleDC(NULL);
+    wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+    wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
+
+    sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h, SGUI_WINDOW_COLOR, 0 );
+
     return wnd;
 }
 
@@ -265,6 +270,13 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->event_fun )
             wnd->event_fun( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
+        if( wnd->dc )
+        {
+            SelectObject( wnd->dc, wnd->old_bitmap );
+            DeleteObject( wnd->bitmap );
+            DeleteDC( wnd->dc );
+        }
+
         if( wnd->hWnd )
         {
             DestroyWindow( wnd->hWnd );
@@ -272,9 +284,6 @@ void sgui_window_destroy( sgui_window* wnd )
         }
 
         UnregisterClass( MAKEINTRESOURCE( (WORD)wnd ), wnd->hInstance );
-
-        if( wnd->bgcolor )
-            DeleteObject( wnd->bgcolor );
 
         free( wnd->widgets );
         free( wnd );
@@ -309,6 +318,7 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
+    sgui_event e;
 
     if( wnd )
     {
@@ -321,20 +331,39 @@ void sgui_window_set_size( sgui_window* wnd,
 
         MoveWindow( wnd->hWnd, rcWindow.left, rcWindow.top,
                     (int)width + ptDiff.x, (int)height + ptDiff.y, TRUE );
+
+        wnd->w = width;
+        wnd->h = height;
+
+        /* resize the double buffering context/bitmap */
+        SelectObject( wnd->dc, wnd->old_bitmap );
+        DeleteObject( wnd->bitmap );
+        DeleteDC( wnd->dc );
+
+        wnd->dc = CreateCompatibleDC( NULL );
+        wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+        wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
+
+        sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h,
+                              SGUI_WINDOW_COLOR, 0 );
+
+        /* redraw everything */
+        e.draw.x = 0;
+        e.draw.y = 0;
+        e.draw.w = wnd->w;
+        e.draw.h = wnd->h;
+
+        send_event( wnd, SGUI_DRAW_EVENT, &e );
     }
 }
 
 void sgui_window_get_size( sgui_window* wnd,
                            unsigned int* width, unsigned int* height )
 {
-    RECT r;
-
     if( wnd )
     {
-        GetClientRect( wnd->hWnd, &r );
-
-        if( width  ) *width  = r.right  - r.left;
-        if( height ) *height = r.bottom - r.top;
+        if( width  ) *width  = wnd->w;
+        if( height ) *height = wnd->h;
     }
 }
 
@@ -396,6 +425,7 @@ int sgui_window_update( sgui_window* wnd )
     MSG msg;
     int x, y;
     unsigned int i, w, h;
+    sgui_event e;
 
     if( !wnd || !wnd->visible )
         return 0;
@@ -409,6 +439,14 @@ int sgui_window_update( sgui_window* wnd )
         {
             sgui_widget_get_position( wnd->widgets[i], &x, &y );
             sgui_widget_get_size( wnd->widgets[i], &w, &h );
+
+            e.draw.x = x;
+            e.draw.y = y;
+            e.draw.w = w;
+            e.draw.h = h;
+
+            sgui_widget_send_window_event( wnd->widgets[i], wnd,
+                                           SGUI_DRAW_EVENT, &e );
 
             force_redraw( wnd->hWnd, x, y, w, h );
         }
@@ -534,14 +572,13 @@ void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
 {
     if( pixmap && wnd )
     {
-        HDC hMemDC = CreateCompatibleDC( wnd->dc );
-
-        SelectObject( hMemDC, pixmap->bitmap );
+        HDC memdc = CreateCompatibleDC( wnd->dc );
+        SelectObject( memdc, pixmap->bitmap );
 
         BitBlt( wnd->dc, x, y, pixmap->width, pixmap->height,
-                hMemDC, 0, 0, SRCCOPY );
+                memdc, 0, 0, SRCCOPY );
 
-        DeleteDC( hMemDC );
+        DeleteDC( memdc );
     }
 }
 
