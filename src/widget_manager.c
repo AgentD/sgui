@@ -7,6 +7,7 @@
 
 struct sgui_widget_manager
 {
+    sgui_widget*  mouse_over;
     sgui_widget** widgets;
     unsigned int num_widgets;
     unsigned int widgets_avail;
@@ -22,6 +23,7 @@ sgui_widget_manager* sgui_widget_manager_create( void )
         return NULL;
 
     mgr->widgets       = malloc( sizeof(sgui_widget*)*10 );
+    mgr->mouse_over    = NULL;
     mgr->num_widgets   = 0;
     mgr->widgets_avail = 10;
 
@@ -126,6 +128,44 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
 
     if( mgr )
     {
+        if( event == SGUI_MOUSE_MOVE_EVENT )
+        {
+            /* find the widget under the mouse cursor */
+            sgui_widget* new_mouse_over = NULL;
+
+            for( i=0; i<mgr->num_widgets; ++i )
+            {
+                if( sgui_widget_is_point_inside( mgr->widgets[i],
+                                                 e->mouse_move.x,
+                                                 e->mouse_move.y ) )
+                {
+                    new_mouse_over = mgr->widgets[i];
+                    break;
+                }
+            }
+
+            /* old widget under cursor != new widget under cursor */
+            if( mgr->mouse_over != new_mouse_over )
+            {
+                if( new_mouse_over )
+                {
+                    sgui_widget_send_window_event( new_mouse_over, wnd,
+                                                   SGUI_MOUSE_ENTER_EVENT,
+                                                   NULL );
+                }
+
+                if( mgr->mouse_over )
+                {
+                    sgui_widget_send_window_event( mgr->mouse_over, wnd,
+                                                   SGUI_MOUSE_LEAVE_EVENT,
+                                                   NULL );
+                }
+
+                mgr->mouse_over = new_mouse_over;
+            }
+        }
+
+        /* propagate the event */
         for( i=0; i<mgr->num_widgets; ++i )
             sgui_widget_send_window_event( mgr->widgets[i], wnd, event, e );
     }

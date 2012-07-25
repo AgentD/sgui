@@ -55,6 +55,10 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 /**
  * \brief Send an event to all widgets held by a widget manager
  *
+ * The widget manager automatically generates mouse enter and mouse leave
+ * events for the widgets that the mouse cursor crosses, using mouse move
+ * events, passed to this function.
+ *
  * \param mgr   The widget manager
  * \param wnd   The window sending the event
  * \param event The event type to send
