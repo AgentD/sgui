@@ -1,63 +1,23 @@
 #include "internal.h"
-#include "sgui_widget.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 
-
 const char* wmDeleteWindow = "WM_DELETE_WINDOW";
-
-
-
-
-
-void send_event( sgui_window* wnd, int event, sgui_event* e )
-{
-    unsigned int i;
-
-    if( wnd->event_fun )
-        wnd->event_fun( wnd, event, e );
-
-    for( i=0; i<wnd->num_widgets; ++i )
-        sgui_widget_send_window_event( wnd->widgets[i], wnd, event, e );
-}
-
-void force_redraw( sgui_window* wnd )
-{
-    XExposeEvent ev;
-
-    if( wnd )
-    {
-        ev.type       = Expose;
-        ev.serial     = 0;
-        ev.send_event = 1;
-        ev.display    = wnd->dpy;
-        ev.window     = wnd->wnd;
-        ev.x          = 0;
-        ev.y          = 0;
-        ev.width      = (int)wnd->w;
-        ev.height     = (int)wnd->h;
-        ev.count      = 0;
-
-        XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&ev );
-    }
-}
-
-
 
 
 sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                  int resizeable )
 {
     sgui_window* wnd;
-    XSizeHints* hints;
+    XSizeHints hints;
     XWindowAttributes attr;
 
     if( !width || !height )
         return NULL;
 
-    /* try to allocate space for the window structure */
+    /* allocate space for the window structure */
     wnd = malloc( sizeof(sgui_window) );
 
     if( !wnd )
@@ -65,20 +25,16 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     memset( wnd, 0, sizeof(sgui_window) );
 
-    /* try to allocate space for the widget array */
-    wnd->widgets       = malloc( sizeof(sgui_widget*)*10 );
-    wnd->num_widgets   = 0;
-    wnd->widgets_avail = 10;
+    /* create a widget manager */
+    wnd->mgr = sgui_widget_manager_create( );
 
-    if( !wnd->widgets )
+    if( !wnd->mgr )
     {
         free( wnd );
         return NULL;
     }
 
-    memset( wnd->widgets, 0, sizeof(sgui_widget*)*10 );
-
-    /* try to connect to the X server */
+    /* connect to the X server */
     wnd->dpy = XOpenDisplay( 0 );
 
     if( !wnd->dpy )
@@ -87,7 +43,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    /* try to create the window */
+    /* create the window */
     wnd->wnd = XCreateSimpleWindow( wnd->dpy, DefaultRootWindow(wnd->dpy),
                                     0, 0, width, height, 0,
                                     SGUI_WINDOW_COLOR, SGUI_WINDOW_COLOR );
@@ -101,27 +57,15 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     /* make the window non resizeable if required */
     if( !resizeable )
     {
-        hints = XAllocSizeHints( );
+        hints.flags      = PSize | PMinSize | PMaxSize;
+        hints.min_width  = hints.max_width  = hints.base_width  = (int)width;
+        hints.min_height = hints.max_height = hints.base_height = (int)height;
 
-        if( !hints )
-        {
-            sgui_window_destroy( wnd );
-            return NULL;
-        }
-
-        hints->flags       = PSize | PMinSize | PMaxSize;
-        hints->base_width  = (int)width;
-        hints->base_height = (int)height;
-        hints->min_width   = hints->max_width  = hints->base_width;
-        hints->min_height  = hints->max_height = hints->base_height;
-
-        XSetWMNormalHints( wnd->dpy, wnd->wnd, hints );
-        XFree( hints );
+        XSetWMNormalHints( wnd->dpy, wnd->wnd, &hints );
     }
 
     /* tell X11 what events we will handle */
-    XSelectInput( wnd->dpy, wnd->wnd, ExposureMask |
-                                      StructureNotifyMask |
+    XSelectInput( wnd->dpy, wnd->wnd, ExposureMask | StructureNotifyMask |
                                       SubstructureNotifyMask |
                                       KeyPressMask | KeyReleaseMask |
                                       PointerMotionMask |
@@ -166,14 +110,15 @@ void sgui_window_destroy( sgui_window* wnd )
 {
     if( wnd )
     {
-        send_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
+        SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
         if( wnd->pixmap ) XFreePixmap( wnd->dpy, wnd->pixmap );
         if( wnd->gc     ) XFreeGC( wnd->dpy, wnd->gc );
         if( wnd->wnd    ) XDestroyWindow( wnd->dpy, wnd->wnd );
         if( wnd->dpy    ) XCloseDisplay( wnd->dpy );
 
-        free( wnd->widgets );
+        sgui_widget_manager_destroy( wnd->mgr );
+
         free( wnd );
     }
 }
@@ -192,7 +137,7 @@ void sgui_window_set_visible( sgui_window* wnd, int visible )
         {
             XUnmapWindow( wnd->dpy, wnd->wnd );
 
-            send_event( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
+            SEND_EVENT( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
         }
 
         XFlush( wnd->dpy );
@@ -216,7 +161,7 @@ void sgui_window_set_title( sgui_window* wnd, const char* title )
 void sgui_window_set_size( sgui_window* wnd,
                            unsigned int width, unsigned int height )
 {
-    XSizeHints* hints;
+    XSizeHints hints;
     XWindowAttributes attr;
     sgui_event se;
 
@@ -226,18 +171,11 @@ void sgui_window_set_size( sgui_window* wnd,
     /* adjust the fixed size for nonresizeable windows */
     if( !wnd->resizeable )
     {
-        hints = XAllocSizeHints( );
+        hints.flags = PSize | PMinSize | PMaxSize;
+        hints.min_width  = hints.base_width  = hints.max_width  = (int)width;
+        hints.min_height = hints.base_height = hints.max_height = (int)height;
 
-        if( !hints )
-            return;
-
-        hints->flags = PSize | PMinSize | PMaxSize;
-        hints->min_width =hints->base_width =hints->max_width =(int)width;
-        hints->min_height=hints->base_height=hints->max_height=(int)height;
-
-        XSetWMNormalHints( wnd->dpy, wnd->wnd, hints );
-
-        XFree( hints );
+        XSetWMNormalHints( wnd->dpy, wnd->wnd, &hints );
     }
 
     /* resize the window */
@@ -262,7 +200,7 @@ void sgui_window_set_size( sgui_window* wnd,
     se.draw.w = wnd->w;
     se.draw.h = wnd->h;
 
-    send_event( wnd, SGUI_DRAW_EVENT, &se );
+    SEND_EVENT( wnd, SGUI_DRAW_EVENT, &se );
 }
 
 void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
@@ -311,32 +249,26 @@ int sgui_window_update( sgui_window* wnd )
     XEvent e;
     char* atom;
     sgui_event se;
-    int x, y;
-    unsigned int i, w, h;
+    XExposeEvent exp;
 
     if( !wnd || !wnd->mapped )
         return 0;
 
-    /* update the widgets */
-    for( i=0; i<wnd->num_widgets; ++i )
+    /* update the widgets, redraw window if there was any change */
+    if( sgui_widget_manager_update( wnd->mgr, wnd ) )
     {
-        sgui_widget_update( wnd->widgets[i] );
+        exp.type       = Expose;
+        exp.serial     = 0;
+        exp.send_event = 1;
+        exp.display    = wnd->dpy;
+        exp.window     = wnd->wnd;
+        exp.x          = 0;
+        exp.y          = 0;
+        exp.width      = (int)wnd->w;
+        exp.height     = (int)wnd->h;
+        exp.count      = 0;
 
-        if( sgui_widget_need_redraw( wnd->widgets[i] ) )
-        {
-            sgui_widget_get_position( wnd->widgets[i], &x, &y );
-            sgui_widget_get_size( wnd->widgets[i], &w, &h );
-
-            se.draw.x = x;
-            se.draw.y = y;
-            se.draw.w = w;
-            se.draw.h = h;
-
-            sgui_widget_send_window_event( wnd->widgets[i], wnd,
-                                           SGUI_DRAW_EVENT, &se );
-
-            force_redraw( wnd );
-        }
+        XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
     }
 
     /* message loop */
@@ -353,7 +285,7 @@ int sgui_window_update( sgui_window* wnd )
             {
                 se.mouse_wheel.direction = (e.xbutton.button==Button4)?1:-1;
 
-                send_event( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
+                SEND_EVENT( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
             }
             else
             {
@@ -368,14 +300,14 @@ int sgui_window_update( sgui_window* wnd )
                 else
                     break;
 
-                send_event( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
+                SEND_EVENT( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
             }
             break;
         case MotionNotify:
             se.mouse_move.x = e.xmotion.x<0 ? 0 : e.xmotion.x;
             se.mouse_move.y = e.xmotion.y<0 ? 0 : e.xmotion.y;
 
-            send_event( wnd, SGUI_MOUSE_MOVE_EVENT, &se );
+            SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &se );
             break;
         case ConfigureNotify:
             if( ((int)wnd->w)!=e.xconfigure.width ||
@@ -401,7 +333,7 @@ int sgui_window_update( sgui_window* wnd )
             XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
             XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
 
-            send_event( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
+            SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
             se.draw.x = 0;
@@ -409,7 +341,7 @@ int sgui_window_update( sgui_window* wnd )
             se.draw.w = wnd->w;
             se.draw.h = wnd->h;
 
-            send_event( wnd, SGUI_DRAW_EVENT, &se );
+            SEND_EVENT( wnd, SGUI_DRAW_EVENT, &se );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );
@@ -419,7 +351,7 @@ int sgui_window_update( sgui_window* wnd )
 
             XFree( atom );
 
-            send_event( wnd, SGUI_USER_CLOSED_EVENT, NULL );
+            SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
             break;
         case Expose:
             XCopyArea( wnd->dpy, wnd->pixmap, wnd->wnd, wnd->gc,
@@ -441,49 +373,14 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
 
 void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
-    sgui_widget** nw;
-
-    if( !wnd )
-        return;
-
-    /* try to resize widget array if required */
-    if( wnd->num_widgets == wnd->widgets_avail )
-    {
-        wnd->widgets_avail += 10;
-
-        nw = realloc( wnd->widgets, wnd->widgets_avail*sizeof(sgui_widget*) );
-
-        if( !nw )
-        {
-            wnd->widgets_avail -= 10;
-            return;
-        }
-
-        wnd->widgets = nw;
-    }
-
-    /* add widget */
-    wnd->widgets[ wnd->num_widgets++ ] = widget;
+    if( wnd )
+        sgui_widget_manager_add_widget( wnd->mgr, widget );
 }
 
 void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 {
-    unsigned int i;
-
-    if( !wnd )
-        return;
-
-    for( i=0; i<wnd->num_widgets; ++i )
-    {
-        if( wnd->widgets[ i ] == widget )
-        {
-            for( ; i<(wnd->num_widgets-1); ++i )
-                wnd->widgets[ i ] = wnd->widgets[ i+1 ];
-
-            --wnd->num_widgets;
-            break;
-        }
-    }
+    if( wnd )
+        sgui_widget_manager_remove_widget( wnd->mgr, widget );
 }
 
 

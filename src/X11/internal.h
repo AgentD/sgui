@@ -5,6 +5,7 @@
 
 #include "sgui_window.h"
 #include "sgui_colors.h"
+#include "sgui_widget_manager.h"
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -33,6 +34,11 @@
 #define XLIB_FILL_RECT( wnd, x, y, w, h ) \
         XFillRectangle( wnd->dpy, wnd->pixmap, wnd->gc, x, y, w, h )
 
+#define SEND_EVENT( wnd, event, e )\
+        if( wnd->event_fun )\
+            wnd->event_fun( wnd, event, e );\
+        sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
+
 
 
 struct sgui_window
@@ -44,14 +50,12 @@ struct sgui_window
 
     Pixmap pixmap;
 
+    sgui_widget_manager* mgr;
+
     int x, y;
     unsigned int w, h;
     int resizeable;
     int mapped;
-
-    sgui_widget** widgets;
-    unsigned int num_widgets;
-    unsigned int widgets_avail;
 
     sgui_window_callback event_fun;
 };

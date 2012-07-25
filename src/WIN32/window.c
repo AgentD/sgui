@@ -1,13 +1,12 @@
 #include "sgui_window.h"
 #include "sgui_colors.h"
-#include "sgui_widget.h"
+#include "sgui_widget_manager.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRA_LEAN
 #define NOMINMAX
 
 #include <windows.h>
-#include <windowsx.h>
 
 #include <stdlib.h>
 
@@ -25,10 +24,7 @@ struct sgui_window
 
     int visible;
 
-    sgui_widget** widgets;
-    unsigned int num_widgets;
-    unsigned int widgets_avail;
-
+    sgui_widget_manager* mgr;
     sgui_window_callback event_fun;
 };
 
@@ -43,28 +39,11 @@ struct sgui_pixmap
 #define SGUI_COLORREF( c ) RGB( ((c>>16) & 0xFF), (((c)>>8) & 0xFF),\
                                 ((c) & 0xFF) )
 
+#define SEND_EVENT( wnd, event, e )\
+            if( wnd->event_fun )\
+                wnd->event_fun( wnd, event, e );\
+            sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
 
-
-
-void send_event( sgui_window* wnd, int event, sgui_event* e )
-{
-    unsigned int i;
-
-    if( wnd->event_fun )
-        wnd->event_fun( wnd, event, e );
-
-    for( i=0; i<wnd->num_widgets; ++i )
-        sgui_widget_send_window_event( wnd->widgets[i], wnd, event, e );
-}
-
-void force_redraw( HWND hWnd, int x, int y,
-                   unsigned int width, unsigned int height )
-{
-    RECT r;
-
-    SetRect( &r, x, y, x + (int)width, y + (int)height );
-    InvalidateRect( hWnd, &r, TRUE );
-}
 
 
 
@@ -77,98 +56,96 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
     wnd = (sgui_window*)GetWindowLong( hWnd, GWL_USERDATA );
 
-    if( wnd )
+    if( !wnd )
+        return DefWindowProc( hWnd, msg, wp, lp );
+
+    switch( msg )
     {
-        switch( msg )
-        {
-        case WM_DESTROY:
-            wnd->visible = 0;
-            send_event( wnd, SGUI_USER_CLOSED_EVENT, NULL );
-            break;
-        case WM_MOUSEMOVE:
-            e.mouse_move.x = GET_X_LPARAM( lp );
-            e.mouse_move.y = GET_Y_LPARAM( lp );
-            send_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
-            break;
-        case WM_MOUSEWHEEL:
-            e.mouse_wheel.direction = GET_WHEEL_DELTA_WPARAM( wp )/120;
-            send_event( wnd, SGUI_MOUSE_WHEEL_EVENT, &e );
-            break;
-        case WM_LBUTTONDOWN:
-            e.mouse_press.pressed = 1;
-            e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
-            break;
-        case WM_LBUTTONUP:
-            e.mouse_press.pressed = 0;
-            e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
-            break;
-        case WM_MBUTTONDOWN:
-            e.mouse_press.pressed = 1;
-            e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
-            break;
-        case WM_MBUTTONUP:
-            e.mouse_press.pressed = 0;
-            e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
-            break;
-        case WM_RBUTTONDOWN:
-            e.mouse_press.pressed = 1;
-            e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
-            break;
-        case WM_RBUTTONUP:
-            e.mouse_press.pressed = 0;
-            e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-            send_event( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
-            break;
-        case WM_SIZE:
-            wnd->w = LOWORD( lp );
-            wnd->h = HIWORD( lp );
+    case WM_DESTROY:
+        wnd->visible = 0;
+        SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
+        break;
+    case WM_MOUSEMOVE:
+        e.mouse_move.x = LOWORD( lp );
+        e.mouse_move.y = HIWORD( lp );
+        SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+        break;
+    case WM_MOUSEWHEEL:
+        e.mouse_wheel.direction = GET_WHEEL_DELTA_WPARAM( wp )/120;
+        SEND_EVENT( wnd, SGUI_MOUSE_WHEEL_EVENT, &e );
+        break;
+    case WM_LBUTTONDOWN:
+        e.mouse_press.pressed = 1;
+        e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
+        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_LBUTTONUP:
+        e.mouse_press.pressed = 0;
+        e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
+        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_MBUTTONDOWN:
+        e.mouse_press.pressed = 1;
+        e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
+        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_MBUTTONUP:
+        e.mouse_press.pressed = 0;
+        e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
+        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_RBUTTONDOWN:
+        e.mouse_press.pressed = 1;
+        e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_RBUTTONUP:
+        e.mouse_press.pressed = 0;
+        e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_SIZE:
+        wnd->w = LOWORD( lp );
+        wnd->h = HIWORD( lp );
 
-            /* resize the double buffering context/bitmap */
-            SelectObject( wnd->dc, wnd->old_bitmap );
-            DeleteObject( wnd->bitmap );
-            DeleteDC( wnd->dc );
+        /* resize the double buffering context/bitmap */
+        SelectObject( wnd->dc, wnd->old_bitmap );
+        DeleteObject( wnd->bitmap );
+        DeleteDC( wnd->dc );
 
-            wnd->dc = CreateCompatibleDC( NULL );
-            wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
-            wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
+        wnd->dc = CreateCompatibleDC( NULL );
+        wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+        wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-            sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h,
-                                  SGUI_WINDOW_COLOR, 0 );
+        sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h,
+                              SGUI_WINDOW_COLOR, 0 );
 
-            /* send size change event */
-            e.size.new_width  = wnd->w;
-            e.size.new_height = wnd->h;
+        /* send size change event */
+        e.size.new_width  = wnd->w;
+        e.size.new_height = wnd->h;
 
-            send_event( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
+        SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
 
-            /* redraw everything */
-            e.draw.x = 0;
-            e.draw.y = 0;
-            e.draw.w = wnd->w;
-            e.draw.h = wnd->h;
+        /* redraw everything */
+        e.draw.x = 0;
+        e.draw.y = 0;
+        e.draw.w = wnd->w;
+        e.draw.h = wnd->h;
 
-            send_event( wnd, SGUI_DRAW_EVENT, &e );
-            break;
-        case WM_PAINT:
-            hDC = BeginPaint( hWnd, &ps );
+        SEND_EVENT( wnd, SGUI_DRAW_EVENT, &e );
+        break;
+    case WM_PAINT:
+        hDC = BeginPaint( hWnd, &ps );
 
-            BitBlt( hDC, 0, 0, wnd->w, wnd->h, wnd->dc, 0, 0, SRCCOPY );
+        BitBlt( hDC, 0, 0, wnd->w, wnd->h, wnd->dc, 0, 0, SRCCOPY );
 
-            EndPaint( hWnd, &ps );
-            break;
-        default:
-            return DefWindowProc( hWnd, msg, wp, lp );
-        }
-
-        return 0;
+        EndPaint( hWnd, &ps );
+        break;
+    default:
+        return DefWindowProc( hWnd, msg, wp, lp );
     }
 
-    return DefWindowProc( hWnd, msg, wp, lp );
+    return 0;
 }
 
 
@@ -181,13 +158,12 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     sgui_window* wnd;
     WNDCLASSEX wc;
     DWORD style;
-    LPTSTR classname;
     RECT r;
 
     if( !width || !height )
         return NULL;
 
-    /* try to allocate a window structure */
+    /* allocate space for the window structure */
     wnd = malloc( sizeof(sgui_window) );
 
     if( !wnd )
@@ -195,48 +171,44 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     memset( wnd, 0, sizeof(sgui_window) );
 
-    /* try to allocate space for the widget array */
-    wnd->widgets       = malloc( sizeof(sgui_widget*)*10 );
-    wnd->num_widgets   = 0;
-    wnd->widgets_avail = 10;
+    /* create a widget manager */
+    wnd->mgr = sgui_widget_manager_create( );
 
-    if( !wnd->widgets )
+    if( !wnd->mgr )
     {
         free( wnd );
         return NULL;
     }
 
-    memset( wnd->widgets, 0, sizeof(sgui_widget*)*10 );
-
-    /* */
+    /* get HINSTANCE, window style and actual window size */
     wnd->hInstance = GetModuleHandle( NULL );
-
-    classname = MAKEINTRESOURCE( (WORD)wnd );
 
     style = resizeable ? WS_OVERLAPPEDWINDOW : (WS_CAPTION | WS_SYSMENU);
 
     SetRect( &r, 0, 0, width, height );
-
     AdjustWindowRect( &r, style, FALSE );
 
-    /* try to setup and register a window class */
-    memset( &wc, 0, sizeof(WNDCLASSEX) );
-
-    wc.cbSize        = sizeof(WNDCLASSEX);
-    wc.style         = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc   = WindowProcFun;
-    wc.hInstance     = wnd->hInstance;
-    wc.lpszClassName = classname;
-    wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
-
-    if( RegisterClassEx( &wc ) == 0 )
+    /* setup and register a window class if not done yet */
+    if( !GetClassInfoEx( wnd->hInstance, "sgui_wnd_class", &wc ) )
     {
-        sgui_window_destroy( wnd );
-        return NULL;
+        memset( &wc, 0, sizeof(WNDCLASSEX) );
+
+        wc.cbSize        = sizeof(WNDCLASSEX);
+        wc.style         = CS_HREDRAW | CS_VREDRAW;
+        wc.lpfnWndProc   = WindowProcFun;
+        wc.hInstance     = wnd->hInstance;
+        wc.lpszClassName = "sgui_wnd_class";
+        wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
+
+        if( RegisterClassEx( &wc ) == 0 )
+        {
+            sgui_window_destroy( wnd );
+            return NULL;
+        }
     }
 
-    /* try to create a window */
-    wnd->hWnd = CreateWindowEx( 0, classname, "", style, 0, 0,
+    /* create a window */
+    wnd->hWnd = CreateWindowEx( 0, "sgui_wnd_class", "", style, 0, 0,
                                 r.right-r.left, r.bottom-r.top,
                                 0, 0, wnd->hInstance, NULL );
 
@@ -267,8 +239,7 @@ void sgui_window_destroy( sgui_window* wnd )
 
     if( wnd )
     {
-        if( wnd->event_fun )
-            wnd->event_fun( wnd, SGUI_API_DESTROY_EVENT, NULL );
+        SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
         if( wnd->dc )
         {
@@ -283,9 +254,8 @@ void sgui_window_destroy( sgui_window* wnd )
             PeekMessage( &msg, wnd->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
         }
 
-        UnregisterClass( MAKEINTRESOURCE( (WORD)wnd ), wnd->hInstance );
+        sgui_widget_manager_destroy( wnd->mgr );
 
-        free( wnd->widgets );
         free( wnd );
     }
 }
@@ -297,8 +267,8 @@ void sgui_window_set_visible( sgui_window* wnd, int visible )
         ShowWindow( wnd->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
         wnd->visible = visible;
 
-        if( !visible && wnd->event_fun )
-            wnd->event_fun( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
+        if( !visible )
+            SEND_EVENT( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
     }
 }
 
@@ -353,7 +323,7 @@ void sgui_window_set_size( sgui_window* wnd,
         e.draw.w = wnd->w;
         e.draw.h = wnd->h;
 
-        send_event( wnd, SGUI_DRAW_EVENT, &e );
+        SEND_EVENT( wnd, SGUI_DRAW_EVENT, &e );
     }
 }
 
@@ -423,33 +393,16 @@ void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
 int sgui_window_update( sgui_window* wnd )
 {
     MSG msg;
-    int x, y;
-    unsigned int i, w, h;
-    sgui_event e;
+    RECT r;
 
     if( !wnd || !wnd->visible )
         return 0;
 
-    /* update the widgets */
-    for( i=0; i<wnd->num_widgets; ++i )
+    /* update the widgets, redraw window if there was any change */
+    if( sgui_widget_manager_update( wnd->mgr, wnd ) )
     {
-        sgui_widget_update( wnd->widgets[i] );
-
-        if( sgui_widget_need_redraw( wnd->widgets[i] ) )
-        {
-            sgui_widget_get_position( wnd->widgets[i], &x, &y );
-            sgui_widget_get_size( wnd->widgets[i], &w, &h );
-
-            e.draw.x = x;
-            e.draw.y = y;
-            e.draw.w = w;
-            e.draw.h = h;
-
-            sgui_widget_send_window_event( wnd->widgets[i], wnd,
-                                           SGUI_DRAW_EVENT, &e );
-
-            force_redraw( wnd->hWnd, x, y, w, h );
-        }
+        SetRect( &r, 0, 0, wnd->w-1, wnd->h-1 );
+        InvalidateRect( wnd->hWnd, &r, TRUE );
     }
 
     /* message loop */
@@ -469,55 +422,17 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
 }
 
 
-
 void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
-    sgui_widget** nw;
-
-    if( !wnd )
-        return;
-
-    /* try to resize widget array if required */
-    if( wnd->num_widgets == wnd->widgets_avail )
-    {
-        wnd->widgets_avail += 10;
-
-        nw = realloc( wnd->widgets, wnd->widgets_avail*sizeof(sgui_widget*) );
-
-        if( !nw )
-        {
-            wnd->widgets_avail -= 10;
-            return;
-        }
-
-        wnd->widgets = nw;
-    }
-
-    /* add widget */
-    wnd->widgets[ wnd->num_widgets++ ] = widget;
+    if( wnd )
+        sgui_widget_manager_add_widget( wnd->mgr, widget );
 }
 
 void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 {
-    unsigned int i;
-
-    if( !wnd )
-        return;
-
-    for( i=0; i<wnd->num_widgets; ++i )
-    {
-        if( wnd->widgets[ i ] == widget )
-        {
-            for( ; i<(wnd->num_widgets-1); ++i )
-                wnd->widgets[ i ] = wnd->widgets[ i+1 ];
-
-            --wnd->num_widgets;
-            break;
-        }
-    }
+    if( wnd )
+        sgui_widget_manager_remove_widget( wnd->mgr, widget );
 }
-
-
 
 
 sgui_pixmap* sgui_window_create_pixmap( sgui_window* wnd, unsigned int width,
@@ -590,8 +505,6 @@ void sgui_window_delete_pixmap( sgui_pixmap* pixmap )
         free( pixmap );
     }
 }
-
-
 
 
 void sgui_window_draw_box( sgui_window* wnd, int x, int y,
