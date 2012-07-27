@@ -111,10 +111,10 @@ int main( void )
             image[ (y*128 + x)*4 + 3 ] = 0xFF * (x/128.0f);
         }
 
-    font = sgui_font_load_from_file( "FreeSans.ttf" );
-    font_bold = sgui_font_load_from_file( "FreeSansBold.ttf" );
-    font_italic = sgui_font_load_from_file( "FreeSansOblique.ttf" );
-    font_bold_italic = sgui_font_load_from_file( "FreeSansBoldOblique.ttf" );
+    font = sgui_font_load_from_file( "font/FreeSans.ttf" );
+    font_bold = sgui_font_load_from_file( "font/FreeSansBold.ttf" );
+    font_italic = sgui_font_load_from_file( "font/FreeSansOblique.ttf" );
+    font_bold_italic=sgui_font_load_from_file("font/FreeSansBoldOblique.ttf");
 
     color[0] = 0xFF;
     color[1] = 0xFF;
