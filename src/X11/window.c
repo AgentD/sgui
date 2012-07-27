@@ -7,6 +7,98 @@
 const char* wmDeleteWindow = "WM_DELETE_WINDOW";
 
 
+
+void clear( sgui_window* wnd, unsigned long color )
+{
+    unsigned int X, Y;
+
+    for( Y=0; Y<wnd->h; ++Y )
+        for( X=0; X<wnd->w; ++X )
+            XPutPixel( wnd->back_buffer, X, Y, color );
+}
+
+void draw_box( sgui_window* wnd, int x, int y,
+                                 unsigned int w, unsigned int h,
+                                 unsigned long color )
+{
+    int lr_x = x + (int)w;
+    int lr_y = y + (int)h;
+    int X, Y;
+
+    x = x<0 ? 0 : x;
+    y = y<0 ? 0 : y;
+
+    if( x >= (int)wnd->w || y >= (int)wnd->h || lr_x < 0 || lr_y < 0 )
+        return;
+
+    if( lr_x >= (int)wnd->w )
+        lr_x = (int)wnd->w - 1;
+
+    if( lr_y >= (int)wnd->h )
+        lr_y = (int)wnd->h - 1;
+
+    for( Y=y; Y!=lr_y; ++Y )
+        for( X=x; X!=lr_x; ++X )
+            XPutPixel( wnd->back_buffer, X, Y, color );
+}
+
+void draw_line( sgui_window* wnd, int x, int y, int length, int horizontal,
+                                  unsigned long color )
+{
+    int i, endi;
+
+    if( horizontal )
+    {
+        if( (y<0) || (y>=(int)wnd->h) )
+            return;
+
+        if( length < 0 )
+        {
+            length = -length;
+            x -= length;
+        }
+
+        if( (x >= (int)wnd->w) || ((x+length)<0) )
+            return;
+
+        i = x < 0 ? 0 : x;
+        endi = x+length+1;
+
+        if( endi >= (int)wnd->w )
+            endi = wnd->w - 1;
+
+        for( ; i!=endi; ++i )
+            XPutPixel( wnd->back_buffer, i, y, color );
+    }
+    else
+    {
+        if( (x<0) || (x>=(int)wnd->w) )
+            return;
+
+        if( length < 0 )
+        {
+            length = -length;
+            y -= length;
+        }
+
+        if( (y >= (int)wnd->h) || ((y+length)<0) )
+            return;
+
+        i = y < 0 ? 0 : y;
+        endi = y+length+1;
+
+        if( endi >= (int)wnd->h )
+            endi = wnd->h - 1;
+
+        for( ; i!=endi; ++i )
+            XPutPixel( wnd->back_buffer, x, i, color );
+    }
+}
+
+
+
+
+
 sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                  int resizeable )
 {
@@ -17,7 +109,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     if( !width || !height )
         return NULL;
 
-    /* allocate space for the window structure */
+    /********* allocate space for the window structure *********/
     wnd = malloc( sizeof(sgui_window) );
 
     if( !wnd )
@@ -25,7 +117,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     memset( wnd, 0, sizeof(sgui_window) );
 
-    /* create a widget manager */
+    /***************** create a widget manager *****************/
     wnd->mgr = sgui_widget_manager_create( );
 
     if( !wnd->mgr )
@@ -34,7 +126,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    /* connect to the X server */
+    /***************** connect to the X server *****************/
     wnd->dpy = XOpenDisplay( 0 );
 
     if( !wnd->dpy )
@@ -43,7 +135,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    /* create the window */
+    /******************** create the window ********************/
     wnd->wnd = XCreateSimpleWindow( wnd->dpy, DefaultRootWindow(wnd->dpy),
                                     0, 0, width, height, 0,
                                     SGUI_WINDOW_COLOR, SGUI_WINDOW_COLOR );
@@ -84,21 +176,30 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
-    /* create a pixmap for the window */
-    wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd, wnd->w, wnd->h, 24 );
+    /************ create an image for local drawing ************/
+    wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
 
-    wnd->gc = XCreateGC( wnd->dpy, wnd->pixmap, 0, 0 );
-
-    if( !wnd->pixmap || !wnd->gc )
+    if( !wnd->back_buffer_data )
     {
         sgui_window_destroy( wnd );
         return NULL;
     }
 
-    XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
-    XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
+    wnd->gc = XCreateGC( wnd->dpy, wnd->wnd, 0, 0 );
 
-    /* store the remaining information */
+    wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
+                                     (char*)wnd->back_buffer_data,
+                                     wnd->w, wnd->h, 32, 0 );
+
+    if( !wnd->back_buffer || !wnd->gc )
+    {
+        sgui_window_destroy( wnd );
+        return NULL;
+    }
+
+    clear( wnd, SGUI_WINDOW_COLOR );
+
+    /************* store the remaining information *************/
     wnd->resizeable = resizeable;
     wnd->mapped = 0;
     wnd->event_fun = NULL;
@@ -112,10 +213,10 @@ void sgui_window_destroy( sgui_window* wnd )
     {
         SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
-        if( wnd->pixmap ) XFreePixmap( wnd->dpy, wnd->pixmap );
-        if( wnd->gc     ) XFreeGC( wnd->dpy, wnd->gc );
-        if( wnd->wnd    ) XDestroyWindow( wnd->dpy, wnd->wnd );
-        if( wnd->dpy    ) XCloseDisplay( wnd->dpy );
+        if( wnd->back_buffer ) XDestroyImage( wnd->back_buffer );
+        if( wnd->gc          ) XFreeGC( wnd->dpy, wnd->gc );
+        if( wnd->wnd         ) XDestroyWindow( wnd->dpy, wnd->wnd );
+        if( wnd->dpy         ) XCloseDisplay( wnd->dpy );
 
         sgui_widget_manager_destroy( wnd->mgr );
 
@@ -187,12 +288,16 @@ void sgui_window_set_size( sgui_window* wnd,
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
-    /* recreate the pixmap */
-    XFreePixmap( wnd->dpy, wnd->pixmap );
-    wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd, wnd->w, wnd->h, 24 );
+    /* create the back buffer image */
+    XDestroyImage( wnd->back_buffer );
 
-    XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
-    XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
+    wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
+
+    wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
+                                     (char*)wnd->back_buffer_data,
+                                     wnd->w, wnd->h, 32, 0 );
+
+    clear( wnd, SGUI_WINDOW_COLOR );
 
     /* redraw everything */
     se.draw.x = 0;
@@ -327,13 +432,17 @@ int sgui_window_update( sgui_window* wnd )
             wnd->w = (unsigned int)e.xconfigure.width;
             wnd->h = (unsigned int)e.xconfigure.height;
 
-            /* resize the pixmap */
-            XFreePixmap( wnd->dpy, wnd->pixmap );
-            wnd->pixmap = XCreatePixmap( wnd->dpy, wnd->wnd,
-                                         wnd->w, wnd->h, 24 );
+            /* resize the back buffer image */
+            XDestroyImage( wnd->back_buffer );
 
-            XLIB_DRAW_COLOR( wnd, SGUI_WINDOW_COLOR );
-            XLIB_FILL_RECT( wnd, 0, 0, wnd->w, wnd->h );
+            wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
+
+            wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24,
+                                             ZPixmap, 0,
+                                             (char*)wnd->back_buffer_data,
+                                             wnd->w, wnd->h, 32, 0 );
+
+            clear( wnd, SGUI_WINDOW_COLOR );
 
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
@@ -356,8 +465,8 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
             break;
         case Expose:
-            XCopyArea( wnd->dpy, wnd->pixmap, wnd->wnd, wnd->gc,
-                       0, 0, wnd->w, wnd->h, 0, 0 );
+            XPutImage( wnd->dpy, wnd->wnd, wnd->gc, wnd->back_buffer,
+                       0, 0, 0, 0, wnd->w, wnd->h );
             break;
         };
     }
@@ -388,43 +497,105 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
-void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
-                              int x, int y )
+void sgui_window_blit_image( sgui_window* wnd, int x, int y,
+                             unsigned int width, unsigned int height,
+                             unsigned char* image, int has_a )
 {
-    if( wnd && pixmap )
-        XPutImage( wnd->dpy, wnd->pixmap, wnd->gc, pixmap->image, 0, 0,
-                   x, y, pixmap->image->width, pixmap->image->height );
+    unsigned int i, j, bpp;
+    unsigned long color, R, G, B;
+
+    if( x>=(int)wnd->w || y>=(int)wnd->h )
+        return;
+
+    if( (x+(int)width)<0 || (y+(int)width)<0 )
+        return;
+
+    bpp = has_a ? 4 : 3;
+
+    for( j=0; j<height; ++j )
+    {
+        for( i=0; i<width; ++i, image+=bpp )
+        {
+            R = image[0];
+            G = image[1];
+            B = image[2];
+
+            if( (x+(int)i)>0 && (y+(int)j)>0 &&
+                (x+(int)i)<(int)wnd->w && (y+(int)j)<(int)wnd->h )
+            {
+                color = R<<16 | G<<8 | B;
+
+                XPutPixel( wnd->back_buffer, x+i, y+j, color );
+            }
+        }
+    }
+}
+
+void sgui_window_blend_image( sgui_window* wnd, int x, int y,
+                              unsigned int width, unsigned int height,
+                              unsigned char* image )
+{
+    unsigned int i, j;
+    unsigned long color, R, G, B, srcR, srcG, srcB;
+    float A;
+
+    if( x>=(int)wnd->w || y>=(int)wnd->h )
+        return;
+
+    if( (x+(int)width)<0 || (y+(int)width)<0 )
+        return;
+
+    for( j=0; j<height; ++j )
+    {
+        for( i=0; i<width; ++i )
+        {
+            R = *(image++);
+            G = *(image++);
+            B = *(image++);
+            A = (float)(*(image++)) / 255.0f;
+
+            if( (x+(int)i)>0 && (y+(int)j)>0 &&
+                (x+(int)i)<(int)wnd->w && (y+(int)j)<(int)wnd->h )
+            {
+                color = XGetPixel( wnd->back_buffer, x+i, y+j );
+
+                srcR = (color>>16) & 0xFF;
+                srcG = (color>>8 ) & 0xFF;
+                srcB =  color      & 0xFF;
+
+                R = R * A + srcR * (1.0f-A);
+                G = G * A + srcG * (1.0f-A);
+                B = B * A + srcB * (1.0f-A);
+
+                color = R<<16 | G<<8 | B;
+
+                XPutPixel( wnd->back_buffer, x+i, y+j, color );
+            }
+        }
+    }
 }
 
 void sgui_window_draw_box( sgui_window* wnd, int x, int y,
                            unsigned int width, unsigned int height,
                            unsigned long bgcolor, int inset )
 {
-    int lr_x = x + (int)width -1;     /* lower right x and y */
-    int lr_y = y + (int)height-1;
-
-    XLIB_DRAW_COLOR( wnd, bgcolor );
-    XLIB_FILL_RECT( wnd, x, y, width, height );
+    draw_box( wnd, x, y, width, height, bgcolor );
 
     if( inset>0 )
     {
-        XLIB_DRAW_COLOR( wnd, SGUI_INSET_COLOR );
-        XLIB_DRAW_LINE( wnd, x, y, lr_x, y    );
-        XLIB_DRAW_LINE( wnd, x, y, x,    lr_y );
+        draw_line( wnd, x,       y,        width,  1, SGUI_INSET_COLOR  );
+        draw_line( wnd, x,       y,        height, 0, SGUI_INSET_COLOR  );
 
-        XLIB_DRAW_COLOR( wnd, SGUI_OUTSET_COLOR );
-        XLIB_DRAW_LINE( wnd, lr_x, y,    lr_x, lr_y );
-        XLIB_DRAW_LINE( wnd, x,    lr_y, lr_x, lr_y );
+        draw_line( wnd, x,       y+height, width,  1, SGUI_OUTSET_COLOR );
+        draw_line( wnd, x+width, y,        height, 0, SGUI_OUTSET_COLOR );
     }
     else if( inset<0 )
     {
-        XLIB_DRAW_COLOR( wnd, SGUI_OUTSET_COLOR );
-        XLIB_DRAW_LINE( wnd, x, y, lr_x, y    );
-        XLIB_DRAW_LINE( wnd, x, y, x,    lr_y );
+        draw_line( wnd, x,       y,        width,  1, SGUI_OUTSET_COLOR );
+        draw_line( wnd, x,       y,        height, 0, SGUI_OUTSET_COLOR );
 
-        XLIB_DRAW_COLOR( wnd, SGUI_INSET_COLOR );
-        XLIB_DRAW_LINE( wnd, lr_x, y,    lr_x, lr_y );
-        XLIB_DRAW_LINE( wnd, x,    lr_y, lr_x, lr_y );
+        draw_line( wnd, x,       y+height, width,  1, SGUI_INSET_COLOR  );
+        draw_line( wnd, x+width, y,        height, 0, SGUI_INSET_COLOR  );
     }
 }
 
@@ -435,89 +606,28 @@ void sgui_window_draw_fancy_lines( sgui_window* wnd, int x, int y,
     unsigned int i;
     int h, oldx = x, oldy = y;
 
-    XLIB_DRAW_COLOR( wnd, SGUI_OUTSET_COLOR );
-
     for( h=start_horizontal, i=0; i<num_lines; ++i, h=!h )
     {
         if( h )
         {
-            XLIB_DRAW_LINE( wnd, x, y+1, x+length[i]+1, y+1 );
+            draw_line( wnd, x, y+1, length[i]+1, 1, SGUI_OUTSET_COLOR );
             x += length[i];
         }
         else
         {
-            XLIB_DRAW_LINE( wnd, x+1, y, x+1, y+length[i]+1 );
+            draw_line( wnd, x+1, y, length[i], 0, SGUI_OUTSET_COLOR );
             y += length[i];
         }
     }
-
-    XLIB_DRAW_COLOR( wnd, SGUI_INSET_COLOR );
 
     for( x=oldx, y=oldy, h=start_horizontal, i=0; i<num_lines; ++i, h=!h )
     {
+        draw_line( wnd, x, y, length[i], h, SGUI_INSET_COLOR );
+
         if( h )
-        {
-            XLIB_DRAW_LINE( wnd, x, y, x+length[i], y );
             x += length[i];
-        }
         else
-        {
-            XLIB_DRAW_LINE( wnd, x, y, x, y+length[i] );
             y += length[i];
-        }
-    }
-}
-
-void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
-                                    int selected )
-{
-    XLIB_DRAW_COLOR( wnd, SGUI_INSET_COLOR );
-    XLIB_DRAW_LINE( wnd, x+4, y,   x+7, y   );
-    XLIB_DRAW_LINE( wnd, x+2, y+1, x+3, y+1 );
-    XLIB_DRAW_LINE( wnd, x+8, y+1, x+9, y+1 );
-
-    XLIB_DRAW_LINE( wnd, x+1, y+2, x+1, y+3 );
-    XLIB_DRAW_LINE( wnd, x,   y+4, x,   y+7 );
-    XLIB_DRAW_LINE( wnd, x+1, y+8, x+1, y+9 );
-
-    XLIB_DRAW_COLOR( wnd, SGUI_OUTSET_COLOR );
-    XLIB_DRAW_LINE( wnd, x+2, y+10, x+3, y+10 );
-    XLIB_DRAW_LINE( wnd, x+4, y+11, x+7, y+11 );
-    XLIB_DRAW_LINE( wnd, x+8, y+10, x+9, y+10 );
-
-    XLIB_DRAW_LINE( wnd, x+10, y+9, x+10, y+8 );
-    XLIB_DRAW_LINE( wnd, x+11, y+7, x+11, y+4 );
-    XLIB_DRAW_LINE( wnd, x+10, y+3, x+10, y+2 );
-
-    XLIB_DRAW_COLOR( wnd, SGUI_INSET_FILL_COLOR_L1 );
-    XLIB_FILL_RECT( wnd, x+2, y+2,  8,  8 );
-    XLIB_FILL_RECT( wnd, x+1, y+4, 10,  4 );
-    XLIB_FILL_RECT( wnd, x+4, y+1,  4, 10 );
-
-    if( selected )
-    {
-        XLIB_DRAW_COLOR( wnd, SGUI_RADIO_BUTTON_COLOR );
-        XLIB_FILL_RECT( wnd, x+3, y+4, 6, 4 );
-        XLIB_FILL_RECT( wnd, x+4, y+3, 4, 6 );
-    }
-}
-
-void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
-                                int selected )
-{
-    sgui_window_draw_box( wnd, x, y, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
-
-    if( selected )
-    {
-        XLIB_DRAW_COLOR( wnd, SGUI_CHECKBOX_TICK_COLOR );
-
-        XLIB_DRAW_LINE( wnd, x+2, y+4, x+2, y+6 );
-        XLIB_DRAW_LINE( wnd, x+3, y+5, x+3, y+7 );
-        XLIB_DRAW_LINE( wnd, x+4, y+6, x+4, y+8 );
-        XLIB_DRAW_LINE( wnd, x+5, y+5, x+5, y+7 );
-        XLIB_DRAW_LINE( wnd, x+6, y+4, x+6, y+6 );
-        XLIB_DRAW_LINE( wnd, x+7, y+3, x+7, y+5 );
-        XLIB_DRAW_LINE( wnd, x+8, y+2, x+8, y+4 );
     }
 }
 

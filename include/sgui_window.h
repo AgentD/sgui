@@ -193,15 +193,33 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
 
 
 /**
- * \brief Draw a pixmap
+ * \brief Blit an image onto a window
  *
- * \param wnd    The window to draw the pixmap onto
- * \param pixmap The pixmap to draw
- * \param x      The distance from the left of the window
- * \param y      The distance from the top of the window
+ * \param wnd    The window to blit the image onto
+ * \param x      Distance of the left of the image from the left of the window
+ * \param y      Distance of the top of the image from the top of the window
+ * \param width  Width of the image in pixels
+ * \param height Height of the image in pixels
+ * \param image  RGB or RGBA image data
+ * \param has_a  Non-zero if the image has an alpha channel
  */
-void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
-                              int x, int y );
+void sgui_window_blit_image( sgui_window* wnd, int x, int y,
+                             unsigned int width, unsigned int height,
+                             unsigned char* image, int has_a );
+
+/**
+ * \brief Alpha blend an image onto a window
+ *
+ * \param wnd    The window to blit the image onto
+ * \param x      Distance of the left of the image from the left of the window
+ * \param y      Distance of the top of the image from the top of the window
+ * \param width  Width of the image in pixels
+ * \param height Height of the image in pixels
+ * \param image  RGBA image data
+ */
+void sgui_window_blend_image( sgui_window* wnd, int x, int y,
+                              unsigned int width, unsigned int height,
+                              unsigned char* image );
 
 /**
  * \brief Draw a rectangle/box
@@ -251,31 +269,6 @@ void sgui_window_draw_box( sgui_window* wnd, int x, int y,
 void sgui_window_draw_fancy_lines( sgui_window* wnd, int x, int y,
                                    int* length, unsigned int num_lines,
                                    int start_horizontal );
-
-/**
- * \brief Draw a radio button
- *
- * \param wnd      The window to draw to
- * \param x        The distance to the left of the window.
- * \param y        The distance to the top of the window.
- * \param selected If zero the radio button is emtpy, otherwise it contains
- *                 a smaller circle that indicats selection.
- */
-void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
-                                    int selected );
-
-/**
- * \brief Draw a check box
- *
- * \param wnd      The window to draw to
- * \param x        The distance to the left of the window.
- * \param y        The distance to the top of the window.
- * \param selected If zero the check box is emtpy, otherwise it contains
- *                 a tick that indicats selection.
- */
-void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
-                                int selected );
-
 
 #ifdef __cplusplus
 }

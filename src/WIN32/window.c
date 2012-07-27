@@ -2,6 +2,113 @@
 
 
 
+
+void clear( sgui_window* wnd, unsigned long color )
+{
+    unsigned int X, Y;
+
+    for( Y=0; Y<wnd->h; ++Y )
+        for( X=0; X<wnd->w; ++X )
+        {
+            wnd->back_buffer[ (Y*wnd->w + X)*4     ] =  color      & 0xFF;
+            wnd->back_buffer[ (Y*wnd->w + X)*4 + 1 ] = (color>>8 ) & 0xFF;
+            wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = (color>>16) & 0xFF;
+        }
+}
+
+void draw_box( sgui_window* wnd, int x, int y,
+                                 unsigned int w, unsigned int h,
+                                 unsigned long color )
+{
+    int lr_x = x + (int)w;
+    int lr_y = y + (int)h;
+    int X, Y;
+
+    x = x<0 ? 0 : x;
+    y = y<0 ? 0 : y;
+
+    if( x >= (int)wnd->w || y >= (int)wnd->h || lr_x < 0 || lr_y < 0 )
+        return;
+
+    if( lr_x >= (int)wnd->w )
+        lr_x = (int)wnd->w - 1;
+
+    if( lr_y >= (int)wnd->h )
+        lr_y = (int)wnd->h - 1;
+
+    for( Y=y; Y!=lr_y; ++Y )
+        for( X=x; X!=lr_x; ++X )
+        {
+            wnd->back_buffer[ (Y*wnd->w + X)*4     ] =  color      & 0xFF;
+            wnd->back_buffer[ (Y*wnd->w + X)*4 + 1 ] = (color>>8 ) & 0xFF;
+            wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = (color>>16) & 0xFF;
+        }
+}
+
+void draw_line( sgui_window* wnd, int x, int y, int length, int horizontal,
+                                  unsigned long color )
+{
+    int i, endi;
+
+    if( horizontal )
+    {
+        if( (y<0) || (y>=(int)wnd->h) )
+            return;
+
+        if( length < 0 )
+        {
+            length = -length;
+            x -= length;
+        }
+
+        if( (x >= (int)wnd->w) || ((x+length)<0) )
+            return;
+
+        i = x < 0 ? 0 : x;
+        endi = x+length+1;
+
+        if( endi >= (int)wnd->w )
+            endi = wnd->w - 1;
+
+        for( ; i!=endi; ++i )
+        {
+            wnd->back_buffer[ (y*wnd->w + i)*4     ] =  color      & 0xFF;
+            wnd->back_buffer[ (y*wnd->w + i)*4 + 1 ] = (color>>8 ) & 0xFF;
+            wnd->back_buffer[ (y*wnd->w + i)*4 + 2 ] = (color>>16) & 0xFF;
+        }
+    }
+    else
+    {
+        if( (x<0) || (x>=(int)wnd->w) )
+            return;
+
+        if( length < 0 )
+        {
+            length = -length;
+            y -= length;
+        }
+
+        if( (y >= (int)wnd->h) || ((y+length)<0) )
+            return;
+
+        i = y < 0 ? 0 : y;
+        endi = y+length+1;
+
+        if( endi >= (int)wnd->h )
+            endi = wnd->h - 1;
+
+        for( ; i!=endi; ++i )
+        {
+            wnd->back_buffer[ (i*wnd->w + x)*4     ] = (color>>16) & 0xFF;
+            wnd->back_buffer[ (i*wnd->w + x)*4 + 1 ] = (color>>8 ) & 0xFF;
+            wnd->back_buffer[ (i*wnd->w + x)*4 + 2 ] =  color      & 0xFF;
+        }
+    }
+}
+
+
+
+
 LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 {
     sgui_window* wnd;
@@ -64,16 +171,19 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         wnd->h = HIWORD( lp );
 
         /* resize the double buffering context/bitmap */
+        wnd->info.bmiHeader.biWidth  = wnd->w;
+        wnd->info.bmiHeader.biHeight = -((int)wnd->h);
+
         SelectObject( wnd->dc, wnd->old_bitmap );
         DeleteObject( wnd->bitmap );
         DeleteDC( wnd->dc );
 
         wnd->dc = CreateCompatibleDC( NULL );
-        wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+        wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
+                                        (void**)&wnd->back_buffer, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h,
-                              SGUI_WINDOW_COLOR, 0 );
+        clear( wnd, SGUI_WINDOW_COLOR );
 
         /* send size change event */
         e.size.new_width  = wnd->w;
@@ -92,7 +202,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
 
-        BitBlt( hDC, 0, 0, wnd->w, wnd->h, wnd->dc, 0, 0, SRCCOPY );
+        BitBlt( hDC, 0, 0, wnd->w+1, wnd->h, wnd->dc, 0, 0, SRCCOPY );
 
         EndPaint( hWnd, &ps );
         break;
@@ -179,11 +289,19 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->h = height;
 
     /* create double buffering context/bitmap */
-    wnd->dc = CreateCompatibleDC(NULL);
-    wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+    wnd->info.bmiHeader.biSize        = sizeof(wnd->info.bmiHeader);
+    wnd->info.bmiHeader.biBitCount    = 32;
+    wnd->info.bmiHeader.biCompression = BI_RGB;
+    wnd->info.bmiHeader.biPlanes      = 1;
+    wnd->info.bmiHeader.biWidth       = wnd->w;
+    wnd->info.bmiHeader.biHeight      = -((int)wnd->h);
+
+    wnd->dc = CreateCompatibleDC( NULL );
+    wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
+                                    (void**)&wnd->back_buffer, 0, 0 );
     wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-    sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h, SGUI_WINDOW_COLOR, 0 );
+    clear( wnd, SGUI_WINDOW_COLOR );
 
     return wnd;
 }
@@ -261,16 +379,19 @@ void sgui_window_set_size( sgui_window* wnd,
         wnd->h = height;
 
         /* resize the double buffering context/bitmap */
+        wnd->info.bmiHeader.biWidth  = wnd->w;
+        wnd->info.bmiHeader.biHeight = -((int)wnd->h);
+
         SelectObject( wnd->dc, wnd->old_bitmap );
         DeleteObject( wnd->bitmap );
         DeleteDC( wnd->dc );
 
         wnd->dc = CreateCompatibleDC( NULL );
-        wnd->bitmap = CreateBitmap( wnd->w, wnd->h, 1, 32, NULL );
+        wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
+                                        (void**)&wnd->back_buffer, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        sgui_window_draw_box( wnd, 0, 0, wnd->w, wnd->h,
-                              SGUI_WINDOW_COLOR, 0 );
+        clear( wnd, SGUI_WINDOW_COLOR );
 
         /* redraw everything */
         e.draw.x = 0;
@@ -391,18 +512,64 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
-void sgui_window_draw_pixmap( sgui_window* wnd, sgui_pixmap* pixmap,
-                              int x, int y )
+void sgui_window_blit_image( sgui_window* wnd, int x, int y,
+                             unsigned int width, unsigned int height,
+                             unsigned char* image, int has_a )
 {
-    if( pixmap && wnd )
+    unsigned char* dst;
+    unsigned int i, j, bpp = has_a ? 4 : 3;
+
+    for( j=0; j<height; ++j )
     {
-        HDC memdc = CreateCompatibleDC( wnd->dc );
-        SelectObject( memdc, pixmap->bitmap );
+        dst = wnd->back_buffer + ((y+j)*wnd->w + x) * 4;
 
-        BitBlt( wnd->dc, x, y, pixmap->width, pixmap->height,
-                memdc, 0, 0, SRCCOPY );
+        if( (y+(int)j)<0 )
+            continue;
 
-        DeleteDC( memdc );
+        if( (y+(int)j)>=(int)wnd->h )
+            break;
+
+        for( i=0; i<width; ++i, image+=bpp, dst+=4 )
+        {
+            if( (x+(int)i)>0 && (x+(int)i)<(int)wnd->w )
+            {
+                dst[0] = image[2];
+                dst[1] = image[1];
+                dst[2] = image[0];
+            }
+        }
+    }
+}
+
+void sgui_window_blend_image( sgui_window* wnd, int x, int y,
+                              unsigned int width, unsigned int height,
+                              unsigned char* image )
+{
+    unsigned char* dst;
+    unsigned int i, j;
+    float A;
+
+    for( j=0; j<height; ++j )
+    {
+        dst = wnd->back_buffer + ((y+j)*wnd->w + x) * 4;
+
+        if( (y+(int)j)<0 )
+            continue;
+
+        if( (y+(int)j)>=(int)wnd->h )
+            break;
+
+        for( i=0; i<width; ++i, image+=4, dst+=4 )
+        {
+            if( (x+(int)i)>0 && (x+(int)i)<(int)wnd->w )
+            {
+                A = ((float)image[3]) / 255.0f;
+
+                dst[0] = image[2] * A + dst[0] * (1.0f-A);
+                dst[1] = image[1] * A + dst[1] * (1.0f-A);
+                dst[2] = image[0] * A + dst[2] * (1.0f-A);
+            }
+        }
     }
 }
 
@@ -410,201 +577,55 @@ void sgui_window_draw_box( sgui_window* wnd, int x, int y,
                            unsigned int width, unsigned int height,
                            unsigned long bgcolor, int inset )
 {
-    RECT r;
-    HBRUSH brush;
-    POINT points[3];
-    HPEN pen;
+    draw_box( wnd, x, y, width, height, bgcolor );
 
-    SetRect( &r, x, y, x + (int)width, y + (int)height );
+    if( inset>0 )
+    {
+        draw_line( wnd, x,       y,        width,  1, SGUI_INSET_COLOR  );
+        draw_line( wnd, x,       y,        height, 0, SGUI_INSET_COLOR  );
 
-    brush = CreateSolidBrush( SGUI_COLORREF( bgcolor ) );
+        draw_line( wnd, x,       y+height, width,  1, SGUI_OUTSET_COLOR );
+        draw_line( wnd, x+width, y,        height, 0, SGUI_OUTSET_COLOR );
+    }
+    else if( inset<0 )
+    {
+        draw_line( wnd, x,       y,        width,  1, SGUI_OUTSET_COLOR );
+        draw_line( wnd, x,       y,        height, 0, SGUI_OUTSET_COLOR );
 
-    FillRect( wnd->dc, &r, brush );
-
-    DeleteObject( brush );
-
-    if( inset == 0 )
-        return;
-
-    points[0].x = x;
-    points[0].y = y + (int)height - 1;
-
-    points[1].x = x;
-    points[1].y = y;
-
-    points[2].x = x + (int)width - 1;
-    points[2].y = y;
-
-    if( inset > 0 )
-        pen = CreatePen( PS_SOLID, 1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    else
-        pen = CreatePen( PS_SOLID, 1, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-    SelectObject( wnd->dc, pen );
-    Polyline( wnd->dc, points, 3 );
-    DeleteObject( pen );
-
-
-    points[0].x = x + (int)width - 1;
-    points[0].y = y;
-
-    points[1].x = x + (int)width - 1;
-    points[1].y = y + (int)height - 1;
-
-    points[2].x = x;
-    points[2].y = y + (int)height - 1;
-
-    if( inset > 0 )
-        pen = CreatePen( PS_SOLID, 1, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    else
-        pen = CreatePen( PS_SOLID, 1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-    SelectObject( wnd->dc, pen );
-    Polyline( wnd->dc, points, 3 );
-    DeleteObject( pen );
+        draw_line( wnd, x,       y+height, width,  1, SGUI_INSET_COLOR  );
+        draw_line( wnd, x+width, y,        height, 0, SGUI_INSET_COLOR  );
+    }
 }
 
 void sgui_window_draw_fancy_lines( sgui_window* wnd, int x, int y,
                                    int* length, unsigned int num_lines,
                                    int start_horizontal )
 {
-    POINT p[100];
     unsigned int i;
-    int h = start_horizontal;
-    HPEN pen;
+    int h, oldx = x, oldy = y;
 
-    /* draw bright lines with offset */
-    p[0].x = x + 1;
-    p[0].y = y + 1;
-
-    for( i=0; i<num_lines; ++i, h=!h )
+    for( h=start_horizontal, i=0; i<num_lines; ++i, h=!h )
     {
-        p[i+1].x = h ? (p[i].x + length[i]) :  p[i].x;
-        p[i+1].y = h ?  p[i].y              : (p[i].y + length[i]);
-    }
-
-    pen = CreatePen( PS_SOLID, 1, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SelectObject( wnd->dc, pen );
-    Polyline( wnd->dc, p, (int)num_lines + 1 );
-    DeleteObject( pen );
-
-    /* draw dark lines without offset */
-    p[0].x = x;
-    p[0].y = y;
-
-    for( i=0; i<num_lines; ++i, h=!h )
-    {
-        p[i+1].x = h ? (p[i].x + length[i]) :  p[i].x;
-        p[i+1].y = h ?  p[i].y              : (p[i].y + length[i]);
-    }
-
-    pen = CreatePen( PS_SOLID, 1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SelectObject( wnd->dc, pen );
-    Polyline( wnd->dc, p, (int)num_lines + 1 );
-    DeleteObject( pen );
-}
-
-void sgui_window_draw_radio_button( sgui_window* wnd, int x, int y,
-                                    int selected )
-{
-    HBRUSH brush;
-    RECT r;
-
-    SetPixel( wnd->dc, x+4, y, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+5, y, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+6, y, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+7, y, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+2, y+1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+3, y+1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+8, y+1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+9, y+1, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+1, y+2, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+1, y+3, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-    SetPixel( wnd->dc, x, y+4, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x, y+5, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x, y+6, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x, y+7, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+1, y+8, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-    SetPixel( wnd->dc, x+1, y+9, SGUI_COLORREF( SGUI_INSET_COLOR ) );
-
-
-
-    SetPixel( wnd->dc, x+2, y+10, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+3, y+10, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+4, y+11, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+5, y+11, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+6, y+11, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+7, y+11, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+8, y+10, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+9, y+10, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+10, y+8, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+10, y+9, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+11, y+4, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+11, y+5, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+11, y+6, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+11, y+7, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-    SetPixel( wnd->dc, x+10, y+2, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-    SetPixel( wnd->dc, x+11, y+3, SGUI_COLORREF( SGUI_OUTSET_COLOR ) );
-
-
-
-    brush = CreateSolidBrush( SGUI_COLORREF( SGUI_INSET_FILL_COLOR_L1 ) );
-
-    SetRect( &r, x+2, y+2, x + 10, y + 10 );
-    FillRect( wnd->dc, &r, brush );
-
-    SetRect( &r, x+1, y+4, x + 11, y + 8 );
-    FillRect( wnd->dc, &r, brush );
-
-    SetRect( &r, x+4, y+1, x + 8, y + 11 );
-    FillRect( wnd->dc, &r, brush );
-
-    DeleteObject( brush );
-
-    if( selected )
-    {
-        brush = CreateSolidBrush( SGUI_COLORREF( SGUI_RADIO_BUTTON_COLOR ) );
-
-        SetRect( &r, x+3, y+4, x + 9, y + 8 );
-        FillRect( wnd->dc, &r, brush );
-
-        SetRect( &r, x+4, y+3, x + 8, y + 9 );
-        FillRect( wnd->dc, &r, brush );
-
-        DeleteObject( brush );
-    }
-}
-
-void sgui_window_draw_checkbox( sgui_window* wnd, int x, int y,
-                                int selected )
-{
-    int i;
-    COLORREF c = SGUI_COLORREF(SGUI_CHECKBOX_TICK_COLOR);
-
-    sgui_window_draw_box( wnd, x, y, 12, 12, SGUI_INSET_FILL_COLOR_L1, 1 );
-
-    if( selected )
-    {
-        for( i=0; i<3; ++i )
+        if( h )
         {
-            SetPixel( wnd->dc, x+2, y+4+i, c );
-            SetPixel( wnd->dc, x+3, y+5+i, c );
-            SetPixel( wnd->dc, x+4, y+6+i, c );
-            SetPixel( wnd->dc, x+5, y+5+i, c );
-            SetPixel( wnd->dc, x+6, y+4+i, c );
-            SetPixel( wnd->dc, x+7, y+3+i, c );
-            SetPixel( wnd->dc, x+8, y+2+i, c );
+            draw_line( wnd, x, y+1, length[i]+1, 1, SGUI_OUTSET_COLOR );
+            x += length[i];
         }
+        else
+        {
+            draw_line( wnd, x+1, y, length[i], 0, SGUI_OUTSET_COLOR );
+            y += length[i];
+        }
+    }
+
+    for( x=oldx, y=oldy, h=start_horizontal, i=0; i<num_lines; ++i, h=!h )
+    {
+        draw_line( wnd, x, y, length[i], h, SGUI_INSET_COLOR );
+
+        if( h )
+            x += length[i];
+        else
+            y += length[i];
     }
 }
 

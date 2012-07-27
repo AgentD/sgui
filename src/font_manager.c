@@ -137,7 +137,7 @@ void sgui_font_delete( sgui_font* font )
 void sgui_font_print( const unsigned char* text, sgui_font* font_face,
                       unsigned int font_height, unsigned char* buffer,
                       int x, int y, unsigned int width, unsigned int height,
-                      unsigned char* color, unsigned int length )
+                      unsigned char* color, unsigned int length, int alpha )
 {
     FT_UInt glyph_index = 0;
     FT_UInt previous = 0;
@@ -145,7 +145,7 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
     FT_Bool useKerning;
     unsigned long character;
     unsigned char *src, *dst;
-    unsigned int i;
+    unsigned int i, bpp = alpha ? 4 : 3;
 
     FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
 
@@ -183,13 +183,13 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
 
         for( Y=0; Y<font_face->face->glyph->bitmap.rows; ++Y )
         {
-            dst = buffer + ((y+Y+bearing)*width + x)*3;
+            dst = buffer + ((y+Y+bearing)*width + x)*bpp;
 
             if( ((y+Y+bearing) < 0) || ((y+Y+bearing) >= (int)height) )
                 continue;
 
             for( X=0; X<font_face->face->glyph->bitmap.width; ++X, ++src,
-                                                              dst+=3 )
+                                                              dst+=bpp )
             {
                 float value = (*src) / 255.0f;
 

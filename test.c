@@ -6,7 +6,7 @@
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3;
-sgui_pixmap *pix;
+unsigned char image[128*128*4];
 
 
 
@@ -56,7 +56,10 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
         break;
     case SGUI_DRAW_EVENT:
         if( wnd==a )
-            sgui_window_draw_pixmap( a, pix, 10, 100 );
+        {
+            sgui_window_blit_image( a, 10, 100, 128, 128, image, 1 );
+            sgui_window_blend_image( a, 10, 250, 128, 128, image );
+        }
         break;
     };
 }
@@ -66,7 +69,7 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 int main( void )
 {
     int a_active=1, b_active=1, x, y, len;
-    unsigned char image[128*128*3], color[3];
+    unsigned char color[3];
     sgui_font* font;
 
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
@@ -93,9 +96,10 @@ int main( void )
     for( y=0; y<128; ++y )
         for( x=0; x<128; ++x )
         {
-            image[ (y*128 + x)*3     ] = 0xFF * (x/128.0f);
-            image[ (y*128 + x)*3 + 1 ] = 0xFF * (y/128.0f);
-            image[ (y*128 + x)*3 + 2 ] = 0x00;
+            image[ (y*128 + x)*4     ] = 0xFF * (x/128.0f);
+            image[ (y*128 + x)*4 + 1 ] = 0xFF * (y/128.0f);
+            image[ (y*128 + x)*4 + 2 ] = 0x00;
+            image[ (y*128 + x)*4 + 3 ] = 0xFF * (x/128.0f);
         }
 
     font = sgui_font_load_from_file( "FreeSans.ttf" );
@@ -107,16 +111,14 @@ int main( void )
     len = sgui_font_extents( (const unsigned char*)"Test AV", font, 16, 7 );
 
     sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
-                      64 - len/2, 64 - 8, 128, 128, color, 7 );
+                      64 - len/2, 64 - 8, 128, 128, color, 7, 1 );
 
     sgui_font_delete( font );
 
-
-    pix = sgui_pixmap_create( 128, 128, image );
-
     sgui_font_deinit( );
 
-    sgui_window_draw_pixmap( a, pix, 10, 100 );
+    sgui_window_blit_image( a, 10, 100, 128, 128, image, 1 );
+    sgui_window_blend_image( a, 10, 250, 128, 128, image );
 
     /* widget test */
     p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
@@ -156,8 +158,6 @@ int main( void )
             sgui_window_destroy( b );
         }
     }
-
-    sgui_pixmap_delete( pix );
 
     sgui_progress_bar_delete( p0 );
     sgui_progress_bar_delete( p1 );

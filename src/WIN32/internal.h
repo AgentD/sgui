@@ -4,7 +4,6 @@
 
 
 #include "sgui_window.h"
-#include "sgui_pixmap.h"
 #include "sgui_colors.h"
 #include "sgui_widget_manager.h"
 
@@ -23,8 +22,10 @@ struct sgui_window
     HWND hWnd;
     HINSTANCE hInstance;
     HDC dc;
+    BITMAPINFO info;
     HBITMAP bitmap;
     HBITMAP old_bitmap;
+    unsigned char* back_buffer;
 
     unsigned int w, h;
 
@@ -34,16 +35,6 @@ struct sgui_window
     sgui_window_callback event_fun;
 };
 
-struct sgui_pixmap
-{
-    HBITMAP bitmap;
-    unsigned int width, height;
-};
-
-
-
-#define SGUI_COLORREF( c ) RGB( ((c>>16) & 0xFF), (((c)>>8) & 0xFF),\
-                                ((c) & 0xFF) )
 
 #define SEND_EVENT( wnd, event, e )\
             if( wnd->event_fun )\

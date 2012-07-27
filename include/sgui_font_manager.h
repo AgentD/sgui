@@ -78,11 +78,13 @@ void sgui_font_delete( sgui_font* font );
  * \param height      The height of the target buffer in texels
  * \param color       The 8 bit per channel RGB text color
  * \param length      The number of characters to read from the text string.
+ * \param alpha       Non-zero if the image has an additional alpha channel.
+ *                    The alpha channel will be left untouched.
  */
 void sgui_font_print( const unsigned char* text, sgui_font* font_face,
                       unsigned int font_height, unsigned char* buffer,
                       int x, int y, unsigned int width, unsigned int height,
-                      unsigned char* color, unsigned int length );
+                      unsigned char* color, unsigned int length, int alpha );
 
 /**
  * \brief Predict the length of a string in pixels for a given font
