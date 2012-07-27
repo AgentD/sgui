@@ -87,6 +87,31 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
                       unsigned char* color, unsigned int length, int alpha );
 
 /**
+ * \brief Print a string of text to a buffer with alpha channel from the text
+ *
+ * Instead of blending the text onto the buffer (like sgui_font_print), the
+ * text will overwrite the buffer with the given color and write the fonts
+ * transparency value into the alpha channel.
+ *
+ * \param text        The UTF8 text to print. Line wraps are treated as end of
+ *                    string.
+ * \param font_face   The font face to use
+ * \param font_height The height of the text in texels
+ * \param buffer      The buffer to print the text to
+ * \param x           The x offset of the text in the buffer in pixels
+ * \param y           The y offset of the text in the buffer in pixels
+ * \param width       The width of the target buffer in texels
+ * \param height      The height of the target buffer in texels
+ * \param color       The 8 bit per channel RGB text color
+ * \param length      The number of characters to read from the text string.
+ */
+void sgui_font_print_alpha( const unsigned char* text, sgui_font* font_face,
+                            unsigned int font_height, unsigned char* buffer,
+                            int x, int y, unsigned int width,
+                            unsigned int height, unsigned char* color,
+                            unsigned int length );
+
+/**
  * \brief Predict the length of a string in pixels for a given font
  *
  * \param text      The UTF8 text to calculate the size of in printed form.

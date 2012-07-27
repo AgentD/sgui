@@ -156,6 +156,7 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
         if( *text == ' ' )
         {
             x += ((int)font_height/3);
+            len = 1;
             continue;
         }
 
@@ -207,6 +208,80 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
     }
 }
 
+void sgui_font_print_alpha( const unsigned char* text, sgui_font* font_face,
+                            unsigned int font_height, unsigned char* buffer,
+                            int x, int y, unsigned int width,
+                            unsigned int height, unsigned char* color,
+                            unsigned int length )
+{
+    FT_UInt glyph_index = 0;
+    FT_UInt previous = 0;
+    int len = 0, X, Y, bearing;
+    FT_Bool useKerning;
+    unsigned long character;
+    unsigned char *src, *dst;
+    unsigned int i;
+
+    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
+
+    useKerning = FT_HAS_KERNING( font_face->face ); 
+
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, ++i )
+    {
+        if( *text == ' ' )
+        {
+            x += ((int)font_height/3);
+            len = 1;
+            continue;
+        }
+
+        /* UTF8 -> UTF32 -> glyph index */
+        character = to_utf32( text, &len );
+
+        glyph_index = FT_Get_Char_Index( font_face->face, character );
+
+        /* load and render glyph */
+        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
+
+        /* apply kerning */
+        if( useKerning && previous && glyph_index )
+        {
+            FT_Vector delta;
+            FT_Get_Kerning( font_face->face, previous, glyph_index,
+                            FT_KERNING_DEFAULT, &delta );
+            x -= abs( delta.x ) >> 6;
+        } 
+
+        /* blend onto destination buffer */
+        bearing = font_height - font_face->face->glyph->bitmap_top;
+        src = font_face->face->glyph->bitmap.buffer;
+
+        for( Y=0; Y<font_face->face->glyph->bitmap.rows; ++Y )
+        {
+            dst = buffer + ((y+Y+bearing)*width + x)*4;
+
+            if( ((y+Y+bearing) < 0) || ((y+Y+bearing) >= (int)height) )
+                continue;
+
+            for( X=0; X<font_face->face->glyph->bitmap.width; ++X, ++src,
+                                                              dst+=4 )
+            {
+                if( ((x+X) < 0) || ((x+X) >= (int)width) )
+                    continue;
+
+                dst[0] = color[0];
+                dst[1] = color[1];
+                dst[2] = color[2];
+                dst[3] = *src;
+            }
+        }
+
+        x += font_face->face->glyph->bitmap.width + 1;
+        previous = glyph_index;
+    }
+}
+
 unsigned int sgui_font_extents( const unsigned char* text,
                                 sgui_font* font_face,
                                 unsigned int height, unsigned int length )
@@ -233,6 +308,7 @@ unsigned int sgui_font_extents( const unsigned char* text,
         if( *text == ' ' )
         {
             x += (height/3);
+            len = 1;
             continue;
         }
 

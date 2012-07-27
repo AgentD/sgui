@@ -5,8 +5,14 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3;
+sgui_widget *p0, *p1, *p2, *p3, *tex;
 unsigned char image[128*128*4];
+
+const char* text =
+    "Lorem <b>ipsum</b> dolor <i>sit</i> amet,\n"
+    "<color=\"#FF0000\"><i>consectetuer</i> <b>adipiscing</b> elit.\n"
+    "<color=\"#00FF00\"><b>Aenean <i>commodo</i> ligula <i>eget</i></b>\n"
+    "<color=\"#0000FF\"><i>dolor. <b>Aenean</b> massa.</i>";
 
 
 
@@ -71,6 +77,9 @@ int main( void )
     int a_active=1, b_active=1, x, y, len;
     unsigned char color[3];
     sgui_font* font;
+    sgui_font* font_bold;
+    sgui_font* font_italic;
+    sgui_font* font_bold_italic;
 
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
     b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
@@ -103,6 +112,9 @@ int main( void )
         }
 
     font = sgui_font_load_from_file( "FreeSans.ttf" );
+    font_bold = sgui_font_load_from_file( "FreeSansBold.ttf" );
+    font_italic = sgui_font_load_from_file( "FreeSansOblique.ttf" );
+    font_bold_italic = sgui_font_load_from_file( "FreeSansBoldOblique.ttf" );
 
     color[0] = 0xFF;
     color[1] = 0xFF;
@@ -112,10 +124,6 @@ int main( void )
 
     sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
                       64 - len/2, 64 - 8, 128, 128, color, 7, 1 );
-
-    sgui_font_delete( font );
-
-    sgui_font_deinit( );
 
     sgui_window_blit_image( a, 10, 100, 128, 128, image, 1 );
     sgui_window_blend_image( a, 10, 250, 128, 128, image );
@@ -139,6 +147,12 @@ int main( void )
     sgui_progress_bar_set_direction( p3, SGUI_PROGRESS_BAR_VERTICAL );
 
 
+
+    tex = sgui_static_text_create( 10, 400, (const unsigned char*)text,
+                                   font, font_bold, font_italic,
+                                   font_bold_italic, 16 );
+
+    sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, p0 );
     sgui_window_add_widget( a, p1 );
     sgui_window_add_widget( a, p2 );
@@ -159,10 +173,19 @@ int main( void )
         }
     }
 
+    sgui_static_text_delete( tex );
+
     sgui_progress_bar_delete( p0 );
     sgui_progress_bar_delete( p1 );
     sgui_progress_bar_delete( p2 );
     sgui_progress_bar_delete( p3 );
+
+    sgui_font_delete( font_bold );
+    sgui_font_delete( font_italic );
+    sgui_font_delete( font_bold_italic );
+    sgui_font_delete( font );
+
+    sgui_font_deinit( );
 
     return 0;
 }
