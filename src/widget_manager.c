@@ -165,9 +165,23 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
             }
         }
 
-        /* propagate the event */
-        for( i=0; i<mgr->num_widgets; ++i )
-            sgui_widget_send_window_event( mgr->widgets[i], wnd, event, e );
+        if( event == SGUI_MOUSE_PRESS_EVENT )
+        {
+            if( mgr->mouse_over )
+            {
+                sgui_widget_send_window_event( mgr->mouse_over, wnd,
+                                               event, e );
+            }
+        }
+        else
+        {
+            /* propagate the event */
+            for( i=0; i<mgr->num_widgets; ++i )
+            {
+                sgui_widget_send_window_event( mgr->widgets[i], wnd,
+                                               event, e );
+            }
+        }
     }
 }
 

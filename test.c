@@ -5,7 +5,7 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3, *tex;
+sgui_widget *p0, *p1, *p2, *p3, *tex, *butt;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -152,7 +152,13 @@ int main( void )
                                    font, font_bold, font_italic,
                                    font_bold_italic, 16 );
 
+
+    butt = sgui_button_create( 180, 100, (const unsigned char*)"Button",
+                               font, 16 );
+
+
     sgui_window_add_widget( a, tex );
+    sgui_window_add_widget( a, butt );
     sgui_window_add_widget( a, p0 );
     sgui_window_add_widget( a, p1 );
     sgui_window_add_widget( a, p2 );
@@ -174,6 +180,8 @@ int main( void )
     }
 
     sgui_static_text_delete( tex );
+
+    sgui_button_delete( butt );
 
     sgui_progress_bar_delete( p0 );
     sgui_progress_bar_delete( p1 );

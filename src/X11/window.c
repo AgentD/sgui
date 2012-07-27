@@ -407,7 +407,7 @@ int sgui_window_update( sgui_window* wnd )
                 else
                     break;
 
-                SEND_EVENT( wnd, SGUI_MOUSE_WHEEL_EVENT, &se );
+                SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &se );
             }
             break;
         case MotionNotify:
