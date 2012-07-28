@@ -40,9 +40,6 @@
 #include <stdlib.h>
 
 
-#define SGUI_OUTSET_COLOR 0xFFFFFF
-#define SGUI_INSET_COLOR  0x000000
-
 
 struct sgui_window
 {

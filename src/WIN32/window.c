@@ -26,8 +26,7 @@
 
 
 
-
-void clear( sgui_window* wnd )
+static void clear( sgui_window* wnd )
 {
     unsigned int X, Y;
     unsigned char color[3];
@@ -42,97 +41,6 @@ void clear( sgui_window* wnd )
             wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = color[0];
         }
 }
-
-void draw_box( sgui_window* wnd, int x, int y,
-                                 unsigned int w, unsigned int h,
-                                 unsigned long color )
-{
-    int lr_x = x + (int)w;
-    int lr_y = y + (int)h;
-    int X, Y;
-
-    x = x<0 ? 0 : x;
-    y = y<0 ? 0 : y;
-
-    if( x >= (int)wnd->w || y >= (int)wnd->h || lr_x < 0 || lr_y < 0 )
-        return;
-
-    if( lr_x >= (int)wnd->w )
-        lr_x = (int)wnd->w - 1;
-
-    if( lr_y >= (int)wnd->h )
-        lr_y = (int)wnd->h - 1;
-
-    for( Y=y; Y!=lr_y; ++Y )
-        for( X=x; X!=lr_x; ++X )
-        {
-            wnd->back_buffer[ (Y*wnd->w + X)*4     ] =  color      & 0xFF;
-            wnd->back_buffer[ (Y*wnd->w + X)*4 + 1 ] = (color>>8 ) & 0xFF;
-            wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = (color>>16) & 0xFF;
-        }
-}
-
-void draw_line( sgui_window* wnd, int x, int y, int length, int horizontal,
-                                  unsigned long color )
-{
-    int i, endi;
-
-    if( horizontal )
-    {
-        if( (y<0) || (y>=(int)wnd->h) )
-            return;
-
-        if( length < 0 )
-        {
-            length = -length;
-            x -= length;
-        }
-
-        if( (x >= (int)wnd->w) || ((x+length)<0) )
-            return;
-
-        i = x < 0 ? 0 : x;
-        endi = x+length+1;
-
-        if( endi >= (int)wnd->w )
-            endi = wnd->w - 1;
-
-        for( ; i!=endi; ++i )
-        {
-            wnd->back_buffer[ (y*wnd->w + i)*4     ] =  color      & 0xFF;
-            wnd->back_buffer[ (y*wnd->w + i)*4 + 1 ] = (color>>8 ) & 0xFF;
-            wnd->back_buffer[ (y*wnd->w + i)*4 + 2 ] = (color>>16) & 0xFF;
-        }
-    }
-    else
-    {
-        if( (x<0) || (x>=(int)wnd->w) )
-            return;
-
-        if( length < 0 )
-        {
-            length = -length;
-            y -= length;
-        }
-
-        if( (y >= (int)wnd->h) || ((y+length)<0) )
-            return;
-
-        i = y < 0 ? 0 : y;
-        endi = y+length+1;
-
-        if( endi >= (int)wnd->h )
-            endi = wnd->h - 1;
-
-        for( ; i!=endi; ++i )
-        {
-            wnd->back_buffer[ (i*wnd->w + x)*4     ] = (color>>16) & 0xFF;
-            wnd->back_buffer[ (i*wnd->w + x)*4 + 1 ] = (color>>8 ) & 0xFF;
-            wnd->back_buffer[ (i*wnd->w + x)*4 + 2 ] =  color      & 0xFF;
-        }
-    }
-}
-
 
 
 
@@ -586,62 +494,6 @@ void sgui_window_blend_image( sgui_window* wnd, int x, int y,
                 dst[2] = image[0] * A + dst[2] * (1.0f-A);
             }
         }
-    }
-}
-
-void sgui_window_draw_box( sgui_window* wnd, int x, int y,
-                           unsigned int width, unsigned int height,
-                           unsigned long bgcolor, int inset )
-{
-    draw_box( wnd, x, y, width, height, bgcolor );
-
-    if( inset>0 )
-    {
-        draw_line( wnd, x,       y,        width,  1, SGUI_INSET_COLOR  );
-        draw_line( wnd, x,       y,        height, 0, SGUI_INSET_COLOR  );
-
-        draw_line( wnd, x,       y+height, width,  1, SGUI_OUTSET_COLOR );
-        draw_line( wnd, x+width, y,        height, 0, SGUI_OUTSET_COLOR );
-    }
-    else if( inset<0 )
-    {
-        draw_line( wnd, x,       y,        width,  1, SGUI_OUTSET_COLOR );
-        draw_line( wnd, x,       y,        height, 0, SGUI_OUTSET_COLOR );
-
-        draw_line( wnd, x,       y+height, width,  1, SGUI_INSET_COLOR  );
-        draw_line( wnd, x+width, y,        height, 0, SGUI_INSET_COLOR  );
-    }
-}
-
-void sgui_window_draw_fancy_lines( sgui_window* wnd, int x, int y,
-                                   int* length, unsigned int num_lines,
-                                   int start_horizontal )
-{
-    unsigned int i;
-    int h, oldx = x, oldy = y;
-
-    for( h=start_horizontal, i=0; i<num_lines; ++i, h=!h )
-    {
-        if( h )
-        {
-            draw_line( wnd, x, y+1, length[i]+1, 1, SGUI_OUTSET_COLOR );
-            x += length[i];
-        }
-        else
-        {
-            draw_line( wnd, x+1, y, length[i], 0, SGUI_OUTSET_COLOR );
-            y += length[i];
-        }
-    }
-
-    for( x=oldx, y=oldy, h=start_horizontal, i=0; i<num_lines; ++i, h=!h )
-    {
-        draw_line( wnd, x, y, length[i], h, SGUI_INSET_COLOR );
-
-        if( h )
-            x += length[i];
-        else
-            y += length[i];
     }
 }
 

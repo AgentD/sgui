@@ -245,54 +245,6 @@ void sgui_window_blend_image( sgui_window* wnd, int x, int y,
                               unsigned int width, unsigned int height,
                               unsigned char* image );
 
-/**
- * \brief Draw a rectangle/box
- *
- * \param wnd     The window to draw onto
- * \param x       The distance of the left of the box from the
- *                left of the window
- * \param y       The distance of the top of the box from the
- *                top of the window
- * \param width   The extent of the box in x direction
- * \param height  The extent of the box in y direction
- * \param bgcolor The background fill color of the box
- * \param inset   If the value is non-zero, a border is drawn around the box.
- *                If the value is positive, the border is shaded in a way to
- *                make the box apear to go deeper into the window.
- *                If the value is negative, the border is shaded in a way to
- *                make the box apera to stick out of the window.
- */
-void sgui_window_draw_box( sgui_window* wnd, int x, int y,
-                           unsigned int width, unsigned int height,
-                           unsigned long bgcolor, int inset );
-
-/**
- * \brief Draw fancy lines that are shaded in a way that they apear to be
- *        engraved into the window.
- *
- * The lines are assumed to start off of the end of the last one and to be
- * either horizontally or vertically, where a horizontal line is always
- * followed by a vertical line and vice versa, so everything needed to
- * discribe the fancy line sequence is a start point and an array of integers
- * indicating line lengths and direction using the sign. A positive value
- * means right for horizontal lines and down for vertical lines and a negative
- * value means the opposite.
- * 
- * \param wnd              The window to draw to.
- * \param x                The distance of the start point to the left of the
- *                         window.
- * \param y                The distance of the start point to the top of the
- *                         window.
- * \param length           An array of integers giving lengths and directions
- *                         of the line sequence.
- * \param num_lines        The number of lines to draw, i.e. the number of
- *                         entries in the length array.
- * \param start_horizontal Zero to start with a vertical line, non-zero to
- *                         start with a horizontal line.
- */
-void sgui_window_draw_fancy_lines( sgui_window* wnd, int x, int y,
-                                   int* length, unsigned int num_lines,
-                                   int start_horizontal );
 
 #ifdef __cplusplus
 }

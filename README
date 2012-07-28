@@ -22,11 +22,15 @@
   exception for ripping the code apart and using it in similar works.
 
   There are working Xlib and WinDOS backends that basically mange a window,
-  handle input and display an in memory back buffer on request and an API to
-  draw/blit to the back buffer.
+  handle input and display an in memory back buffer on request and have an API
+  to draw/blit to the back buffer.
 
   There is a widget manager that receives input and manages widgets (duh) with
   a few widget stubs already implemented, but no widget events yet.
+
+  Widget rendering is done in a centralized fashion by a skinning subsystem
+  that renders to a scratch buffer and blits it onto the window; so it is
+  possible to implement, e.g. loading GUI skins from an image file, etc...
 
   Font rasterisation is done using FreeType 2 directly.
 
@@ -45,7 +49,7 @@
     - Make the library usefull for small GUI applications
 
   Mid term:
-    - Centralized widget rendering that can read GUI styles from image files
+    - Load GUI skin and default fonts from image & config files
     - Built in dialog boxes, like message box, file open and file safe
     - Assure thread safety
     - OpenGL backend

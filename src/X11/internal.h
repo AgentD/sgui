@@ -53,9 +53,6 @@
         sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
 
 
-#define SGUI_OUTSET_COLOR 0xFFFFFF
-#define SGUI_INSET_COLOR  0x000000
-
 
 struct sgui_window
 {
