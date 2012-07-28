@@ -99,11 +99,11 @@ void sgui_progress_bar_set_color( sgui_widget* bar, unsigned long color );
 void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical );
 
 /**
- * \brief Delete a progress bar widget
+ * \brief Destroy a progress bar widget
  *
  * \param par The progress bar widget to delete
  */
-void sgui_progress_bar_delete( sgui_widget* bar );
+void sgui_progress_bar_destroy( sgui_widget* bar );
 
 
 

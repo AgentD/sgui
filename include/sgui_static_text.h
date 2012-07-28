@@ -59,8 +59,8 @@ sgui_widget* sgui_static_text_create( int x, int y, const unsigned char* text,
                                       sgui_font* ital, sgui_font* boit,
                                       unsigned int size );
 
-/** \brief Delete a static text widget */
-void sgui_static_text_delete( sgui_widget* widget );
+/** \brief Destroy a static text widget */
+void sgui_static_text_destroy( sgui_widget* widget );
 
 
 

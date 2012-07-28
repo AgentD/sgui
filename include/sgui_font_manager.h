@@ -83,9 +83,9 @@ sgui_font* sgui_font_load_from_file( const char* filename );
 sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize );
 
 /**
- * \brief Delete a font object
+ * \brief Destroy a font object
  */
-void sgui_font_delete( sgui_font* font );
+void sgui_font_destroy( sgui_font* font );
 
 
 /**

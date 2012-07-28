@@ -208,7 +208,7 @@ void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical )
     }
 }
 
-void sgui_progress_bar_delete( sgui_widget* bar )
+void sgui_progress_bar_destroy( sgui_widget* bar )
 {
     free( bar );
 }

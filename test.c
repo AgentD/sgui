@@ -179,19 +179,19 @@ int main( void )
         }
     }
 
-    sgui_static_text_delete( tex );
+    sgui_static_text_destroy( tex );
 
-    sgui_button_delete( butt );
+    sgui_button_destroy( butt );
 
-    sgui_progress_bar_delete( p0 );
-    sgui_progress_bar_delete( p1 );
-    sgui_progress_bar_delete( p2 );
-    sgui_progress_bar_delete( p3 );
+    sgui_progress_bar_destroy( p0 );
+    sgui_progress_bar_destroy( p1 );
+    sgui_progress_bar_destroy( p2 );
+    sgui_progress_bar_destroy( p3 );
 
-    sgui_font_delete( font_bold );
-    sgui_font_delete( font_italic );
-    sgui_font_delete( font_bold_italic );
-    sgui_font_delete( font );
+    sgui_font_destroy( font_bold );
+    sgui_font_destroy( font_italic );
+    sgui_font_destroy( font_bold_italic );
+    sgui_font_destroy( font );
 
     sgui_font_deinit( );
 

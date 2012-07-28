@@ -53,11 +53,11 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
                                  sgui_font* font, unsigned int size );
 
 /**
- * \brief Delete a button widget
+ * \brief Destroy a button widget
  *
  * \param button The button widget
  */
-void sgui_button_delete( sgui_widget* button );
+void sgui_button_destroy( sgui_widget* button );
 
 
 

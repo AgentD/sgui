@@ -117,7 +117,7 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
 
 
 
-void sgui_button_delete( sgui_widget* button )
+void sgui_button_destroy( sgui_widget* button )
 {
     free( ((sgui_button*)button)->buffer );
     free( button );

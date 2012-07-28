@@ -150,7 +150,7 @@ sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
     return font;
 }
 
-void sgui_font_delete( sgui_font* font )
+void sgui_font_destroy( sgui_font* font )
 {
     FT_Done_Face( font->face );
 

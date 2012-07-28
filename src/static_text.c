@@ -202,7 +202,7 @@ sgui_widget* sgui_static_text_create( int x, int y, const unsigned char* text,
     return (sgui_widget*)t;
 }
 
-void sgui_static_text_delete( sgui_widget* widget )
+void sgui_static_text_destroy( sgui_widget* widget )
 {
     free( ((sgui_static_text*)widget)->buffer );
     free( widget );
