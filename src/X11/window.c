@@ -288,7 +288,6 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     XSizeHints hints;
     XWindowAttributes attr;
-    sgui_event se;
 
     if( !wnd || !width || !height )
         return;
@@ -324,12 +323,7 @@ void sgui_window_set_size( sgui_window* wnd,
     clear( wnd, SGUI_WINDOW_COLOR );
 
     /* redraw everything */
-    se.draw.x = 0;
-    se.draw.y = 0;
-    se.draw.w = wnd->w;
-    se.draw.h = wnd->h;
-
-    SEND_EVENT( wnd, SGUI_DRAW_EVENT, &se );
+    SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
 }
 
 void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
@@ -471,12 +465,7 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
-            se.draw.x = 0;
-            se.draw.y = 0;
-            se.draw.w = wnd->w;
-            se.draw.h = wnd->h;
-
-            SEND_EVENT( wnd, SGUI_DRAW_EVENT, &se );
+            SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );

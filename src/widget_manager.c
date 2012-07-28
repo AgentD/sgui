@@ -123,7 +123,6 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 {
     unsigned int i;
     int redraw = 0;
-    sgui_event e;
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
@@ -133,11 +132,8 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
         {
             redraw = 1;
 
-            sgui_widget_get_position( mgr->widgets[i], &e.draw.x, &e.draw.y );
-            sgui_widget_get_size( mgr->widgets[i], &e.draw.w, &e.draw.h );
-
             sgui_widget_send_window_event( mgr->widgets[i], wnd,
-                                           SGUI_DRAW_EVENT, &e );
+                                           SGUI_DRAW_EVENT, NULL );
         }
     }
 

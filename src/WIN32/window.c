@@ -216,12 +216,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* redraw everything */
-        e.draw.x = 0;
-        e.draw.y = 0;
-        e.draw.w = wnd->w;
-        e.draw.h = wnd->h;
-
-        SEND_EVENT( wnd, SGUI_DRAW_EVENT, &e );
+        SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
         break;
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
@@ -385,7 +380,6 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
-    sgui_event e;
 
     if( wnd )
     {
@@ -418,12 +412,7 @@ void sgui_window_set_size( sgui_window* wnd,
         clear( wnd, SGUI_WINDOW_COLOR );
 
         /* redraw everything */
-        e.draw.x = 0;
-        e.draw.y = 0;
-        e.draw.w = wnd->w;
-        e.draw.h = wnd->h;
-
-        SEND_EVENT( wnd, SGUI_DRAW_EVENT, &e );
+        SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
     }
 }
 

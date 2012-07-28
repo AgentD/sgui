@@ -48,7 +48,6 @@ void sgui_button_on_event( sgui_widget* widget, sgui_window* wnd,
                            int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
-    (void)event;
 
     if( type == SGUI_DRAW_EVENT )
     {

@@ -55,8 +55,6 @@ typedef union
     struct { int button, pressed; } mouse_press;
 
     struct { int direction; } mouse_wheel;
-
-    struct { int x, y; unsigned int w, h; } draw;
 }
 sgui_event;
 
