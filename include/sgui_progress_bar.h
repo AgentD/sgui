@@ -33,8 +33,6 @@
 
 #define SGUI_PROGRESS_BAR_CONTINUOUS  1
 #define SGUI_PROGRESS_BAR_STIPPLED    0
-#define SGUI_PROGRESS_BAR_OFFSET      1
-#define SGUI_PROGRESS_BAR_NO_OFFSET   0
 #define SGUI_PROGRESS_BAR_HORIZONTAL  0
 #define SGUI_PROGRESS_BAR_VERTICAL    1
 
@@ -73,22 +71,11 @@ float sgui_progress_bar_get_progress( sgui_widget* bar );
 /**
  * \brief Set the style of a progress bar
  *
- * \param bar        The progress bar to set the style of.
- * \param continuous Whether the progress bar should be one continuous stripe
- *                   or stippled. Default is stippled.
- * \param offset     Whether the progress bar should touch the borders around
- *                   it or keep some distance. Default is offset.
+ * \param bar   The progress bar to set the style of.
+ * \param style Whether the progress bar should be one continuous stripe
+ *              or stippled with an offset from the borders around it.
  */
-void sgui_progress_bar_set_style( sgui_widget* bar, int continuous,
-                                  int offset );
-
-/**
- * \brief Set the color of a progress bar
- *
- * \param bar   The progress bar to set the color of.
- * \param color The color to use for the progress bar. Default is white.
- */
-void sgui_progress_bar_set_color( sgui_widget* bar, unsigned long color );
+void sgui_progress_bar_set_style( sgui_widget* bar, int style );
 
 /**
  * \brief Set the direction of a progress bar

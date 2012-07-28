@@ -37,8 +37,7 @@ typedef struct
     sgui_widget widget;
 
     float progress;
-    int continuous;
-    int offset;
+    int style;
     unsigned long color;
     int vertical;
 }
@@ -64,7 +63,7 @@ void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
                                SGUI_INSET_FILL_COLOR_L1, 1 );
 
     /* draw bar */
-    if( b->offset )
+    if( b->style == SGUI_PROGRESS_BAR_STIPPLED )
         ox = oy = 5;
     else
         ox = oy = 1;
@@ -76,7 +75,7 @@ void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
 
         if( height )
         {
-            if( b->continuous )
+            if( b->style == SGUI_PROGRESS_BAR_CONTINUOUS )
             {
                 sgui_window_draw_box( wnd, widget->x+ox,
                                       widget->y+widget->height-oy-height,
@@ -103,7 +102,7 @@ void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
 
         if( width )
         {
-            if( b->continuous )
+            if( b->style == SGUI_PROGRESS_BAR_CONTINUOUS )
             {
                 sgui_window_draw_box( wnd, widget->x+ox, widget->y+oy,
                                       width, height, b->color, 0 );
@@ -146,8 +145,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
     b->widget.window_event_callback = sgui_progress_bar_on_event;
     b->widget.need_redraw           = 1;
     b->progress                     = progress;
-    b->continuous                   = SGUI_PROGRESS_BAR_STIPPLED;
-    b->offset                       = SGUI_PROGRESS_BAR_OFFSET;
+    b->style                        = SGUI_PROGRESS_BAR_STIPPLED;
     b->color                        = SGUI_WHITE;
 
     return (sgui_widget*)b;
@@ -173,27 +171,19 @@ float sgui_progress_bar_get_progress( sgui_widget* bar )
     return b ? b->progress : 0.0f;
 }
 
-void sgui_progress_bar_set_style( sgui_widget* bar, int continuous,
-                                  int offset )
+void sgui_progress_bar_set_style( sgui_widget* bar, int style )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
 
     if( b )
     {
-        b->continuous         = continuous;
-        b->offset             = offset;
+        b->style              = style;
         b->widget.need_redraw = 1;
-    }
-}
 
-void sgui_progress_bar_set_color( sgui_widget* bar, unsigned long color )
-{
-    sgui_progress_bar* b = (sgui_progress_bar*)bar;
-
-    if( b )
-    {
-        b->color              = color;
-        b->widget.need_redraw = 1;
+        if( style==SGUI_PROGRESS_BAR_STIPPLED )
+            b->color = SGUI_WHITE;
+        else
+            b->color = SGUI_YELLOW;
     }
 }
 

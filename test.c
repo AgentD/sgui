@@ -135,13 +135,10 @@ int main( void )
     p2 = sgui_progress_bar_create( 320, 10, 30, 300, 0.5f );
     p3 = sgui_progress_bar_create( 355, 10, 30, 300, 0.5f );
 
-    sgui_progress_bar_set_style( p0, 0, 1 );
-    sgui_progress_bar_set_style( p1, 1, 0 );
-    sgui_progress_bar_set_style( p2, 0, 1 );
-    sgui_progress_bar_set_style( p3, 1, 0 );
-
-    sgui_progress_bar_set_color( p1, SGUI_YELLOW );
-    sgui_progress_bar_set_color( p3, SGUI_YELLOW );
+    sgui_progress_bar_set_style( p0, SGUI_PROGRESS_BAR_STIPPLED );
+    sgui_progress_bar_set_style( p1, SGUI_PROGRESS_BAR_CONTINUOUS );
+    sgui_progress_bar_set_style( p2, SGUI_PROGRESS_BAR_STIPPLED );
+    sgui_progress_bar_set_style( p3, SGUI_PROGRESS_BAR_CONTINUOUS );
 
     sgui_progress_bar_set_direction( p2, SGUI_PROGRESS_BAR_VERTICAL );
     sgui_progress_bar_set_direction( p3, SGUI_PROGRESS_BAR_VERTICAL );
