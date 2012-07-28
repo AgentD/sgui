@@ -28,7 +28,7 @@
 
 
 #include "sgui_window.h"
-#include "sgui_colors.h"
+#include "sgui_skin.h"
 #include "sgui_widget_manager.h"
 
 #include <X11/X.h>
@@ -52,6 +52,9 @@
             wnd->event_fun( wnd, event, e );\
         sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
 
+
+#define SGUI_OUTSET_COLOR 0xFFFFFF
+#define SGUI_INSET_COLOR  0x000000
 
 
 struct sgui_window

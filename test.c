@@ -81,6 +81,9 @@ int main( void )
     sgui_font* font_italic;
     sgui_font* font_bold_italic;
 
+    sgui_font_init( );
+    sgui_skin_init( );
+
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
     b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
 
@@ -100,8 +103,6 @@ int main( void )
     sgui_window_set_size( b, 200, 100 );
 
     /* pixmap and font test */
-    sgui_font_init( );
-
     for( y=0; y<128; ++y )
         for( x=0; x<128; ++x )
         {
@@ -129,6 +130,9 @@ int main( void )
     sgui_window_blend_image( a, 10, 250, 128, 128, image );
 
     /* widget test */
+    sgui_skin_set_default_font( font, font_bold, font_italic,
+                                font_bold_italic, 16 );
+
     p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
     p1 = sgui_progress_bar_create( 10, 45, 300, 30, 0.5f );
 
@@ -145,13 +149,8 @@ int main( void )
 
 
 
-    tex = sgui_static_text_create( 10, 400, (const unsigned char*)text,
-                                   font, font_bold, font_italic,
-                                   font_bold_italic, 16 );
-
-
-    butt = sgui_button_create( 180, 100, (const unsigned char*)"Button",
-                               font, 16 );
+    tex = sgui_static_text_create( 10, 400, (const unsigned char*)text );
+    butt = sgui_button_create( 180, 100, (const unsigned char*)"Button" );
 
 
     sgui_window_add_widget( a, tex );
@@ -190,6 +189,7 @@ int main( void )
     sgui_font_destroy( font_bold_italic );
     sgui_font_destroy( font );
 
+    sgui_skin_deinit( );
     sgui_font_deinit( );
 
     return 0;

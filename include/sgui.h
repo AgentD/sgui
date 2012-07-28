@@ -27,9 +27,9 @@
 
 
 
-#include "sgui_colors.h"
 #include "sgui_event.h"
 #include "sgui_font_manager.h"
+#include "sgui_skin.h"
 #include "sgui_window.h"
 #include "sgui_predef.h"
 

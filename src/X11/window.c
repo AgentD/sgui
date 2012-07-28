@@ -32,9 +32,17 @@ const char* wmDeleteWindow = "WM_DELETE_WINDOW";
 
 
 
-void clear( sgui_window* wnd, unsigned long color )
+void clear( sgui_window* wnd )
 {
     unsigned int X, Y;
+    unsigned long color = 0;
+    unsigned char rgb[3];
+
+    sgui_skin_get_window_background_color( rgb );
+
+    color |= ((unsigned long)rgb[0]) << 16;
+    color |= ((unsigned long)rgb[1]) << 8;
+    color |= ((unsigned long)rgb[2]);
 
     for( Y=0; Y<wnd->h; ++Y )
         for( X=0; X<wnd->w; ++X )
@@ -161,8 +169,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     /******************** create the window ********************/
     wnd->wnd = XCreateSimpleWindow( wnd->dpy, DefaultRootWindow(wnd->dpy),
-                                    0, 0, width, height, 0,
-                                    SGUI_WINDOW_COLOR, SGUI_WINDOW_COLOR );
+                                    0, 0, width, height, 0, 0, 0 );
 
     if( !wnd->wnd )
     {
@@ -221,7 +228,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    clear( wnd, SGUI_WINDOW_COLOR );
+    clear( wnd );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -320,7 +327,7 @@ void sgui_window_set_size( sgui_window* wnd,
                                      (char*)wnd->back_buffer_data,
                                      wnd->w, wnd->h, 32, 0 );
 
-    clear( wnd, SGUI_WINDOW_COLOR );
+    clear( wnd );
 
     /* redraw everything */
     SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
@@ -460,7 +467,7 @@ int sgui_window_update( sgui_window* wnd )
                                              (char*)wnd->back_buffer_data,
                                              wnd->w, wnd->h, 32, 0 );
 
-            clear( wnd, SGUI_WINDOW_COLOR );
+            clear( wnd );
 
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 

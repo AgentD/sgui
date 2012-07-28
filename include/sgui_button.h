@@ -44,13 +44,10 @@ extern "C"
  * \param x    X component of the buttons position
  * \param x    Y component of the buttons position
  * \param text Text written onto the button
- * \param font The font face to use for rendering the text on the button
- * \param size The font size to use for writing to the button
  *
  * \return A button widget
  */
-sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
-                                 sgui_font* font, unsigned int size );
+sgui_widget* sgui_button_create( int x, int y, const unsigned char* text );
 
 /**
  * \brief Destroy a button widget

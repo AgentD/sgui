@@ -27,16 +27,19 @@
 
 
 
-void clear( sgui_window* wnd, unsigned long color )
+void clear( sgui_window* wnd )
 {
     unsigned int X, Y;
+    unsigned char color[3];
+
+    sgui_skin_get_window_background_color( color );
 
     for( Y=0; Y<wnd->h; ++Y )
         for( X=0; X<wnd->w; ++X )
         {
-            wnd->back_buffer[ (Y*wnd->w + X)*4     ] =  color      & 0xFF;
-            wnd->back_buffer[ (Y*wnd->w + X)*4 + 1 ] = (color>>8 ) & 0xFF;
-            wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = (color>>16) & 0xFF;
+            wnd->back_buffer[ (Y*wnd->w + X)*4     ] = color[2];
+            wnd->back_buffer[ (Y*wnd->w + X)*4 + 1 ] = color[1];
+            wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = color[0];
         }
 }
 
@@ -207,7 +210,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
                                         (void**)&wnd->back_buffer, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        clear( wnd, SGUI_WINDOW_COLOR );
+        clear( wnd );
 
         /* send size change event */
         e.size.new_width  = wnd->w;
@@ -320,7 +323,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                     (void**)&wnd->back_buffer, 0, 0 );
     wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-    clear( wnd, SGUI_WINDOW_COLOR );
+    clear( wnd );
 
     return wnd;
 }
@@ -409,7 +412,7 @@ void sgui_window_set_size( sgui_window* wnd,
                                         (void**)&wnd->back_buffer, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        clear( wnd, SGUI_WINDOW_COLOR );
+        clear( wnd );
 
         /* redraw everything */
         SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );

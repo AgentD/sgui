@@ -46,18 +46,11 @@ extern "C"
  * \param text The UTF8 text to print. The LF ('\n') character can be used
  *             for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
  *             text bold or italic. A \<color="#RRGGBB"\> tag can be used to
- *             switch text color. The default text color is SGUI_DEFAULT_TEXT.
- * \param norm The font face to use for rendering the text.
- * \param bold The font face to use for rendering bold parts of the text.
- * \param ital The font face to use for rendering italic parts of the text.
- * \param boit The font face to use for rendering bold and italic parts of
- *             the text.
- * \praam size The font size in pixels.
+ *             switch text color. The color value "default" switches back to
+ *             the default color.
  */
-sgui_widget* sgui_static_text_create( int x, int y, const unsigned char* text,
-                                      sgui_font* norm, sgui_font* bold,
-                                      sgui_font* ital, sgui_font* boit,
-                                      unsigned int size );
+sgui_widget* sgui_static_text_create( int x, int y,
+                                      const unsigned char* text );
 
 /** \brief Destroy a static text widget */
 void sgui_static_text_destroy( sgui_widget* widget );

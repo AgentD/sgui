@@ -28,7 +28,7 @@
 
 
 #include "sgui_window.h"
-#include "sgui_colors.h"
+#include "sgui_skin.h"
 #include "sgui_widget_manager.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -39,6 +39,9 @@
 
 #include <stdlib.h>
 
+
+#define SGUI_OUTSET_COLOR 0xFFFFFF
+#define SGUI_INSET_COLOR  0x000000
 
 
 struct sgui_window

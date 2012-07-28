@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_progress_bar.h"
-#include "sgui_colors.h"
+#include "sgui_skin.h"
 
 #include "widget_internal.h"
 
@@ -38,8 +38,7 @@ typedef struct
 
     float progress;
     int style;
-    unsigned long color;
-    int vertical;
+    int horizontal;
 }
 sgui_progress_bar;
 
@@ -49,76 +48,13 @@ void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
                                  int type, sgui_event* event )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)widget;
-    unsigned int width, height, segments, i;
-    int ox, oy;
-    (void)wnd;
     (void)event;
 
-    if( type != SGUI_DRAW_EVENT )
-        return;
-
-    /* draw background box */
-    sgui_window_draw_box( wnd, widget->x, widget->y,
-                               widget->width, widget->height,
-                               SGUI_INSET_FILL_COLOR_L1, 1 );
-
-    /* draw bar */
-    if( b->style == SGUI_PROGRESS_BAR_STIPPLED )
-        ox = oy = 5;
-    else
-        ox = oy = 1;
-
-    if( b->vertical )
+    if( type == SGUI_DRAW_EVENT )
     {
-        height = (widget->height - 2*oy) * b->progress;
-        width  =  widget->width  - 2*ox;
-
-        if( height )
-        {
-            if( b->style == SGUI_PROGRESS_BAR_CONTINUOUS )
-            {
-                sgui_window_draw_box( wnd, widget->x+ox,
-                                      widget->y+widget->height-oy-height,
-                                      width, height-1, b->color, 0 );
-            }
-            else
-            {
-                segments = height / 12;
-
-                for( i=0; i<segments; ++i )
-                {
-                    sgui_window_draw_box( wnd, widget->x+ox,
-                                          widget->y+widget->height-oy -
-                                          (int)i*12 - 7,
-                                          width, 7, b->color, 0 );
-                }
-            }
-        }
-    }
-    else
-    {
-        width  = (widget->width - 2*ox) * b->progress;
-        height = widget->height - 2*oy;
-
-        if( width )
-        {
-            if( b->style == SGUI_PROGRESS_BAR_CONTINUOUS )
-            {
-                sgui_window_draw_box( wnd, widget->x+ox, widget->y+oy,
-                                      width, height, b->color, 0 );
-            }
-            else
-            {
-                segments = width / 12;
-
-                for( i=0; i<segments; ++i )
-                {
-                    sgui_window_draw_box( wnd, widget->x+ox+(int)i*12,
-                                               widget->y+oy,
-                                               7, height, b->color, 0 );
-                }
-            }
-        }
+        sgui_skin_draw_progress_bar( wnd, widget->x, widget->y,
+                                     widget->width, widget->height,
+                                     b->horizontal, b->style, b->progress );
     }
 }
 
@@ -131,7 +67,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
 
     progress = (progress>1.0f) ? 1.0f : ((progress<0.0f) ? 0.0f : progress);
 
-    width  = (width< 15) ? 15 : width;
+    width  = (width <15) ? 15 : width;
     height = (height<15) ? 15 : height;
 
     b = malloc( sizeof(sgui_progress_bar) );
@@ -144,9 +80,9 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
     b->widget.height                = height;
     b->widget.window_event_callback = sgui_progress_bar_on_event;
     b->widget.need_redraw           = 1;
+    b->horizontal                   = 1;
     b->progress                     = progress;
     b->style                        = SGUI_PROGRESS_BAR_STIPPLED;
-    b->color                        = SGUI_WHITE;
 
     return (sgui_widget*)b;
 }
@@ -179,11 +115,6 @@ void sgui_progress_bar_set_style( sgui_widget* bar, int style )
     {
         b->style              = style;
         b->widget.need_redraw = 1;
-
-        if( style==SGUI_PROGRESS_BAR_STIPPLED )
-            b->color = SGUI_WHITE;
-        else
-            b->color = SGUI_YELLOW;
     }
 }
 
@@ -193,7 +124,7 @@ void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical )
 
     if( b )
     {
-        b->vertical           = vertical;
+        b->horizontal         = !vertical;
         b->widget.need_redraw = 1;
     }
 }
