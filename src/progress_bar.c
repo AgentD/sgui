@@ -72,14 +72,9 @@ sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
 
     b = malloc( sizeof(sgui_progress_bar) );
 
-    memset( b, 0, sizeof(sgui_progress_bar) );
+    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 0 );
 
-    b->widget.x                     = x;
-    b->widget.y                     = y;
-    b->widget.width                 = width;
-    b->widget.height                = height;
     b->widget.window_event_callback = sgui_progress_bar_on_event;
-    b->widget.need_redraw           = 1;
     b->horizontal                   = 1;
     b->progress                     = progress;
     b->style                        = SGUI_PROGRESS_BAR_STIPPLED;
@@ -131,6 +126,10 @@ void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical )
 
 void sgui_progress_bar_destroy( sgui_widget* bar )
 {
-    free( bar );
+    if( bar )
+    {
+        sgui_internal_widget_deinit( bar );
+        free( bar );
+    }
 }
 

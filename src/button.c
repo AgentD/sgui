@@ -63,11 +63,25 @@ void sgui_button_on_event( sgui_widget* widget, sgui_window* wnd,
     }
     else if( type == SGUI_MOUSE_PRESS_EVENT )
     {
-        if( event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT )
+        if( event->mouse_press.button != SGUI_MOUSE_BUTTON_LEFT )
+            return;
+
+        if( event->mouse_press.pressed )
         {
-            b->state = event->mouse_press.pressed ? 1 : 0;
-            b->widget.need_redraw = 1;
+            b->state = 1;
         }
+        else
+        {
+            if( b->state )
+            {
+                sgui_internal_widget_fire_event( widget,
+                                                 SGUI_BUTTON_CLICK_EVENT );
+            }
+
+            b->state = 0;
+        }
+
+        b->widget.need_redraw = 1;
     }
 }
 
@@ -77,20 +91,17 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text )
 {
     sgui_button* b;
 
-    unsigned int len = strlen( (const char*)text );
+    unsigned int w, h, len = strlen( (const char*)text );
 
     b = malloc( sizeof(sgui_button) );
-    memset( b, 0, sizeof(sgui_button) );
 
-    b->widget.x                     = x;
-    b->widget.y                     = y;
+    sgui_skin_get_button_extents( text, &w, &h, &b->text_width );
+
+    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 1 );
+
     b->widget.window_event_callback = sgui_button_on_event;
-    b->widget.need_redraw           = 1;
     b->text                         = malloc( len + 1 );
     b->state                        = 0;
-
-    sgui_skin_get_button_extents( text, &b->widget.width, &b->widget.height,
-                                  &b->text_width );
 
     memcpy( b->text, text, len + 1 );
 
@@ -99,7 +110,12 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text )
 
 void sgui_button_destroy( sgui_widget* button )
 {
-    free( ((sgui_button*)button)->text );
-    free( button );
+    if( button )
+    {
+        sgui_internal_widget_deinit( button );
+
+        free( ((sgui_button*)button)->text );
+        free( button );
+    }
 }
 

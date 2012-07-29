@@ -41,6 +41,12 @@ struct sgui_widget
     int need_redraw;        /**< \brief non-zero if need for redrawing */
 
     /**
+     * \brief List of links to implement signals and slots like widget
+     *        intercommunication.
+     */
+    sgui_link_list* links;
+
+    /**
      * \brief Callback that is called to update a widget
      *
      * \param widget A pointer to the widget to update (for C++
@@ -60,6 +66,16 @@ struct sgui_widget
     void (* window_event_callback )( sgui_widget* widget, sgui_window* wnd,
                                      int type, sgui_event* event );
 };
+
+
+
+void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
+                                unsigned int width, unsigned int height,
+                                int triggers_events );
+
+void sgui_internal_widget_deinit( sgui_widget* widget );
+
+void sgui_internal_widget_fire_event( sgui_widget* widget, int event );
 
 
 

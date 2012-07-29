@@ -38,6 +38,10 @@ extern "C"
 
 
 
+#define SGUI_BUTTON_CLICK_EVENT 0
+
+
+
 /**
  * \brief Create a button widget
  *

@@ -160,6 +160,15 @@ int main( void )
     sgui_window_add_widget( a, p2 );
     sgui_window_add_widget( a, p3 );
 
+
+
+    sgui_widget_on_event_f( butt, SGUI_BUTTON_CLICK_EVENT,
+                            sgui_progress_bar_set_progress, p2, 0.0f );
+
+    sgui_widget_on_event_f( butt, SGUI_BUTTON_CLICK_EVENT,
+                            sgui_progress_bar_set_progress, p3, 0.0f );
+
+
     while( a_active || b_active )
     {
         if( a_active && !sgui_window_update( a ) )

@@ -63,28 +63,29 @@ sgui_widget* sgui_static_text_create( int x, int y,
                                       const unsigned char* text )
 {
     sgui_static_text* t;
+    unsigned int w, h;
 
     /* create widget */
     t = malloc( sizeof(sgui_static_text) );
 
-    memset( t, 0, sizeof(sgui_static_text) );
+    sgui_skin_get_text_extents( text, &w, &h );
+    sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h, 0 );
 
-    t->widget.x                     = x;
-    t->widget.y                     = y;
     t->widget.window_event_callback = sgui_static_text_on_event;
-    t->widget.need_redraw           = 1;
     t->text                         = malloc( strlen((const char*)text)+1 );
 
     strcpy( (char*)t->text, (const char*)text );
-
-    sgui_skin_get_text_extents( text, &t->widget.width, &t->widget.height );
 
     return (sgui_widget*)t;
 }
 
 void sgui_static_text_destroy( sgui_widget* widget )
 {
-    free( ((sgui_static_text*)widget)->text );
-    free( widget );
+    if( widget )
+    {
+        sgui_internal_widget_deinit( widget );
+        free( ((sgui_static_text*)widget)->text );
+        free( widget );
+    }
 }
 

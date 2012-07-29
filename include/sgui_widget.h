@@ -127,6 +127,62 @@ int sgui_widget_need_redraw( sgui_widget* widget );
 
 
 
+/**
+ * \brief Register a function to be called on a given object if the given
+ *        widget triggers an event
+ *
+ * \param widget   The widget to register the callback to.
+ * \param event    The event to listen to.
+ * \param callback A function that is called when the event occours.
+ * \param object   An object to execute the function on (first and only
+ *                 parameter).
+ */
+void sgui_widget_on_event( sgui_widget* widget, int event, void* callback,
+                           void* object );
+
+/**
+ * \brief Register a function to be called on a given object if the given
+ *        widget triggers an event
+ *
+ * \param widget   The widget to register the callback to.
+ * \param event    The event to listen to.
+ * \param callback A function that is called when the event occours.
+ * \param object   An object to execute the function on (first parameter).
+ * \param arg      Second pararmeter to the function.
+ */
+void sgui_widget_on_event_f( sgui_widget* widget, int event, void* callback,
+                             void* object, float arg );
+
+/** \copydoc sgui_widget_on_event_f */
+void sgui_widget_on_event_i( sgui_widget* widget, int event, void* callback,
+                             void* object, int arg );
+
+/** \copydoc sgui_widget_on_event_f */
+void sgui_widget_on_event_ui( sgui_widget* widget, int event, void* callback,
+                              void* object, unsigned int arg );
+
+/**
+ * \brief Register a function to be called on a given object if the given
+ *        widget triggers an event
+ *
+ * \param widget   The widget to register the callback to.
+ * \param event    The event to listen to.
+ * \param callback A function that is called when the event occours.
+ * \param object   An object to execute the function on (first parameter).
+ * \param px       Second pararmeter to the function.
+ * \param py       Third pararmeter to the function.
+ */
+void sgui_widget_on_event_i2( sgui_widget* widget, int event, void* callback,
+                              void* object, int px, int py );
+
+/** \copydoc sgui_widget_on_event_ui2 */
+void sgui_widget_on_event_ui2( sgui_widget* widget, int event, void* callback,
+                               void* object, unsigned int px,
+                               unsigned int py );
+
+
+
+
 #ifdef __cplusplus
 }
 #endif

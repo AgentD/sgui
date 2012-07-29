@@ -34,6 +34,11 @@
 
   Font rasterisation is done using FreeType 2 directly.
 
+  There is a singals & slots like widget intercommunication, called "links",
+  i.e. one can register an arbitrary function to a widget with arguments and
+  when a given event gets triggered, the functions registered for that event
+  get called with the registered parameters.
+
   On my system, the library compiles without warnings with all gcc warning
   flags set and has, according to valgrind, no memory leaks whatsoever and
   the WinDOS port has been confirmed to work under Wine and WinDOS 7.
@@ -43,7 +48,6 @@
   ********************
 
   Short term:
-    - Piece together signal & slot like widget intercommunication
     - Get text input working
     - Add more usefull widgets
     - Make the library usefull for small GUI applications

@@ -1,14 +1,13 @@
 #!/bin/sh
 
-CFLAGS="-ansi -pedantic -W -Wall -Wextra -Wshadow
-        -Wwrite-strings -I./include -ggdb"
+CFLAGS="-ansi -W -Wall -Wextra -Wshadow -Wwrite-strings -I./include -ggdb"
 
 MINGW="i586-mingw32msvc-gcc"
 
 # Common source code files
 SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/font_manager.c
                       src/widget_manager.c src/static_text.c src/button.c
-                      src/skin.c"
+                      src/skin.c src/link.c"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c"
