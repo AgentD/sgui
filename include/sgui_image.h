@@ -1,5 +1,5 @@
 /*
- * sgui.h
+ * sgui_image.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,26 +22,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_H
-#define SGUI_H
+#ifndef SGUI_IMAGE_H
+#define SGUI_IMAGE_H
 
 
 
-#include "sgui_event.h"
-#include "sgui_font_manager.h"
-#include "sgui_link.h"
-#include "sgui_skin.h"
-#include "sgui_window.h"
 #include "sgui_predef.h"
 
-#include "sgui_widget.h"
-#include "sgui_widget_manager.h"
-#include "sgui_button.h"
-#include "sgui_image.h"
-#include "sgui_progress_bar.h"
-#include "sgui_static_text.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 
-#endif /* SGUI_H */
+/**
+ * \brief Create an image widget
+ *
+ * \param x      Distance from the left of the window to the left of the image
+ * \param y      Distance from the top of the window to the top of the image
+ * \param width  Width of the image
+ * \param height Height of the image
+ * \param data   The RGB or RGBA image data
+ * \param alpha  Non-zero if the image has an alpha channel
+ * \param blend  Non-zero if the image should be blended instead of blitted
+ * \param copy   Non-zero if the widget should make an internal copy of the
+ *               image. Zero means it KEEPS AND USES YOUR POINTER.
+ */
+sgui_widget* sgui_image_create( int x, int y,
+                                unsigned int width, unsigned int height,
+                                const unsigned char* data, int alpha,
+                                int blend, int copy );
+
+/** \brief Destroy a static text widget */
+void sgui_image_destroy( sgui_widget* widget );
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SGUI_IMAGE_H */
 

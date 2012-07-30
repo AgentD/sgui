@@ -5,7 +5,7 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2;
+sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -59,13 +59,6 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
     case SGUI_MOUSE_WHEEL_EVENT:
         printf( "Window %s: mouse wheel moved %s\n", w,
                 e->mouse_wheel.direction>0 ? "up" : "down" );
-        break;
-    case SGUI_DRAW_EVENT:
-        if( wnd==a )
-        {
-            sgui_window_blit_image( a, 10, 100, 128, 128, image, 1 );
-            sgui_window_blend_image( a, 10, 250, 128, 128, image );
-        }
         break;
     };
 }
@@ -126,9 +119,6 @@ int main( void )
     sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
                       64 - len/2, 64 - 8, 128, 128, color, 7, 1 );
 
-    sgui_window_blit_image( a, 10, 100, 128, 128, image, 1 );
-    sgui_window_blend_image( a, 10, 250, 128, 128, image );
-
     /* widget test */
     sgui_skin_set_default_font( font, font_bold, font_italic,
                                 font_bold_italic, 16 );
@@ -163,10 +153,14 @@ int main( void )
     c2 = sgui_button_create( 180, 200, (const unsigned char*)"Checkbox 3",
                              SGUI_BUTTON_CHECKBOX );
 
+    i0 = sgui_image_create( 10, 100, 128, 128, image, 1, 0, 0 );
+    i1 = sgui_image_create( 10, 250, 128, 128, image, 1, 1, 0 );
 
 
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
+    sgui_window_add_widget( a, i0 );
+    sgui_window_add_widget( a, i1 );
     sgui_window_add_widget( a, c0 );
     sgui_window_add_widget( a, c1 );
     sgui_window_add_widget( a, c2 );
@@ -210,6 +204,9 @@ int main( void )
     sgui_progress_bar_destroy( p1 );
     sgui_progress_bar_destroy( p2 );
     sgui_progress_bar_destroy( p3 );
+
+    sgui_image_destroy( i0 );
+    sgui_image_destroy( i1 );
 
     sgui_font_destroy( font_bold );
     sgui_font_destroy( font_italic );
