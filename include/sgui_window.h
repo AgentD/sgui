@@ -215,6 +215,17 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
 
 
 
+/**
+ * \brief Clear a portion of a window to the default background color
+ *
+ * \param wnd    The window to clear
+ * \param x      Distance of the clear area from the left
+ * \param y      Distance of the clear area from the top
+ * \param width  Width of the clear area
+ * \param height Height of the clear area
+ */
+void sgui_window_clear( sgui_window* wnd, int x, int y,
+                        unsigned int width, unsigned int height );
 
 /**
  * \brief Blit an image onto a window

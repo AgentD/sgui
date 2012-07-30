@@ -5,7 +5,7 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3, *tex, *butt;
+sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -150,11 +150,26 @@ int main( void )
 
 
     tex = sgui_static_text_create( 10, 400, (const unsigned char*)text );
-    butt = sgui_button_create( 180, 100, (const unsigned char*)"Button" );
+    butt = sgui_button_create( 180, 100, (const unsigned char*)"Button",
+                               SGUI_BUTTON_NORMAL );
+
+
+    c0 = sgui_button_create( 180, 150, (const unsigned char*)"Checkbox 1",
+                             SGUI_BUTTON_CHECKBOX );
+
+    c1 = sgui_button_create( 180, 175, (const unsigned char*)"Checkbox 2",
+                             SGUI_BUTTON_CHECKBOX );
+
+    c2 = sgui_button_create( 180, 200, (const unsigned char*)"Checkbox 3",
+                             SGUI_BUTTON_CHECKBOX );
+
 
 
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
+    sgui_window_add_widget( a, c0 );
+    sgui_window_add_widget( a, c1 );
+    sgui_window_add_widget( a, c2 );
     sgui_window_add_widget( a, p0 );
     sgui_window_add_widget( a, p1 );
     sgui_window_add_widget( a, p2 );
@@ -187,6 +202,9 @@ int main( void )
     sgui_static_text_destroy( tex );
 
     sgui_button_destroy( butt );
+    sgui_button_destroy( c0 );
+    sgui_button_destroy( c1 );
+    sgui_button_destroy( c2 );
 
     sgui_progress_bar_destroy( p0 );
     sgui_progress_bar_destroy( p1 );

@@ -222,6 +222,18 @@ void sgui_skin_get_text_extents( const unsigned char* text,
     *height = lines * font_height;
 }
 
+void sgui_skin_get_checkbox_extents( const unsigned char* text,
+                                     unsigned int* width,
+                                     unsigned int* height,
+                                     unsigned int* text_w )
+{
+    unsigned int len = strlen( (const char*)text );
+
+    *text_w = sgui_font_extents( text, font_norm, font_height, len );
+    *width  = *text_w + 20;
+    *height = font_height > 12 ? font_height : 12;
+}
+
 /***************************************************************************/
 
 void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
@@ -235,11 +247,11 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
     assure_scratch_buffer_size( ww, wh );
 
     /* draw background box */
-    color[0] = color[1] = color[2] = 0x32; color[3] = 0xFF;
+    color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
 
     draw_box( 0, 0, width, height, ww, color );
 
-    color[0] = color[1] = color[2] = 0x00;
+    color[0] = color[1] = color[2] = 0x00; color[3] = 0xFF;
 
     draw_line( 0, 0, width,  1, width, color );
     draw_line( 0, 0, height, 0, width, color );
@@ -302,19 +314,18 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
         }
     }
 
-    sgui_window_blit_image( wnd, x, y, ww, wh, scratch_buffer, 1 );
+    sgui_window_blend_image( wnd, x, y, ww, wh, scratch_buffer );
 }
 
 void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
                             unsigned int width, unsigned int text_w,
                             unsigned int height, const unsigned char* text )
 {
-    unsigned char color[4] = { 0x64, 0x64, 0x64, 0xFF };
+    unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
     unsigned int len = strlen( (const char*)text );
 
     assure_scratch_buffer_size( width, height );
-
-    draw_box( 0, 0, width, height, width, color );
+    memset( scratch_buffer, 0, width*height*4 );
 
     color[0] = color[1] = color[2] = state ? 0x00 : 0xFF;
 
@@ -328,12 +339,12 @@ void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
 
     color[0] = color[1] = color[2] = color[3] = 0xFF;
 
-    sgui_font_print( text, font_norm, font_height, scratch_buffer,
-                     width/2 - text_w/2 - state,
-                     height/2 - font_height/2 - font_height/8 - state,
-                     width, height, color, len, 1 );
+    sgui_font_print_alpha( text, font_norm, font_height, scratch_buffer,
+                           width/2 - text_w/2 - state,
+                           height/2 - font_height/2 - font_height/8 - state,
+                           width, height, color, len );
 
-    sgui_window_blit_image( wnd, x, y, width, height, scratch_buffer, 1 );
+    sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
 }
 
 void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
@@ -421,5 +432,49 @@ void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
                            color, i-linestart );
 
     sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
+}
+
+void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
+                              unsigned int text_w, const unsigned char* text,
+                              int state )
+{
+    unsigned char color[4] = { 0x00, 0x00, 0x00, 0x80 };
+    unsigned int len = strlen( (const char*)text );
+    unsigned int w = text_w + 20;
+    unsigned int h = font_height < 12 ? 18 : (font_height + font_height/2);
+    int oy = font_height > 12 ? font_height/2-6 : 0;
+
+    assure_scratch_buffer_size( w, h );
+    memset( scratch_buffer, 0, w*h*4 );
+
+    draw_box( 0, oy, 12, 12, w, color );
+
+    color[0] = color[1] = color[2] = 0x00; color[3] = 0xFF;
+
+    draw_line( 0, oy, 12, 1, w, color );
+    draw_line( 0, oy, 12, 0, w, color );
+
+    color[0] = color[1] = color[2] = 0xFF;
+
+    draw_line( 0, 11+oy, 12, 1, w, color );
+    draw_line( 11,   oy, 12, 0, w, color );
+
+    color[0] = color[1] = color[2] = 0xFF;
+
+    sgui_font_print_alpha( text, font_norm, font_height, scratch_buffer,
+                           20, -oy, w, h, color, len );
+
+    if( state )
+    {
+        draw_line( 2, 4+oy, 3, 0, w, color );
+        draw_line( 3, 5+oy, 3, 0, w, color );
+        draw_line( 4, 6+oy, 3, 0, w, color );
+        draw_line( 5, 5+oy, 3, 0, w, color );
+        draw_line( 6, 4+oy, 3, 0, w, color );
+        draw_line( 7, 3+oy, 3, 0, w, color );
+        draw_line( 8, 2+oy, 3, 0, w, color );
+    }
+
+    sgui_window_blend_image( wnd, x, y, w, h, scratch_buffer );
 }
 

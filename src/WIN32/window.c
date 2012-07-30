@@ -26,23 +26,6 @@
 
 
 
-static void clear( sgui_window* wnd )
-{
-    unsigned int X, Y;
-    unsigned char color[3];
-
-    sgui_skin_get_window_background_color( color );
-
-    for( Y=0; Y<wnd->h; ++Y )
-        for( X=0; X<wnd->w; ++X )
-        {
-            wnd->back_buffer[ (Y*wnd->w + X)*4     ] = color[2];
-            wnd->back_buffer[ (Y*wnd->w + X)*4 + 1 ] = color[1];
-            wnd->back_buffer[ (Y*wnd->w + X)*4 + 2 ] = color[0];
-        }
-}
-
-
 
 LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 {
@@ -118,7 +101,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
                                         (void**)&wnd->back_buffer, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        clear( wnd );
+        sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
 
         /* send size change event */
         e.size.new_width  = wnd->w;
@@ -231,7 +214,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                     (void**)&wnd->back_buffer, 0, 0 );
     wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-    clear( wnd );
+    sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
 
     return wnd;
 }
@@ -320,7 +303,7 @@ void sgui_window_set_size( sgui_window* wnd,
                                         (void**)&wnd->back_buffer, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        clear( wnd );
+        sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
 
         /* redraw everything */
         SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
@@ -435,6 +418,37 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 }
 
 
+
+void sgui_window_clear( sgui_window* wnd, int x, int y,
+                        unsigned int width, unsigned int height )
+{
+    unsigned char color[3];
+    unsigned char* dst;
+    unsigned int i, j;
+
+    sgui_skin_get_window_background_color( color );
+
+    for( j=0; j<height; ++j )
+    {
+        dst = wnd->back_buffer + ((y+j)*wnd->w + x) * 4;
+
+        if( (y+(int)j)<0 )
+            continue;
+
+        if( (y+(int)j)>=(int)wnd->h )
+            break;
+
+        for( i=0; i<width; ++i, dst+=4 )
+        {
+            if( (x+(int)i)>0 && (x+(int)i)<(int)wnd->w )
+            {
+                dst[0] = color[2];
+                dst[1] = color[1];
+                dst[2] = color[0];
+            }
+        }
+    }
+}
 
 void sgui_window_blit_image( sgui_window* wnd, int x, int y,
                              unsigned int width, unsigned int height,

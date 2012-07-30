@@ -121,8 +121,8 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
 int sgui_widget_manager_update( sgui_widget_manager* mgr,
                                 sgui_window* wnd )
 {
-    unsigned int i;
-    int redraw = 0;
+    unsigned int i, w, h;
+    int x, y, redraw = 0;
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
@@ -131,6 +131,10 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
         if( sgui_widget_need_redraw( mgr->widgets[i] ) )
         {
             redraw = 1;
+
+            sgui_widget_get_position( mgr->widgets[i], &x, &y );
+            sgui_widget_get_size( mgr->widgets[i], &w, &h );
+            sgui_window_clear( wnd, x, y, w, h );
 
             sgui_widget_send_window_event( mgr->widgets[i], wnd,
                                            SGUI_DRAW_EVENT, NULL );
@@ -144,7 +148,8 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
                                      sgui_window* wnd, int event,
                                      sgui_event* e )
 {
-    unsigned int i;
+    unsigned int i, w, h;
+    int x, y;
 
     if( mgr )
     {
@@ -198,6 +203,13 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
             /* propagate the event */
             for( i=0; i<mgr->num_widgets; ++i )
             {
+                if( event == SGUI_DRAW_EVENT )
+                {
+                    sgui_widget_get_position( mgr->widgets[i], &x, &y );
+                    sgui_widget_get_size( mgr->widgets[i], &w, &h );
+                    sgui_window_clear( wnd, x, y, w, h );
+                }
+
                 sgui_widget_send_window_event( mgr->widgets[i], wnd,
                                                event, e );
             }

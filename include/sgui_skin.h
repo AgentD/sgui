@@ -78,7 +78,7 @@ void sgui_skin_get_button_extents( const unsigned char* text,
                                    unsigned int* text_w );
 
 /**
- * \brief Draw a text onto a window
+ * \brief Predict the extents of a text drawn onto a window
  *
  * \param text   The UTF8 text to print. The LF ('\n') character can be used
  *               for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
@@ -91,6 +91,18 @@ void sgui_skin_get_button_extents( const unsigned char* text,
 void sgui_skin_get_text_extents( const unsigned char* text,
                                  unsigned int* width, unsigned int* height );
 
+/**
+ * \brief Predict the size of a checkbox when rendered
+ *
+ * \param text   The UTF8 text to print onto the checkbox.
+ * \param width  Returns the width of the rendered text.
+ * \param height Returns the height of the rendered text.
+ * \param text_w Returns the width of the text on the button in pixels
+ */
+void sgui_skin_get_checkbox_extents( const unsigned char* text,
+                                     unsigned int* width,
+                                     unsigned int* height,
+                                     unsigned int* text_w );
 
 
 /**
@@ -145,6 +157,19 @@ void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
                           unsigned int width, unsigned int height,
                           const unsigned char* text );
 
+/**
+ * \brief Draw a text onto a window
+ *
+ * \param wnd    The window to draw to.
+ * \param x      Distance from the left of the box to the left of the window.
+ * \param y      Distance from the top of the box to the top of the window.
+ * \param text_w Width of the text string in pixels.
+ * \param text   The UTF8 text to print onto the checkbox.
+ * \param state  Non-zero if the checkbox is checked.
+ */
+void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
+                              unsigned int text_w, const unsigned char* text,
+                              int state );
 
 
 #ifdef __cplusplus

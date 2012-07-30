@@ -24,7 +24,6 @@
  */
 #include "sgui_button.h"
 #include "sgui_skin.h"
-#include "sgui_font_manager.h"
 
 #include "widget_internal.h"
 
@@ -40,6 +39,7 @@ typedef struct
     unsigned char* text;
     unsigned int text_width;
     int state;
+    int type;
 }
 sgui_button;
 
@@ -52,42 +52,66 @@ void sgui_button_on_event( sgui_widget* widget, sgui_window* wnd,
 
     if( type == SGUI_DRAW_EVENT )
     {
-        sgui_skin_draw_button( wnd, widget->x, widget->y, b->state,
-                               widget->width, b->text_width,
-                               widget->height, b->text );
-    }
-    else if( type == SGUI_MOUSE_LEAVE_EVENT )
-    {
-        b->state = 0;
-        b->widget.need_redraw = 1;
-    }
-    else if( type == SGUI_MOUSE_PRESS_EVENT )
-    {
-        if( event->mouse_press.button != SGUI_MOUSE_BUTTON_LEFT )
-            return;
-
-        if( event->mouse_press.pressed )
+        if( b->type == SGUI_BUTTON_NORMAL )
         {
-            b->state = 1;
+            sgui_skin_draw_button( wnd, widget->x, widget->y, b->state,
+                                   widget->width, b->text_width,
+                                   widget->height, b->text );
         }
         else
         {
-            if( b->state )
+            sgui_skin_draw_checkbox( wnd, widget->x, widget->y,
+                                     b->text_width, b->text, b->state );
+        }
+    }
+    else if( b->type == SGUI_BUTTON_NORMAL )
+    {
+        if( type == SGUI_MOUSE_LEAVE_EVENT )
+        {
+            b->state = 0;
+            b->widget.need_redraw = 1;
+        }
+        else if( type == SGUI_MOUSE_PRESS_EVENT )
+        {
+            if( event->mouse_press.button != SGUI_MOUSE_BUTTON_LEFT )
+                return;
+
+            if( event->mouse_press.pressed )
             {
-                sgui_internal_widget_fire_event( widget,
-                                                 SGUI_BUTTON_CLICK_EVENT );
+                b->state = 1;
+            }
+            else
+            {
+                if( b->state )
+                {
+                    sgui_internal_widget_fire_event( widget,
+                                                     SGUI_BUTTON_CLICK_EVENT );
+                }
+
+                b->state = 0;
             }
 
-            b->state = 0;
+            b->widget.need_redraw = 1;
         }
+    }
+    else
+    {
+        if( type == SGUI_MOUSE_PRESS_EVENT && !event->mouse_press.pressed )
+        {
+            b->state = !b->state;
+            b->widget.need_redraw = 1;
 
-        b->widget.need_redraw = 1;
+            sgui_internal_widget_fire_event( widget, b->state ?
+                                             SGUI_CHECKBOX_CHECK_EVENT :
+                                             SGUI_CHECKBOX_UNCHECK_EVENT );
+        }
     }
 }
 
 
 
-sgui_widget* sgui_button_create( int x, int y, const unsigned char* text )
+sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
+                                 int type )
 {
     sgui_button* b;
 
@@ -95,13 +119,17 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text )
 
     b = malloc( sizeof(sgui_button) );
 
-    sgui_skin_get_button_extents( text, &w, &h, &b->text_width );
+    if( type == SGUI_BUTTON_NORMAL )
+        sgui_skin_get_button_extents( text, &w, &h, &b->text_width );
+    else
+        sgui_skin_get_checkbox_extents( text, &w, &h, &b->text_width );
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 1 );
 
     b->widget.window_event_callback = sgui_button_on_event;
     b->text                         = malloc( len + 1 );
     b->state                        = 0;
+    b->type                         = type;
 
     memcpy( b->text, text, len + 1 );
 
@@ -117,5 +145,48 @@ void sgui_button_destroy( sgui_widget* button )
         free( ((sgui_button*)button)->text );
         free( button );
     }
+}
+
+void sgui_button_set_text( sgui_widget* button, const unsigned char* text )
+{
+    sgui_button* b = (sgui_button*)button;
+    unsigned int len;
+
+    if( button )
+    {
+        len = strlen( (const char*)text );
+
+        if( b->type == SGUI_BUTTON_NORMAL )
+        {
+            sgui_skin_get_button_extents( text, &button->width,
+                                                &button->height,
+                                                &b->text_width );
+        }
+        else
+        {
+            sgui_skin_get_checkbox_extents( text, &button->width,
+                                                  &button->height,
+                                                  &b->text_width );
+        }
+
+        free( b->text );
+        b->text = malloc( len + 1 );
+        memcpy( b->text, text, len + 1 );
+    }
+}
+
+void sgui_button_set_state( sgui_widget* button, int state )
+{
+    sgui_button* b = (sgui_button*)button;
+
+    if( b && (b->type == SGUI_BUTTON_CHECKBOX) )
+        b->state = state;
+}
+
+int sgui_button_get_state( sgui_widget* button )
+{
+    sgui_button* b = (sgui_button*)button;
+
+    return b ? b->state : 0;
 }
 

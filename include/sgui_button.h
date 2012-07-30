@@ -38,7 +38,13 @@ extern "C"
 
 
 
-#define SGUI_BUTTON_CLICK_EVENT 0
+#define SGUI_BUTTON_CLICK_EVENT     0
+
+#define SGUI_CHECKBOX_CHECK_EVENT   1
+#define SGUI_CHECKBOX_UNCHECK_EVENT 2
+
+#define SGUI_BUTTON_NORMAL   0
+#define SGUI_BUTTON_CHECKBOX 1
 
 
 
@@ -48,10 +54,13 @@ extern "C"
  * \param x    X component of the buttons position
  * \param x    Y component of the buttons position
  * \param text Text written onto the button
+ * \param type The type of button to create (SGUI_BUTTON_NORMAL or
+ *             SGUI_BUTTON_CHECKBOX)
  *
  * \return A button widget
  */
-sgui_widget* sgui_button_create( int x, int y, const unsigned char* text );
+sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
+                                 int type );
 
 /**
  * \brief Destroy a button widget
@@ -59,6 +68,32 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text );
  * \param button The button widget
  */
 void sgui_button_destroy( sgui_widget* button );
+
+/**
+ * \brief Set the text to be printed onto a button
+ *
+ * \param button The button to alter.
+ * \param text   The text printed on the button.
+ */
+void sgui_button_set_text( sgui_widget* button, const unsigned char* text );
+
+/**
+ * \brief Set the state of a checkbox button
+ *
+ * \param button The button to alter.
+ * \param state  Non-zero for checked, zero for unchecked
+ */
+void sgui_button_set_state( sgui_widget* button, int state );
+
+/**
+ * \brief Returns the state of a button
+ *
+ * \param button The button to get the state from
+ *
+ * \return For checkboxes, non-zero means checked, for normal buttons,
+ *         non-zero means pressed down.
+ */
+int sgui_button_get_state( sgui_widget* button );
 
 
 

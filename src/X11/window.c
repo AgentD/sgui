@@ -32,25 +32,6 @@ const char* wmDeleteWindow = "WM_DELETE_WINDOW";
 
 
 
-static void clear( sgui_window* wnd )
-{
-    unsigned int X, Y;
-    unsigned long color = 0;
-    unsigned char rgb[3];
-
-    sgui_skin_get_window_background_color( rgb );
-
-    color |= ((unsigned long)rgb[0]) << 16;
-    color |= ((unsigned long)rgb[1]) << 8;
-    color |= ((unsigned long)rgb[2]);
-
-    for( Y=0; Y<wnd->h; ++Y )
-        for( X=0; X<wnd->w; ++X )
-            XPutPixel( wnd->back_buffer, X, Y, color );
-}
-
-
-
 sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                  int resizeable )
 {
@@ -148,7 +129,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    clear( wnd );
+    sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -247,7 +228,7 @@ void sgui_window_set_size( sgui_window* wnd,
                                      (char*)wnd->back_buffer_data,
                                      wnd->w, wnd->h, 32, 0 );
 
-    clear( wnd );
+    sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
 
     /* redraw everything */
     SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
@@ -387,7 +368,7 @@ int sgui_window_update( sgui_window* wnd )
                                              (char*)wnd->back_buffer_data,
                                              wnd->w, wnd->h, 32, 0 );
 
-            clear( wnd );
+            sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
 
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
@@ -436,6 +417,33 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
+void sgui_window_clear( sgui_window* wnd, int x, int y,
+                        unsigned int width, unsigned int height )
+{
+    unsigned int X, Y;
+    unsigned long color = 0;
+    unsigned char rgb[3];
+
+    sgui_skin_get_window_background_color( rgb );
+
+    color |= ((unsigned long)rgb[0]) << 16;
+    color |= ((unsigned long)rgb[1]) << 8;
+    color |= ((unsigned long)rgb[2]);
+
+    for( Y=0; Y<height; ++Y )
+    {
+        if( ((int)Y+y)<0 || ((int)Y+y)>=(int)wnd->h )
+            continue;
+
+        for( X=0; X<width; ++X )
+        {
+            if( ((int)X+x)<0 || ((int)X+x)>=(int)wnd->w )
+                continue;
+
+            XPutPixel( wnd->back_buffer, X+x, Y+y, color );
+        }
+    }
+}
 
 void sgui_window_blit_image( sgui_window* wnd, int x, int y,
                              unsigned int width, unsigned int height,
