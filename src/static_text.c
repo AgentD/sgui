@@ -43,18 +43,14 @@ sgui_static_text;
 
 
 
-void sgui_static_text_on_event( sgui_widget* widget, sgui_window* wnd,
+void sgui_static_text_on_event( sgui_widget* w, sgui_window* wnd,
                                 int type, sgui_event* event )
 {
-    sgui_static_text* t = (sgui_static_text*)widget;
+    sgui_static_text* t = (sgui_static_text*)w;
     (void)event;
 
     if( type == SGUI_DRAW_EVENT )
-    {
-        sgui_skin_draw_text( wnd, widget->x, widget->y,
-                             widget->width, widget->height,
-                             t->text );
-    }
+        sgui_skin_draw_text( wnd, w->x, w->y, w->width, t->text );
 }
 
 

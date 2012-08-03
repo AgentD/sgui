@@ -167,18 +167,18 @@ void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
 /**
  * \brief Draw a text onto a window
  *
- * \param wnd  The window to draw to.
- * \param x    Distance from the left of the text to the left of the window.
- * \param y    Distance from the top of the text to the top of the window.
- * \param text The UTF8 text to print. The LF ('\n') character can be used
- *             for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
- *             text bold or italic. A \<color="#RRGGBB"\> tag can be used to
- *             switch text color, where the value "default" for color switches
- *             back to default color.
+ * \param wnd   The window to draw to.
+ * \param x     Distance from the left of the text to the left of the window.
+ * \param y     Distance from the top of the text to the top of the window.
+ * \param width Width of the longest line in pixels.
+ * \param text  The UTF8 text to print. The LF ('\n') character can be used
+ *              for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
+ *              text bold or italic. A \<color="#RRGGBB"\> tag can be used to
+ *              switch text color, where the value "default" for color switches
+ *              back to default color.
  */
 void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
-                          unsigned int width, unsigned int height,
-                          const unsigned char* text );
+                          unsigned int width, const unsigned char* text );
 
 /**
  * \brief Draw a text onto a window

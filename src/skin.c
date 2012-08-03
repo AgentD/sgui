@@ -352,54 +352,63 @@ void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
 {
     unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
     unsigned int len = strlen( (const char*)text );
+    unsigned int text_h = font_height+10;
 
-    assure_scratch_buffer_size( width, height );
-    memset( scratch_buffer, 0, width*height*4 );
+    assure_scratch_buffer_size( width, 1 );
 
     color[0] = color[1] = color[2] = state ? 0x00 : 0xFF;
-
-    draw_line( 0, 0, width,  1, width, color );
-    draw_line( 0, 0, height, 0, width, color );
+    draw_line( 0, 0, width, 1, width, color );
+    sgui_window_blend_image( wnd, x, y, width, 1, scratch_buffer );
 
     color[0] = color[1] = color[2] = state ? 0xFF : 0x00;
+    draw_line( 0, 0, width,  1, width, color );
+    sgui_window_blend_image( wnd, x, y+height-1, width, 1, scratch_buffer );
 
-    draw_line( 0,       height-1, width,  1, width, color );
-    draw_line( width-1, 0,        height, 0, width, color );
+    assure_scratch_buffer_size( 1, height );
+
+    color[0] = color[1] = color[2] = state ? 0x00 : 0xFF;
+    draw_line( 0, 0, height, 0, 1, color );
+    sgui_window_blend_image( wnd, x, y, 1, height, scratch_buffer );
+
+    color[0] = color[1] = color[2] = state ? 0xFF : 0x00;
+    draw_line( 0, 0, height, 0, 1, color );
+    sgui_window_blend_image( wnd, x+width-1, y, 1, height, scratch_buffer );
+
+    assure_scratch_buffer_size( text_w, text_h );
+    memset( scratch_buffer, 0, text_w*text_h*4 );
 
     color[0] = color[1] = color[2] = color[3] = 0xFF;
 
     sgui_font_print_alpha( text, font_norm, font_height, scratch_buffer,
-                           width/2 - text_w/2 - state,
-                           height/2 - font_height/2 - font_height/8 - state,
-                           width, height, color, len );
+                           0, 0, text_w, text_h, color, len );
 
-    sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
+    x += width /2 - text_w/2 - state;
+    y += height/2 - font_height/2 - font_height/8 - state;
+
+    sgui_window_blend_image( wnd, x, y, text_w, text_h, scratch_buffer );
 }
 
 void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
-                          unsigned int width, unsigned int height,
-                          const unsigned char* text )
+                          unsigned int width, const unsigned char* text )
 {
     unsigned int line = 0, linestart = 0, i = 0;
-    unsigned int X = 0;
+    unsigned int X = 0, h = font_height + 10;
     sgui_font* f = font_norm;
     sgui_font* font_stack[10];
     int font_stack_index = 0;
     long c;
     unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
 
-    /* render the text */
-    assure_scratch_buffer_size( width, height );
-
-    memset( scratch_buffer, 0, width*height*4 );
+    assure_scratch_buffer_size( width, h );
+    memset( scratch_buffer, 0, width*h*4 );
 
     for( ; text[ i ]; ++i )
     {
         if( text[ i ] == '<' )
         {
             sgui_font_print_alpha( text+linestart, f, font_height,
-                                   scratch_buffer, X, line*font_height,
-                                   width, height, color, i-linestart );
+                                   scratch_buffer, X, 0, width, h,
+                                   color, i-linestart );
 
             X += sgui_font_extents( text+linestart, f, font_height,
                                     i-linestart );
@@ -447,8 +456,13 @@ void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
         else if( text[ i ] == '\n' )
         {
             sgui_font_print_alpha( text+linestart, f, font_height,
-                                   scratch_buffer, X, line*font_height,
-                                   width, height, color, i-linestart );
+                                   scratch_buffer, X, 0, width, h,
+                                   color, i-linestart );
+
+            sgui_window_blend_image( wnd, x, y+font_height*line, width, h,
+                                     scratch_buffer );
+
+            memset( scratch_buffer, 0, width*h*4 );
 
             ++line;
             X = 0;
@@ -457,10 +471,10 @@ void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
     }
 
     sgui_font_print_alpha( text+linestart, f, font_height, scratch_buffer,
-                           X, line*font_height, width, height,
-                           color, i-linestart );
+                           X, 0, width, h, color, i-linestart );
 
-    sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
+    sgui_window_blend_image( wnd, x, y+font_height*line, width, h,
+                             scratch_buffer );
 }
 
 void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
@@ -513,58 +527,53 @@ void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
                                 unsigned int width, unsigned int height )
 {
     unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned int i;
-    int Y = 0, oy = (font_height + 10) / 2 - 10;
+    unsigned int i, dy = font_height + 10;
+    int oy = dy / 2 - 10;
 
-    assure_scratch_buffer_size( width, height );
+    assure_scratch_buffer_size( width, dy );
 
-    /* render the text */
-    memset( scratch_buffer, 0, width*height*4 );
-
-    for( i=0; i<num_lines; ++i, Y += font_height + 10 )
+    for( i=0; i<num_lines; ++i, y+=dy )
     {
-        sgui_font_print_alpha( text[ i ], font_norm, font_height,
-                               scratch_buffer, 20, Y,
-                               width, height, color,
-                               strlen( (const char*)text[i] ) );
-    }
+        memset( scratch_buffer, 0, width*dy*4 );
 
-    /* render buttons */
-    for( Y=0, i=0; i<num_lines; ++i, Y += font_height + 10 )
-    {
         color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
 
-        draw_box( 2, Y+2+oy,  8,  8, width, color );
-        draw_box( 4, Y+1+oy,  4, 10, width, color );
-        draw_box( 1, Y+4+oy, 10,  4, width, color );
+        draw_box( 2, 2+oy,  8,  8, width, color );
+        draw_box( 4, 1+oy,  4, 10, width, color );
+        draw_box( 1, 4+oy, 10,  4, width, color );
 
         color[3] = 0xFF;
 
-        draw_line( 2, Y+1+oy, 2, 1, width, color );
-        draw_line( 4, Y  +oy, 4, 1, width, color );
-        draw_line( 8, Y+1+oy, 2, 1, width, color );
+        draw_line( 2, 1+oy, 2, 1, width, color );
+        draw_line( 4,   oy, 4, 1, width, color );
+        draw_line( 8, 1+oy, 2, 1, width, color );
 
-        draw_line( 1, Y+2+oy, 2, 0, width, color );
-        draw_line( 0, Y+4+oy, 4, 0, width, color );
-        draw_line( 1, Y+8+oy, 2, 0, width, color );
+        draw_line( 1, 2+oy, 2, 0, width, color );
+        draw_line( 0, 4+oy, 4, 0, width, color );
+        draw_line( 1, 8+oy, 2, 0, width, color );
 
         color[0] = color[1] = color[2] = 0xFF;
 
-        draw_line( 10, Y+2+oy, 2, 0, width, color );
-        draw_line( 11, Y+4+oy, 4, 0, width, color );
-        draw_line( 10, Y+8+oy, 2, 0, width, color );
+        draw_line( 10, 2+oy, 2, 0, width, color );
+        draw_line( 11, 4+oy, 4, 0, width, color );
+        draw_line( 10, 8+oy, 2, 0, width, color );
 
-        draw_line(  2, Y+10+oy, 2, 1, width, color );
-        draw_line(  4, Y+11+oy, 4, 1, width, color );
-        draw_line(  8, Y+10+oy, 2, 1, width, color );
+        draw_line(  2, 10+oy, 2, 1, width, color );
+        draw_line(  4, 11+oy, 4, 1, width, color );
+        draw_line(  8, 10+oy, 2, 1, width, color );
 
         if( i==selected )
         {
-            draw_box( 4, Y+3+oy, 4, 6, width, color );
-            draw_box( 3, Y+4+oy, 6, 4, width, color );
+            draw_box( 4, 3+oy, 4, 6, width, color );
+            draw_box( 3, 4+oy, 6, 4, width, color );
         }
-    }
 
-    sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
+        sgui_font_print_alpha( text[ i ], font_norm, font_height,
+                               scratch_buffer, 20, 0,
+                               width, height, color,
+                               strlen( (const char*)text[i] ) );
+
+        sgui_window_blend_image( wnd, x, y, width, dy, scratch_buffer );
+    }
 }
 
