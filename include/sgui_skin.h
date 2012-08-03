@@ -95,14 +95,37 @@ void sgui_skin_get_text_extents( const unsigned char* text,
  * \brief Predict the size of a checkbox when rendered
  *
  * \param text   The UTF8 text to print onto the checkbox.
- * \param width  Returns the width of the rendered text.
- * \param height Returns the height of the rendered text.
+ * \param width  Returns the width of the checkbox text.
+ * \param height Returns the height of the checkbox text.
  * \param text_w Returns the width of the text on the button in pixels
  */
 void sgui_skin_get_checkbox_extents( const unsigned char* text,
                                      unsigned int* width,
                                      unsigned int* height,
                                      unsigned int* text_w );
+
+/**
+ * \brief Predict the size of a radio menu when rendered
+ *
+ * \param text      The UTF8 options of the menu.
+ * \param num_lines The number of options.
+ * \param width     Returns the width of the menu.
+ * \param height    Returns the height of the menu.
+ */
+void sgui_skin_get_radio_menu_extents( const unsigned char** text,
+                                       unsigned int num_lines,
+                                       unsigned int* width,
+                                       unsigned int* height );
+
+
+/**
+ * \brief Gets a radio menu option index from a point
+ *
+ * \param y Distance from the top of the radio menu
+ *
+ * \return The index of the radion menu option at that distance
+ */
+unsigned int sgui_skin_get_radio_menu_option_from_point( int y );
 
 
 /**
@@ -170,6 +193,25 @@ void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
 void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
                               unsigned int text_w, const unsigned char* text,
                               int state );
+
+/**
+ * \brief Predict the size of a radio menu when rendered
+ *
+ * \param wnd       The window to draw to.
+ * \param x         Distance from the left of the menu to the left of the
+ *                  window.
+ * \param y         Distance from the top of the menu to the top of the
+ *                  window. 
+ * \param text      The UTF8 options of the menu.
+ * \param num_lines The number of options.
+ * \param selected  The option selected.
+ * \param width     The width of the menu.
+ * \param height    The height of the menu.
+ */
+void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
+                                const unsigned char** text,
+                                unsigned int num_lines, unsigned int selected,
+                                unsigned int width, unsigned int height );
 
 
 #ifdef __cplusplus

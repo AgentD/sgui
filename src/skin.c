@@ -234,6 +234,35 @@ void sgui_skin_get_checkbox_extents( const unsigned char* text,
     *height = font_height > 12 ? font_height : 12;
 }
 
+void sgui_skin_get_radio_menu_extents( const unsigned char** text,
+                                       unsigned int num_lines,
+                                       unsigned int* width,
+                                       unsigned int* height )
+{
+    unsigned int i, w;
+
+    *width  = 0;
+    *height = (font_height + 10) * num_lines;
+
+    for( i=0; i<num_lines; ++i )
+    {
+        w = sgui_font_extents( text[i], font_norm, font_height,
+                               strlen((const char*)text[i]) );
+
+        if( w > *width )
+            *width = w;
+    }
+
+    *width += 20;
+}
+
+/***************************************************************************/
+
+unsigned int sgui_skin_get_radio_menu_option_from_point( int y )
+{
+    return (y / (font_height + 10));
+}
+
 /***************************************************************************/
 
 void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
@@ -476,5 +505,66 @@ void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
     }
 
     sgui_window_blend_image( wnd, x, y, w, h, scratch_buffer );
+}
+
+void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
+                                const unsigned char** text,
+                                unsigned int num_lines, unsigned int selected,
+                                unsigned int width, unsigned int height )
+{
+    unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned int i;
+    int Y = 0, oy = (font_height + 10) / 2 - 10;
+
+    assure_scratch_buffer_size( width, height );
+
+    /* render the text */
+    memset( scratch_buffer, 0, width*height*4 );
+
+    for( i=0; i<num_lines; ++i, Y += font_height + 10 )
+    {
+        sgui_font_print_alpha( text[ i ], font_norm, font_height,
+                               scratch_buffer, 20, Y,
+                               width, height, color,
+                               strlen( (const char*)text[i] ) );
+    }
+
+    /* render buttons */
+    for( Y=0, i=0; i<num_lines; ++i, Y += font_height + 10 )
+    {
+        color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
+
+        draw_box( 2, Y+2+oy,  8,  8, width, color );
+        draw_box( 4, Y+1+oy,  4, 10, width, color );
+        draw_box( 1, Y+4+oy, 10,  4, width, color );
+
+        color[3] = 0xFF;
+
+        draw_line( 2, Y+1+oy, 2, 1, width, color );
+        draw_line( 4, Y  +oy, 4, 1, width, color );
+        draw_line( 8, Y+1+oy, 2, 1, width, color );
+
+        draw_line( 1, Y+2+oy, 2, 0, width, color );
+        draw_line( 0, Y+4+oy, 4, 0, width, color );
+        draw_line( 1, Y+8+oy, 2, 0, width, color );
+
+        color[0] = color[1] = color[2] = 0xFF;
+
+        draw_line( 10, Y+2+oy, 2, 0, width, color );
+        draw_line( 11, Y+4+oy, 4, 0, width, color );
+        draw_line( 10, Y+8+oy, 2, 0, width, color );
+
+        draw_line(  2, Y+10+oy, 2, 1, width, color );
+        draw_line(  4, Y+11+oy, 4, 1, width, color );
+        draw_line(  8, Y+10+oy, 2, 1, width, color );
+
+        if( i==selected )
+        {
+            draw_box( 4, Y+3+oy, 4, 6, width, color );
+            draw_box( 3, Y+4+oy, 6, 4, width, color );
+        }
+    }
+
+    sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
 }
 

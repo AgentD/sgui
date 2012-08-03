@@ -5,7 +5,7 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
+sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1, *rad;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -13,6 +13,13 @@ const char* text =
     "<color=\"#FF0000\"><i>consectetuer</i> <b>adipiscing</b> elit.\n"
     "<color=\"#00FF00\"><b>Aenean <i>commodo</i> ligula <i>eget</i></b>\n"
     "<color=\"#0000FF\"><i>dolor. <b>Aenean</b> massa.</i>";
+
+const char* options[] =
+{
+    "Option 1",
+    "Option 2",
+    "Option 3"
+};
 
 
 
@@ -156,6 +163,9 @@ int main( void )
     i0 = sgui_image_create( 10, 100, 128, 128, image, 1, 0, 0 );
     i1 = sgui_image_create( 10, 250, 128, 128, image, 1, 1, 0 );
 
+    rad = sgui_radio_menu_create( 180, 250, 3, (const unsigned char**)options,
+                                  0 );
+
 
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
@@ -168,6 +178,7 @@ int main( void )
     sgui_window_add_widget( a, p1 );
     sgui_window_add_widget( a, p2 );
     sgui_window_add_widget( a, p3 );
+    sgui_window_add_widget( a, rad );
 
 
 
@@ -207,6 +218,8 @@ int main( void )
 
     sgui_image_destroy( i0 );
     sgui_image_destroy( i1 );
+
+    sgui_radio_menu_destroy( rad );
 
     sgui_font_destroy( font_bold );
     sgui_font_destroy( font_italic );
