@@ -34,7 +34,6 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/Xft/Xft.h>
 
 #define DPY_WIDTH DisplayWidth( wnd->dpy, DefaultScreen(wnd->dpy) )
 #define DPY_HEIGHT DisplayHeight( wnd->dpy, DefaultScreen(wnd->dpy) )

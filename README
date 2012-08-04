@@ -2,26 +2,26 @@
   What is this?
   *************
 
-  This (sgui) is an excessivly owergrown Xlib play pen that is on the way of
+  This (sgui) is an excessively overgrown Xlib play pen that is on the way of
   morphing into a small, cross platform GUI library.
 
-  The whole library is written in plain C89 with a simple buildsystem
+  The whole library is written in plain C89 with a simple build system
   consisting of a shell script that executes gcc for the *nix version and
   mingw for the WinDOS cross compilation.
 
   The 's' in "sgui" really was intended to mean "small", but when raping it
   with abstraction layers and piecing together a working WinDOS backend, lots
-  of other possible meangins for the letter 's' came to my mind, so the s
+  of other possible meanings for the letter 's' came to my mind, so the s
   stands for whatever you want it to.
 
 
   What's the status?
   ******************
 
-  At the moment, the library is not really usefull, with the possible
+  At the moment, the library is not really useful, with the possible
   exception for ripping the code apart and using it in similar works.
 
-  There are working Xlib and WinDOS backends that basically mange a window,
+  There are working Xlib and WinDOS back ends that basically mange a window,
   handle input and display an in memory back buffer on request and have an API
   to draw/blit to the back buffer.
 
@@ -34,7 +34,7 @@
 
   Font rasterisation is done using FreeType 2 directly.
 
-  There is a singals & slots like widget intercommunication, called "links",
+  There is a signals & slots like widget intercommunication, called "links",
   i.e. one can register an arbitrary function to a widget with arguments and
   when a given event gets triggered, the functions registered for that event
   get called with the registered parameters.
@@ -83,19 +83,19 @@
 
   (No need to worry tough: He actually didn't care whether we used VB and
    wasn't in class most of the time anyway. He just wanted us to have results
-   to show off at the end of his horribly overblown time frams, like e.g. 3
+   to show off at the end of his horribly overblown time frames, like e.g. 3
    months for an application that "...does something with GUI on it...")
 
-  At that point, I realised that most GUI toolkits where either totally
+  At that point, I realized that most GUI toolkits where either totally
   overblown (I tried GTK and settled for QT), or have a horrible, undocumented
   API (I tried FLTK). Also I wanted something that can be used in an OpenGL
   application and rendered into an OpenGL texture ("...make something
   original, see you in six months...". I actually managed to make a QT based
-  "3D browser", but QT offscreen rendering was just a BIG, UGLY hack).
+  "3D browser", but QT off screen rendering was just a BIG, UGLY hack).
 
   If I rolled my own, >I< don't have all of those problems. The GUI library
   fits all my needs and I don't need a documentation, as I know the functions
-  that are there and how the thing works iternally.
+  that are there and how the thing works internally.
 
   So basically it started out to fit my own needs.
 
