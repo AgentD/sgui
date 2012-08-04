@@ -50,6 +50,7 @@ void sgui_radio_menu_on_event( sgui_widget* widget, sgui_window* wnd,
 {
     sgui_radio_menu* m = (sgui_radio_menu*)widget;
     int y;
+    unsigned int i;
 
     if( type == SGUI_DRAW_EVENT )
     {
@@ -69,8 +70,19 @@ void sgui_radio_menu_on_event( sgui_widget* widget, sgui_window* wnd,
         {
             y = m->mouse_y - widget->y;
 
-            m->selected = sgui_skin_get_radio_menu_option_from_point( y );
-            widget->need_redraw = 1;
+            i = sgui_skin_get_radio_menu_option_from_point( y );
+
+            if( m->selected != i )
+            {
+                y = SGUI_RADIO_MENU_SELECT_EVENT;
+                sgui_internal_widget_fire_event( widget, y );
+
+                y = SGUI_RADIO_MENU_SELECT_0_EVENT + i;
+                sgui_internal_widget_fire_event( widget, y );
+
+                m->selected = i;
+                widget->need_redraw = 1;
+            }
         }
     }
 }
