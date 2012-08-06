@@ -180,6 +180,59 @@ void sgui_widget_on_event_ui2( sgui_widget* widget, int event, void* callback,
                                void* object, unsigned int px,
                                unsigned int py );
 
+/**
+ * \brief Register a function to be called on a given object if the given
+ *        widget triggers an event, with a parameter returned from an other
+ *        function, executet on an other object.
+ *
+ * \param widget       The widget to register the callback to.
+ * \param event        The event to listen to.
+ * \param callback     A function that is called when the event occours.
+ * \param object       An object to execute the function on (first parameter).
+ * \param get_callback A function to execute on get_object (only parameter to
+ *                     it) that returns a float value, passed as second
+ *                     paramter into the callback function.
+ * \param get_object   The object to execute get_callback on.
+ */
+void sgui_widget_on_event_f_fun( sgui_widget* widget, int event,
+                                 void* callback, void* object,
+                                 void* get_callback, void* get_object );
+
+/**
+ * \brief Register a function to be called on a given object if the given
+ *        widget triggers an event, with a parameter returned from an other
+ *        function, executet on an other object.
+ *
+ * \param widget       The widget to register the callback to.
+ * \param event        The event to listen to.
+ * \param callback     A function that is called when the event occours.
+ * \param object       An object to execute the function on (first parameter).
+ * \param get_callback A function to execute on get_object (only parameter to
+ *                     it) that returns an int value, passed as second
+ *                     paramter into the callback function.
+ * \param get_object   The object to execute get_callback on.
+ */
+void sgui_widget_on_event_i_fun( sgui_widget* widget, int event,
+                                 void* callback, void* object,
+                                 void* get_callback, void* get_object );
+
+/**
+ * \brief Register a function to be called on a given object if the given
+ *        widget triggers an event, with a parameter returned from an other
+ *        function, executet on an other object.
+ *
+ * \param widget       The widget to register the callback to.
+ * \param event        The event to listen to.
+ * \param callback     A function that is called when the event occours.
+ * \param object       An object to execute the function on (first parameter).
+ * \param get_callback A function to execute on get_object (only parameter to
+ *                     it) that returns an unsigned int value, passed as
+ *                     second paramter into the callback function.
+ * \param get_object   The object to execute get_callback on.
+ */
+void sgui_widget_on_event_ui_fun( sgui_widget* widget, int event,
+                                 void* callback, void* object,
+                                 void* get_callback, void* get_object );
 
 
 

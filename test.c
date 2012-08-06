@@ -72,6 +72,15 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 
 
 
+void radio_menu_option_fun( void* object, unsigned int choice )
+{
+    (void)object;
+
+    printf( "Radio menu option %u selected\n", choice );
+}
+
+
+
 int main( void )
 {
     int a_active=1, b_active=1, x, y, len;
@@ -182,11 +191,29 @@ int main( void )
 
 
 
+    /*
+        when the button butt triggers an SGUI_BUTTON_CLICK_EVENT, the
+        function sgui_progress_bar_set_progress is called with the first
+        parameter set p2/p3 and the second parameter is float 0.
+     */
     sgui_widget_on_event_f( butt, SGUI_BUTTON_CLICK_EVENT,
                             sgui_progress_bar_set_progress, p2, 0.0f );
 
     sgui_widget_on_event_f( butt, SGUI_BUTTON_CLICK_EVENT,
                             sgui_progress_bar_set_progress, p3, 0.0f );
+
+
+    /*
+        when the radio menu rad triggers an SGUI_RADIO_MENU_SELECT_EVENT, the
+        function radio_menu_option_fun is called with the first parameter set
+        to NULL. The second parameter is an unsinged int, returned from
+        sgui_radio_menu_get_selection, executet on rad (i.e. first and only
+        parameter.
+     */
+    sgui_widget_on_event_ui_fun( rad, SGUI_RADIO_MENU_SELECT_EVENT,
+                                 radio_menu_option_fun, NULL,
+                                 sgui_radio_menu_get_selection, rad );
+
 
 
     while( a_active || b_active )

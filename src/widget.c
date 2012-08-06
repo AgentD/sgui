@@ -230,3 +230,51 @@ void sgui_widget_on_event_ui2( sgui_widget* widget, int event, void* callback,
     }
 }
 
+void sgui_widget_on_event_f_fun( sgui_widget* widget, int event,
+                                 void* callback, void* object,
+                                 void* get_callback, void* get_object )
+{
+    sgui_variant v;
+
+    if( widget && widget->links && callback && get_callback )
+    {
+        v.data.get_fun.fun = get_callback;
+        v.data.get_fun.obj = get_object;
+        v.type             = SGUI_FLOAT_FROM_FUNCTION;
+
+        sgui_link_list_add( widget->links, event, callback, object, v );
+    }
+}
+
+void sgui_widget_on_event_i_fun( sgui_widget* widget, int event,
+                                 void* callback, void* object,
+                                 void* get_callback, void* get_object )
+{
+    sgui_variant v;
+
+    if( widget && widget->links && callback && get_callback )
+    {
+        v.data.get_fun.fun = get_callback;
+        v.data.get_fun.obj = get_object;
+        v.type             = SGUI_INT_FROM_FUNCTION;
+
+        sgui_link_list_add( widget->links, event, callback, object, v );
+    }
+}
+
+void sgui_widget_on_event_ui_fun( sgui_widget* widget, int event,
+                                 void* callback, void* object,
+                                 void* get_callback, void* get_object )
+{
+    sgui_variant v;
+
+    if( widget && widget->links && callback && get_callback )
+    {
+        v.data.get_fun.fun = get_callback;
+        v.data.get_fun.obj = get_object;
+        v.type             = SGUI_UINT_FROM_FUNCTION;
+
+        sgui_link_list_add( widget->links, event, callback, object, v );
+    }
+}
+

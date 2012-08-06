@@ -74,14 +74,11 @@ void sgui_radio_menu_on_event( sgui_widget* widget, sgui_window* wnd,
 
             if( m->selected != i )
             {
-                y = SGUI_RADIO_MENU_SELECT_EVENT;
-                sgui_internal_widget_fire_event( widget, y );
-
-                y = SGUI_RADIO_MENU_SELECT_0_EVENT + i;
-                sgui_internal_widget_fire_event( widget, y );
-
                 m->selected = i;
                 widget->need_redraw = 1;
+
+                y = SGUI_RADIO_MENU_SELECT_EVENT;
+                sgui_internal_widget_fire_event( widget, y );
             }
         }
     }

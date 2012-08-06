@@ -45,7 +45,11 @@ typedef enum
     SGUI_INT,
     SGUI_UINT,
     SGUI_INT_VEC2,
-    SGUI_UINT_VEC2
+    SGUI_UINT_VEC2,
+
+    SGUI_FLOAT_FROM_FUNCTION,
+    SGUI_INT_FROM_FUNCTION,
+    SGUI_UINT_FROM_FUNCTION
 }
 SGUI_DATA_TYPE;
 
@@ -62,6 +66,8 @@ typedef struct
         struct { int x, y; } ivec2;
 
         struct { unsigned int x, y; } uivec2;
+
+        struct { void* obj; void* fun; } get_fun;
     }
     data;
 
