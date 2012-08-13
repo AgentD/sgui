@@ -256,6 +256,24 @@ void sgui_skin_get_radio_menu_extents( const unsigned char** text,
     *width += 20;
 }
 
+void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
+                                         int vertical, unsigned int* width,
+                                         unsigned int* height )
+{
+    (void)style;
+
+    if( vertical )
+    {
+        *width  = 30;
+        *height = length;
+    }
+    else
+    {
+        *width  = length;
+        *height = 30;
+    }
+}
+
 /***************************************************************************/
 
 unsigned int sgui_skin_get_radio_menu_option_from_point( int y )
@@ -266,29 +284,31 @@ unsigned int sgui_skin_get_radio_menu_option_from_point( int y )
 /***************************************************************************/
 
 void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
-                                  unsigned int width, unsigned int height,
-                                  int horizontal, int style, float value )
+                                  unsigned int length, int vertical,
+                                  int style, float value )
 {
     int ox, oy;
     unsigned char color[4];
-    unsigned int segments, i, ww = width, wh = height;
+    unsigned int segments, i, ww = vertical ? 30 : length;
+    unsigned int wh = vertical ? length : 30;
+    unsigned int width, height;
 
     assure_scratch_buffer_size( ww, wh );
 
     /* draw background box */
     color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
 
-    draw_box( 0, 0, width, height, ww, color );
+    draw_box( 0, 0, ww, wh, ww, color );
 
     color[0] = color[1] = color[2] = 0x00; color[3] = 0xFF;
 
-    draw_line( 0, 0, width,  1, width, color );
-    draw_line( 0, 0, height, 0, width, color );
+    draw_line( 0, 0, ww, 1, ww, color );
+    draw_line( 0, 0, wh, 0, ww, color );
 
     color[0] = color[1] = color[2] = 0xFF;
 
-    draw_line( 0,       height-1, width,  1, width, color );
-    draw_line( width-1, 0,        height, 0, width, color );
+    draw_line( 0,       wh-1, ww, 1, ww, color );
+    draw_line( ww-1, 0,       wh, 0, ww, color );
 
     /* draw bar */
     if( style == SGUI_PROGRESS_BAR_STIPPLED )
@@ -302,30 +322,10 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
         color[0] = color[1] = 0xFF; color[2] = 0x00;
     }
 
-    if( horizontal )
+    if( vertical )
     {
-        width  = (width - 2*ox) * value;
-        height = height - 2*oy;
-
-        if( width )
-        {
-            if( style == SGUI_PROGRESS_BAR_CONTINUOUS )
-            {
-                draw_box( ox, oy, width, height, ww, color );
-            }
-            else
-            {
-                segments = width / 12;
-
-                for( i=0; i<segments; ++i )
-                    draw_box( ox+(int)i*12, oy, 7, height, ww, color );
-            }
-        }
-    }
-    else
-    {
-        height = (height - 2*oy) * value;
-        width  =  width  - 2*ox;
+        height = (wh - 2*oy) * value;
+        width  =  ww - 2*ox;
 
         if( height )
         {
@@ -339,6 +339,26 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
 
                 for( i=0; i<segments; ++i )
                     draw_box( ox, wh-oy-(int)i*12 - 7, width, 7, ww, color );
+            }
+        }
+    }
+    else
+    {
+        width  = (ww - 2*ox) * value;
+        height =  wh - 2*oy;
+
+        if( width )
+        {
+            if( style == SGUI_PROGRESS_BAR_CONTINUOUS )
+            {
+                draw_box( ox, oy, width, height, ww, color );
+            }
+            else
+            {
+                segments = width / 12;
+
+                for( i=0; i<segments; ++i )
+                    draw_box( ox+(int)i*12, oy, 7, height, ww, color );
             }
         }
     }

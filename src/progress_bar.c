@@ -38,7 +38,8 @@ typedef struct
 
     float progress;
     int style;
-    int horizontal;
+    int vertical;
+    unsigned int length;
 }
 sgui_progress_bar;
 
@@ -52,32 +53,32 @@ void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
 
     if( type == SGUI_DRAW_EVENT )
     {
-        sgui_skin_draw_progress_bar( wnd, widget->x, widget->y,
-                                     widget->width, widget->height,
-                                     b->horizontal, b->style, b->progress );
+        sgui_skin_draw_progress_bar( wnd, widget->x, widget->y, b->length,
+                                     b->vertical, b->style, b->progress );
     }
 }
 
 
 
-sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
-                                       unsigned int height, float progress )
+sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
+                                       float progress, unsigned int length )
 {
     sgui_progress_bar* b;
+    unsigned int w, h;
 
     progress = (progress>1.0f) ? 1.0f : ((progress<0.0f) ? 0.0f : progress);
 
-    width  = (width <15) ? 15 : width;
-    height = (height<15) ? 15 : height;
-
     b = malloc( sizeof(sgui_progress_bar) );
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 0 );
+    sgui_skin_get_progress_bar_extents( length, style, vertical, &w, &h );
+
+    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 0 );
 
     b->widget.window_event_callback = sgui_progress_bar_on_event;
-    b->horizontal                   = 1;
+    b->vertical                     = vertical;
     b->progress                     = progress;
-    b->style                        = SGUI_PROGRESS_BAR_STIPPLED;
+    b->style                        = style;
+    b->length                       = length;
 
     return (sgui_widget*)b;
 }
@@ -100,28 +101,6 @@ float sgui_progress_bar_get_progress( sgui_widget* bar )
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
 
     return b ? b->progress : 0.0f;
-}
-
-void sgui_progress_bar_set_style( sgui_widget* bar, int style )
-{
-    sgui_progress_bar* b = (sgui_progress_bar*)bar;
-
-    if( b )
-    {
-        b->style              = style;
-        b->widget.need_redraw = 1;
-    }
-}
-
-void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical )
-{
-    sgui_progress_bar* b = (sgui_progress_bar*)bar;
-
-    if( b )
-    {
-        b->horizontal         = !vertical;
-        b->widget.need_redraw = 1;
-    }
 }
 
 void sgui_progress_bar_destroy( sgui_widget* bar )

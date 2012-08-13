@@ -117,6 +117,20 @@ void sgui_skin_get_radio_menu_extents( const unsigned char** text,
                                        unsigned int* width,
                                        unsigned int* height );
 
+/**
+ * \brief Predict the size of a radio menu when rendered
+ *
+ * \param length    The proposed length of the bar.
+ * \param style     The style of the bar (either SGUI_PROGRESS_BAR_CONTINUOUS,
+ *                  or SGUI_PROGRESS_BAR_STIPPLED).
+ * \param vertical  Non-zero if the bar is vertical.
+ * \param width     Returns the width of the bar.
+ * \param height    Returns the height of the bar.
+ */
+void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
+                                         int vertical, unsigned int* width,
+                                         unsigned int* height );
+
 
 /**
  * \brief Gets a radio menu option index from a point
@@ -131,19 +145,19 @@ unsigned int sgui_skin_get_radio_menu_option_from_point( int y );
 /**
  * \brief Draw a progress bar onto a window
  *
- * \param wnd    The window to draw to.
- * \param x      The distance from the left side of the bar to the left of
- *               the window.
- * \param y      The distance from the top of the bar to the top of
- *               the window.
- * \param width  The horizontal extent of the bar.
- * \param height The vertical extent of the bar.
- * \param style  The style of the bar (stippled or continuous).
- * \param value  The progress value to indicate (value between 0.0 and 1.0).
+ * \param wnd      The window to draw to.
+ * \param x        The distance from the left side of the bar to the left of
+ *                 the window.
+ * \param y        The distance from the top of the bar to the top of
+ *                 the window.
+ * \param length   The length of the bar.
+ * \param vertical Non-zero for vertical bars, zero for horizontal.
+ * \param style    The style of the bar (stippled or continuous).
+ * \param value    The progress value to indicate (value between 0.0 and 1.0).
  */
 void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
-                                  unsigned int width, unsigned int height,
-                                  int horizontal, int style, float value );
+                                  unsigned int length, int vertical,
+                                  int style, float value );
 
 /**
  * \brief Draw a button widget onto a window

@@ -139,21 +139,10 @@ int main( void )
     sgui_skin_set_default_font( font, font_bold, font_italic,
                                 font_bold_italic, 16 );
 
-    p0 = sgui_progress_bar_create( 10, 10, 300, 30, 0.5f );
-    p1 = sgui_progress_bar_create( 10, 45, 300, 30, 0.5f );
-
-    p2 = sgui_progress_bar_create( 320, 10, 30, 300, 0.5f );
-    p3 = sgui_progress_bar_create( 355, 10, 30, 300, 0.5f );
-
-    sgui_progress_bar_set_style( p0, SGUI_PROGRESS_BAR_STIPPLED );
-    sgui_progress_bar_set_style( p1, SGUI_PROGRESS_BAR_CONTINUOUS );
-    sgui_progress_bar_set_style( p2, SGUI_PROGRESS_BAR_STIPPLED );
-    sgui_progress_bar_set_style( p3, SGUI_PROGRESS_BAR_CONTINUOUS );
-
-    sgui_progress_bar_set_direction( p2, SGUI_PROGRESS_BAR_VERTICAL );
-    sgui_progress_bar_set_direction( p3, SGUI_PROGRESS_BAR_VERTICAL );
-
-
+    p0 = sgui_progress_bar_create( 10,  10, 0, 0, 0.5f, 300 );
+    p1 = sgui_progress_bar_create( 10,  45, 1, 0, 0.5f, 300 );
+    p2 = sgui_progress_bar_create( 320, 10, 0, 1, 0.5f, 300 );
+    p3 = sgui_progress_bar_create( 355, 10, 1, 1, 0.5f, 300 );
 
     tex = sgui_static_text_create( 10, 400, (const unsigned char*)text );
     butt = sgui_button_create( 180, 100, (const unsigned char*)"Button",

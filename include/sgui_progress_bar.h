@@ -44,14 +44,17 @@ extern "C" {
 /**
  * \brief Create a progress bar widget
  *
- * \param x        The x component of the position of the progress bar.
- * \param y        The y component of the position of the progress bar.
- * \param width    Width of the progress bar in pixels.
- * \param height   Height of the progress bar in pixels.
+ * \param x        Distance from the left of the window.
+ * \param y        Distance from the top of the window.
+ * \param style    SGUI_PROGRESS_BAR_CONTINUOUS for a continous bar,
+ *                 SGUI_PROGRESS_BAR_STIPPLED for a bar out of discrete
+ *                 slices.
+ * \param vertical Non-zero for a vertical bar, zero for a horizontal bar.
  * \param progress Initial progress for the bar (value between 0.0 and 1.0)
+ * \param length   The length of the bar in pixels.
  */
-sgui_widget* sgui_progress_bar_create( int x, int y, unsigned int width,
-                                       unsigned int height, float progress );
+sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
+                                       float progress, unsigned int length );
 
 /**
  * \brief Set the progress on a progress bar
@@ -67,23 +70,6 @@ void sgui_progress_bar_set_progress( sgui_widget* bar, float progress );
  * \param bar The progress bar to alter.
  */
 float sgui_progress_bar_get_progress( sgui_widget* bar );
-
-/**
- * \brief Set the style of a progress bar
- *
- * \param bar   The progress bar to set the style of.
- * \param style Whether the progress bar should be one continuous stripe
- *              or stippled with an offset from the borders around it.
- */
-void sgui_progress_bar_set_style( sgui_widget* bar, int style );
-
-/**
- * \brief Set the direction of a progress bar
- *
- * \param bar      The progress bar to set the direction of.
- * \param vertical Whether the bar should be vertical (default: horizontal).
- */
-void sgui_progress_bar_set_direction( sgui_widget* bar, int vertical );
 
 /**
  * \brief Destroy a progress bar widget
