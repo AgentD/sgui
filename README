@@ -10,7 +10,7 @@
   mingw for the WinDOS cross compilation.
 
   The 's' in "sgui" really was intended to mean "small", but when raping it
-  with abstraction layers and piecing together a working WinDOS backend, lots
+  with abstraction layers and piecing together a working WinDOS back end, lots
   of other possible meanings for the letter 's' came to my mind, so the s
   stands for whatever you want it to.
 
@@ -26,7 +26,7 @@
   to draw/blit to the back buffer.
 
   There is a widget manager that receives input and manages widgets (duh) with
-  a few widget stubs already implemented, but no widget events yet.
+  a few widget stubs already implemented.
 
   Widget rendering is done in a centralized fashion by a skinning subsystem
   that renders to a scratch buffer and blits it onto the window; so it is
@@ -41,7 +41,8 @@
 
   On my system, the library compiles without warnings with all gcc warning
   flags set and has, according to valgrind, no memory leaks whatsoever and
-  the WinDOS port has been confirmed to work under Wine and WinDOS 7.
+  the WinDOS port has been confirmed to work under Wine, WinDOS 7 and
+  WinDOS 98 on a machine from 2005.
 
 
   What are your plans?
@@ -49,14 +50,14 @@
 
   Short term:
     - Get text input working
-    - Add more usefull widgets
-    - Make the library usefull for small GUI applications
+    - Add more useful widgets
+    - Make the library useful for small GUI applications
 
   Mid term:
     - Load GUI skin and default fonts from image & config files
     - Built in dialog boxes, like message box, file open and file safe
     - Assure thread safety
-    - OpenGL backend
+    - OpenGL back end
 
   Long term:
     - Figure out why I'm doing this
