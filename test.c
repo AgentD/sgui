@@ -67,6 +67,15 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
         printf( "Window %s: mouse wheel moved %s\n", w,
                 e->mouse_wheel.direction>0 ? "up" : "down" );
         break;
+    case SGUI_KEY_PRESSED_EVENT:
+        printf( "Window %s: 0x%x pressed\n", w, e->keyboard_event.code );
+        break;
+    case SGUI_KEY_RELEASED_EVENT:
+        printf( "Window %s: 0x%x released\n", w, e->keyboard_event.code );
+        break;
+    case SGUI_CHAR_EVENT:
+        printf( "Window %s: '%s' entered\n", w, e->char_event.as_utf8_str );
+        break;
     };
 }
 

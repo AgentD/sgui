@@ -30,6 +30,7 @@
 #include "sgui_window.h"
 #include "sgui_skin.h"
 #include "sgui_widget_manager.h"
+#include "sgui_keycodes.h"
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -59,6 +60,8 @@ struct sgui_window
     Window wnd;
     Atom wmDelete;
     GC gc;
+    XIM im;
+    XIC ic;
 
     XImage* back_buffer;
     unsigned char* back_buffer_data;
@@ -72,6 +75,14 @@ struct sgui_window
 
     sgui_window_callback event_fun;
 };
+
+
+
+/* initialise keycode symbol lookup table */
+void init_keycodes( );
+
+/* convert XKeyEvent to SGUI_KEY_CODE */
+SGUI_KEY_CODE keycode_from_XKeyEvent( XKeyEvent* xkey );
 
 
 

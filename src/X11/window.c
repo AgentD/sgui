@@ -70,6 +70,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
+    /* initialise key code translation LUT */
+    init_keycodes( );
+
     /******************** create the window ********************/
     sgui_skin_get_window_background_color( rgb );
 
@@ -116,6 +119,26 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
+    /** **/
+    wnd->im = XOpenIM( wnd->dpy, NULL, NULL, NULL );
+
+    if( !wnd->im )
+    {
+        sgui_window_destroy( wnd );
+        return NULL;
+    }
+
+    wnd->ic = XCreateIC( wnd->im,
+                         XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
+                         XNClientWindow, wnd->wnd,
+                         XNFocusWindow, wnd->wnd, NULL );
+
+    if( !wnd->ic )
+    {
+        sgui_window_destroy( wnd );
+        return NULL;
+    }
+
     /************ create an image for local drawing ************/
     wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
 
@@ -153,6 +176,8 @@ void sgui_window_destroy( sgui_window* wnd )
     {
         SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
+        if( wnd->ic          ) XDestroyIC( wnd->ic );
+        if( wnd->im          ) XCloseIM( wnd->im );
         if( wnd->back_buffer ) XDestroyImage( wnd->back_buffer );
         if( wnd->gc          ) XFreeGC( wnd->dpy, wnd->gc );
         if( wnd->wnd         ) XDestroyWindow( wnd->dpy, wnd->wnd );
@@ -285,7 +310,7 @@ void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
 
 int sgui_window_update( sgui_window* wnd )
 {
-    XEvent e;
+    XEvent e, ne;
     char* atom;
     sgui_event se;
     XExposeEvent exp;
@@ -314,11 +339,57 @@ int sgui_window_update( sgui_window* wnd )
     while( XPending( wnd->dpy )>0 )
     {
         XNextEvent( wnd->dpy, &e );
+        XFilterEvent( &e, wnd->wnd );
 
         memset( &se, 0, sizeof(sgui_event) );
 
         switch( e.type )
         {
+        case KeyRelease:
+            /*
+                On WinDOS, when holding a key pressed, a series of
+                key-pressed events are generated, but X11 generates
+                a series of key-pressed AND key-released events.
+                Mimic the Windows behaviour and swallow the additional
+                key-released events.
+             */
+            if( XPending( wnd->dpy ) > 0 )
+            {
+                XPeekEvent( wnd->dpy, &ne );
+
+                if( ne.type==KeyPress && ne.xkey.keycode==e.xkey.keycode &&
+                    (ne.xkey.time - e.xkey.time)<2 )
+                {
+                    break;
+                }
+            }
+        case KeyPress:
+            if( e.type == KeyPress )
+            {
+                Status s;
+
+                Xutf8LookupString( wnd->ic, &e.xkey,
+                                   (char*)se.char_event.as_utf8_str, 
+                                   sizeof(se.char_event.as_utf8_str),
+                                   NULL, &s );
+
+                if( s==XLookupChars || s==XLookupBoth )
+                {
+                    SEND_EVENT( wnd, SGUI_CHAR_EVENT, &se );
+                }
+            }
+
+            se.keyboard_event.code = keycode_from_XKeyEvent( &e.xkey );
+
+            if( e.type==KeyPress )
+            {
+                SEND_EVENT( wnd, SGUI_KEY_PRESSED_EVENT, &se );
+            }
+            else
+            {
+                SEND_EVENT( wnd, SGUI_KEY_RELEASED_EVENT, &se );
+            }
+            break;
         case ButtonPress:
         case ButtonRelease:
             if( (e.xbutton.button==Button4||e.xbutton.button==Button5) &&

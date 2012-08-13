@@ -40,6 +40,11 @@
 #include <stdlib.h>
 
 
+#ifndef MAPVK_VSC_TO_VK_EX
+    #define MAPVK_VSC_TO_VK_EX 3
+#endif
+
+
 
 struct sgui_window
 {

@@ -33,6 +33,8 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     sgui_event e;
     PAINTSTRUCT ps;
     HDC hDC;
+    WCHAR c[2];
+    UINT key;
 
     wnd = (sgui_window*)GetWindowLong( hWnd, GWL_USERDATA );
 
@@ -83,6 +85,49 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         e.mouse_press.pressed = 0;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
         SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        break;
+    case WM_CHAR:
+        c[0] = (WCHAR)wp;
+        c[1] = '\0';
+
+        WideCharToMultiByte( CP_UTF8, 0, c, 2,
+                             (LPSTR)e.char_event.as_utf8_str, 8, NULL, NULL );
+
+        SEND_EVENT( wnd, SGUI_CHAR_EVENT, &e );
+        break;
+    case WM_SYSKEYUP:
+    case WM_SYSKEYDOWN:
+    case WM_KEYDOWN:
+    case WM_KEYUP:
+        key = (UINT)wp;
+
+        if( key==VK_SHIFT || key==VK_CONTROL || key==VK_MENU )
+            key = MapVirtualKey( (lp>>16) & 0xFF, MAPVK_VSC_TO_VK_EX );
+
+        if( (lp & 0x1000000) && (key==VK_CONTROL) )
+            key = VK_RCONTROL;
+
+        if( (lp & 0x1000000) && (key==VK_MENU) )
+            key = VK_RMENU;
+
+        /* Send event */
+        e.keyboard_event.code = (SGUI_KEY_CODE)key;
+
+        if( msg==WM_KEYDOWN || msg==WM_SYSKEYDOWN )
+        {
+            SEND_EVENT( wnd, SGUI_KEY_PRESSED_EVENT, &e );
+        }
+        else
+        {
+            SEND_EVENT( wnd, SGUI_KEY_RELEASED_EVENT, &e );
+        }
+
+        /* let DefWindowProc handle system keys, except ALT */
+        if( (msg==WM_SYSKEYUP || msg==WM_SYSKEYDOWN) &&
+            !(key==VK_MENU || key==VK_LMENU || key==VK_RMENU) )
+        {
+            return DefWindowProc( hWnd, msg, wp, lp );
+        }
         break;
     case WM_SIZE:
         wnd->w = LOWORD( lp );

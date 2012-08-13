@@ -27,6 +27,10 @@
 
 
 
+#include "sgui_keycodes.h"
+
+
+
 #define SGUI_MOUSE_BUTTON_LEFT   0
 #define SGUI_MOUSE_BUTTON_MIDDLE 1
 #define SGUI_MOUSE_BUTTON_RIGHT  2
@@ -42,7 +46,10 @@
 #define SGUI_MOUSE_WHEEL_EVENT        6
 #define SGUI_MOUSE_ENTER_EVENT        7
 #define SGUI_MOUSE_LEAVE_EVENT        8
-#define SGUI_DRAW_EVENT               9
+#define SGUI_KEY_PRESSED_EVENT        9
+#define SGUI_KEY_RELEASED_EVENT      10
+#define SGUI_CHAR_EVENT              11
+#define SGUI_DRAW_EVENT              12
 
 
 
@@ -55,6 +62,10 @@ typedef union
     struct { int button, pressed; } mouse_press;
 
     struct { int direction; } mouse_wheel;
+
+    struct { SGUI_KEY_CODE code; } keyboard_event;
+
+    struct { unsigned char as_utf8_str[8]; } char_event;
 }
 sgui_event;
 
