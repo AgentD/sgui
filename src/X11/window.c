@@ -38,6 +38,8 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     sgui_window* wnd;
     XSizeHints hints;
     XWindowAttributes attr;
+    unsigned long color = 0;
+    unsigned char rgb[3];
 
     if( !width || !height )
         return NULL;
@@ -69,8 +71,14 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
 
     /******************** create the window ********************/
+    sgui_skin_get_window_background_color( rgb );
+
+    color |= ((unsigned long)rgb[0]) << 16;
+    color |= ((unsigned long)rgb[1]) << 8;
+    color |= ((unsigned long)rgb[2]);
+
     wnd->wnd = XCreateSimpleWindow( wnd->dpy, DefaultRootWindow(wnd->dpy),
-                                    0, 0, width, height, 0, 0, 0 );
+                                    0, 0, width, height, 0, 0, color );
 
     if( !wnd->wnd )
     {
