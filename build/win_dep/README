@@ -1,0 +1,8 @@
+
+  This directory contains a mingw cross build build of freetype 2.4.10.
+
+  The directory contains only the headers and the compiled libraries for cross
+  compiling sgui using mingw.
+
+  To access the original FreeType 2 library and source, see freetype.org
+

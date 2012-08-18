@@ -41,8 +41,8 @@
 
   On my system, the library compiles without warnings with all gcc warning
   flags set and has, according to valgrind, no memory leaks whatsoever and
-  the WinDOS port has been confirmed to work under Wine, WinDOS 7 and
-  WinDOS 98 on a machine from 2005.
+  the WinDOS port has been confirmed to work under Wine,
+  WinDOS 7 (32 & 64 Bit) and WinDOS 98 on a machine from 2005.
 
 
   What are your plans?

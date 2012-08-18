@@ -36,7 +36,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     WCHAR c[2];
     UINT key;
 
-    wnd = (sgui_window*)GetWindowLong( hWnd, GWL_USERDATA );
+    wnd = (sgui_window*)GET_USER_PTR( hWnd );
 
     if( !wnd )
         return DefWindowProc( hWnd, msg, wp, lp );
@@ -241,7 +241,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    SetWindowLong( wnd->hWnd, GWL_USERDATA, (LONG)wnd );
+    SET_USER_PTR( wnd->hWnd, wnd );
 
     wnd->w = width;
     wnd->h = height;

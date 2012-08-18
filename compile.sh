@@ -3,6 +3,15 @@
 CFLAGS="-ansi -W -Wall -Wextra -Wshadow -Wwrite-strings -I./include -ggdb"
 
 MINGW="i586-mingw32msvc-gcc"
+MINGW64="amd64-mingw32msvc-gcc"
+
+if [ ! -e $MINGW ]; then
+    MINGW="i486-mingw32-gcc"
+fi
+
+if [ ! -e $MINGW64 ]; then
+    MINGW64="x86_64-w64-mingw32-gcc"
+fi
 
 # Common source code files
 SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/font_manager.c
@@ -15,10 +24,11 @@ SOURCE_WIN="src/WIN32/window.c"
 
 # Platform specific libraries
 INCLUDE_X11="-I/usr/include -I/usr/include/freetype2"
-INCLUDE_WIN="-Ibuild/win32_dep/include"
+INCLUDE_WIN="-Ibuild/win_dep/include"
 
 LIBS_X11="-lX11 -lfreetype"
-LIBS_WIN="-Lbuild/win32_dep/lib -llibfreetype -lgdi32"
+LIBS_WIN32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32"
+LIBS_WIN64="-Lbuild/win_dep/x64 -llibfreetype -lgdi32"
 
 # Do the compilation
 if [ ! -f ./compile.sh ]; then
@@ -27,9 +37,10 @@ else
     gcc $SOURCE_COMMON $SOURCE_X11 $CFLAGS $INCLUDE_X11 $LIBS_X11\
         -o build/a.out
 
-    $MINGW $SOURCE_COMMON $SOURCE_WIN $CFLAGS $INCLUDE_WIN $LIBS_WIN\
+    $MINGW $SOURCE_COMMON $SOURCE_WIN $CFLAGS $INCLUDE_WIN $LIBS_WIN32\
            -o build/a.exe
 
-    cp build/win32_dep/bin/libfreetype-6.dll build/
+    $MINGW64 $SOURCE_COMMON $SOURCE_WIN $CFLAGS $INCLUDE_WIN $LIBS_WIN64\
+             -o build/a64.exe
 fi
 
