@@ -255,12 +255,3 @@ void init_keycodes( )
     }
 }
 
-SGUI_KEY_CODE keycode_from_XKeyEvent( XKeyEvent* xkey )
-{
-    KeySym sym;
-
-    sym = XLookupKeysym( xkey, 0 );
-
-    return key_entries_translate( sym );
-}
-

@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 
 const char* wmDeleteWindow = "WM_DELETE_WINDOW";
@@ -314,6 +315,8 @@ int sgui_window_update( sgui_window* wnd )
     char* atom;
     sgui_event se;
     XExposeEvent exp;
+    Status stat;
+    KeySym sym;
 
     if( !wnd || !wnd->mapped )
         return 0;
@@ -339,7 +342,9 @@ int sgui_window_update( sgui_window* wnd )
     while( XPending( wnd->dpy )>0 )
     {
         XNextEvent( wnd->dpy, &e );
-        XFilterEvent( &e, wnd->wnd );
+
+        if( XFilterEvent( &e, wnd->wnd ) )
+            continue;
 
         memset( &se, 0, sizeof(sgui_event) );
 
@@ -350,7 +355,7 @@ int sgui_window_update( sgui_window* wnd )
                 On WinDOS, when holding a key pressed, a series of
                 key-pressed events are generated, but X11 generates
                 a series of key-pressed AND key-released events.
-                Mimic the Windows behaviour and swallow the additional
+                Mimic the WinDOS behaviour and swallow the additional
                 key-released events.
              */
             if( XPending( wnd->dpy ) > 0 )
@@ -363,31 +368,32 @@ int sgui_window_update( sgui_window* wnd )
                     break;
                 }
             }
+
+            sym = XLookupKeysym( &e.xkey, 0 );
+            se.keyboard_event.code = key_entries_translate( sym );
+
+            SEND_EVENT( wnd, SGUI_KEY_RELEASED_EVENT, &se );
+            break;
         case KeyPress:
-            if( e.type == KeyPress )
+            Xutf8LookupString( wnd->ic, &e.xkey,
+                               (char*)se.char_event.as_utf8_str,
+                               sizeof(se.char_event.as_utf8_str),
+                               &sym, &stat );
+
+            if( stat==XLookupChars || stat==XLookupBoth )
             {
-                Status s;
-
-                Xutf8LookupString( wnd->ic, &e.xkey,
-                                   (char*)se.char_event.as_utf8_str, 
-                                   sizeof(se.char_event.as_utf8_str),
-                                   NULL, &s );
-
-                if( s==XLookupChars || s==XLookupBoth )
+                if( (se.char_event.as_utf8_str[0] & 0x80) ||
+                    !iscntrl( se.char_event.as_utf8_str[0] ) )
                 {
                     SEND_EVENT( wnd, SGUI_CHAR_EVENT, &se );
                 }
             }
 
-            se.keyboard_event.code = keycode_from_XKeyEvent( &e.xkey );
+            if( stat==XLookupKeySym || stat==XLookupBoth )
+            {
+                se.keyboard_event.code = key_entries_translate( sym );
 
-            if( e.type==KeyPress )
-            {
                 SEND_EVENT( wnd, SGUI_KEY_PRESSED_EVENT, &se );
-            }
-            else
-            {
-                SEND_EVENT( wnd, SGUI_KEY_RELEASED_EVENT, &se );
             }
             break;
         case ButtonPress:

@@ -48,9 +48,11 @@
 #endif
 
 #define SEND_EVENT( wnd, event, e )\
-        if( wnd->event_fun )\
-            wnd->event_fun( wnd, event, e );\
-        sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
+        {\
+            if( wnd->event_fun )\
+                wnd->event_fun( wnd, event, e );\
+            sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );\
+        }
 
 
 
@@ -81,8 +83,8 @@ struct sgui_window
 /* initialise keycode symbol lookup table */
 void init_keycodes( );
 
-/* convert XKeyEvent to SGUI_KEY_CODE */
-SGUI_KEY_CODE keycode_from_XKeyEvent( XKeyEvent* xkey );
+/* convert KeySym to SGUI_KEY_CODE */
+SGUI_KEY_CODE key_entries_translate( KeySym key );
 
 
 
