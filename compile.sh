@@ -5,18 +5,19 @@ CFLAGS="-ansi -W -Wall -Wextra -Wshadow -Wwrite-strings -I./include -ggdb"
 MINGW="i586-mingw32msvc-gcc"
 MINGW64="amd64-mingw32msvc-gcc"
 
-if [ ! -e $MINGW ]; then
+if [ ! command -v $MINGW >/dev/null 2>&1 ]; then
     MINGW="i486-mingw32-gcc"
 fi
 
-if [ ! -e $MINGW64 ]; then
+if [ ! command -v $MINGW64 >/dev/null 2>&1 ]; then
     MINGW64="x86_64-w64-mingw32-gcc"
 fi
 
 # Common source code files
 SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/font_manager.c
                       src/widget_manager.c src/static_text.c src/button.c
-                      src/skin.c src/link.c src/image.c src/radio_menu.c"
+                      src/skin.c src/link.c src/image.c src/radio_menu.c
+                      src/edit_box.c"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c"

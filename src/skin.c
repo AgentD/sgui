@@ -274,6 +274,11 @@ void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
     }
 }
 
+unsigned int sgui_skin_get_edit_box_height( void )
+{
+    return (font_height + (font_height / 2) + 4);
+}
+
 /***************************************************************************/
 
 unsigned int sgui_skin_get_radio_menu_option_from_point( int y )
@@ -595,5 +600,57 @@ void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
 
         sgui_window_blend_image( wnd, x, y, width, dy, scratch_buffer );
     }
+}
+
+void sgui_skin_draw_edit_box( sgui_window* wnd, int x, int y,
+                              const unsigned char* text,
+                              unsigned int width, int cursor )
+{
+    unsigned char color[4];
+    unsigned int height, cx;
+
+    height = font_height + (font_height / 2) + 4;
+
+    assure_scratch_buffer_size( width, height );
+
+    /* draw background box */
+    color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
+
+    draw_box( 0, 0, width, height, width, color );
+
+    /* draw text */
+    color[0] = color[1] = color[2] = color[3] = 0xFF;
+    sgui_font_print_alpha( text, font_norm, font_height, scratch_buffer, 2, 2,
+                           width, height, color,
+                           strlen( (const char*)text ) );
+
+    /* draw borders */
+    color[0] = color[1] = color[2] = 0x00;
+
+    draw_line( 0, 0, width,  1, width, color );
+    draw_line( 0, 0, height, 0, width, color );
+
+    color[0] = color[1] = color[2] = 0xFF;
+
+    draw_line( 0,       height-1, width,  1, width, color );
+    draw_line( width-1,        0, height, 0, width, color );
+
+    /* draw cursor */
+    if( cursor >= 0 )
+    {
+        cx = sgui_font_extents( text, font_norm, font_height, cursor );
+
+        if( cx == 0 )
+            cx = 3;
+
+        if( cx < (width-2) )
+        {
+            color[0] = color[1] = color[2] = 0x7F;
+
+            draw_line( cx, 5, height-10, 0, width, color );
+        }
+    }
+
+    sgui_window_blend_image( wnd, x, y, width, height, scratch_buffer );
 }
 

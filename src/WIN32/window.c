@@ -93,7 +93,11 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         WideCharToMultiByte( CP_UTF8, 0, c, 2,
                              (LPSTR)e.char_event.as_utf8_str, 8, NULL, NULL );
 
-        SEND_EVENT( wnd, SGUI_CHAR_EVENT, &e );
+        if( (e.char_event.as_utf8_str[0] & 0x80) ||
+            !iscntrl( e.char_event.as_utf8_str[0] ) )
+        {
+            SEND_EVENT( wnd, SGUI_CHAR_EVENT, &e );
+        }
         break;
     case WM_SYSKEYUP:
     case WM_SYSKEYDOWN:

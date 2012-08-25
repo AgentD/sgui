@@ -6,6 +6,7 @@
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1, *rad;
+sgui_widget *eb;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -173,6 +174,8 @@ int main( void )
     rad = sgui_radio_menu_create( 180, 250, 3, (const unsigned char**)options,
                                   0 );
 
+    eb = sgui_edit_box_create( 180, 350, 100, 20 );
+
 
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
@@ -186,6 +189,7 @@ int main( void )
     sgui_window_add_widget( a, p2 );
     sgui_window_add_widget( a, p3 );
     sgui_window_add_widget( a, rad );
+    sgui_window_add_widget( a, eb );
 
 
 

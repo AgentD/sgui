@@ -131,6 +131,11 @@ void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
                                          int vertical, unsigned int* width,
                                          unsigned int* height );
 
+/**
+ */
+unsigned int sgui_skin_get_edit_box_height( void );
+
+
 
 /**
  * \brief Gets a radio menu option index from a point
@@ -226,6 +231,11 @@ void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
                                 const unsigned char** text,
                                 unsigned int num_lines, unsigned int selected,
                                 unsigned int width, unsigned int height );
+
+void sgui_skin_draw_edit_box( sgui_window* wnd, int x, int y,
+                              const unsigned char* text,
+                              unsigned int width, int cursor );
+
 
 
 #ifdef __cplusplus

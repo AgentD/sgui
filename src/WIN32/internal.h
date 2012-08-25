@@ -38,7 +38,7 @@
 #include <windows.h>
 
 #include <stdlib.h>
-
+#include <ctype.h>
 
 #ifndef MAPVK_VSC_TO_VK_EX
     #define MAPVK_VSC_TO_VK_EX 3

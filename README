@@ -49,13 +49,12 @@
   ********************
 
   Short term:
-    - Get text input working
     - Add more useful widgets
     - Make the library useful for small GUI applications
 
   Mid term:
     - Load GUI skin and default fonts from image & config files
-    - Built in dialog boxes, like message box, file open and file safe
+    - Built in dialog boxes like message box, file open and file safe
     - Assure thread safety
     - OpenGL back end
 

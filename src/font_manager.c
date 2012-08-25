@@ -291,7 +291,7 @@ void sgui_font_print_alpha( const unsigned char* text, sgui_font* font_face,
             for( X=0; X<font_face->face->glyph->bitmap.width; ++X, ++src,
                                                               dst+=4 )
             {
-                if( ((x+X) < 0) || ((x+X) >= (int)width) )
+                if( ((x+X) < 0) || ((x+X) >= (int)width) || (*src==0) )
                     continue;
 
                 dst[0] = color[0];

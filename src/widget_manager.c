@@ -32,6 +32,7 @@
 struct sgui_widget_manager
 {
     sgui_widget*  mouse_over;
+    sgui_widget*  focus;
     sgui_widget** widgets;
     unsigned int num_widgets;
     unsigned int widgets_avail;
@@ -48,6 +49,7 @@ sgui_widget_manager* sgui_widget_manager_create( void )
 
     mgr->widgets       = malloc( sizeof(sgui_widget*)*10 );
     mgr->mouse_over    = NULL;
+    mgr->focus         = NULL;
     mgr->num_widgets   = 0;
     mgr->widgets_avail = 10;
 
@@ -74,7 +76,7 @@ void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
 {
     sgui_widget** nw;
 
-    if( !mgr )
+    if( !mgr || !widget )
         return;
 
     /* try to resize widget array if required */
@@ -102,7 +104,7 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
 {
     unsigned int i;
 
-    if( !mgr )
+    if( !mgr || !widget )
         return;
 
     for( i=0; i<mgr->num_widgets; ++i )
@@ -123,6 +125,9 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 {
     unsigned int i, w, h;
     int x, y, redraw = 0;
+
+    if( !mgr || !wnd )
+        return 0;
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
@@ -150,69 +155,86 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
 {
     unsigned int i, w, h;
     int x, y;
+    sgui_widget* new_mouse_over = NULL;
 
-    if( mgr )
+    if( !mgr )
+        return;
+
+    if( event == SGUI_MOUSE_MOVE_EVENT )
     {
-        if( event == SGUI_MOUSE_MOVE_EVENT )
+        /* find the widget under the mouse cursor */
+        for( i=0; i<mgr->num_widgets; ++i )
         {
-            /* find the widget under the mouse cursor */
-            sgui_widget* new_mouse_over = NULL;
-
-            for( i=0; i<mgr->num_widgets; ++i )
+            if( sgui_widget_is_point_inside( mgr->widgets[i],
+                                             e->mouse_move.x,
+                                             e->mouse_move.y ) )
             {
-                if( sgui_widget_is_point_inside( mgr->widgets[i],
-                                                 e->mouse_move.x,
-                                                 e->mouse_move.y ) )
-                {
-                    new_mouse_over = mgr->widgets[i];
-                    break;
-                }
-            }
-
-            /* old widget under cursor != new widget under cursor */
-            if( mgr->mouse_over != new_mouse_over )
-            {
-                if( new_mouse_over )
-                {
-                    sgui_widget_send_window_event( new_mouse_over, wnd,
-                                                   SGUI_MOUSE_ENTER_EVENT,
-                                                   NULL );
-                }
-
-                if( mgr->mouse_over )
-                {
-                    sgui_widget_send_window_event( mgr->mouse_over, wnd,
-                                                   SGUI_MOUSE_LEAVE_EVENT,
-                                                   NULL );
-                }
-
-                mgr->mouse_over = new_mouse_over;
+                new_mouse_over = mgr->widgets[i];
+                break;
             }
         }
 
-        if( event == SGUI_MOUSE_PRESS_EVENT )
+        /* old widget under cursor != new widget under cursor */
+        if( mgr->mouse_over != new_mouse_over )
         {
+            /* send mouse enter event to new one */
+            if( new_mouse_over )
+            {
+                sgui_widget_send_window_event( new_mouse_over, wnd,
+                                               SGUI_MOUSE_ENTER_EVENT,
+                                               NULL );
+            }
+
+            /* send mouse leave event to old one */
             if( mgr->mouse_over )
             {
                 sgui_widget_send_window_event( mgr->mouse_over, wnd,
-                                               event, e );
+                                               SGUI_MOUSE_LEAVE_EVENT,
+                                               NULL );
             }
+
+            /* store the new one */
+            mgr->mouse_over = new_mouse_over;
+        }
+    }
+
+    if( event == SGUI_MOUSE_PRESS_EVENT )
+    {
+        /*
+            only send mouse press events to the mouse_over widget
+             and give it focus if it got clicked
+         */
+        if( mgr->mouse_over )
+        {
+            sgui_widget_send_window_event( mgr->mouse_over, wnd,
+                                           event, e );
+
+            mgr->focus = mgr->mouse_over;
         }
         else
+            mgr->focus = NULL;
+    }
+    else if( (event==SGUI_KEY_PRESSED_EVENT) ||
+             (event==SGUI_KEY_RELEASED_EVENT) || (event==SGUI_CHAR_EVENT) )
+    {
+        /* only send keyboard events to the widget that has focus */
+        if( mgr->focus )
+            sgui_widget_send_window_event( mgr->focus, wnd, event, e );
+    }
+    else
+    {
+        /* propagate all other events */
+        for( i=0; i<mgr->num_widgets; ++i )
         {
-            /* propagate the event */
-            for( i=0; i<mgr->num_widgets; ++i )
+            if( event == SGUI_DRAW_EVENT )
             {
-                if( event == SGUI_DRAW_EVENT )
-                {
-                    sgui_widget_get_position( mgr->widgets[i], &x, &y );
-                    sgui_widget_get_size( mgr->widgets[i], &w, &h );
-                    sgui_window_clear( wnd, x, y, w, h );
-                }
-
-                sgui_widget_send_window_event( mgr->widgets[i], wnd,
-                                               event, e );
+                sgui_widget_get_position( mgr->widgets[i], &x, &y );
+                sgui_widget_get_size( mgr->widgets[i], &w, &h );
+                sgui_window_clear( wnd, x, y, w, h );
             }
+
+            sgui_widget_send_window_event( mgr->widgets[i], wnd,
+                                           event, e );
         }
     }
 }
