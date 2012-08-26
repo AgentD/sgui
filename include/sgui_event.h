@@ -49,7 +49,9 @@
 #define SGUI_KEY_PRESSED_EVENT        9
 #define SGUI_KEY_RELEASED_EVENT      10
 #define SGUI_CHAR_EVENT              11
-#define SGUI_DRAW_EVENT              12
+#define SGUI_FOCUS_EVENT             12
+#define SGUI_FOCUS_LOSE_EVENT        13
+#define SGUI_DRAW_EVENT              14
 
 
 

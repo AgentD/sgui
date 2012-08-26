@@ -39,9 +39,49 @@ typedef struct
     unsigned int max_chars, num_entered;
     unsigned int end;
 
+    unsigned int cursor;
+    unsigned int offset;
+
+    int draw_cursor;
+
     unsigned char* buffer;
 }
 sgui_edit_box;
+
+
+
+
+void sgui_edit_box_determine_offset( sgui_edit_box* b )
+{
+    unsigned int cx;
+
+    if( !b->num_entered )
+        return;
+
+    if( b->offset && (b->cursor <= b->offset) )
+    {
+        --(b->offset);
+
+        while( ((b->buffer[ b->offset ]) & 0xC0) == 0x80 )
+            --(b->offset);
+    }
+    else
+    {
+        cx = sgui_skin_default_font_extents( b->buffer + b->offset,
+                                             b->cursor - b->offset, 0, 0 );
+
+        if( cx > b->widget.width )
+        {
+            ++(b->offset);
+
+            while( ((b->buffer[ b->offset ]) & 0xC0) == 0x80 )
+                ++(b->offset);
+        }
+    }
+}
+
+
+
 
 
 
@@ -49,47 +89,111 @@ void sgui_edit_box_on_event( sgui_widget* widget, sgui_window* wnd,
                              int type, sgui_event* event )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
-    unsigned int i;
 
-    if( type == SGUI_DRAW_EVENT )
+    if( type == SGUI_FOCUS_EVENT )
     {
-        sgui_skin_draw_edit_box( wnd, widget->x, widget->y, b->buffer,
-                                 widget->width, b->end );
+        b->draw_cursor = 1;
+        widget->need_redraw = 1;
+    }
+    else if( type == SGUI_FOCUS_LOSE_EVENT )
+    {
+        b->draw_cursor = 0;
+        widget->need_redraw = 1;
+    }
+    else if( type == SGUI_DRAW_EVENT )
+    {
+        sgui_skin_draw_edit_box( wnd, widget->x, widget->y,
+                                 b->buffer + b->offset, widget->width,
+                                 b->draw_cursor ?
+                                 (int)(b->cursor-b->offset) : -1 );
     }
     else if( type == SGUI_KEY_PRESSED_EVENT )
     {
-        if( (event->keyboard_event.code==SGUI_KC_BACK) && b->num_entered )
+        if( (event->keyboard_event.code==SGUI_KC_BACK) && b->num_entered &&
+            b->cursor )
         {
+            unsigned int old = b->cursor;
+
             /* roll back an entire UTF8 character */
-            --(b->end);
+            --(b->cursor);
 
-            while( ((b->buffer[ b->end ]) & 0xC0) == 0x80 )
-                --(b->end);
+            while( ((b->buffer[ b->cursor ]) & 0xC0) == 0x80 )
+                --(b->cursor);
 
-            /* overwrite with null terminator */
-            b->buffer[ b->end ] = '\0';
+            /* move entire text block back by one character */
+            memmove( b->buffer+b->cursor, b->buffer+old, b->end-old+1 );
 
             /* update state */
             b->num_entered -= 1;
+            b->end -= (old - b->cursor);
+
             widget->need_redraw = 1;
+            sgui_edit_box_determine_offset( b );
+        }
+        else if( (event->keyboard_event.code==SGUI_KC_DELETE) &&
+                 (b->cursor < b->end) && b->num_entered )
+        {
+            unsigned int offset = b->cursor;
+
+            /* skip an entire UTF8 character */
+            ++(offset);
+
+            while( ((b->buffer[ offset ]) & 0xC0) == 0x80 )
+                --(offset);
+
+            /* move entire text block back by one character */
+            memmove( b->buffer+b->cursor, b->buffer+offset, b->end-offset+1 );
+
+            /* update state */
+            b->num_entered -= 1;
+            b->end -= (offset - b->cursor);
+
+            widget->need_redraw = 1;
+            sgui_edit_box_determine_offset( b );
+        }
+        else if( (event->keyboard_event.code==SGUI_KC_LEFT) && b->cursor )
+        {
+            /* move cursor left by one UTF8 character */
+            --(b->cursor);
+
+            while( ((b->buffer[ b->cursor ]) & 0xC0) == 0x80 )
+                --(b->cursor);
+
+            widget->need_redraw = 1;
+            sgui_edit_box_determine_offset( b );
+        }
+        else if( (event->keyboard_event.code==SGUI_KC_RIGHT) &&
+                 (b->cursor < b->end) )
+        {
+            /* move cursor right by one UTF8 character */
+            ++(b->cursor);
+
+            while( ((b->buffer[ b->cursor ]) & 0xC0) == 0x80 )
+                ++(b->cursor);
+
+            widget->need_redraw = 1;
+            sgui_edit_box_determine_offset( b );
         }
     }
-    else if( type == SGUI_CHAR_EVENT )
-    {
-        /* check if we still have space for more characters */
-        if( b->num_entered == b->max_chars )
-            return;
+    else if( (type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )
+    {   
+        unsigned int len;
 
-        /* append entire UTF8 string */
-        for( i=0; event->char_event.as_utf8_str[i]!='\0'; ++i )
-            b->buffer[ b->end++ ] = event->char_event.as_utf8_str[i];
+        len = strlen( (const char*)event->char_event.as_utf8_str );
 
-        /* add null terminator */
-        b->buffer[ b->end ] = '\0';
+        /* move entire text block right by the character length */
+        memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
+                 b->end - b->cursor + 1 );
+
+        /* insert the character */
+        memcpy( b->buffer + b->cursor, event->char_event.as_utf8_str, len );
 
         /* update state */
+        b->end += len;
+        b->cursor += len;
         b->num_entered += 1;
         widget->need_redraw = 1;
+        sgui_edit_box_determine_offset( b );
     }
 }
 
@@ -109,6 +213,9 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     b->max_chars                    = max_chars;
     b->num_entered                  = 0;
     b->end                          = 0;
+    b->cursor                       = 0;
+    b->offset                       = 0;
+    b->draw_cursor                  = 0;
     b->buffer                       = malloc( max_chars * 6 + 1 );
     b->buffer[0]                    = '\0';
 

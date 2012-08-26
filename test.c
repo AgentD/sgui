@@ -174,7 +174,7 @@ int main( void )
     rad = sgui_radio_menu_create( 180, 250, 3, (const unsigned char**)options,
                                   0 );
 
-    eb = sgui_edit_box_create( 180, 350, 100, 20 );
+    eb = sgui_edit_box_create( 180, 350, 100, 100 );
 
 
     sgui_window_add_widget( a, tex );

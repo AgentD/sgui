@@ -64,6 +64,22 @@ void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
  */
 void sgui_skin_get_window_background_color( unsigned char* color );
 
+
+
+/**
+ * \brief Get the width (in pixels) of a string rendered with the default font
+ *
+ * \param text   An UTF8 string.
+ * \param length The length of the string in bytes.
+ * \param bold   Nonzero if the text should be rendered bold.
+ * \param italic Nonzero if the text should be rendered italic.
+ *
+ * \return The width of the rendered text in pixels
+ */
+unsigned int sgui_skin_default_font_extents( const unsigned char* text,
+                                             unsigned int length,
+                                             int bold, int italic );
+
 /**
  * \brief Predict the size of a button when rendered
  *
@@ -131,8 +147,7 @@ void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
                                          int vertical, unsigned int* width,
                                          unsigned int* height );
 
-/**
- */
+/** \brief Get the default height of an edit box */
 unsigned int sgui_skin_get_edit_box_height( void );
 
 
@@ -214,13 +229,13 @@ void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
                               int state );
 
 /**
- * \brief Predict the size of a radio menu when rendered
+ * \brief Draw a radio menu onto a window
  *
  * \param wnd       The window to draw to.
  * \param x         Distance from the left of the menu to the left of the
  *                  window.
  * \param y         Distance from the top of the menu to the top of the
- *                  window. 
+ *                  window.
  * \param text      The UTF8 options of the menu.
  * \param num_lines The number of options.
  * \param selected  The option selected.
@@ -232,6 +247,17 @@ void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
                                 unsigned int num_lines, unsigned int selected,
                                 unsigned int width, unsigned int height );
 
+/**
+ * \brief Draw an edit box
+ *
+ * \param wnd    The window to draw to
+ * \param x      Distance from the left of the box to the left of the window.
+ * \param y      Distance from the top of the box to the top of the window.
+ * \param text   The text to render into the edit box
+ * \param width  The width of the edit box.
+ * \param cursor Character index (UTF8!!) of the cursor or -1 to not draw a
+ *               cursor at all.
+ */
 void sgui_skin_draw_edit_box( sgui_window* wnd, int x, int y,
                               const unsigned char* text,
                               unsigned int width, int cursor );

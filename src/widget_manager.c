@@ -209,10 +209,27 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
             sgui_widget_send_window_event( mgr->mouse_over, wnd,
                                            event, e );
 
-            mgr->focus = mgr->mouse_over;
+            if( mgr->focus != mgr->mouse_over )
+            {
+                if( mgr->focus )
+                    sgui_widget_send_window_event( mgr->focus, wnd,
+                                                   SGUI_FOCUS_LOSE_EVENT,
+                                                   NULL );
+
+                sgui_widget_send_window_event( mgr->mouse_over, wnd,
+                                               SGUI_FOCUS_EVENT, NULL );
+
+                mgr->focus = mgr->mouse_over;
+            }
         }
         else
+        {
+            if( mgr->focus )
+                sgui_widget_send_window_event( mgr->focus, wnd,
+                                               SGUI_FOCUS_LOSE_EVENT, NULL );
+
             mgr->focus = NULL;
+        }
     }
     else if( (event==SGUI_KEY_PRESSED_EVENT) ||
              (event==SGUI_KEY_RELEASED_EVENT) || (event==SGUI_CHAR_EVENT) )

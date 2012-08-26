@@ -146,6 +146,22 @@ void sgui_skin_get_window_background_color( unsigned char* color )
     color[2] = 0x64;
 }
 
+unsigned int sgui_skin_default_font_extents( const unsigned char* text,
+                                             unsigned int length,
+                                             int bold, int italic )
+{
+    if( bold && italic )
+        return sgui_font_extents( text, font_boit, font_height, length );
+
+    if( bold )
+        return sgui_font_extents( text, font_bold, font_height, length );
+
+    if( italic )
+        return sgui_font_extents( text, font_ital, font_height, length );
+
+    return sgui_font_extents( text, font_norm, font_height, length );
+}
+
 void sgui_skin_get_button_extents( const unsigned char* text,
                                    unsigned int* width,
                                    unsigned int* height,
