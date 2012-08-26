@@ -175,7 +175,7 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
 
     useKerning = FT_HAS_KERNING( font_face->face ); 
 
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, ++i )
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
     {
         if( *text == ' ' )
         {
@@ -250,7 +250,7 @@ void sgui_font_print_alpha( const unsigned char* text, sgui_font* font_face,
 
     useKerning = FT_HAS_KERNING( font_face->face ); 
 
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, ++i )
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
     {
         if( *text == ' ' )
         {
@@ -327,7 +327,7 @@ unsigned int sgui_font_extents( const unsigned char* text,
 
     useKerning = FT_HAS_KERNING( font_face->face );
 
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, ++i )
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
     {
         if( *text == ' ' )
         {

@@ -139,7 +139,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, sgui_window* wnd,
             ++(offset);
 
             while( ((b->buffer[ offset ]) & 0xC0) == 0x80 )
-                --(offset);
+                ++(offset);
 
             /* move entire text block back by one character */
             memmove( b->buffer+b->cursor, b->buffer+offset, b->end-offset+1 );

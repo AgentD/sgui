@@ -101,7 +101,7 @@ void sgui_font_destroy( sgui_font* font );
  * \param width       The width of the target buffer in texels
  * \param height      The height of the target buffer in texels
  * \param color       The 8 bit per channel RGB text color
- * \param length      The number of characters to read from the text string.
+ * \param length      The number of bytes to read from the text string.
  * \param alpha       Non-zero if the image has an additional alpha channel.
  *                    The alpha channel will be left untouched.
  */
@@ -127,7 +127,7 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
  * \param width       The width of the target buffer in texels
  * \param height      The height of the target buffer in texels
  * \param color       The 8 bit per channel RGB text color
- * \param length      The number of characters to read from the text string.
+ * \param length      The number of bytes to read from the text string.
  */
 void sgui_font_print_alpha( const unsigned char* text, sgui_font* font_face,
                             unsigned int font_height, unsigned char* buffer,
@@ -142,7 +142,7 @@ void sgui_font_print_alpha( const unsigned char* text, sgui_font* font_face,
  *                  Linefeed characters are treeted as the end of the string.
  * \param font_face The font face to use
  * \param height    The height of the text in texels
- * \param length    The number of characters to read from the text string.
+ * \param length    The number of bytes to read from the text string.
  *
  * \returns The horizontal length of the printed string in pixels
  */
