@@ -57,34 +57,40 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         SEND_EVENT( wnd, SGUI_MOUSE_WHEEL_EVENT, &e );
         break;
     case WM_LBUTTONDOWN:
-        e.mouse_press.pressed = 1;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
+        e.mouse_press.x = LOWORD( lp );
+        e.mouse_press.y = HIWORD( lp );
         SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
         break;
     case WM_LBUTTONUP:
-        e.mouse_press.pressed = 0;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        e.mouse_press.x = LOWORD( lp );
+        e.mouse_press.y = HIWORD( lp );
+        SEND_EVENT( wnd, SGUI_MOUSE_RELEASE_EVENT, &e );
         break;
     case WM_MBUTTONDOWN:
-        e.mouse_press.pressed = 1;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
+        e.mouse_press.x = LOWORD( lp );
+        e.mouse_press.y = HIWORD( lp );
         SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
         break;
     case WM_MBUTTONUP:
-        e.mouse_press.pressed = 0;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        e.mouse_press.x = LOWORD( lp );
+        e.mouse_press.y = HIWORD( lp );
+        SEND_EVENT( wnd, SGUI_MOUSE_RELEASE_EVENT, &e );
         break;
     case WM_RBUTTONDOWN:
-        e.mouse_press.pressed = 1;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+        e.mouse_press.x = LOWORD( lp );
+        e.mouse_press.y = HIWORD( lp );
         SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
         break;
     case WM_RBUTTONUP:
-        e.mouse_press.pressed = 0;
         e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-        SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &e );
+        e.mouse_press.x = LOWORD( lp );
+        e.mouse_press.y = HIWORD( lp );
+        SEND_EVENT( wnd, SGUI_MOUSE_RELEASE_EVENT, &e );
         break;
     case WM_CHAR:
         c[0] = (WCHAR)wp;
@@ -292,6 +298,53 @@ void sgui_window_destroy( sgui_window* wnd )
         sgui_widget_manager_destroy( wnd->mgr );
 
         free( wnd );
+    }
+}
+
+void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+{
+    POINT pos;
+
+    if( wnd )
+    {
+        GetCursorPos( &pos );
+        ScreenToClient( wnd->hWnd, &pos );
+
+        if( x )
+            *x = pos.x<0 ? 0 : (pos.x>=(int)wnd->w ? ((int)wnd->w-1) : pos.x);
+
+        if( y )
+            *y = pos.y<0 ? 0 : (pos.y>=(int)wnd->h ? ((int)wnd->h-1) : pos.y);
+    }
+    else
+    {
+        if( x ) *x = 0;
+        if( y ) *y = 0;
+    }
+}
+
+void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+                                     int send_event )
+{
+    POINT pos;
+    sgui_event e;
+
+    if( wnd && wnd->visible )
+    {
+        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
+        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
+
+        pos.x = x;
+        pos.y = y;
+        ClientToScreen( wnd->hWnd, &pos );
+        SetCursorPos( pos.x, pos.y );
+
+        if( send_event )
+        {
+            e.mouse_move.x = x;
+            e.mouse_move.y = y;
+            SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+        }
     }
 }
 

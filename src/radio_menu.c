@@ -38,8 +38,6 @@ typedef struct
 
     unsigned char** options;
     unsigned int num_options, selected;
-
-    int mouse_y;
 }
 sgui_radio_menu;
 
@@ -59,16 +57,11 @@ void sgui_radio_menu_on_event( sgui_widget* widget, sgui_window* wnd,
                                    m->num_options, m->selected,
                                    widget->width, widget->height );
     }
-    else if( type == SGUI_MOUSE_MOVE_EVENT )
+    else if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
-        m->mouse_y = event->mouse_move.y;
-    }
-    else if( type == SGUI_MOUSE_PRESS_EVENT )
-    {
-        if( event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT &&
-            !event->mouse_press.pressed )
+        if( event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT )
         {
-            y = m->mouse_y - widget->y;
+            y = event->mouse_press.y - widget->y;
 
             i = sgui_skin_get_radio_menu_option_from_point( y );
 
@@ -105,7 +98,6 @@ sgui_widget* sgui_radio_menu_create( int x, int y, unsigned int num_options,
     m->options     = malloc( sizeof(unsigned char*) * num_options );
     m->num_options = num_options;
     m->selected    = initial_option;
-    m->mouse_y     = 0;
 
     for( i=0; i<num_options; ++i )
     {

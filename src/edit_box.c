@@ -42,7 +42,7 @@ typedef struct
     unsigned int cursor;
     unsigned int offset;
 
-    int draw_cursor, mouse_x;
+    int draw_cursor;
 
     unsigned char* buffer;
 }
@@ -96,11 +96,11 @@ void sgui_edit_box_determine_offset( sgui_edit_box* b )
 }
 
 /* get a cursor position from a mouse offset */
-unsigned int sgui_edit_box_cursor_from_mouse( sgui_edit_box* b )
+unsigned int sgui_edit_box_cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 {
     unsigned int len = 0, cur = b->offset;
 
-    while( (len < (unsigned int)b->mouse_x) && (cur < b->end) )
+    while( (len < (unsigned int)mouse_x) && (cur < b->end) )
     {
         ++cur;
 
@@ -140,16 +140,14 @@ void sgui_edit_box_on_event( sgui_widget* widget, sgui_window* wnd,
                                  b->draw_cursor ?
                                  (int)(b->cursor-b->offset) : -1 );
     }
-    else if( type == SGUI_MOUSE_MOVE_EVENT )
-    {
-        b->mouse_x = event->mouse_move.x <= widget->x ? 0 :
-                     (event->mouse_move.x-widget->x);
-    }
-    else if( (type == SGUI_MOUSE_PRESS_EVENT) &&
+    else if( (type == SGUI_MOUSE_RELEASE_EVENT) &&
              (event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT) &&
-             !event->mouse_press.pressed && b->num_entered )
+             b->num_entered )
     {
-        unsigned int new_cur = sgui_edit_box_cursor_from_mouse( b );
+        unsigned int new_cur;
+        int x = event->mouse_press.x - widget->x;
+    
+        new_cur = sgui_edit_box_cursor_from_mouse( b, x );
 
         if( new_cur != b->cursor )
         {
@@ -281,7 +279,6 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     b->cursor                       = 0;
     b->offset                       = 0;
     b->draw_cursor                  = 0;
-    b->mouse_x                      = 0;
     b->buffer                       = malloc( max_chars * 6 + 1 );
     b->buffer[0]                    = '\0';
 

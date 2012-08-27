@@ -73,38 +73,35 @@ void sgui_button_on_event( sgui_widget* widget, sgui_window* wnd,
         }
         else if( type == SGUI_MOUSE_PRESS_EVENT )
         {
-            if( event->mouse_press.button != SGUI_MOUSE_BUTTON_LEFT )
-                return;
-
-            if( event->mouse_press.pressed )
+            if( event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT )
             {
                 b->state = 1;
+                b->widget.need_redraw = 1;
             }
-            else
+        }
+        else if( type == SGUI_MOUSE_RELEASE_EVENT )
+        {
+            if( event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT )
             {
                 if( b->state )
                 {
-                    sgui_internal_widget_fire_event( widget,
-                                                     SGUI_BUTTON_CLICK_EVENT );
+                    sgui_internal_widget_fire_event(widget,
+                                                    SGUI_BUTTON_CLICK_EVENT);
                 }
 
                 b->state = 0;
+                b->widget.need_redraw = 1;
             }
-
-            b->widget.need_redraw = 1;
         }
     }
-    else
+    else if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
-        if( type == SGUI_MOUSE_PRESS_EVENT && !event->mouse_press.pressed )
-        {
-            b->state = !b->state;
-            b->widget.need_redraw = 1;
+        b->state = !b->state;
+        b->widget.need_redraw = 1;
 
-            sgui_internal_widget_fire_event( widget, b->state ?
-                                             SGUI_CHECKBOX_CHECK_EVENT :
-                                             SGUI_CHECKBOX_UNCHECK_EVENT );
-        }
+        sgui_internal_widget_fire_event( widget, b->state ?
+                                         SGUI_CHECKBOX_CHECK_EVENT :
+                                         SGUI_CHECKBOX_UNCHECK_EVENT );
     }
 }
 

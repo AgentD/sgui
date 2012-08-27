@@ -74,6 +74,7 @@ struct sgui_window
     unsigned int w, h;
     int resizeable;
     int mapped;
+    unsigned int mouse_warped;
 
     sgui_window_callback event_fun;
 };

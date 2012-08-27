@@ -198,16 +198,15 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
         }
     }
 
-    if( event == SGUI_MOUSE_PRESS_EVENT )
+    if( event==SGUI_MOUSE_PRESS_EVENT || event==SGUI_MOUSE_RELEASE_EVENT )
     {
         /*
-            only send mouse press events to the mouse_over widget
-             and give it focus if it got clicked
+            only send mouse press/release events to the mouse_over widget
+            and give it focus if it got clicked
          */
         if( mgr->mouse_over )
         {
-            sgui_widget_send_window_event( mgr->mouse_over, wnd,
-                                           event, e );
+            sgui_widget_send_window_event( mgr->mouse_over, wnd, event, e );
 
             if( mgr->focus != mgr->mouse_over )
             {

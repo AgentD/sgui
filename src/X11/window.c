@@ -190,6 +190,51 @@ void sgui_window_destroy( sgui_window* wnd )
     }
 }
 
+void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+{
+    Window t1, t2;
+    int t3, t4;
+    unsigned int t5;
+    int X, Y;
+
+    if( wnd )
+    {
+        XQueryPointer( wnd->dpy, wnd->wnd, &t1, &t2, &t3, &t4, &X, &Y, &t5 );
+
+        if( x ) *x = X<0 ? 0 : (X>=(int)wnd->w ? ((int)wnd->w-1) : X);
+        if( y ) *y = Y<0 ? 0 : (Y>=(int)wnd->h ? ((int)wnd->h-1) : Y);
+    }
+    else
+    {
+        if( x ) *x = 0;
+        if( y ) *y = 0;
+    }
+}
+
+void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+                                     int send_event )
+{
+    sgui_event e;
+
+    if( wnd )
+    {
+        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
+        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
+
+        XWarpPointer( wnd->dpy, None, wnd->wnd, 0, 0, wnd->w, wnd->h, x, y );
+        XFlush( wnd->dpy );
+
+        if( send_event )
+        {
+            e.mouse_move.x = x;
+            e.mouse_move.y = y;
+            SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+        }
+
+        ++(wnd->mouse_warped);
+    }
+}
+
 void sgui_window_set_visible( sgui_window* wnd, int visible )
 {
     if( wnd )
@@ -407,8 +452,6 @@ int sgui_window_update( sgui_window* wnd )
             }
             else
             {
-                se.mouse_press.pressed = (e.type==ButtonPress);
-
                 if( e.xbutton.button == Button1 )
                     se.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
                 else if( e.xbutton.button == Button2 )
@@ -418,10 +461,26 @@ int sgui_window_update( sgui_window* wnd )
                 else
                     break;
 
-                SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &se );
+                sgui_window_get_mouse_position( wnd, &se.mouse_press.x,
+                                                     &se.mouse_press.y );
+
+                if( e.type==ButtonPress )
+                {
+                    SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &se );
+                }
+                else
+                {
+                    SEND_EVENT( wnd, SGUI_MOUSE_RELEASE_EVENT, &se );
+                }
             }
             break;
         case MotionNotify:
+            if( wnd->mouse_warped )
+            {
+                --(wnd->mouse_warped);
+                break;
+            }
+
             se.mouse_move.x = e.xmotion.x<0 ? 0 : e.xmotion.x;
             se.mouse_move.y = e.xmotion.y<0 ? 0 : e.xmotion.y;
 

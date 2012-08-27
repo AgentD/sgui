@@ -41,17 +41,22 @@
 #define SGUI_API_INVISIBLE_EVENT      1
 #define SGUI_API_DESTROY_EVENT        2
 #define SGUI_SIZE_CHANGE_EVENT        3
+
 #define SGUI_MOUSE_MOVE_EVENT         4
 #define SGUI_MOUSE_PRESS_EVENT        5
-#define SGUI_MOUSE_WHEEL_EVENT        6
-#define SGUI_MOUSE_ENTER_EVENT        7
-#define SGUI_MOUSE_LEAVE_EVENT        8
-#define SGUI_KEY_PRESSED_EVENT        9
-#define SGUI_KEY_RELEASED_EVENT      10
-#define SGUI_CHAR_EVENT              11
-#define SGUI_FOCUS_EVENT             12
-#define SGUI_FOCUS_LOSE_EVENT        13
-#define SGUI_DRAW_EVENT              14
+#define SGUI_MOUSE_RELEASE_EVENT      6
+#define SGUI_MOUSE_WHEEL_EVENT        7
+#define SGUI_MOUSE_ENTER_EVENT        8
+#define SGUI_MOUSE_LEAVE_EVENT        9
+
+#define SGUI_KEY_PRESSED_EVENT       10
+#define SGUI_KEY_RELEASED_EVENT      11
+#define SGUI_CHAR_EVENT              12
+
+#define SGUI_FOCUS_EVENT             13
+#define SGUI_FOCUS_LOSE_EVENT        14
+
+#define SGUI_DRAW_EVENT              15
 
 
 
@@ -61,7 +66,7 @@ typedef union
 
     struct { int x, y; } mouse_move;
 
-    struct { int button, pressed; } mouse_press;
+    struct { int button, x, y; } mouse_press;
 
     struct { int direction; } mouse_wheel;
 

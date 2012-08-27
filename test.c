@@ -58,11 +58,16 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
         }
         break;
     case SGUI_MOUSE_PRESS_EVENT:
-        printf( "Window %s: %s mouse button %s\n", w,
+        printf( "Window %s: %s mouse button pressed\n", w,
                 e->mouse_press.button==SGUI_MOUSE_BUTTON_LEFT  ? "left" :
                 e->mouse_press.button==SGUI_MOUSE_BUTTON_RIGHT ? "right":
-                                                                 "middle",
-                e->mouse_press.pressed ? "pressed" : "released" );
+                                                                 "middle" );
+        break;
+    case SGUI_MOUSE_RELEASE_EVENT:
+        printf( "Window %s: %s mouse button released\n", w,
+                e->mouse_press.button==SGUI_MOUSE_BUTTON_LEFT  ? "left" :
+                e->mouse_press.button==SGUI_MOUSE_BUTTON_RIGHT ? "right":
+                                                                 "middle" );
         break;
     case SGUI_MOUSE_WHEEL_EVENT:
         printf( "Window %s: mouse wheel moved %s\n", w,

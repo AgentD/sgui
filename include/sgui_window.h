@@ -91,6 +91,29 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
  */
 void sgui_window_destroy( sgui_window* wnd );
 
+
+
+/**
+ * \brief Get the position of the mouse pointer within a window
+ *
+ * \param x Returns the distance of the pointer from the left of the window
+ * \param y Returns the distance of the pointer from the top of the window
+ */
+void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y );
+
+/**
+ * \brief Set the mouse pointer to a position within a window
+ *
+ * \param x          The distance of the pointer from the left of the window.
+ * \param y          The distance of the pointer from the top of the window.
+ * \param send_event Non-zero if the function should generate a mouse movement
+ *                   event, zero if it shouldn't.
+ */
+void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+                                     int send_event );
+
+
+
 /**
  * \brief Make a window visible or invisible
  *
