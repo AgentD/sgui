@@ -1,0 +1,20 @@
+#
+# X Input Method leaks
+#
+
+{
+   Ignore XIM leaks.
+   Memcheck:Leak
+   ...
+   fun:_XOpenLC
+   ...
+}
+
+{
+   Ignore XIM leaks 2.
+   Memcheck:Leak
+   ...
+   fun:_XimOpenIM
+   ...
+}
+

@@ -258,6 +258,8 @@ int main( void )
 
     sgui_radio_menu_destroy( rad );
 
+    sgui_edit_box_destroy( eb );
+
     sgui_font_destroy( font_bold );
     sgui_font_destroy( font_italic );
     sgui_font_destroy( font_bold_italic );
