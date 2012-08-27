@@ -176,6 +176,9 @@ int main( void )
 
     eb = sgui_edit_box_create( 180, 350, 100, 100 );
 
+    sgui_edit_box_set_text(eb,(const unsigned char*)"An edit box test string "
+                                                    "for an edit box test" );
+
 
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );

@@ -53,6 +53,23 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
  */
 void sgui_edit_box_destroy( sgui_widget* box );
 
+/**
+ * \brief Get a pointer to the text in an edit box
+ *
+ * \param box The edit box to get the text from
+ *
+ * \return A pointer to a null-terminated UTF8 string holding the text
+ */
+const unsigned char* sgui_edit_box_get_text( sgui_widget* box );
+
+/**
+ * \brief Set the text displayed in an edit box
+ *
+ * \param box  The edit box to set the text to
+ * \param text The text to display in the edit box
+ */
+void sgui_edit_box_set_text( sgui_widget* box, const unsigned char* text );
+
 #ifdef __cplusplus
 }
 #endif
