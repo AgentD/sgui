@@ -32,6 +32,7 @@ typedef struct sgui_widget         sgui_widget;
 typedef struct sgui_font           sgui_font;
 typedef struct sgui_widget_manager sgui_widget_manager;
 typedef struct sgui_link_list      sgui_link_list;
+typedef struct sgui_canvas         sgui_canvas;
 
 
 

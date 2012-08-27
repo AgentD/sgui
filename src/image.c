@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_image.h"
+#include "sgui_canvas.h"
 
 #include "widget_internal.h"
 
@@ -46,21 +47,22 @@ void sgui_image_on_event( sgui_widget* widget, sgui_window* wnd,
                           int type, sgui_event* event )
 {
     sgui_image* img = (sgui_image*)widget;
+    sgui_canvas* cv = sgui_window_get_canvas( wnd );
     (void)event;
 
     if( type == SGUI_DRAW_EVENT )
     {
         if( img->blend )
         {
-            sgui_window_blend_image( wnd, widget->x, widget->y,
-                                     widget->width, widget->height,
-                                     img->data );
+            sgui_canvas_blend( cv, widget->x, widget->y,
+                               widget->width, widget->height, SCF_RGBA8,
+                               img->data );
         }
         else
         {
-            sgui_window_blit_image( wnd, widget->x, widget->y,
-                                    widget->width, widget->height,
-                                    img->data, img->alpha );
+            sgui_canvas_blit( cv, widget->x, widget->y,
+                              widget->width, widget->height,
+                              img->alpha ? SCF_RGBA8 : SCF_RGB8, img->data );
         }
     }
 }

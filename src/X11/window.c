@@ -41,6 +41,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     XWindowAttributes attr;
     unsigned long color = 0;
     unsigned char rgb[3];
+    char* buffer;
 
     if( !width || !height )
         return NULL;
@@ -141,9 +142,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
 
     /************ create an image for local drawing ************/
-    wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
+    wnd->back_buffer_canvas = sgui_canvas_create( wnd->w, wnd->w, SCF_BGRA8 );
 
-    if( !wnd->back_buffer_data )
+    if( !wnd->back_buffer_canvas )
     {
         sgui_window_destroy( wnd );
         return NULL;
@@ -151,9 +152,10 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     wnd->gc = XCreateGC( wnd->dpy, wnd->wnd, 0, 0 );
 
+    buffer = (char*)sgui_canvas_get_raw_data( wnd->back_buffer_canvas );
+
     wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
-                                     (char*)wnd->back_buffer_data,
-                                     wnd->w, wnd->h, 32, 0 );
+                                     buffer, wnd->w, wnd->h, 32, 0 );
 
     if( !wnd->back_buffer || !wnd->gc )
     {
@@ -161,7 +163,8 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h,
+                          rgb, SCF_RGB8 );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -177,12 +180,21 @@ void sgui_window_destroy( sgui_window* wnd )
     {
         SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
-        if( wnd->ic          ) XDestroyIC( wnd->ic );
-        if( wnd->im          ) XCloseIM( wnd->im );
-        if( wnd->back_buffer ) XDestroyImage( wnd->back_buffer );
-        if( wnd->gc          ) XFreeGC( wnd->dpy, wnd->gc );
-        if( wnd->wnd         ) XDestroyWindow( wnd->dpy, wnd->wnd );
-        if( wnd->dpy         ) XCloseDisplay( wnd->dpy );
+        if( wnd->ic ) XDestroyIC( wnd->ic );
+        if( wnd->im ) XCloseIM( wnd->im );
+
+        if( wnd->back_buffer_canvas )
+            sgui_canvas_destroy( wnd->back_buffer_canvas );
+
+        if( wnd->back_buffer )
+        {
+            wnd->back_buffer->data = NULL;
+            XDestroyImage( wnd->back_buffer );
+        }
+
+        if( wnd->gc  ) XFreeGC( wnd->dpy, wnd->gc );
+        if( wnd->wnd ) XDestroyWindow( wnd->dpy, wnd->wnd );
+        if( wnd->dpy ) XCloseDisplay( wnd->dpy );
 
         sgui_widget_manager_destroy( wnd->mgr );
 
@@ -275,6 +287,8 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     XSizeHints hints;
     XWindowAttributes attr;
+    unsigned char rgb[3];
+    char* data;
 
     if( !wnd || !width || !height )
         return;
@@ -298,18 +312,22 @@ void sgui_window_set_size( sgui_window* wnd,
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
-    /* create the back buffer image */
+    /* resize the back buffer image */
+    sgui_canvas_resize( wnd->back_buffer_canvas, wnd->w, wnd->h );
+    data = (char*)sgui_canvas_get_raw_data( wnd->back_buffer_canvas );
+
+    wnd->back_buffer->data = NULL;
     XDestroyImage( wnd->back_buffer );
 
-    wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
-
     wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
-                                     (char*)wnd->back_buffer_data,
-                                     wnd->w, wnd->h, 32, 0 );
-
-    sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
+                                     (char*)data, wnd->w, wnd->h, 32, 0 );
 
     /* redraw everything */
+    sgui_skin_get_window_background_color( rgb );
+
+    sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h,
+                          rgb, SCF_RGB8 );
+
     SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
 }
 
@@ -362,6 +380,8 @@ int sgui_window_update( sgui_window* wnd )
     XExposeEvent exp;
     Status stat;
     KeySym sym;
+    char* data;
+    unsigned char rgb[3];
 
     if( !wnd || !wnd->mapped )
         return 0;
@@ -503,20 +523,25 @@ int sgui_window_update( sgui_window* wnd )
             wnd->h = (unsigned int)e.xconfigure.height;
 
             /* resize the back buffer image */
+            sgui_canvas_resize( wnd->back_buffer_canvas, wnd->w, wnd->h );
+            data = (char*)sgui_canvas_get_raw_data( wnd->back_buffer_canvas );
+
+            wnd->back_buffer->data = NULL;
             XDestroyImage( wnd->back_buffer );
 
-            wnd->back_buffer_data = malloc( wnd->w*wnd->h*4 );
-
             wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24,
-                                             ZPixmap, 0,
-                                             (char*)wnd->back_buffer_data,
+                                             ZPixmap, 0, (char*)data,
                                              wnd->w, wnd->h, 32, 0 );
 
-            sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
-
+            /* send a size change event */
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
+            sgui_skin_get_window_background_color( rgb );
+
+            sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0,
+                                  wnd->w, wnd->h, rgb, SCF_RGB8 );
+
             SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
             break;
         case ClientMessage:
@@ -561,109 +586,17 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
-void sgui_window_clear( sgui_window* wnd, int x, int y,
-                        unsigned int width, unsigned int height )
+sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
-    unsigned int X, Y;
-    unsigned long color = 0;
-    unsigned char rgb[3];
-
-    sgui_skin_get_window_background_color( rgb );
-
-    color |= ((unsigned long)rgb[0]) << 16;
-    color |= ((unsigned long)rgb[1]) << 8;
-    color |= ((unsigned long)rgb[2]);
-
-    for( Y=0; Y<height; ++Y )
-    {
-        if( ((int)Y+y)<0 || ((int)Y+y)>=(int)wnd->h )
-            continue;
-
-        for( X=0; X<width; ++X )
-        {
-            if( ((int)X+x)<0 || ((int)X+x)>=(int)wnd->w )
-                continue;
-
-            XPutPixel( wnd->back_buffer, X+x, Y+y, color );
-        }
-    }
-}
-
-void sgui_window_blit_image( sgui_window* wnd, int x, int y,
-                             unsigned int width, unsigned int height,
-                             unsigned char* image, int has_a )
-{
-    unsigned int i, j, bpp;
-    unsigned long color, R, G, B;
-
-    if( x>=(int)wnd->w || y>=(int)wnd->h )
-        return;
-
-    if( (x+(int)width)<0 || (y+(int)width)<0 )
-        return;
-
-    bpp = has_a ? 4 : 3;
-
-    for( j=0; j<height; ++j )
-    {
-        for( i=0; i<width; ++i, image+=bpp )
-        {
-            R = image[0];
-            G = image[1];
-            B = image[2];
-
-            if( (x+(int)i)>0 && (y+(int)j)>0 &&
-                (x+(int)i)<(int)wnd->w && (y+(int)j)<(int)wnd->h )
-            {
-                color = R<<16 | G<<8 | B;
-
-                XPutPixel( wnd->back_buffer, x+i, y+j, color );
-            }
-        }
-    }
+    return wnd ? wnd->back_buffer_canvas : NULL;
 }
 
 void sgui_window_blend_image( sgui_window* wnd, int x, int y,
                               unsigned int width, unsigned int height,
                               unsigned char* image )
 {
-    unsigned int i, j;
-    unsigned long color, R, G, B, srcR, srcG, srcB;
-    float A;
-
-    if( x>=(int)wnd->w || y>=(int)wnd->h )
-        return;
-
-    if( (x+(int)width)<0 || (y+(int)width)<0 )
-        return;
-
-    for( j=0; j<height; ++j )
-    {
-        for( i=0; i<width; ++i )
-        {
-            R = *(image++);
-            G = *(image++);
-            B = *(image++);
-            A = (float)(*(image++)) / 255.0f;
-
-            if( (x+(int)i)>0 && (y+(int)j)>0 &&
-                (x+(int)i)<(int)wnd->w && (y+(int)j)<(int)wnd->h )
-            {
-                color = XGetPixel( wnd->back_buffer, x+i, y+j );
-
-                srcR = (color>>16) & 0xFF;
-                srcG = (color>>8 ) & 0xFF;
-                srcB =  color      & 0xFF;
-
-                R = R * A + srcR * (1.0f-A);
-                G = G * A + srcG * (1.0f-A);
-                B = B * A + srcB * (1.0f-A);
-
-                color = R<<16 | G<<8 | B;
-
-                XPutPixel( wnd->back_buffer, x+i, y+j, color );
-            }
-        }
-    }
+    if( wnd )
+        sgui_canvas_blend( wnd->back_buffer_canvas, x, y, width, height,
+                           SCF_RGBA8, image );
 }
 

@@ -30,6 +30,7 @@
 #include "sgui_window.h"
 #include "sgui_skin.h"
 #include "sgui_widget_manager.h"
+#include "sgui_canvas.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRA_LEAN
@@ -69,7 +70,7 @@ struct sgui_window
     BITMAPINFO info;
     HBITMAP bitmap;
     HBITMAP old_bitmap;
-    unsigned char* back_buffer;
+    sgui_canvas* back_buffer;
 
     unsigned int w, h;
 

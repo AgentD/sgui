@@ -148,7 +148,7 @@ int main( void )
     len = sgui_font_extents( (const unsigned char*)"Test AV", font, 16, 7 );
 
     sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
-                      64 - len/2, 64 - 8, 128, 128, color, 7, 1 );
+                      64 - len/2, 64 - 8, 128, 128, 128, color, 7, 1 );
 
     /* widget test */
     sgui_skin_set_default_font( font, font_bold, font_italic,

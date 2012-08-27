@@ -24,6 +24,8 @@
  */
 #include "sgui_widget_manager.h"
 #include "sgui_widget.h"
+#include "sgui_skin.h"
+#include "sgui_canvas.h"
 
 #include <stdlib.h>
 
@@ -125,6 +127,8 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 {
     unsigned int i, w, h;
     int x, y, redraw = 0;
+    unsigned char rgb[3];
+    sgui_canvas* cv;
 
     if( !mgr || !wnd )
         return 0;
@@ -139,7 +143,10 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 
             sgui_widget_get_position( mgr->widgets[i], &x, &y );
             sgui_widget_get_size( mgr->widgets[i], &w, &h );
-            sgui_window_clear( wnd, x, y, w, h );
+
+            cv = sgui_window_get_canvas( wnd );
+            sgui_skin_get_window_background_color( rgb );
+            sgui_canvas_draw_box( cv, x, y, w, h, rgb, SCF_RGB8 );
 
             sgui_widget_send_window_event( mgr->widgets[i], wnd,
                                            SGUI_DRAW_EVENT, NULL );
@@ -156,6 +163,8 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
     unsigned int i, w, h;
     int x, y;
     sgui_widget* new_mouse_over = NULL;
+    unsigned char rgb[3];
+    sgui_canvas* cv;
 
     if( !mgr )
         return;
@@ -246,7 +255,10 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
             {
                 sgui_widget_get_position( mgr->widgets[i], &x, &y );
                 sgui_widget_get_size( mgr->widgets[i], &w, &h );
-                sgui_window_clear( wnd, x, y, w, h );
+
+                cv = sgui_window_get_canvas( wnd );
+                sgui_skin_get_window_background_color( rgb );
+                sgui_canvas_draw_box( cv, x, y, w, h, rgb, SCF_RGB8 );
             }
 
             sgui_widget_send_window_event( mgr->widgets[i], wnd,

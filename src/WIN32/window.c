@@ -35,6 +35,8 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     HDC hDC;
     WCHAR c[2];
     UINT key;
+    void* data;
+    unsigned char rgb[3];
 
     wnd = (sgui_window*)GET_USER_PTR( hWnd );
 
@@ -153,10 +155,16 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
         wnd->dc = CreateCompatibleDC( NULL );
         wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
-                                        (void**)&wnd->back_buffer, 0, 0 );
+                                        (void**)&data, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
+        sgui_canvas_set_raw_data( wnd->back_buffer, SCF_BGRA8, wnd->w, wnd->h,
+                                  data );
+
+        sgui_skin_get_window_background_color( rgb );
+
+        sgui_canvas_draw_box( wnd->back_buffer, 0, 0, wnd->w, wnd->h,
+                              rgb, SCF_RGB8 );
 
         /* send size change event */
         e.size.new_width  = wnd->w;
@@ -192,6 +200,8 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     WNDCLASSEX wc;
     DWORD style;
     RECT r;
+    unsigned char rgb[3];
+    void* data;
 
     if( !width || !height )
         return NULL;
@@ -266,10 +276,23 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     wnd->dc = CreateCompatibleDC( NULL );
     wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
-                                    (void**)&wnd->back_buffer, 0, 0 );
+                                    (void**)&data, 0, 0 );
     wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-    sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
+
+    wnd->back_buffer = sgui_canvas_create_use_buffer( data, wnd->w, wnd->h,
+                                                      SCF_BGRA8 );
+
+    if( !wnd->back_buffer )
+    {
+        sgui_window_destroy( wnd );
+        return NULL;
+    }
+
+    sgui_skin_get_window_background_color( rgb );
+
+    sgui_canvas_draw_box( wnd->back_buffer, 0, 0, wnd->w, wnd->h,
+                          rgb, SCF_RGB8 );
 
     return wnd;
 }
@@ -294,6 +317,9 @@ void sgui_window_destroy( sgui_window* wnd )
             DestroyWindow( wnd->hWnd );
             PeekMessage( &msg, wnd->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
         }
+
+        if( wnd->back_buffer )
+            sgui_canvas_destroy( wnd->back_buffer );
 
         sgui_widget_manager_destroy( wnd->mgr );
 
@@ -376,6 +402,8 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
+    unsigned char rgb[3];
+    void* data;
 
     if( wnd )
     {
@@ -402,10 +430,16 @@ void sgui_window_set_size( sgui_window* wnd,
 
         wnd->dc = CreateCompatibleDC( NULL );
         wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
-                                        (void**)&wnd->back_buffer, 0, 0 );
+                                        (void**)&data, 0, 0 );
         wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
 
-        sgui_window_clear( wnd, 0, 0, wnd->w, wnd->h );
+        sgui_canvas_set_raw_data( wnd->back_buffer, SCF_BGRA8, wnd->w, wnd->h,
+                                  data );
+
+        sgui_skin_get_window_background_color( rgb );
+
+        sgui_canvas_draw_box( wnd->back_buffer, 0, 0, wnd->w, wnd->h,
+                              rgb, SCF_RGB8 );
 
         /* redraw everything */
         SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
@@ -521,95 +555,17 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 
 
-void sgui_window_clear( sgui_window* wnd, int x, int y,
-                        unsigned int width, unsigned int height )
+sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
-    unsigned char color[3];
-    unsigned char* dst;
-    unsigned int i, j;
-
-    sgui_skin_get_window_background_color( color );
-
-    for( j=0; j<height; ++j )
-    {
-        dst = wnd->back_buffer + ((y+j)*wnd->w + x) * 4;
-
-        if( (y+(int)j)<0 )
-            continue;
-
-        if( (y+(int)j)>=(int)wnd->h )
-            break;
-
-        for( i=0; i<width; ++i, dst+=4 )
-        {
-            if( (x+(int)i)>0 && (x+(int)i)<(int)wnd->w )
-            {
-                dst[0] = color[2];
-                dst[1] = color[1];
-                dst[2] = color[0];
-            }
-        }
-    }
-}
-
-void sgui_window_blit_image( sgui_window* wnd, int x, int y,
-                             unsigned int width, unsigned int height,
-                             unsigned char* image, int has_a )
-{
-    unsigned char* dst;
-    unsigned int i, j, bpp = has_a ? 4 : 3;
-
-    for( j=0; j<height; ++j )
-    {
-        dst = wnd->back_buffer + ((y+j)*wnd->w + x) * 4;
-
-        if( (y+(int)j)<0 )
-            continue;
-
-        if( (y+(int)j)>=(int)wnd->h )
-            break;
-
-        for( i=0; i<width; ++i, image+=bpp, dst+=4 )
-        {
-            if( (x+(int)i)>0 && (x+(int)i)<(int)wnd->w )
-            {
-                dst[0] = image[2];
-                dst[1] = image[1];
-                dst[2] = image[0];
-            }
-        }
-    }
+    return wnd ? wnd->back_buffer : NULL;
 }
 
 void sgui_window_blend_image( sgui_window* wnd, int x, int y,
                               unsigned int width, unsigned int height,
                               unsigned char* image )
 {
-    unsigned char* dst;
-    unsigned int i, j;
-    float A;
-
-    for( j=0; j<height; ++j )
-    {
-        dst = wnd->back_buffer + ((y+j)*wnd->w + x) * 4;
-
-        if( (y+(int)j)<0 )
-            continue;
-
-        if( (y+(int)j)>=(int)wnd->h )
-            break;
-
-        for( i=0; i<width; ++i, image+=4, dst+=4 )
-        {
-            if( (x+(int)i)>0 && (x+(int)i)<(int)wnd->w )
-            {
-                A = ((float)image[3]) / 255.0f;
-
-                dst[0] = image[2] * A + dst[0] * (1.0f-A);
-                dst[1] = image[1] * A + dst[1] * (1.0f-A);
-                dst[2] = image[0] * A + dst[2] * (1.0f-A);
-            }
-        }
-    }
+    if( wnd )
+        sgui_canvas_blend( wnd->back_buffer, x, y, width, height,
+                           SCF_RGBA8, image );
 }
 

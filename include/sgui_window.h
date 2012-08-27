@@ -238,32 +238,9 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
 
 
 
-/**
- * \brief Clear a portion of a window to the default background color
- *
- * \param wnd    The window to clear
- * \param x      Distance of the clear area from the left
- * \param y      Distance of the clear area from the top
- * \param width  Width of the clear area
- * \param height Height of the clear area
- */
-void sgui_window_clear( sgui_window* wnd, int x, int y,
-                        unsigned int width, unsigned int height );
+/** \brief Get a pointer to the back buffer canvas object of the window */
+sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 
-/**
- * \brief Blit an image onto a window
- *
- * \param wnd    The window to blit the image onto
- * \param x      Distance of the left of the image from the left of the window
- * \param y      Distance of the top of the image from the top of the window
- * \param width  Width of the image in pixels
- * \param height Height of the image in pixels
- * \param image  RGB or RGBA image data
- * \param has_a  Non-zero if the image has an alpha channel
- */
-void sgui_window_blit_image( sgui_window* wnd, int x, int y,
-                             unsigned int width, unsigned int height,
-                             unsigned char* image, int has_a );
 
 /**
  * \brief Alpha blend an image onto a window
