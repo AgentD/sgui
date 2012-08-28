@@ -58,11 +58,7 @@ void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                  sgui_font* italic, sgui_font* bold_italic,
                                  unsigned int height );
 
-
-
-/**
- * \brief Get a the default window background color
- */
+/** \brief Get a the default window background color */
 void sgui_skin_get_window_background_color( unsigned char* color );
 
 

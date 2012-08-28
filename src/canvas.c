@@ -379,8 +379,8 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
 
     cv->sx         = 0;
     cv->sy         = 0;
-    cv->sex        = width-1;
-    cv->sey        = height-1;
+    cv->sex        = width  ? (width -1) : 0;
+    cv->sey        = height ? (height-1) : 0;
 
     if( !cv->data )
     {
@@ -414,8 +414,8 @@ sgui_canvas* sgui_canvas_create_use_buffer( void* buffer,
 
     cv->sx         = 0;
     cv->sy         = 0;
-    cv->sex        = width-1;
-    cv->sey        = height-1;
+    cv->sex        = width  ? (width -1) : 0;
+    cv->sey        = height ? (height-1) : 0;
 
     return cv;
 }
@@ -468,8 +468,8 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 
     canvas->sx     = 0;
     canvas->sy     = 0;
-    canvas->sex    = width-1;
-    canvas->sey    = height-1;
+    canvas->sex    = width  ? (width -1) : 0;
+    canvas->sey    = height ? (height-1) : 0;
 }
 
 
@@ -494,17 +494,17 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                 canvas->sy = 0;
 
             if( canvas->sex>=(int)canvas->width )
-                canvas->sex = canvas->width-1;
+                canvas->sex = canvas->width ? (canvas->width -1) : 0;
 
             if( canvas->sey>=(int)canvas->height )
-                canvas->sey = canvas->height-1;
+                canvas->sey = canvas->height ? (canvas->height-1) : 0;
         }
         else
         {
             canvas->sx  = 0;
             canvas->sy  = 0;
-            canvas->sex = canvas->width-1;
-            canvas->sey = canvas->height-1;
+            canvas->sex = canvas->width  ? (canvas->width -1) : 0;
+            canvas->sey = canvas->height ? (canvas->height-1) : 0;
         }
     }
 }
@@ -1042,6 +1042,11 @@ void sgui_canvas_set_raw_data( sgui_canvas* canvas, SGUI_COLOR_FORMAT format,
         canvas->height = height;
         canvas->format = format;
         canvas->bpp    = (format==SCF_RGBA8 || format==SCF_BGRA8) ? 4 : 3;
+
+        canvas->sx     = 0;
+        canvas->sy     = 0;
+        canvas->sex    = width  ? (width-1)  : 0;
+        canvas->sey    = height ? (height-1) : 0;
 
         if( canvas->own_buffer && canvas->data )
             free( canvas->data );
