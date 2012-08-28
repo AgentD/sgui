@@ -51,16 +51,19 @@ extern "C"
 /**
  * \brief Create a button widget
  *
- * \param x    X component of the buttons position
- * \param x    Y component of the buttons position
- * \param text Text written onto the button
- * \param type The type of button to create (SGUI_BUTTON_NORMAL or
- *             SGUI_BUTTON_CHECKBOX)
+ * \param x      X component of the buttons position
+ * \param x      Y component of the buttons position
+ * \param width  The width of the button in pixels, ignored for checkboxes
+ * \param height The height of the button in pixels, ignored for checkboxes
+ * \param text   UTF8 text written onto the button
+ * \param type   The type of button to create (SGUI_BUTTON_NORMAL or
+ *               SGUI_BUTTON_CHECKBOX)
  *
  * \return A button widget
  */
-sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
-                                 int type );
+sgui_widget* sgui_button_create( int x, int y,
+                                 unsigned int width, unsigned int height,
+                                 const unsigned char* text, int type );
 
 /**
  * \brief Destroy a button widget

@@ -58,10 +58,24 @@ void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                  sgui_font* italic, sgui_font* bold_italic,
                                  unsigned int height );
 
-/** \brief Get a the default window background color */
+/** \brief Get the default window background color */
 void sgui_skin_get_window_background_color( unsigned char* color );
 
+/** \brief Get the default font color */
+void sgui_skin_get_default_font_color( unsigned char* color );
 
+/** \brief Get the default font height in pixels */
+unsigned int sgui_skin_get_default_font_height( void );
+
+/**
+ * \brief Get the default font face
+ *
+ * \param bold   Nonzero to get the font face for bold text.
+ * \param italic Nonzero to get the font face for italic text.
+ *
+ * \return The desired default font face
+ */
+sgui_font* sgui_skin_get_default_font( int bold, int italic );
 
 /**
  * \brief Get the width (in pixels) of a string rendered with the default font
@@ -78,44 +92,13 @@ unsigned int sgui_skin_default_font_extents( const unsigned char* text,
                                              int bold, int italic );
 
 /**
- * \brief Predict the size of a button when rendered
- *
- * \param text   The UTF8 text to display on the button
- * \param width  Returns the width of the button in pixels
- * \param height Returns the height of the button in pixels
- * \param text_w Returns the width of the text on the button in pixels
- */
-void sgui_skin_get_button_extents( const unsigned char* text,
-                                   unsigned int* width,
-                                   unsigned int* height,
-                                   unsigned int* text_w );
-
-/**
- * \brief Predict the extents of a text drawn onto a window
- *
- * \param text   The UTF8 text to print. The LF ('\n') character can be used
- *               for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
- *               text bold or italic. A \<color="#RRGGBB"\> tag can be used to
- *               switch text color, where the value "default" for color
- *               switches back to default color.
- * \param width  Returns the width of the rendered text.
- * \param height Returns the height of the rendered text.
- */
-void sgui_skin_get_text_extents( const unsigned char* text,
-                                 unsigned int* width, unsigned int* height );
-
-/**
  * \brief Predict the size of a checkbox when rendered
  *
- * \param text   The UTF8 text to print onto the checkbox.
- * \param width  Returns the width of the checkbox text.
- * \param height Returns the height of the checkbox text.
- * \param text_w Returns the width of the text on the button in pixels
+ * \param width  Returns the width of the checkbox.
+ * \param height Returns the height of the checkbox.
  */
-void sgui_skin_get_checkbox_extents( const unsigned char* text,
-                                     unsigned int* width,
-                                     unsigned int* height,
-                                     unsigned int* text_w );
+void sgui_skin_get_checkbox_extents( unsigned int* width,
+                                     unsigned int* height );
 
 /**
  * \brief Predict the size of a radio menu when rendered
@@ -184,44 +167,24 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
  *               the window.
  * \param y      The distance from the top of the button to the top of
  *               the window.
- * \param width  Width of the button area.
- * \param text_w Width of the text string in pixels.
- * \param height Height of the button area.
+ * \param width  The width of the button.
+ * \param height The height of the button.
  * \param state  Zero if the button is in default state, non-zero if it is
  *               pressed.
- * \param text   UTF8 text to print onto the button.
  */
-void sgui_skin_draw_button( sgui_canvas* cv, int x, int y, int state,
-                            unsigned int width, unsigned int text_w,
-                            unsigned int height, const unsigned char* text );
+void sgui_skin_draw_button( sgui_canvas* cv, int x, int y,
+                            unsigned int width, unsigned int height,
+                            int state );
 
 /**
- * \brief Draw a text onto a canvas
- *
- * \param cv    The canvas to draw to.
- * \param x     Distance from the left of the text to the left of the window.
- * \param y     Distance from the top of the text to the top of the window.
- * \param text  The UTF8 text to print. The LF ('\n') character can be used
- *              for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
- *              text bold or italic. A \<color="#RRGGBB"\> tag can be used to
- *              switch text color, where the value "default" for color switches
- *              back to default color.
- */
-void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
-                          const unsigned char* text );
-
-/**
- * \brief Draw a text onto a canvas
+ * \brief Draw a checkbox onto a canvas
  *
  * \param cv     The canvas to draw to.
  * \param x      Distance from the left of the box to the left of the window.
  * \param y      Distance from the top of the box to the top of the window.
- * \param text_w Width of the text string in pixels.
- * \param text   The UTF8 text to print onto the checkbox.
  * \param state  Non-zero if the checkbox is checked.
  */
-void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
-                              const unsigned char* text, int state );
+void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state );
 
 /**
  * \brief Draw a radio menu onto a canvas

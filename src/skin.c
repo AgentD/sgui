@@ -75,35 +75,39 @@ void sgui_skin_get_window_background_color( unsigned char* color )
     color[2] = 0x64;
 }
 
+void sgui_skin_get_default_font_color( unsigned char* color )
+{
+    color[0] = 0xFF;
+    color[1] = 0xFF;
+    color[2] = 0xFF;
+}
+
+unsigned int sgui_skin_get_default_font_height( void )
+{
+    return font_height;
+}
+
+sgui_font* sgui_skin_get_default_font( int bold, int italic )
+{
+    if( bold && italic )
+        return font_boit;
+
+    if( bold )
+        return font_bold;
+
+    if( italic )
+        return font_ital;
+
+    return font_norm;
+}
+
 unsigned int sgui_skin_default_font_extents( const unsigned char* text,
                                              unsigned int length,
                                              int bold, int italic )
 {
-    if( bold && italic )
-        return sgui_font_get_text_extents_plain( font_boit, font_height,
-                                                 text, length );
+    sgui_font* f = sgui_skin_get_default_font( bold, italic );
 
-    if( bold )
-        return sgui_font_get_text_extents_plain( font_bold, font_height,
-                                                 text, length );
-
-    if( italic )
-        return sgui_font_get_text_extents_plain( font_ital, font_height,
-                                                 text, length );
-
-    return sgui_font_get_text_extents_plain( font_norm, font_height,
-                                             text, length );
-}
-
-void sgui_skin_get_button_extents( const unsigned char* text,
-                                   unsigned int* width,
-                                   unsigned int* height,
-                                   unsigned int* text_w )
-{
-    *text_w = sgui_font_get_text_extents_plain( font_norm, font_height,
-                                                text, (unsigned int)-1 );
-    *width  = *text_w + 2*font_height;
-    *height = 2*font_height - font_height/4;
+    return sgui_font_get_text_extents_plain( f, font_height, text, length );
 }
 
 void sgui_skin_get_text_extents( const unsigned char* text,
@@ -113,15 +117,11 @@ void sgui_skin_get_text_extents( const unsigned char* text,
                                 font_height, text, width, height );
 }
 
-void sgui_skin_get_checkbox_extents( const unsigned char* text,
-                                     unsigned int* width,
-                                     unsigned int* height,
-                                     unsigned int* text_w )
+void sgui_skin_get_checkbox_extents( unsigned int* width,
+                                     unsigned int* height )
 {
-    *text_w = sgui_font_get_text_extents_plain( font_norm, font_height,
-                                                text, (unsigned int)-1 );
-    *width  = *text_w + 20;
-    *height = font_height > 12 ? font_height : 12;
+    *width  = 20;
+    *height = 12;
 }
 
 void sgui_skin_get_radio_menu_extents( const unsigned char** text,
@@ -268,9 +268,9 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
     }
 }
 
-void sgui_skin_draw_button( sgui_canvas* cv, int x, int y, int state,
-                            unsigned int width, unsigned int text_w,
-                            unsigned int height, const unsigned char* text )
+void sgui_skin_draw_button( sgui_canvas* cv, int x, int y,
+                            unsigned int width, unsigned int height,
+                            int state )
 {
     unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
 
@@ -281,14 +281,6 @@ void sgui_skin_draw_button( sgui_canvas* cv, int x, int y, int state,
     color[0] = color[1] = color[2] = state ? 0xFF : 0x00;
     sgui_canvas_draw_line( cv, x, y+height-1, width, 1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x+width-1, y, height, 0, color, SCF_RGB8 );
-
-    color[0] = color[1] = color[2] = color[3] = 0xFF;
-
-    x += width/2  - text_w/2      - state;
-    y += height/2 - font_height/2 - font_height/8 - state;
-
-    sgui_canvas_draw_text_plain( cv, x, y, font_norm, font_height, color,
-                                 SCF_RGB8, text, strlen((const char*)text) );
 }
 
 void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
@@ -300,8 +292,7 @@ void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
                            font_boit, font_height, color, SCF_RGB8, text );
 }
 
-void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
-                              const unsigned char* text, int state )
+void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state )
 {
     unsigned char color[4] = { 0x00, 0x00, 0x00, 0x80 };
     int oy = font_height > 12 ? font_height/2-6 : 0;
@@ -317,11 +308,6 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
 
     sgui_canvas_draw_line( cv, x,    y+11+oy, 12, 1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x+11, y+   oy, 12, 0, color, SCF_RGB8 );
-
-    color[0] = color[1] = color[2] = 0xFF;
-
-    sgui_canvas_draw_text_plain( cv, x+20, y-oy, font_norm, font_height,
-                                 color, SCF_RGB8, text, (unsigned int)-1 );
 
     if( state )
     {

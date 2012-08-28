@@ -45,9 +45,19 @@ sgui_static_text;
 
 void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
 {
+    unsigned char color[3];
     sgui_static_text* t = (sgui_static_text*)w;
+    sgui_font* font_norm = sgui_skin_get_default_font( 0, 0 );
+    sgui_font* font_bold = sgui_skin_get_default_font( 1, 0 );
+    sgui_font* font_ital = sgui_skin_get_default_font( 0, 1 );
+    sgui_font* font_boit = sgui_skin_get_default_font( 1, 1 );
+    unsigned int h = sgui_skin_get_default_font_height( );
 
-    sgui_skin_draw_text( cv, w->x, w->y, t->text );
+    sgui_skin_get_default_font_color( color );
+
+    sgui_canvas_draw_text( cv, w->x, w->y, font_norm, font_bold,
+                           font_ital, font_boit, h, color,
+                           SCF_RGB8, t->text );
 }
 
 
@@ -57,11 +67,18 @@ sgui_widget* sgui_static_text_create( int x, int y,
 {
     sgui_static_text* t;
     unsigned int w, h;
+    sgui_font* font_norm = sgui_skin_get_default_font( 0, 0 );
+    sgui_font* font_bold = sgui_skin_get_default_font( 1, 0 );
+    sgui_font* font_ital = sgui_skin_get_default_font( 0, 1 );
+    sgui_font* font_boit = sgui_skin_get_default_font( 1, 1 );
+    unsigned int f_h = sgui_skin_get_default_font_height( );
 
     /* create widget */
     t = malloc( sizeof(sgui_static_text) );
 
-    sgui_skin_get_text_extents( text, &w, &h );
+    sgui_font_get_text_extents( font_norm, font_bold, font_ital, font_boit,
+                                f_h, text, &w, &h );
+
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h, 0 );
 
     t->widget.draw_callback = sgui_static_text_draw;
