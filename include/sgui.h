@@ -29,7 +29,6 @@
 
 #include "sgui_canvas.h"
 #include "sgui_event.h"
-#include "sgui_font_manager.h"
 #include "sgui_keycodes.h"
 #include "sgui_link.h"
 #include "sgui_skin.h"

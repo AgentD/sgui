@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_static_text.h"
-#include "sgui_font_manager.h"
+#include "sgui_canvas.h"
 #include "sgui_skin.h"
 
 #include "widget_internal.h"

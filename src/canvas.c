@@ -23,12 +23,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_canvas.h"
-#include "sgui_font_manager.h"
 
 #include <stdlib.h>
 #include <string.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
+
+
+FT_Library freetype;
+
+
+
+struct sgui_font
+{
+    FT_Face face;
+    void* buffer;
+};
 
 struct sgui_canvas
 {
@@ -37,10 +49,315 @@ struct sgui_canvas
     SGUI_COLOR_FORMAT format;
     unsigned int bpp;
     int own_buffer;
+
+    int sx, sy, sex, sey;
 };
 
+/***************************** Helper functions *****************************/
+int utf8_char_length( unsigned char c )
+{
+    c >>= 3;
+
+    if( c == 0x1E )
+        return 4;
+
+    c >>= 1;
+
+    if( c == 0x0E )
+        return 3;
+
+    c >>= 1;
+
+    return (c==0x06) ? 2 : 1;
+}
+
+unsigned long to_utf32( const unsigned char* utf8, int* length )
+{
+    unsigned long ch;
+    int i;
+
+    *length = utf8_char_length( *utf8 );
+
+    switch( *length )
+    {
+    case 4: ch = (*utf8 ^ 0xf0); break;
+    case 3: ch = (*utf8 ^ 0xe0); break;
+    case 2: ch = (*utf8 ^ 0xc0); break;
+    case 1: ch =  *utf8;         break;
+    }
+
+    ++utf8;
+
+    for( i=*length; i>1; --i )
+    {
+        ch <<= 6;
+        ch |= (*utf8 ^ 0x80);
+        ++utf8;
+    }
+
+    return ch;
+}
+
+int blend_glyph_on_canvas( sgui_canvas* canvas, unsigned char* glyph,
+                           int x, int y, unsigned int w, unsigned int h,
+                           unsigned char R, unsigned char G, unsigned char B )
+{
+    unsigned char* dst;
+    unsigned int i, j, ds, dt;
+    float A;
+
+    /* don't blend if outside the drawing area */
+    if( (x+(int)w)<canvas->sx || (y+(int)h)<canvas->sy )
+        return -1;
+
+    if( x>canvas->sex || y>canvas->sey )
+        return 1;
+
+    /* adjust parameters to only blend visible portion */
+    dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*canvas->bpp;
+
+    if( y<canvas->sy )
+    {
+        dst += (canvas->sy-y)*canvas->width*canvas->bpp;
+        glyph += (canvas->sy-y)*w;
+        y = 0;
+    }
+
+    if( (y+(int)h) > canvas->sey )
+        h = canvas->sey - y;
+
+    ds = w;
+    dt = canvas->width*canvas->bpp;
+
+    if( x < canvas->sx )
+    {
+        w -= canvas->sx - x;
+        glyph += canvas->sx - x;
+        x = canvas->sx;
+    }
+
+    if( (x+(int)w) >= canvas->sex )
+        w = canvas->sex - x;
+
+    /* do the blend */
+    for( j=0; j<h; ++j, glyph+=ds, dst+=dt )
+    {
+        for( i=0; i<w; ++i )
+        {
+            A = ((float)glyph[ i ]) / 255.0f;
+
+            dst[ i*canvas->bpp     ] *= (1.0f-A);
+            dst[ i*canvas->bpp + 1 ] *= (1.0f-A);
+            dst[ i*canvas->bpp + 2 ] *= (1.0f-A);
+
+            dst[ i*canvas->bpp     ] += A * R;
+            dst[ i*canvas->bpp + 1 ] += A * G;
+            dst[ i*canvas->bpp + 2 ] += A * B;
+        }
+    }
+
+    return 0;
+}
 
 
+
+
+/****************************** Font functions ******************************/
+int sgui_font_init( void )
+{
+    return (FT_Init_FreeType( &freetype )==0);
+}
+
+void sgui_font_deinit( void )
+{
+    FT_Done_FreeType( freetype );
+}
+
+
+
+sgui_font* sgui_font_load_from_file( const char* filename )
+{
+    sgui_font* font;
+
+    /* allocate font structure */
+    font = malloc( sizeof(sgui_font) );
+
+    if( !font )
+        return NULL;
+
+    /* load font */
+    if( FT_New_Face( freetype, filename, 0, &font->face ) )
+    {
+        free( font );
+        return NULL;
+    }
+
+    font->buffer = NULL;
+
+    return font;
+}
+
+sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
+{
+    sgui_font* font;
+
+    /* sanity check */
+    if( !buffer || !buffersize )
+        return NULL;
+
+    /* allocate font structure */
+    font = malloc( sizeof(sgui_font) );
+
+    if( !font )
+        return NULL;
+
+    /* load font */
+    if( FT_New_Memory_Face( freetype, buffer, buffersize, 0, &font->face ) )
+    {
+        free( font );
+        free( buffer );
+        return NULL;
+    }
+
+    font->buffer = buffer;
+
+    return font;
+}
+
+void sgui_font_destroy( sgui_font* font )
+{
+    FT_Done_Face( font->face );
+
+    free( font->buffer );
+    free( font );
+}
+
+unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
+                                               unsigned int font_height,
+                                               const unsigned char* text,
+                                               unsigned int length )
+{
+    unsigned int x = 0;
+    unsigned long character;
+    int len = 0;
+    FT_UInt glyph_index = 0;
+    FT_UInt previous = 0;
+    FT_Bool useKerning;
+    unsigned int i;
+
+    /* sanity check */
+    if( !text || !font_face || !font_height || !length )
+        return 0;
+
+    /* set rendering pixel size */
+    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
+
+    useKerning = FT_HAS_KERNING( font_face->face );
+
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        if( *text == ' ' )
+        {
+            x += (font_height/3);
+            len = 1;
+            continue;
+        }
+
+        /* UTF8 -> UTF32 -> glyph index */
+        character = to_utf32( text, &len );
+        glyph_index = FT_Get_Char_Index( font_face->face, character );
+
+        /* load and render */
+        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
+
+        /* apply kerning */
+        if( useKerning && previous && glyph_index )
+        {
+            FT_Vector delta;
+            FT_Get_Kerning( font_face->face, previous, glyph_index,
+                            FT_KERNING_DEFAULT, &delta );
+            x -= (abs( delta.x ) >> 6);
+        }
+
+        /* advance */
+        x += font_face->face->glyph->bitmap.width + 1;
+
+        previous = glyph_index;
+    }
+
+    return x;
+}
+
+void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
+                                 sgui_font* font_ital, sgui_font* font_boit,
+                                 unsigned int font_height,
+                                 const unsigned char* text,
+                                 unsigned int* width, unsigned int* height )
+{
+    int i = 0, font_stack_index = 0;
+    unsigned int X = 0, longest = 0, lines = 1;
+    sgui_font* f = font_norm;
+    sgui_font* font_stack[10];
+
+    if( !font_norm || !font_height || !text || (!width && !height) )
+        return;
+
+    for( ; text && text[ i ]; ++i )
+    {
+        if( text[ i ] == '<' )
+        {
+            X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+
+            if( text[ i+1 ] == 'b' )
+            {
+                font_stack[ font_stack_index++ ] = f;
+                f = f==font_ital ? font_boit : font_bold;
+            }
+            else if( text[ i+1 ] == 'i' )
+            {
+                font_stack[ font_stack_index++ ] = f;
+                f = f==font_bold ? font_boit : font_ital;
+            }
+            else if( text[ i+1 ] == '/' && font_stack_index )
+            {
+                f = font_stack[ --font_stack_index ];
+            }
+
+            text = (const unsigned char*)strchr( (const char*)text+i, '>' );
+
+            if( text )
+                ++text;
+
+            i = -1;
+        }
+        else if( text[ i ] == '\n' )
+        {
+            X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+
+            if( X > longest )
+                longest = X;
+
+            ++lines;
+            text += i + 1;
+            i = -1;
+            X = 0;
+        }
+    }
+
+    X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+
+    if( X > longest )
+        longest = X;
+
+    if( width  ) *width  = longest;
+    if( height ) *height = lines * (font_height+font_height/4);
+}
+
+
+
+
+/***************************** Canvas functions *****************************/
 sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
                                  SGUI_COLOR_FORMAT format )
 {
@@ -59,6 +376,11 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
     cv->format     = format;
     cv->bpp        = bpp;
     cv->own_buffer = 1;
+
+    cv->sx         = 0;
+    cv->sy         = 0;
+    cv->sex        = width-1;
+    cv->sey        = height-1;
 
     if( !cv->data )
     {
@@ -89,6 +411,11 @@ sgui_canvas* sgui_canvas_create_use_buffer( void* buffer,
     cv->format     = format;
     cv->bpp        = bpp;
     cv->own_buffer = 0;
+
+    cv->sx         = 0;
+    cv->sy         = 0;
+    cv->sex        = width-1;
+    cv->sey        = height-1;
 
     return cv;
 }
@@ -136,8 +463,50 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
     if( new_mem != old_mem )
         canvas->data = realloc( canvas->data, new_mem * canvas->bpp );
 
-    canvas->width = width;
+    canvas->width  = width;
     canvas->height = height;
+
+    canvas->sx     = 0;
+    canvas->sy     = 0;
+    canvas->sex    = width-1;
+    canvas->sey    = height-1;
+}
+
+
+
+
+void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
+                                   unsigned int width, unsigned int height )
+{
+    if( canvas )
+    {
+        if( width && height )
+        {
+            canvas->sx  = x;
+            canvas->sy  = y;
+            canvas->sex = x + width;
+            canvas->sey = y + height;
+
+            if( canvas->sx < 0 )
+                canvas->sx = 0;
+
+            if( canvas->sy < 0 )
+                canvas->sy = 0;
+
+            if( canvas->sex>=(int)canvas->width )
+                canvas->sex = canvas->width-1;
+
+            if( canvas->sey>=(int)canvas->height )
+                canvas->sey = canvas->height-1;
+        }
+        else
+        {
+            canvas->sx  = 0;
+            canvas->sy  = 0;
+            canvas->sex = canvas->width-1;
+            canvas->sey = canvas->height-1;
+        }
+    }
 }
 
 void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
@@ -147,10 +516,19 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
     unsigned char* dst;
     unsigned char* src;
     unsigned int i, j, src_bpp = 3, R = 0, G = 1, B = 2;
+    unsigned int ds, dt;
 
     if( !canvas || !width || !height || !data )
         return;
 
+    /* don't blit if outside the drawing area */
+    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
+        return;
+
+    if( x>canvas->sex || y>canvas->sey )
+        return;
+
+    /* color format checks */
     if( format==SCF_RGBA8 || format==SCF_BGRA8 )
         src_bpp = 4;
 
@@ -164,26 +542,42 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
         B = 0;
     }
 
+    /* compute source and destination pointers */
     dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*canvas->bpp;
     src = (unsigned char*)data;
 
-    for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp,
-                             src+=width*src_bpp )
+    /* adjust parameters to only blit visible portion */
+    if( y<canvas->sy )
     {
-        if( (y+(int)j)<0 )
-            continue;
+        dst += (canvas->sy-y)*canvas->width*canvas->bpp;
+        src += (canvas->sy-y)*width*src_bpp;
+        y = canvas->sy;
+    }
 
-        if( (y+(int)j)>=(int)canvas->height )
-            break;
+    if( (y+(int)height) > canvas->sey )
+        height = canvas->sey - y;
 
+    ds = width*src_bpp;
+    dt = canvas->width*canvas->bpp;
+
+    if( x < canvas->sx )
+    {
+        width -= canvas->sx - x;
+        src += (canvas->sx - x)*src_bpp;
+        x = canvas->sx;
+    }
+
+    if( (x+(int)width) >= (int)canvas->width )
+        width = canvas->width - (unsigned int)x;
+
+    /* do the blit */
+    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    {
         for( i=0; i<width; ++i )
         {
-            if( (x+(int)i)>0 && (x+(int)i)<(int)canvas->width )
-            {
-                dst[ i*canvas->bpp     ] = src[ i*src_bpp + R ];
-                dst[ i*canvas->bpp + 1 ] = src[ i*src_bpp + G ];
-                dst[ i*canvas->bpp + 2 ] = src[ i*src_bpp + B ];
-            }
+            dst[ i*canvas->bpp     ] = src[ i*src_bpp + R ];
+            dst[ i*canvas->bpp + 1 ] = src[ i*src_bpp + G ];
+            dst[ i*canvas->bpp + 2 ] = src[ i*src_bpp + B ];
         }
     }
 }
@@ -194,7 +588,7 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
 {
     unsigned char* dst;
     unsigned char* src;
-    unsigned int i, j, R = 0, G = 1, B = 2;
+    unsigned int i, j, R = 0, G = 1, B = 2, ds, dt;
     float A;
 
     if( !canvas || !width || !height || !data )
@@ -203,6 +597,14 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     if( format!=SCF_RGBA8 && format!=SCF_BGRA8 )
         return;
 
+    /* don't blend outside the drawing area */
+    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
+        return;
+
+    if( x>canvas->sex || y>canvas->sey )
+        return;
+
+    /* color format checks */
     if( (format==SCF_RGBA8 &&
          (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
         (format==SCF_BGRA8 &&
@@ -213,32 +615,48 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
         B = 0;
     }
 
+    /* compute source and destination pointers */
     dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*canvas->bpp;
     src = (unsigned char*)data;
 
-    for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp,
-                             src+=width*4 )
+    /* adjust parameters to only blit visible portion */
+    if( y<canvas->sy )
     {
-        if( (y+(int)j)<0 )
-            continue;
+        dst += (canvas->sy-y)*canvas->width*canvas->bpp;
+        src += (canvas->sy-y)*width*4;
+        y = canvas->sy;
+    }
 
-        if( (y+(int)j)>=(int)canvas->height )
-            break;
+    if( (y+(int)height) > canvas->sey )
+        height = canvas->sey - y;
 
+    ds = width*4;
+    dt = canvas->width*canvas->bpp;
+
+    if( x < canvas->sx )
+    {
+        width -= canvas->sx - x;
+        src += (canvas->sx - x)*4;
+        x = canvas->sx;
+    }
+
+    if( (x+(int)width) >= (int)canvas->width )
+        width = canvas->width - (unsigned int)x;
+
+    /* do the blend */
+    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    {
         for( i=0; i<width; ++i )
         {
-            if( (x+(int)i)>0 && (x+(int)i)<(int)canvas->width )
-            {
-                A = ((float)src[ i*4 + 3 ]) / 255.0f;
+            A = ((float)src[ i*4 + 3 ]) / 255.0f;
 
-                dst[ i*canvas->bpp     ] *= (1.0f-A);
-                dst[ i*canvas->bpp + 1 ] *= (1.0f-A);
-                dst[ i*canvas->bpp + 2 ] *= (1.0f-A);
+            dst[ i*canvas->bpp     ] *= (1.0f-A);
+            dst[ i*canvas->bpp + 1 ] *= (1.0f-A);
+            dst[ i*canvas->bpp + 2 ] *= (1.0f-A);
 
-                dst[ i*canvas->bpp     ] += A * src[ i*4 + R ];
-                dst[ i*canvas->bpp + 1 ] += A * src[ i*4 + G ];
-                dst[ i*canvas->bpp + 2 ] += A * src[ i*4 + B ];
-            }
+            dst[ i*canvas->bpp     ] += A * src[ i*4 + R ];
+            dst[ i*canvas->bpp + 1 ] += A * src[ i*4 + G ];
+            dst[ i*canvas->bpp + 2 ] += A * src[ i*4 + B ];
         }
     }
 }
@@ -253,74 +671,73 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
     unsigned char* dst;
     unsigned char* row_ptr;
 
-    if( canvas && color )
+    if( !canvas || !color )
+        return;
+
+    /* don't draw outside the drawing area */
+    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
+        return;
+
+    if( x>canvas->sex || y>canvas->sey )
+        return;
+
+    /* color format checks */
+    if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
+         (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
+        ((format==SCF_BGRA8 && format==SCF_BGR8) &&
+         (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
     {
-        if( (y+(int)height) < 0 || (x+(int)width) < 0 )
-            return;
+        R = color[2];
+        G = color[1];
+        B = color[0];
+    }
+    else
+    {
+        R = color[0];
+        G = color[1];
+        B = color[2];
+    }
 
-        if( y >= (int)canvas->height || x >= (int)canvas->width )
-            return;
+    if( format==SCF_RGBA8 || format==SCF_BGRA8 )
+        A = ((float)color[3]) / 255.0f;
 
-        if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
-             (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-            ((format==SCF_BGRA8 && format==SCF_BGR8) &&
-             (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+    /* adjust parameters to only draw visible portion */
+    if( y<canvas->sy ) { height -= canvas->sy-y; y = canvas->sy; }
+    if( x<canvas->sx ) { width  -= canvas->sx-x; x = canvas->sx; }
+
+    if( (y+((int)height-1)) > canvas->sey )
+        height = canvas->sey - y;
+
+    if( (x+((int)width-1)) > canvas->sex )
+        width = canvas->sex - x;
+
+    dst = (unsigned char*)canvas->data + (y*canvas->width+x)*canvas->bpp;
+
+    if( format==SCF_RGBA8 || format==SCF_BGRA8 )
+    {
+        for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp )
         {
-            R = color[2];
-            G = color[1];
-            B = color[0];
-        }
-        else
-        {
-            R = color[0];
-            G = color[1];
-            B = color[2];
-        }
-
-        if( format==SCF_RGBA8 || format==SCF_BGRA8 )
-            A = ((float)color[3]) / 255.0f;
-
-        if( y<0 ) { height -= (unsigned int)(-y); y = 0; }
-        if( x<0 ) { width  -= (unsigned int)(-x); x = 0; }
-
-        if( (y+((int)height-1)) >= (int)canvas->height )
-            height = canvas->height - (unsigned int)y;
-
-        if( (x+((int)width-1)) >= (int)canvas->width )
-            width = canvas->width - (unsigned int)x;
-
-        dst = (unsigned char*)canvas->data + (y*canvas->width+x)*canvas->bpp;
-
-        if( format==SCF_RGBA8 || format==SCF_BGRA8 )
-        {
-            for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp )
+            for( row_ptr=dst, i=0; i<width; ++i, row_ptr+=canvas->bpp )
             {
-                row_ptr = dst;
+                row_ptr[0] *= 1.0f-A;
+                row_ptr[1] *= 1.0f-A;
+                row_ptr[2] *= 1.0f-A;
 
-                for( i=0; i<width; ++i, row_ptr+=canvas->bpp )
-                {
-                    row_ptr[0] *= 1.0f-A;
-                    row_ptr[1] *= 1.0f-A;
-                    row_ptr[2] *= 1.0f-A;
-
-                    row_ptr[0] += R * A;
-                    row_ptr[1] += G * A;
-                    row_ptr[2] += B * A;
-                }
+                row_ptr[0] += R * A;
+                row_ptr[1] += G * A;
+                row_ptr[2] += B * A;
             }
         }
-        else
+    }
+    else
+    {
+        for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp )
         {
-            for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp )
+            for( row_ptr=dst, i=0; i<width; ++i, row_ptr+=canvas->bpp )
             {
-                row_ptr = dst;
-
-                for( i=0; i<width; ++i, row_ptr+=canvas->bpp )
-                {
-                    row_ptr[0] = R;
-                    row_ptr[1] = G;
-                    row_ptr[2] = B;
-                }
+                row_ptr[0] = R;
+                row_ptr[1] = G;
+                row_ptr[2] = B;
             }
         }
     }
@@ -358,20 +775,20 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 
         if( horizontal )
         {
-            if( (y<0) || (((unsigned int)y)>=canvas->height) )
+            if( y<canvas->sy || y>canvas->sey )
                 return;
 
-            if( (x+(int)length)<0 || ((unsigned int)x)>canvas->width )
+            if( (x+(int)length)<canvas->sx || x>canvas->sex )
                 return;
 
-            if( x<0 )
+            if( x<canvas->sx )
             {
-                length -= (unsigned int)(-x);
-                x = 0;
+                length -= canvas->sx - x;
+                x = canvas->sx;
             }
 
-            if( ((unsigned int)x+length) > canvas->width )
-                length = canvas->width - x;
+            if( (x+(int)length) > canvas->sex )
+                length = canvas->sex - x;
 
             dst = (unsigned char*)canvas->data +
                   (y*canvas->width+x)*canvas->bpp;
@@ -397,27 +814,26 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
         }
         else
         {
-            if( (x<0) || (((unsigned int)x)>=canvas->width) )
+            if( x<canvas->sx || x>canvas->sex )
                 return;
 
-            if( (y+(int)length)<0 || ((unsigned int)y)>canvas->height )
+            if( (y+(int)length)<canvas->sy || y>canvas->sey )
                 return;
 
-            if( y<0 )
+            if( y<canvas->sy )
             {
-                length -= (unsigned int)(-y);
-                y = 0;
+                length -= canvas->sy - y;
+                y = canvas->sy;
             }
 
             dst = (unsigned char*)canvas->data +
                   (y*canvas->width+x)*canvas->bpp;
 
-            if( ((unsigned int)y+length) > canvas->height )
-                length = canvas->height - y;
+            if( (y+(int)length) > canvas->sey )
+                length = canvas->sey - y;
 
             if( format==SCF_RGBA8 || format==SCF_BGRA8 )
             {
-
                 for( i=0; i<length; ++i, dst+=canvas->width*canvas->bpp )
                 {
                     dst[0] = R*A + (1.0f-A)*dst[0];
@@ -439,34 +855,82 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 }
 
 void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
-                                  sgui_font* font_face, unsigned int height,
+                                  sgui_font* font_face,
+                                  unsigned int font_height,
                                   unsigned char* color,
                                   SGUI_COLOR_FORMAT format,
                                   const unsigned char* text,
-                                  unsigned int length,
-                                  unsigned int max_width )
+                                  unsigned int length )
 {
-    unsigned char rgb[3];
-    int alpha = canvas->format==SCF_RGBA8 || canvas->format==SCF_BGRA8;
+    FT_UInt glyph_index = 0;
+    FT_UInt previous = 0;
+    FT_GlyphSlot glyph;
+    FT_Bool useKerning;
+    int len = 0, bearing;
+    unsigned int i;
+    unsigned long character;
+    unsigned char R = color[0], G = color[1], B = color[2];
 
-    if( !canvas )
+    if( !canvas || !font_face || !font_height )
         return;
 
-    if( format==SCF_BGR8 || format==SCF_BGRA8 )
-    {
-        rgb[0] = color[2];
-        rgb[1] = color[1];
-        rgb[2] = color[0];
+    if( x>canvas->sex || y>canvas->sey )
+        return;
 
-        sgui_font_print( text, font_face, height, canvas->data, x, y,
-                         canvas->width, canvas->height, x+max_width,
-                         rgb, length, alpha );
-    }
-    else
+    if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
+         (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
+        ((format==SCF_BGRA8 && format==SCF_BGR8) &&
+         (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
     {
-        sgui_font_print( text, font_face, height, canvas->data, x, y,
-                         canvas->width, canvas->height, x+max_width,
-                         color, length, alpha );
+        R = color[2];
+        G = color[1];
+        B = color[0];
+    }
+
+    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
+
+    useKerning = FT_HAS_KERNING( font_face->face );
+
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        if( *text == ' ' )
+        {
+            x += ((int)font_height/3);
+            len = 1;
+            continue;
+        }
+
+        /* UTF8 -> UTF32 -> glyph index */
+        character = to_utf32( text, &len );
+        glyph_index = FT_Get_Char_Index( font_face->face, character );
+
+        /* load and render glyph */
+        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
+
+        /* apply kerning */
+        if( useKerning && previous && glyph_index )
+        {
+            FT_Vector delta;
+            FT_Get_Kerning( font_face->face, previous, glyph_index,
+                            FT_KERNING_DEFAULT, &delta );
+            x -= abs( delta.x ) >> 6;
+        } 
+
+        /* blend onto destination buffer */
+        glyph = font_face->face->glyph;
+
+        bearing = font_height - glyph->bitmap_top;
+
+        if( blend_glyph_on_canvas( canvas, glyph->bitmap.buffer, x, y+bearing,
+                                   glyph->bitmap.width, glyph->bitmap.rows,
+                                   R, G, B ) > 0 )
+        {
+            break;
+        }
+
+        x += font_face->face->glyph->bitmap.width + 1;
+        previous = glyph_index;
     }
 }
 
@@ -495,9 +959,9 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
         if( text[ i ] == '<' )
         {
             sgui_canvas_draw_text_plain( canvas, x+X, y, f, font_height, col,
-                                         format, text, i, 0xFFFF );
+                                         format, text, i );
 
-            X += sgui_font_extents( text, f, font_height, i );
+            X += sgui_font_get_text_extents_plain( f, font_height, text, i );
 
             if( !strncmp( (const char*)text+i+1, "color=", 6 ) )
             {
@@ -550,7 +1014,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
         else if( text[ i ] == '\n' )
         {
             sgui_canvas_draw_text_plain( canvas, x+X, y, f, font_height, col,
-                                         format, text, i, 0xFFFF );
+                                         format, text, i );
 
             text += i + 1;
             i = -1;
@@ -560,7 +1024,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
     }
 
     sgui_canvas_draw_text_plain( canvas, x+X, y, f, font_height, col,
-                                 format, text, i, 0xFFFF );
+                                 format, text, i );
 }
 
 void* sgui_canvas_get_raw_data( sgui_canvas* canvas )

@@ -98,8 +98,7 @@ void radio_menu_option_fun( void* object, unsigned int choice )
 
 int main( void )
 {
-    int a_active=1, b_active=1, x, y, len;
-    unsigned char color[3];
+    int a_active=1, b_active=1, x, y;
     sgui_font* font;
     sgui_font* font_bold;
     sgui_font* font_italic;
@@ -126,7 +125,7 @@ int main( void )
     sgui_window_set_size( a, 800, 600 );
     sgui_window_set_size( b, 200, 100 );
 
-    /* pixmap and font test */
+    /* */
     for( y=0; y<128; ++y )
         for( x=0; x<128; ++x )
         {
@@ -140,15 +139,6 @@ int main( void )
     font_bold = sgui_font_load_from_file( "font/FreeSansBold.ttf" );
     font_italic = sgui_font_load_from_file( "font/FreeSansOblique.ttf" );
     font_bold_italic=sgui_font_load_from_file("font/FreeSansBoldOblique.ttf");
-
-    color[0] = 0xFF;
-    color[1] = 0xFF;
-    color[2] = 0xFF;
-
-    len = sgui_font_extents( (const unsigned char*)"Test AV", font, 16, 7 );
-
-    sgui_font_print( (const unsigned char*)"Test AV", font, 16, image,
-                      64 - len/2, 64 - 8, 128, 128, 128, color, 7, 1 );
 
     /* widget test */
     sgui_skin_set_default_font( font, font_bold, font_italic,

@@ -28,7 +28,6 @@
 
 
 #include "sgui_canvas.h"
-#include "sgui_font_manager.h"
 #include "sgui_widget.h"
 
 
