@@ -36,7 +36,7 @@ typedef struct
 {
     sgui_widget widget;
 
-    unsigned char* text;
+    char* text;
     unsigned int text_width;
     int state;
     int type;
@@ -123,10 +123,10 @@ void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
 /******************************* common code ********************************/
 sgui_widget* sgui_button_create( int x, int y,
                                  unsigned int width, unsigned int height,
-                                 const unsigned char* text, int type )
+                                 const char* text, int type )
 {
     sgui_button* b;
-    unsigned int len = strlen( (const char*)text );
+    unsigned int len = strlen( text );
     unsigned int h = sgui_skin_get_default_font_height( );
 
     b = malloc( sizeof(sgui_button) );
@@ -177,14 +177,14 @@ void sgui_button_destroy( sgui_widget* button )
     }
 }
 
-void sgui_button_set_text( sgui_widget* button, const unsigned char* text )
+void sgui_button_set_text( sgui_widget* button, const char* text )
 {
     sgui_button* b = (sgui_button*)button;
     unsigned int len, h;
 
     if( button )
     {
-        len = strlen( (const char*)text );
+        len = strlen( text );
 
         b->text_width = sgui_skin_default_font_extents( text, len, 0, 0 );
         h = sgui_skin_get_default_font_height( );

@@ -101,7 +101,7 @@ sgui_font* sgui_skin_get_default_font( int bold, int italic )
     return font_norm;
 }
 
-unsigned int sgui_skin_default_font_extents( const unsigned char* text,
+unsigned int sgui_skin_default_font_extents( const char* text,
                                              unsigned int length,
                                              int bold, int italic )
 {
@@ -110,7 +110,7 @@ unsigned int sgui_skin_default_font_extents( const unsigned char* text,
     return sgui_font_get_text_extents_plain( f, font_height, text, length );
 }
 
-void sgui_skin_get_text_extents( const unsigned char* text,
+void sgui_skin_get_text_extents( const char* text,
                                  unsigned int* width, unsigned int* height )
 {
     sgui_font_get_text_extents( font_norm, font_bold, font_ital, font_boit,
@@ -124,7 +124,7 @@ void sgui_skin_get_checkbox_extents( unsigned int* width,
     *height = 12;
 }
 
-void sgui_skin_get_radio_menu_extents( const unsigned char** text,
+void sgui_skin_get_radio_menu_extents( const char** text,
                                        unsigned int num_lines,
                                        unsigned int* width,
                                        unsigned int* height )
@@ -284,7 +284,7 @@ void sgui_skin_draw_button( sgui_canvas* cv, int x, int y,
 }
 
 void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
-                          const unsigned char* text )
+                          const char* text )
 {
     unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
 
@@ -322,8 +322,7 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state )
 }
 
 void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
-                                const unsigned char** text,
-                                unsigned int num_lines,
+                                const char** text, unsigned int num_lines,
                                 unsigned int selected )
 {
     unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -378,8 +377,8 @@ void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
 }
 
 void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
-                              const unsigned char* text,
-                              unsigned int width, int cursor )
+                              const char* text, unsigned int width,
+                              int cursor )
 {
     unsigned char color[4];
     unsigned int height, cx;

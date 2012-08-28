@@ -149,34 +149,27 @@ int main( void )
     p2 = sgui_progress_bar_create( 320, 10, 0, 1, 0.5f, 300 );
     p3 = sgui_progress_bar_create( 355, 10, 1, 1, 0.5f, 300 );
 
-    tex = sgui_static_text_create( 10, 400, (const unsigned char*)text );
-    butt = sgui_button_create( 180, 100, 80, 30,
-                               (const unsigned char*)"Button",
-                               SGUI_BUTTON_NORMAL );
+    tex = sgui_static_text_create( 10, 400, text );
+    butt = sgui_button_create(180, 100, 80, 30, "Button", SGUI_BUTTON_NORMAL);
 
 
-    c0 = sgui_button_create( 180, 150, 0, 0,
-                             (const unsigned char*)"Checkbox 1",
+    c0 = sgui_button_create( 180, 150, 0, 0, "Checkbox 1",
                              SGUI_BUTTON_CHECKBOX );
 
-    c1 = sgui_button_create( 180, 175, 0, 0,
-                             (const unsigned char*)"Checkbox 2",
+    c1 = sgui_button_create( 180, 175, 0, 0, "Checkbox 2",
                              SGUI_BUTTON_CHECKBOX );
 
-    c2 = sgui_button_create( 180, 200, 0, 0,
-                             (const unsigned char*)"Checkbox 3",
+    c2 = sgui_button_create( 180, 200, 0, 0, "Checkbox 3",
                              SGUI_BUTTON_CHECKBOX );
 
     i0 = sgui_image_create( 10, 100, 128, 128, image, 1, 0, 0 );
     i1 = sgui_image_create( 10, 250, 128, 128, image, 1, 1, 0 );
 
-    rad = sgui_radio_menu_create( 180, 250, 3, (const unsigned char**)options,
-                                  0 );
+    rad = sgui_radio_menu_create( 180, 250, 3, options, 0 );
 
     eb = sgui_edit_box_create( 180, 350, 100, 100 );
 
-    sgui_edit_box_set_text(eb,(const unsigned char*)"An edit box test string "
-                                                    "for an edit box test" );
+    sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
 
 
     sgui_window_add_widget( a, tex );

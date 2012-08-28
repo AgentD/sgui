@@ -70,7 +70,7 @@ typedef union
 
     struct { SGUI_KEY_CODE code; } keyboard_event;
 
-    struct { unsigned char as_utf8_str[8]; } char_event;
+    struct { char as_utf8_str[8]; } char_event;
 }
 sgui_event;
 

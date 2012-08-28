@@ -37,7 +37,7 @@ typedef struct
 {
     sgui_widget widget;
 
-    unsigned char* text;
+    char* text;
 }
 sgui_static_text;
 
@@ -62,8 +62,7 @@ void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
 
 
 
-sgui_widget* sgui_static_text_create( int x, int y,
-                                      const unsigned char* text )
+sgui_widget* sgui_static_text_create( int x, int y, const char* text )
 {
     sgui_static_text* t;
     unsigned int w, h;
@@ -82,9 +81,9 @@ sgui_widget* sgui_static_text_create( int x, int y,
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h, 0 );
 
     t->widget.draw_callback = sgui_static_text_draw;
-    t->text                 = malloc( strlen((const char*)text)+1 );
+    t->text                 = malloc( strlen(text)+1 );
 
-    strcpy( (char*)t->text, (const char*)text );
+    strcpy( t->text, text );
 
     return (sgui_widget*)t;
 }

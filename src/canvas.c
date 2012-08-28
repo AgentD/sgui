@@ -71,7 +71,7 @@ int utf8_char_length( unsigned char c )
     return (c==0x06) ? 2 : 1;
 }
 
-unsigned long to_utf32( const unsigned char* utf8, int* length )
+unsigned long to_utf32( const char* utf8, int* length )
 {
     unsigned long ch;
     int i;
@@ -234,7 +234,7 @@ void sgui_font_destroy( sgui_font* font )
 
 unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
                                                unsigned int font_height,
-                                               const unsigned char* text,
+                                               const char* text,
                                                unsigned int length )
 {
     unsigned int x = 0;
@@ -291,8 +291,7 @@ unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
 
 void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
                                  sgui_font* font_ital, sgui_font* font_boit,
-                                 unsigned int font_height,
-                                 const unsigned char* text,
+                                 unsigned int font_height, const char* text,
                                  unsigned int* width, unsigned int* height )
 {
     int i = 0, font_stack_index = 0;
@@ -324,7 +323,7 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
                 f = font_stack[ --font_stack_index ];
             }
 
-            text = (const unsigned char*)strchr( (const char*)text+i, '>' );
+            text = strchr( text+i, '>' );
 
             if( text )
                 ++text;
@@ -859,8 +858,7 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                   unsigned int font_height,
                                   unsigned char* color,
                                   SGUI_COLOR_FORMAT format,
-                                  const unsigned char* text,
-                                  unsigned int length )
+                                  const char* text, unsigned int length )
 {
     FT_UInt glyph_index = 0;
     FT_UInt previous = 0;
@@ -938,8 +936,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                             sgui_font* font_norm, sgui_font* font_bold,
                             sgui_font* font_ital, sgui_font* font_boit,
                             unsigned int font_height, unsigned char* color,
-                            SGUI_COLOR_FORMAT format,
-                            const unsigned char* text )
+                            SGUI_COLOR_FORMAT format, const char* text )
 {
     int i = 0, X = 0, font_stack_index = 0;
     sgui_font* f = font_norm;
@@ -963,9 +960,9 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
 
             X += sgui_font_get_text_extents_plain( f, font_height, text, i );
 
-            if( !strncmp( (const char*)text+i+1, "color=", 6 ) )
+            if( !strncmp( text+i+1, "color=", 6 ) )
             {
-                if( !strncmp( (const char*)text+i+9, "default", 7 ) )
+                if( !strncmp( text+i+9, "default", 7 ) )
                 {
                     col[0] = color[0];
                     col[1] = color[1];
@@ -973,7 +970,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                 }
                 else
                 {
-                    c = strtol( (const char*)text+i+9, NULL, 16 );
+                    c = strtol( text+i+9, NULL, 16 );
 
                     if( format==SCF_RGBA8 || format==SCF_RGB8 )
                     {
@@ -1004,7 +1001,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                 f = font_stack[ --font_stack_index ];
             }
 
-            text = (const unsigned char*)strchr( (const char*)text+i, '>' );
+            text = strchr( text+i, '>' );
 
             if( text )
                 ++text;

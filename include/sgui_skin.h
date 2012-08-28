@@ -87,7 +87,7 @@ sgui_font* sgui_skin_get_default_font( int bold, int italic );
  *
  * \return The width of the rendered text in pixels
  */
-unsigned int sgui_skin_default_font_extents( const unsigned char* text,
+unsigned int sgui_skin_default_font_extents( const char* text,
                                              unsigned int length,
                                              int bold, int italic );
 
@@ -108,7 +108,7 @@ void sgui_skin_get_checkbox_extents( unsigned int* width,
  * \param width     Returns the width of the menu.
  * \param height    Returns the height of the menu.
  */
-void sgui_skin_get_radio_menu_extents( const unsigned char** text,
+void sgui_skin_get_radio_menu_extents( const char** text,
                                        unsigned int num_lines,
                                        unsigned int* width,
                                        unsigned int* height );
@@ -199,7 +199,7 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state );
  * \param selected  The option selected.
  */
 void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
-                                const unsigned char** text,
+                                const char** text,
                                 unsigned int num_lines,
                                 unsigned int selected );
 
@@ -215,7 +215,7 @@ void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
  *               cursor at all.
  */
 void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
-                              const unsigned char* text,
+                              const char* text,
                               unsigned int width, int cursor );
 
 

@@ -54,7 +54,7 @@ extern "C"
  * \param initial_option Index of the initially selected option.
  */
 sgui_widget* sgui_radio_menu_create( int x, int y, unsigned int num_options,
-                                     const unsigned char** options,
+                                     const char** options,
                                      unsigned int initial_option );
 
 /** \brief Destroy a radio menu widget */

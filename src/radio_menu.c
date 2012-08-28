@@ -36,7 +36,7 @@ typedef struct
 {
     sgui_widget widget;
 
-    unsigned char** options;
+    char** options;
     unsigned int num_options, selected;
 }
 sgui_radio_menu;
@@ -48,7 +48,7 @@ void sgui_radio_menu_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_radio_menu* m = (sgui_radio_menu*)widget;
 
     sgui_skin_draw_radio_menu( cv, widget->x, widget->y,
-                               (const unsigned char**)m->options,
+                               (const char**)m->options,
                                m->num_options, m->selected );
 }
 
@@ -82,7 +82,7 @@ void sgui_radio_menu_on_event( sgui_widget* widget, int type,
 
 
 sgui_widget* sgui_radio_menu_create( int x, int y, unsigned int num_options,
-                                     const unsigned char** options,
+                                     const char** options,
                                      unsigned int initial_option )
 {
     sgui_radio_menu* m;
@@ -98,13 +98,13 @@ sgui_widget* sgui_radio_menu_create( int x, int y, unsigned int num_options,
     m->widget.window_event_callback = sgui_radio_menu_on_event;
     m->widget.draw_callback         = sgui_radio_menu_draw;
 
-    m->options     = malloc( sizeof(unsigned char*) * num_options );
+    m->options     = malloc( sizeof(char*) * num_options );
     m->num_options = num_options;
     m->selected    = initial_option;
 
     for( i=0; i<num_options; ++i )
     {
-        len = strlen( (const char*)options[i] );
+        len = strlen( options[i] );
 
         m->options[ i ] = malloc( len + 1 );
 

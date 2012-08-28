@@ -63,7 +63,7 @@ extern "C"
  */
 sgui_widget* sgui_button_create( int x, int y,
                                  unsigned int width, unsigned int height,
-                                 const unsigned char* text, int type );
+                                 const char* text, int type );
 
 /**
  * \brief Destroy a button widget
@@ -78,7 +78,7 @@ void sgui_button_destroy( sgui_widget* button );
  * \param button The button to alter.
  * \param text   The text printed on the button.
  */
-void sgui_button_set_text( sgui_widget* button, const unsigned char* text );
+void sgui_button_set_text( sgui_widget* button, const char* text );
 
 /**
  * \brief Set the state of a checkbox button

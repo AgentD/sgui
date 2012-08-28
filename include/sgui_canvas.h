@@ -107,7 +107,7 @@ void sgui_font_destroy( sgui_font* font );
  */
 unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
                                                unsigned int font_height,
-                                               const unsigned char* text,
+                                               const char* text,
                                                unsigned int length );
 
 /**
@@ -127,8 +127,7 @@ unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
  */
 void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
                                  sgui_font* font_ital, sgui_font* font_boit,
-                                 unsigned int font_height,
-                                 const unsigned char* text,
+                                 unsigned int font_height, const char* text,
                                  unsigned int* width, unsigned int* height );
 
 
@@ -285,8 +284,7 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                   sgui_font* font_face, unsigned int height,
                                   unsigned char* color,
                                   SGUI_COLOR_FORMAT format,
-                                  const unsigned char* text,
-                                  unsigned int length );
+                                  const char* text, unsigned int length );
 
 /**
  * \brief Render a multi line text that uses html like tags to switch color
@@ -313,8 +311,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                             sgui_font* font_norm, sgui_font* font_bold,
                             sgui_font* font_ital, sgui_font* font_boit,
                             unsigned int font_height, unsigned char* color,
-                            SGUI_COLOR_FORMAT format,
-                            const unsigned char* text );
+                            SGUI_COLOR_FORMAT format, const char* text );
 
 /** \brief Get a pointer to the raw data buffer of a canvas */
 void* sgui_canvas_get_raw_data( sgui_canvas* canvas );

@@ -51,7 +51,7 @@ extern "C"
  */
 sgui_widget* sgui_image_create( int x, int y,
                                 unsigned int width, unsigned int height,
-                                const unsigned char* data, int alpha,
+                                const void* data, int alpha,
                                 int blend, int copy );
 
 /** \brief Destroy a static text widget */

@@ -44,7 +44,7 @@ typedef struct
 
     int draw_cursor;
 
-    unsigned char* buffer;
+    char* buffer;
 }
 sgui_edit_box;
 
@@ -245,7 +245,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
     {   
         unsigned int len;
 
-        len = strlen( (const char*)event->char_event.as_utf8_str );
+        len = strlen( event->char_event.as_utf8_str );
 
         /* move entire text block right by the character length */
         memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
@@ -300,12 +300,12 @@ void sgui_edit_box_destroy( sgui_widget* box )
     }
 }
 
-const unsigned char* sgui_edit_box_get_text( sgui_widget* box )
+const char* sgui_edit_box_get_text( sgui_widget* box )
 {
     return box ? ((sgui_edit_box*)box)->buffer : NULL;
 }
 
-void sgui_edit_box_set_text( sgui_widget* box, const unsigned char* text )
+void sgui_edit_box_set_text( sgui_widget* box, const char* text )
 {
     unsigned int i;
     sgui_edit_box* b = (sgui_edit_box*)box;

@@ -60,15 +60,15 @@ void sgui_edit_box_destroy( sgui_widget* box );
  *
  * \return A pointer to a null-terminated UTF8 string holding the text
  */
-const unsigned char* sgui_edit_box_get_text( sgui_widget* box );
+const char* sgui_edit_box_get_text( sgui_widget* box );
 
 /**
  * \brief Set the text displayed in an edit box
  *
  * \param box  The edit box to set the text to
- * \param text The text to display in the edit box
+ * \param text The UTF8 text to display in the edit box
  */
-void sgui_edit_box_set_text( sgui_widget* box, const unsigned char* text );
+void sgui_edit_box_set_text( sgui_widget* box, const char* text );
 
 #ifdef __cplusplus
 }

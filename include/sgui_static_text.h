@@ -49,8 +49,7 @@ extern "C"
  *             switch text color. The color value "default" switches back to
  *             the default color.
  */
-sgui_widget* sgui_static_text_create( int x, int y,
-                                      const unsigned char* text );
+sgui_widget* sgui_static_text_create( int x, int y, const char* text );
 
 /** \brief Destroy a static text widget */
 void sgui_static_text_destroy( sgui_widget* widget );

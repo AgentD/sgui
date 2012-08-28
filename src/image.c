@@ -36,7 +36,7 @@ typedef struct
 {
     sgui_widget widget;
 
-    unsigned char* data;
+    void* data;
     int alpha, blend, is_mine;
 }
 sgui_image;
@@ -63,7 +63,7 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
 
 sgui_widget* sgui_image_create( int x, int y,
                                 unsigned int width, unsigned int height,
-                                const unsigned char* data, int alpha,
+                                const void* data, int alpha,
                                 int blend, int copy )
 {
     sgui_image* img;
@@ -80,7 +80,7 @@ sgui_widget* sgui_image_create( int x, int y,
     }
     else
     {
-        img->data = (unsigned char*)data;
+        img->data = (void*)data;
     }
 
     img->widget.draw_callback = sgui_image_draw;
