@@ -124,26 +124,11 @@ void sgui_skin_get_checkbox_extents( unsigned int* width,
     *height = 12;
 }
 
-void sgui_skin_get_radio_menu_extents( const char** text,
-                                       unsigned int num_lines,
-                                       unsigned int* width,
-                                       unsigned int* height )
+void sgui_skin_get_radio_button_extents( unsigned int* width,
+                                         unsigned int* height )
 {
-    unsigned int i, w;
-
-    *width  = 0;
-    *height = (font_height + 10) * num_lines;
-
-    for( i=0; i<num_lines; ++i )
-    {
-        w = sgui_font_get_text_extents_plain( font_norm, font_height, text[i],
-                                              (unsigned int)-1 );
-
-        if( w > *width )
-            *width = w;
-    }
-
-    *width += 20;
+    *width  = 20;
+    *height = 12;
 }
 
 void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
@@ -167,13 +152,6 @@ void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
 unsigned int sgui_skin_get_edit_box_height( void )
 {
     return (font_height + (font_height / 2) + 4);
-}
-
-/***************************************************************************/
-
-unsigned int sgui_skin_get_radio_menu_option_from_point( int y )
-{
-    return (y / (font_height + 10));
 }
 
 /***************************************************************************/
@@ -321,58 +299,50 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state )
     }
 }
 
-void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
-                                const char** text, unsigned int num_lines,
-                                unsigned int selected )
+void sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
+                                  int selected )
 {
-    unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned int i, dy = font_height + 10;
+    unsigned char color[4] = { 0x00, 0x00, 0x00, 0x80 };
+    unsigned int dy = font_height + 10;
     int oy = dy / 2 - 10;
 
-    for( i=0; i<num_lines; ++i, y+=dy )
+    color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
+
+    sgui_canvas_draw_box( cv, x+2, y+2+oy, 8, 8, color, SCF_RGBA8 );
+
+    sgui_canvas_draw_line( cv, x+4,  y+ 1+oy, 4, 1, color, SCF_RGBA8 );
+    sgui_canvas_draw_line( cv, x+4,  y+10+oy, 4, 1, color, SCF_RGBA8 );
+    sgui_canvas_draw_line( cv, x+1,  y+ 4+oy, 4, 0, color, SCF_RGBA8 );
+    sgui_canvas_draw_line( cv, x+10, y+ 4+oy, 4, 0, color, SCF_RGBA8 );
+
+    color[3] = 0xFF;
+
+    sgui_canvas_draw_line( cv, x+2, y+1+oy, 2, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+4, y  +oy, 4, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+8, y+1+oy, 2, 1, color, SCF_RGB8 );
+
+    sgui_canvas_draw_line( cv, x+2, y+1+oy, 2, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+4, y+  oy, 4, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+8, y+1+oy, 2, 1, color, SCF_RGB8 );
+
+    sgui_canvas_draw_line( cv, x+1, y+2+oy, 2, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x,   y+4+oy, 4, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+1, y+8+oy, 2, 0, color, SCF_RGB8 );
+
+    color[0] = color[1] = color[2] = 0xFF;
+
+    sgui_canvas_draw_line( cv, x+10, y+2+oy, 2, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+11, y+4+oy, 4, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+10, y+8+oy, 2, 0, color, SCF_RGB8 );
+
+    sgui_canvas_draw_line( cv, x+ 2, y+10+oy, 2, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+ 4, y+11+oy, 4, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+ 8, y+10+oy, 2, 1, color, SCF_RGB8 );
+
+    if( selected )
     {
-        color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
-
-        sgui_canvas_draw_box( cv, x+2, y+2+oy, 8, 8, color, SCF_RGBA8 );
-
-        sgui_canvas_draw_line( cv, x+4,  y+ 1+oy, 4, 1, color, SCF_RGBA8 );
-        sgui_canvas_draw_line( cv, x+4,  y+10+oy, 4, 1, color, SCF_RGBA8 );
-        sgui_canvas_draw_line( cv, x+1,  y+ 4+oy, 4, 0, color, SCF_RGBA8 );
-        sgui_canvas_draw_line( cv, x+10, y+ 4+oy, 4, 0, color, SCF_RGBA8 );
-
-        color[3] = 0xFF;
-
-        sgui_canvas_draw_line( cv, x+2, y+1+oy, 2, 1, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+4, y  +oy, 4, 1, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+8, y+1+oy, 2, 1, color, SCF_RGB8 );
-
-        sgui_canvas_draw_line( cv, x+2, y+1+oy, 2, 1, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+4, y+  oy, 4, 1, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+8, y+1+oy, 2, 1, color, SCF_RGB8 );
-
-        sgui_canvas_draw_line( cv, x+1, y+2+oy, 2, 0, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x,   y+4+oy, 4, 0, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+1, y+8+oy, 2, 0, color, SCF_RGB8 );
-
-        color[0] = color[1] = color[2] = 0xFF;
-
-        sgui_canvas_draw_line( cv, x+10, y+2+oy, 2, 0, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+11, y+4+oy, 4, 0, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+10, y+8+oy, 2, 0, color, SCF_RGB8 );
-
-        sgui_canvas_draw_line( cv, x+ 2, y+10+oy, 2, 1, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+ 4, y+11+oy, 4, 1, color, SCF_RGB8 );
-        sgui_canvas_draw_line( cv, x+ 8, y+10+oy, 2, 1, color, SCF_RGB8 );
-
-        if( i==selected )
-        {
-            sgui_canvas_draw_box( cv, x+4, y+3+oy, 4, 6, color, SCF_RGB8 );
-            sgui_canvas_draw_box( cv, x+3, y+4+oy, 6, 4, color, SCF_RGB8 );
-        }
-
-        sgui_canvas_draw_text_plain( cv, x+20, y, font_norm, font_height,
-                                     color, SCF_RGB8, text[ i ],
-                                     (unsigned int)-1 );
+        sgui_canvas_draw_box( cv, x+4, y+3+oy, 4, 6, color, SCF_RGB8 );
+        sgui_canvas_draw_box( cv, x+3, y+4+oy, 6, 4, color, SCF_RGB8 );
     }
 }
 

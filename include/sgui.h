@@ -40,7 +40,6 @@
 #include "sgui_edit_box.h"
 #include "sgui_image.h"
 #include "sgui_progress_bar.h"
-#include "sgui_radio_menu.h"
 #include "sgui_static_text.h"
 
 

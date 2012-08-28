@@ -5,8 +5,8 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1, *rad;
-sgui_widget *eb;
+sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
+sgui_widget *r0, *r1, *r2, *eb;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -14,13 +14,6 @@ const char* text =
     "<color=\"#FF0000\"><i>consectetuer</i> <b>adipiscing</b> elit.\n"
     "<color=\"#00FF00\"><b>Aenean <i>commodo</i> ligula <i>eget</i></b>\n"
     "<color=\"#0000FF\"><i>dolor. <b>Aenean</b> massa.</i>";
-
-const char* options[] =
-{
-    "Option 1",
-    "Option 2",
-    "Option 3"
-};
 
 
 
@@ -87,15 +80,6 @@ void window_callback( sgui_window* wnd, int type, sgui_event* e )
 
 
 
-void radio_menu_option_fun( void* object, unsigned int choice )
-{
-    (void)object;
-
-    printf( "Radio menu option %u selected\n", choice );
-}
-
-
-
 int main( void )
 {
     int a_active=1, b_active=1, x, y;
@@ -150,27 +134,28 @@ int main( void )
     p3 = sgui_progress_bar_create( 355, 10, 1, 1, 0.5f, 300 );
 
     tex = sgui_static_text_create( 10, 400, text );
-    butt = sgui_button_create(180, 100, 80, 30, "Button", SGUI_BUTTON_NORMAL);
+    butt = sgui_button_create( 180, 100, 80, 30, "Button" );
 
-
-    c0 = sgui_button_create( 180, 150, 0, 0, "Checkbox 1",
-                             SGUI_BUTTON_CHECKBOX );
-
-    c1 = sgui_button_create( 180, 175, 0, 0, "Checkbox 2",
-                             SGUI_BUTTON_CHECKBOX );
-
-    c2 = sgui_button_create( 180, 200, 0, 0, "Checkbox 3",
-                             SGUI_BUTTON_CHECKBOX );
+    c0 = sgui_checkbox_create( 180, 150, "Checkbox 1" );
+    c1 = sgui_checkbox_create( 180, 175, "Checkbox 2" );
+    c2 = sgui_checkbox_create( 180, 200, "Checkbox 3" );
 
     i0 = sgui_image_create( 10, 100, 128, 128, image, 1, 0, 0 );
     i1 = sgui_image_create( 10, 250, 128, 128, image, 1, 1, 0 );
 
-    rad = sgui_radio_menu_create( 180, 250, 3, options, 0 );
+    r0 = sgui_radio_button_create( 180, 250, "Option 1" );
+    r1 = sgui_radio_button_create( 180, 275, "Option 2" );
+    r2 = sgui_radio_button_create( 180, 300, "Option 3" );
+
+    sgui_radio_button_connect( r0, NULL,   r1 );
+    sgui_radio_button_connect( r1, r0,     r2 );
+    sgui_radio_button_connect( r2, r1,   NULL );
+
+    sgui_button_set_state( r0, 1 );
 
     eb = sgui_edit_box_create( 180, 350, 100, 100 );
 
     sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
-
 
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
@@ -183,10 +168,10 @@ int main( void )
     sgui_window_add_widget( a, p1 );
     sgui_window_add_widget( a, p2 );
     sgui_window_add_widget( a, p3 );
-    sgui_window_add_widget( a, rad );
+    sgui_window_add_widget( a, r0 );
+    sgui_window_add_widget( a, r1 );
+    sgui_window_add_widget( a, r2 );
     sgui_window_add_widget( a, eb );
-
-
 
     /*
         when the button butt triggers an SGUI_BUTTON_CLICK_EVENT, the
@@ -198,19 +183,6 @@ int main( void )
 
     sgui_widget_on_event_f( butt, SGUI_BUTTON_CLICK_EVENT,
                             sgui_progress_bar_set_progress, p3, 0.0f );
-
-
-    /*
-        when the radio menu rad triggers an SGUI_RADIO_MENU_SELECT_EVENT, the
-        function radio_menu_option_fun is called with the first parameter set
-        to NULL. The second parameter is an unsinged int, returned from
-        sgui_radio_menu_get_selection, executet on rad (i.e. first and only
-        parameter.
-     */
-    sgui_widget_on_event_ui_fun( rad, SGUI_RADIO_MENU_SELECT_EVENT,
-                                 radio_menu_option_fun, NULL,
-                                 sgui_radio_menu_get_selection, rad );
-
 
 
     while( a_active || b_active )
@@ -234,6 +206,9 @@ int main( void )
     sgui_button_destroy( c0 );
     sgui_button_destroy( c1 );
     sgui_button_destroy( c2 );
+    sgui_button_destroy( r0 );
+    sgui_button_destroy( r1 );
+    sgui_button_destroy( r2 );
 
     sgui_progress_bar_destroy( p0 );
     sgui_progress_bar_destroy( p1 );
@@ -242,8 +217,6 @@ int main( void )
 
     sgui_image_destroy( i0 );
     sgui_image_destroy( i1 );
-
-    sgui_radio_menu_destroy( rad );
 
     sgui_edit_box_destroy( eb );
 

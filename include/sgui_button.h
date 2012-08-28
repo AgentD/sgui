@@ -38,13 +38,12 @@ extern "C"
 
 
 
-#define SGUI_BUTTON_CLICK_EVENT     0
+#define SGUI_BUTTON_CLICK_EVENT        0
 
-#define SGUI_CHECKBOX_CHECK_EVENT   1
-#define SGUI_CHECKBOX_UNCHECK_EVENT 2
+#define SGUI_RADIO_BUTTON_SELECT_EVENT 1
 
-#define SGUI_BUTTON_NORMAL   0
-#define SGUI_BUTTON_CHECKBOX 1
+#define SGUI_CHECKBOX_CHECK_EVENT      2
+#define SGUI_CHECKBOX_UNCHECK_EVENT    3
 
 
 
@@ -53,17 +52,50 @@ extern "C"
  *
  * \param x      X component of the buttons position
  * \param x      Y component of the buttons position
- * \param width  The width of the button in pixels, ignored for checkboxes
- * \param height The height of the button in pixels, ignored for checkboxes
+ * \param width  The width of the button in pixels
+ * \param height The height of the button in pixels
  * \param text   UTF8 text written onto the button
- * \param type   The type of button to create (SGUI_BUTTON_NORMAL or
- *               SGUI_BUTTON_CHECKBOX)
  *
  * \return A button widget
  */
 sgui_widget* sgui_button_create( int x, int y,
                                  unsigned int width, unsigned int height,
-                                 const char* text, int type );
+                                 const char* text );
+
+/**
+ * \brief Create a checkbox button widget
+ *
+ * \param x    X component of the buttons position
+ * \param x    Y component of the buttons position
+ * \param text UTF8 text written next to the check box
+ *
+ * \return A checkbox button widget
+ */
+sgui_widget* sgui_checkbox_create( int x, int y, const char* text );
+
+/**
+ * \brief Create a radio button widget
+ *
+ * \param x      X component of the radio buttons position
+ * \param x      Y component of the radio buttons position
+ * \param text   UTF8 text written next to the button
+ *
+ * \return A radio button widget
+ */
+sgui_widget* sgui_radio_button_create( int x, int y, const char* text );
+
+/**
+ * \brief Connect radio button widgets to a radio button menu
+ *
+ * \note Radio button connections MUST NOT be circular (e.g. connecting the
+ *       last to the first)!
+ *
+ * \param radio    The radio button to connect
+ * \param previous The precceding radio button in the radio button menu
+ * \param next     The next radio button in the radio button menu
+ */
+void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
+                                sgui_widget* next );
 
 /**
  * \brief Destroy a button widget
@@ -81,7 +113,7 @@ void sgui_button_destroy( sgui_widget* button );
 void sgui_button_set_text( sgui_widget* button, const char* text );
 
 /**
- * \brief Set the state of a checkbox button
+ * \brief Set the state of a checkbox or radio button
  *
  * \param button The button to alter.
  * \param state  Non-zero for checked, zero for unchecked

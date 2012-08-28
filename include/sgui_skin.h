@@ -101,17 +101,13 @@ void sgui_skin_get_checkbox_extents( unsigned int* width,
                                      unsigned int* height );
 
 /**
- * \brief Predict the size of a radio menu when rendered
+ * \brief Predict the size of a radio button when rendered
  *
- * \param text      The UTF8 options of the menu.
- * \param num_lines The number of options.
- * \param width     Returns the width of the menu.
- * \param height    Returns the height of the menu.
+ * \param width  Returns the width of the radio button.
+ * \param height Returns the height of the radio button.
  */
-void sgui_skin_get_radio_menu_extents( const char** text,
-                                       unsigned int num_lines,
-                                       unsigned int* width,
-                                       unsigned int* height );
+void sgui_skin_get_radio_button_extents( unsigned int* width,
+                                         unsigned int* height );
 
 /**
  * \brief Predict the size of a radio menu when rendered
@@ -130,16 +126,6 @@ void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
 /** \brief Get the default height of an edit box */
 unsigned int sgui_skin_get_edit_box_height( void );
 
-
-
-/**
- * \brief Gets a radio menu option index from a point
- *
- * \param y Distance from the top of the radio menu
- *
- * \return The index of the radion menu option at that distance
- */
-unsigned int sgui_skin_get_radio_menu_option_from_point( int y );
 
 
 /**
@@ -189,19 +175,15 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state );
 /**
  * \brief Draw a radio menu onto a canvas
  *
- * \param cv        The canvas to draw to.
- * \param x         Distance from the left of the menu to the left of the
- *                  window.
- * \param y         Distance from the top of the menu to the top of the
- *                  window.
- * \param text      The UTF8 options of the menu.
- * \param num_lines The number of options.
- * \param selected  The option selected.
+ * \param cv       The canvas to draw to.
+ * \param x        Distance from the left of the radio button to the left of
+ *                 the canvas.
+ * \param y        Distance from the top of the radio button to the top of
+ *                 the canvas.
+ * \param selected Whether the radio button is selected or not
  */
-void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
-                                const char** text,
-                                unsigned int num_lines,
-                                unsigned int selected );
+void sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
+                                  int selected );
 
 /**
  * \brief Draw an edit box onto a canvas
