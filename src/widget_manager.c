@@ -123,14 +123,13 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
 }
 
 int sgui_widget_manager_update( sgui_widget_manager* mgr,
-                                sgui_window* wnd )
+                                sgui_canvas* cv )
 {
     unsigned int i, w, h;
     int x, y, redraw = 0;
     unsigned char rgb[3];
-    sgui_canvas* cv;
 
-    if( !mgr || !wnd )
+    if( !mgr || !cv )
         return 0;
 
     for( i=0; i<mgr->num_widgets; ++i )
@@ -144,27 +143,32 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
             sgui_widget_get_position( mgr->widgets[i], &x, &y );
             sgui_widget_get_size( mgr->widgets[i], &w, &h );
 
-            cv = sgui_window_get_canvas( wnd );
             sgui_skin_get_window_background_color( rgb );
             sgui_canvas_draw_box( cv, x, y, w, h, rgb, SCF_RGB8 );
 
-            sgui_widget_send_window_event( mgr->widgets[i], wnd,
-                                           SGUI_DRAW_EVENT, NULL );
+            sgui_widget_draw( mgr->widgets[i], cv );
         }
     }
 
     return redraw;
 }
 
-void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
-                                     sgui_window* wnd, int event,
-                                     sgui_event* e )
+void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
 {
-    unsigned int i, w, h;
-    int x, y;
+    unsigned int i;
+
+    if( !mgr || !cv )
+        return;
+
+    for( i=0; i<mgr->num_widgets; ++i )
+        sgui_widget_draw( mgr->widgets[i], cv );
+}
+
+void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
+                                            int event, sgui_event* e )
+{
+    unsigned int i;
     sgui_widget* new_mouse_over = NULL;
-    unsigned char rgb[3];
-    sgui_canvas* cv;
 
     if( !mgr )
         return;
@@ -189,7 +193,7 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
             /* send mouse enter event to new one */
             if( new_mouse_over )
             {
-                sgui_widget_send_window_event( new_mouse_over, wnd,
+                sgui_widget_send_window_event( new_mouse_over,
                                                SGUI_MOUSE_ENTER_EVENT,
                                                NULL );
             }
@@ -197,7 +201,7 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
             /* send mouse leave event to old one */
             if( mgr->mouse_over )
             {
-                sgui_widget_send_window_event( mgr->mouse_over, wnd,
+                sgui_widget_send_window_event( mgr->mouse_over,
                                                SGUI_MOUSE_LEAVE_EVENT,
                                                NULL );
             }
@@ -215,16 +219,16 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
          */
         if( mgr->mouse_over )
         {
-            sgui_widget_send_window_event( mgr->mouse_over, wnd, event, e );
+            sgui_widget_send_window_event( mgr->mouse_over, event, e );
 
             if( mgr->focus != mgr->mouse_over )
             {
                 if( mgr->focus )
-                    sgui_widget_send_window_event( mgr->focus, wnd,
+                    sgui_widget_send_window_event( mgr->focus,
                                                    SGUI_FOCUS_LOSE_EVENT,
                                                    NULL );
 
-                sgui_widget_send_window_event( mgr->mouse_over, wnd,
+                sgui_widget_send_window_event( mgr->mouse_over,
                                                SGUI_FOCUS_EVENT, NULL );
 
                 mgr->focus = mgr->mouse_over;
@@ -233,7 +237,7 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
         else
         {
             if( mgr->focus )
-                sgui_widget_send_window_event( mgr->focus, wnd,
+                sgui_widget_send_window_event( mgr->focus,
                                                SGUI_FOCUS_LOSE_EVENT, NULL );
 
             mgr->focus = NULL;
@@ -244,26 +248,13 @@ void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
     {
         /* only send keyboard events to the widget that has focus */
         if( mgr->focus )
-            sgui_widget_send_window_event( mgr->focus, wnd, event, e );
+            sgui_widget_send_window_event( mgr->focus, event, e );
     }
     else
     {
         /* propagate all other events */
         for( i=0; i<mgr->num_widgets; ++i )
-        {
-            if( event == SGUI_DRAW_EVENT )
-            {
-                sgui_widget_get_position( mgr->widgets[i], &x, &y );
-                sgui_widget_get_size( mgr->widgets[i], &w, &h );
-
-                cv = sgui_window_get_canvas( wnd );
-                sgui_skin_get_window_background_color( rgb );
-                sgui_canvas_draw_box( cv, x, y, w, h, rgb, SCF_RGB8 );
-            }
-
-            sgui_widget_send_window_event( mgr->widgets[i], wnd,
-                                           event, e );
-        }
+            sgui_widget_send_window_event( mgr->widgets[i], event, e );
     }
 }
 

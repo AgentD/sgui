@@ -234,7 +234,7 @@ unsigned int sgui_skin_get_radio_menu_option_from_point( int y )
 
 /***************************************************************************/
 
-void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
+void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
                                   unsigned int length, int vertical,
                                   int style, float value )
 {
@@ -243,7 +243,6 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
     unsigned int segments, i, ww = vertical ? 30 : length;
     unsigned int wh = vertical ? length : 30;
     unsigned int width, height;
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
 
     /* draw background box */
     color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
@@ -325,12 +324,11 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
     }
 }
 
-void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
+void sgui_skin_draw_button( sgui_canvas* cv, int x, int y, int state,
                             unsigned int width, unsigned int text_w,
                             unsigned int height, const unsigned char* text )
 {
     unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
 
     color[0] = color[1] = color[2] = state ? 0x00 : 0xFF;
     sgui_canvas_draw_line( cv, x, y, width, 1, color, SCF_RGB8 );
@@ -350,24 +348,20 @@ void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
                                  0xFFFF );
 }
 
-void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
-                          unsigned int width, const unsigned char* text )
+void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
+                          const unsigned char* text )
 {
     unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
-
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
 
     sgui_canvas_draw_text( cv, x, y, font_norm, font_bold, font_ital,
                            font_boit, font_height, color, SCF_RGB8, text );
 }
 
-void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
-                              unsigned int text_w, const unsigned char* text,
-                              int state )
+void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
+                              const unsigned char* text, int state )
 {
     unsigned char color[4] = { 0x00, 0x00, 0x00, 0x80 };
     int oy = font_height > 12 ? font_height/2-6 : 0;
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
 
     sgui_canvas_draw_box( cv, x, y+oy, 12, 12, color, SCF_RGBA8 );
 
@@ -400,15 +394,14 @@ void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
     }
 }
 
-void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
+void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
                                 const unsigned char** text,
-                                unsigned int num_lines, unsigned int selected,
-                                unsigned int width, unsigned int height )
+                                unsigned int num_lines,
+                                unsigned int selected )
 {
     unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     unsigned int i, dy = font_height + 10;
     int oy = dy / 2 - 10;
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
 
     for( i=0; i<num_lines; ++i, y+=dy )
     {
@@ -458,13 +451,12 @@ void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
     }
 }
 
-void sgui_skin_draw_edit_box( sgui_window* wnd, int x, int y,
+void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
                               const unsigned char* text,
                               unsigned int width, int cursor )
 {
     unsigned char color[4];
     unsigned int height, cx;
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
 
     height = font_height + (font_height / 2) + 4;
 

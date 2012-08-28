@@ -39,6 +39,7 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->width                 = width;
     widget->height                = height;
     widget->need_redraw           = 1;
+    widget->draw_callback         = NULL;
     widget->update_callback       = NULL;
     widget->window_event_callback = NULL;
 
@@ -123,11 +124,17 @@ void sgui_widget_update( sgui_widget* widget )
         widget->update_callback( widget );
 }
 
-void sgui_widget_send_window_event( sgui_widget* widget, sgui_window* wnd,
-                                    int type, sgui_event* event )
+void sgui_widget_send_window_event( sgui_widget* widget, int type,
+                                    sgui_event* event )
 {
     if( widget && widget->window_event_callback )
-        widget->window_event_callback( widget, wnd, type, event );
+        widget->window_event_callback( widget, type, event );
+}
+
+void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv )
+{
+    if( widget && widget->draw_callback )
+        widget->draw_callback( widget, cv );
 }
 
 int sgui_widget_need_redraw( sgui_widget* widget )

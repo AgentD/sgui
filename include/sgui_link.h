@@ -25,18 +25,10 @@
 #ifndef SGUI_SIGNALS_H
 #define SGUI_SIGNALS_H
 
-
-
-#include "sgui_predef.h"
-
-
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-
 
 typedef enum
 {
@@ -77,6 +69,10 @@ sgui_variant;
 
 
 
+typedef struct sgui_link_list sgui_link_list;
+
+
+
 /**
  * \brief Create a list of links
  *
@@ -110,8 +106,6 @@ void sgui_link_list_add( sgui_link_list* list, int event, void* function,
  *              the registered arguments.
  */
 void sgui_link_list_process( sgui_link_list* list, int event );
-
-
 
 #ifdef __cplusplus
 }

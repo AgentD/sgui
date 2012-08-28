@@ -28,6 +28,7 @@
 
 
 #include "sgui_widget.h"
+#include "sgui_link.h"
 
 
 
@@ -47,6 +48,15 @@ struct sgui_widget
     sgui_link_list* links;
 
     /**
+     * \brief Callback that is called to draw a widget
+     *
+     * \param widget A pointer to the widget to update (for C++
+     *               people: practically a this pointer).
+     * \param cv     A pointer to a canvas to draw to.
+     */
+    void (* draw_callback )( sgui_widget* widget, sgui_canvas* cv );
+
+    /**
      * \brief Callback that is called to update a widget
      *
      * \param widget A pointer to the widget to update (for C++
@@ -59,12 +69,11 @@ struct sgui_widget
      *
      * \param widget A pointer to the widget to update (for C++
      *               people: practically a this pointer).
-     * \param wnd    The window that sent the event
      * \param type   The event type.
      * \param event  The window event that occoured.
      */
-    void (* window_event_callback )( sgui_widget* widget, sgui_window* wnd,
-                                     int type, sgui_event* event );
+    void (* window_event_callback )( sgui_widget* widget, int type,
+                                     sgui_event* event );
 };
 
 

@@ -56,8 +56,6 @@
 #define SGUI_FOCUS_EVENT             13
 #define SGUI_FOCUS_LOSE_EVENT        14
 
-#define SGUI_DRAW_EVENT              15
-
 
 
 typedef union

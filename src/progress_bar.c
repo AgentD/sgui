@@ -45,17 +45,12 @@ sgui_progress_bar;
 
 
 
-void sgui_progress_bar_on_event( sgui_widget* widget, sgui_window* wnd,
-                                 int type, sgui_event* event )
+void sgui_progress_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)widget;
-    (void)event;
 
-    if( type == SGUI_DRAW_EVENT )
-    {
-        sgui_skin_draw_progress_bar( wnd, widget->x, widget->y, b->length,
-                                     b->vertical, b->style, b->progress );
-    }
+    sgui_skin_draw_progress_bar( cv, widget->x, widget->y, b->length,
+                                 b->vertical, b->style, b->progress );
 }
 
 
@@ -74,11 +69,11 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 0 );
 
-    b->widget.window_event_callback = sgui_progress_bar_on_event;
-    b->vertical                     = vertical;
-    b->progress                     = progress;
-    b->style                        = style;
-    b->length                       = length;
+    b->widget.draw_callback = sgui_progress_draw;
+    b->vertical             = vertical;
+    b->progress             = progress;
+    b->style                = style;
+    b->length               = length;
 
     return (sgui_widget*)b;
 }

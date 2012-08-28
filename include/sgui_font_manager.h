@@ -25,16 +25,14 @@
 #ifndef SGUI_FONT_MANAGER_H
 #define SGUI_FONT_MANAGER_H
 
-
-
-#include "sgui_predef.h"
-
-
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+
+
+typedef struct sgui_font sgui_font;
 
 
 
@@ -125,8 +123,6 @@ void sgui_font_print( const unsigned char* text, sgui_font* font_face,
 unsigned int sgui_font_extents( const unsigned char* text,
                                 sgui_font* font_face,
                                 unsigned int height, unsigned int length );
-
-
 
 #ifdef __cplusplus
 }

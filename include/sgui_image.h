@@ -27,7 +27,7 @@
 
 
 
-#include "sgui_predef.h"
+#include "sgui_widget.h"
 
 #ifdef __cplusplus
 extern "C"

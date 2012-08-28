@@ -27,7 +27,8 @@
 
 
 
-#include "sgui_predef.h"
+#include "sgui_widget.h"
+#include "sgui_canvas.h"
 #include "sgui_event.h"
 
 
@@ -36,6 +37,10 @@
 extern "C"
 {
 #endif
+
+
+
+typedef struct sgui_widget_manager sgui_widget_manager;
 
 
 
@@ -71,26 +76,31 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
  * \brief Update all widgets managed by a widget manager
  *
  * \param mgr The widget manager
- * \param wnd The window to draw to, in case a widget needs redrawing
+ * \param cv  The canvas to draw to, in case a widget needs redrawing
  */
-int sgui_widget_manager_update( sgui_widget_manager* mgr,
-                                sgui_window* wnd );
+int sgui_widget_manager_update( sgui_widget_manager* mgr, sgui_canvas* cv );
 
 /**
- * \brief Send an event to all widgets held by a widget manager
+ * \brief Force redrawing of all widgets all widgets managed by a widget
+ *        manager
  *
- * The widget manager automatically generates mouse enter and mouse leave
- * events for the widgets that the mouse cursor crosses, using mouse move
- * events, passed to this function.
+ * \param mgr The widget manager
+ * \param cv  The canvas to draw to
+ */
+void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv );
+
+/**
+ * \brief Send a window event to all widgets held by a widget manager
+ *
+ * The widget manager automatically manages keyboard focus and generates mouse
+ * enter, mouse leave, focus and focus lost events for the widgets it holds.
  *
  * \param mgr   The widget manager
- * \param wnd   The window sending the event
  * \param event The event type to send
  * \param e     The event data to send
  */
-void sgui_widget_manager_send_event( sgui_widget_manager* mgr,
-                                     sgui_window* wnd, int event,
-                                     sgui_event* e );
+void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
+                                            int event, sgui_event* e );
 
 
 

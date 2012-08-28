@@ -45,26 +45,26 @@ sgui_button;
 
 
 
-void sgui_button_on_event( sgui_widget* widget, sgui_window* wnd,
-                           int type, sgui_event* event )
+void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
+{
+    sgui_button* b = (sgui_button*)w;
+
+    if( b->type == SGUI_BUTTON_NORMAL )
+    {
+        sgui_skin_draw_button( cv, w->x, w->y, b->state, w->width,
+                               b->text_width, w->height, b->text );
+    }
+    else
+    {
+        sgui_skin_draw_checkbox( cv, w->x, w->y, b->text, b->state );
+    }
+}
+
+void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
 
-    if( type == SGUI_DRAW_EVENT )
-    {
-        if( b->type == SGUI_BUTTON_NORMAL )
-        {
-            sgui_skin_draw_button( wnd, widget->x, widget->y, b->state,
-                                   widget->width, b->text_width,
-                                   widget->height, b->text );
-        }
-        else
-        {
-            sgui_skin_draw_checkbox( wnd, widget->x, widget->y,
-                                     b->text_width, b->text, b->state );
-        }
-    }
-    else if( b->type == SGUI_BUTTON_NORMAL )
+    if( b->type == SGUI_BUTTON_NORMAL )
     {
         if( type == SGUI_MOUSE_LEAVE_EVENT )
         {
@@ -124,6 +124,7 @@ sgui_widget* sgui_button_create( int x, int y, const unsigned char* text,
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 1 );
 
     b->widget.window_event_callback = sgui_button_on_event;
+    b->widget.draw_callback         = sgui_button_draw;
     b->text                         = malloc( len + 1 );
     b->state                        = 0;
     b->type                         = type;

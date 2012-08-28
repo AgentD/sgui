@@ -118,8 +118,18 @@ unsigned int sgui_edit_box_cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 
 
 
-void sgui_edit_box_on_event( sgui_widget* widget, sgui_window* wnd,
-                             int type, sgui_event* event )
+void sgui_edit_box_draw( sgui_widget* widget, sgui_canvas* cv )
+{
+    sgui_edit_box* b = (sgui_edit_box*)widget;
+
+    sgui_skin_draw_edit_box( cv, widget->x, widget->y,
+                             b->buffer + b->offset, widget->width,
+                             b->draw_cursor ?
+                             (int)(b->cursor-b->offset) : -1 );
+}
+
+void sgui_edit_box_on_event( sgui_widget* widget, int type,
+                             sgui_event* event )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
 
@@ -132,13 +142,6 @@ void sgui_edit_box_on_event( sgui_widget* widget, sgui_window* wnd,
     {
         b->draw_cursor = 0;
         widget->need_redraw = 1;
-    }
-    else if( type == SGUI_DRAW_EVENT )
-    {
-        sgui_skin_draw_edit_box( wnd, widget->x, widget->y,
-                                 b->buffer + b->offset, widget->width,
-                                 b->draw_cursor ?
-                                 (int)(b->cursor-b->offset) : -1 );
     }
     else if( (type == SGUI_MOUSE_RELEASE_EVENT) &&
              (event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT) &&
@@ -273,6 +276,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                sgui_skin_get_edit_box_height( ), 0 );
 
     b->widget.window_event_callback = sgui_edit_box_on_event;
+    b->widget.draw_callback         = sgui_edit_box_draw;
     b->max_chars                    = max_chars;
     b->num_entered                  = 0;
     b->end                          = 0;

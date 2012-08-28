@@ -328,7 +328,7 @@ void sgui_window_set_size( sgui_window* wnd,
     sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h,
                           rgb, SCF_RGB8 );
 
-    SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
+    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer_canvas );
 }
 
 void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
@@ -387,7 +387,7 @@ int sgui_window_update( sgui_window* wnd )
         return 0;
 
     /* update the widgets, redraw window if there was any change */
-    if( sgui_widget_manager_update( wnd->mgr, wnd ) )
+    if( sgui_widget_manager_update( wnd->mgr, wnd->back_buffer_canvas ) )
     {
         exp.type       = Expose;
         exp.serial     = 0;
@@ -542,7 +542,7 @@ int sgui_window_update( sgui_window* wnd )
             sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0,
                                   wnd->w, wnd->h, rgb, SCF_RGB8 );
 
-            SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
+            sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer_canvas );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );
@@ -589,14 +589,5 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
     return wnd ? wnd->back_buffer_canvas : NULL;
-}
-
-void sgui_window_blend_image( sgui_window* wnd, int x, int y,
-                              unsigned int width, unsigned int height,
-                              unsigned char* image )
-{
-    if( wnd )
-        sgui_canvas_blend( wnd->back_buffer_canvas, x, y, width, height,
-                           SCF_RGBA8, image );
 }
 

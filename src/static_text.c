@@ -43,14 +43,11 @@ sgui_static_text;
 
 
 
-void sgui_static_text_on_event( sgui_widget* w, sgui_window* wnd,
-                                int type, sgui_event* event )
+void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
 {
     sgui_static_text* t = (sgui_static_text*)w;
-    (void)event;
 
-    if( type == SGUI_DRAW_EVENT )
-        sgui_skin_draw_text( wnd, w->x, w->y, w->width, t->text );
+    sgui_skin_draw_text( cv, w->x, w->y, t->text );
 }
 
 
@@ -67,8 +64,8 @@ sgui_widget* sgui_static_text_create( int x, int y,
     sgui_skin_get_text_extents( text, &w, &h );
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h, 0 );
 
-    t->widget.window_event_callback = sgui_static_text_on_event;
-    t->text                         = malloc( strlen((const char*)text)+1 );
+    t->widget.draw_callback = sgui_static_text_draw;
+    t->text                 = malloc( strlen((const char*)text)+1 );
 
     strcpy( (char*)t->text, (const char*)text );
 

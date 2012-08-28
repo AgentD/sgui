@@ -27,8 +27,7 @@
 
 
 
-#include "sgui_predef.h"
-
+#include "sgui_font_manager.h"
 
 
 
@@ -48,6 +47,10 @@ typedef enum
     SCF_BGRA8
 }
 SGUI_COLOR_FORMAT;
+
+
+
+typedef struct sgui_canvas sgui_canvas;
 
 
 

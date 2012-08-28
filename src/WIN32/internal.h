@@ -84,7 +84,7 @@ struct sgui_window
 #define SEND_EVENT( wnd, event, e )\
             if( wnd->event_fun )\
                 wnd->event_fun( wnd, event, e );\
-            sgui_widget_manager_send_event( wnd->mgr, wnd, event, e );
+            sgui_widget_manager_send_window_event( wnd->mgr, event, e );
 
 
 

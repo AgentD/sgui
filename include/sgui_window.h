@@ -28,7 +28,8 @@
 
 
 #include "sgui_event.h"
-#include "sgui_predef.h"
+#include "sgui_widget.h"
+#include "sgui_canvas.h"
 
 
 
@@ -43,6 +44,10 @@ extern "C" {
 
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
+
+
+
+typedef struct sgui_window sgui_window;
 
 
 
@@ -241,20 +246,6 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
 /** \brief Get a pointer to the back buffer canvas object of the window */
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 
-
-/**
- * \brief Alpha blend an image onto a window
- *
- * \param wnd    The window to blit the image onto
- * \param x      Distance of the left of the image from the left of the window
- * \param y      Distance of the top of the image from the top of the window
- * \param width  Width of the image in pixels
- * \param height Height of the image in pixels
- * \param image  RGBA image data
- */
-void sgui_window_blend_image( sgui_window* wnd, int x, int y,
-                              unsigned int width, unsigned int height,
-                              unsigned char* image );
 
 
 #ifdef __cplusplus

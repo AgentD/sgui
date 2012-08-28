@@ -173,7 +173,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* redraw everything */
-        SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
+        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
         break;
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
@@ -442,7 +442,7 @@ void sgui_window_set_size( sgui_window* wnd,
                               rgb, SCF_RGB8 );
 
         /* redraw everything */
-        SEND_EVENT( wnd, SGUI_DRAW_EVENT, NULL );
+        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
     }
 }
 
@@ -518,7 +518,7 @@ int sgui_window_update( sgui_window* wnd )
         return 0;
 
     /* update the widgets, redraw window if there was any change */
-    if( sgui_widget_manager_update( wnd->mgr, wnd ) )
+    if( sgui_widget_manager_update( wnd->mgr, wnd->back_buffer ) )
     {
         SetRect( &r, 0, 0, wnd->w-1, wnd->h-1 );
         InvalidateRect( wnd->hWnd, &r, TRUE );
@@ -558,14 +558,5 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
     return wnd ? wnd->back_buffer : NULL;
-}
-
-void sgui_window_blend_image( sgui_window* wnd, int x, int y,
-                              unsigned int width, unsigned int height,
-                              unsigned char* image )
-{
-    if( wnd )
-        sgui_canvas_blend( wnd->back_buffer, x, y, width, height,
-                           SCF_RGBA8, image );
 }
 

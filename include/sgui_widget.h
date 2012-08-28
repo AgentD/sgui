@@ -27,8 +27,7 @@
 
 
 
-#include "sgui_window.h"
-#include "sgui_predef.h"
+#include "sgui_canvas.h"
 #include "sgui_event.h"
 
 
@@ -36,6 +35,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+
+typedef struct sgui_widget sgui_widget;
 
 
 
@@ -105,12 +108,21 @@ void sgui_widget_update( sgui_widget* widget );
  * interact with user input.
  *
  * \param widget The widget to send the event to
- * \param wnd    The window that sent the event
  * \param type   The event type
  * \param event  The event to send
  */
-void sgui_widget_send_window_event( sgui_widget* widget, sgui_window* wnd,
-                                    int type, sgui_event* event );
+void sgui_widget_send_window_event( sgui_widget* widget, int type,
+                                    sgui_event* event );
+
+/**
+ * \brief Draw a widget
+ *
+ * This is called to draw a widget onto a canvas.
+ *
+ * \param widget The widget to update.
+ * \param cv     The canvas to draw to.
+ */
+void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv );
 
 /**
  * \brief Returns non-zero if a widget needs to be redrawn
@@ -231,8 +243,8 @@ void sgui_widget_on_event_i_fun( sgui_widget* widget, int event,
  * \param get_object   The object to execute get_callback on.
  */
 void sgui_widget_on_event_ui_fun( sgui_widget* widget, int event,
-                                 void* callback, void* object,
-                                 void* get_callback, void* get_object );
+                                  void* callback, void* object,
+                                  void* get_callback, void* get_object );
 
 
 

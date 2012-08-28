@@ -43,21 +43,23 @@ sgui_radio_menu;
 
 
 
-void sgui_radio_menu_on_event( sgui_widget* widget, sgui_window* wnd,
-                               int type, sgui_event* event )
+void sgui_radio_menu_draw( sgui_widget* widget, sgui_canvas* cv )
+{
+    sgui_radio_menu* m = (sgui_radio_menu*)widget;
+
+    sgui_skin_draw_radio_menu( cv, widget->x, widget->y,
+                               (const unsigned char**)m->options,
+                               m->num_options, m->selected );
+}
+
+void sgui_radio_menu_on_event( sgui_widget* widget, int type,
+                               sgui_event* event )
 {
     sgui_radio_menu* m = (sgui_radio_menu*)widget;
     int y;
     unsigned int i;
 
-    if( type == SGUI_DRAW_EVENT )
-    {
-        sgui_skin_draw_radio_menu( wnd, widget->x, widget->y,
-                                   (const unsigned char**)m->options,
-                                   m->num_options, m->selected,
-                                   widget->width, widget->height );
-    }
-    else if( type == SGUI_MOUSE_RELEASE_EVENT )
+    if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
         if( event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT )
         {
@@ -94,6 +96,7 @@ sgui_widget* sgui_radio_menu_create( int x, int y, unsigned int num_options,
     sgui_internal_widget_init( (sgui_widget*)m, x, y, w, h, 1 );
 
     m->widget.window_event_callback = sgui_radio_menu_on_event;
+    m->widget.draw_callback         = sgui_radio_menu_draw;
 
     m->options     = malloc( sizeof(unsigned char*) * num_options );
     m->num_options = num_options;

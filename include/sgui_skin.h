@@ -27,7 +27,9 @@
 
 
 
-#include "sgui_predef.h"
+#include "sgui_canvas.h"
+#include "sgui_font_manager.h"
+#include "sgui_widget.h"
 
 
 
@@ -163,9 +165,9 @@ unsigned int sgui_skin_get_radio_menu_option_from_point( int y );
 
 
 /**
- * \brief Draw a progress bar onto a window
+ * \brief Draw a progress bar onto a canvas
  *
- * \param wnd      The window to draw to.
+ * \param cv       The canvas to draw to.
  * \param x        The distance from the left side of the bar to the left of
  *                 the window.
  * \param y        The distance from the top of the bar to the top of
@@ -175,14 +177,14 @@ unsigned int sgui_skin_get_radio_menu_option_from_point( int y );
  * \param style    The style of the bar (stippled or continuous).
  * \param value    The progress value to indicate (value between 0.0 and 1.0).
  */
-void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
+void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
                                   unsigned int length, int vertical,
                                   int style, float value );
 
 /**
- * \brief Draw a button widget onto a window
+ * \brief Draw a button widget onto a canvas
  *
- * \param wnd    The window to draw to.
+ * \param cv     The canvas to draw to.
  * \param x      The distance from the left side of the button to the left of
  *               the window.
  * \param y      The distance from the top of the button to the top of
@@ -194,44 +196,42 @@ void sgui_skin_draw_progress_bar( sgui_window* wnd, int x, int y,
  *               pressed.
  * \param text   UTF8 text to print onto the button.
  */
-void sgui_skin_draw_button( sgui_window* wnd, int x, int y, int state,
+void sgui_skin_draw_button( sgui_canvas* cv, int x, int y, int state,
                             unsigned int width, unsigned int text_w,
                             unsigned int height, const unsigned char* text );
 
 /**
- * \brief Draw a text onto a window
+ * \brief Draw a text onto a canvas
  *
- * \param wnd   The window to draw to.
+ * \param cv    The canvas to draw to.
  * \param x     Distance from the left of the text to the left of the window.
  * \param y     Distance from the top of the text to the top of the window.
- * \param width Width of the longest line in pixels.
  * \param text  The UTF8 text to print. The LF ('\n') character can be used
  *              for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
  *              text bold or italic. A \<color="#RRGGBB"\> tag can be used to
  *              switch text color, where the value "default" for color switches
  *              back to default color.
  */
-void sgui_skin_draw_text( sgui_window* wnd, int x, int y,
-                          unsigned int width, const unsigned char* text );
+void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
+                          const unsigned char* text );
 
 /**
- * \brief Draw a text onto a window
+ * \brief Draw a text onto a canvas
  *
- * \param wnd    The window to draw to.
+ * \param cv     The canvas to draw to.
  * \param x      Distance from the left of the box to the left of the window.
  * \param y      Distance from the top of the box to the top of the window.
  * \param text_w Width of the text string in pixels.
  * \param text   The UTF8 text to print onto the checkbox.
  * \param state  Non-zero if the checkbox is checked.
  */
-void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
-                              unsigned int text_w, const unsigned char* text,
-                              int state );
+void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
+                              const unsigned char* text, int state );
 
 /**
- * \brief Draw a radio menu onto a window
+ * \brief Draw a radio menu onto a canvas
  *
- * \param wnd       The window to draw to.
+ * \param cv        The canvas to draw to.
  * \param x         Distance from the left of the menu to the left of the
  *                  window.
  * \param y         Distance from the top of the menu to the top of the
@@ -239,18 +239,16 @@ void sgui_skin_draw_checkbox( sgui_window* wnd, int x, int y,
  * \param text      The UTF8 options of the menu.
  * \param num_lines The number of options.
  * \param selected  The option selected.
- * \param width     The width of the menu.
- * \param height    The height of the menu.
  */
-void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
+void sgui_skin_draw_radio_menu( sgui_canvas* cv, int x, int y,
                                 const unsigned char** text,
-                                unsigned int num_lines, unsigned int selected,
-                                unsigned int width, unsigned int height );
+                                unsigned int num_lines,
+                                unsigned int selected );
 
 /**
- * \brief Draw an edit box
+ * \brief Draw an edit box onto a canvas
  *
- * \param wnd    The window to draw to
+ * \param cv     The canvas to draw to.
  * \param x      Distance from the left of the box to the left of the window.
  * \param y      Distance from the top of the box to the top of the window.
  * \param text   The text to render into the edit box
@@ -258,7 +256,7 @@ void sgui_skin_draw_radio_menu( sgui_window* wnd, int x, int y,
  * \param cursor Character index (UTF8!!) of the cursor or -1 to not draw a
  *               cursor at all.
  */
-void sgui_skin_draw_edit_box( sgui_window* wnd, int x, int y,
+void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
                               const unsigned char* text,
                               unsigned int width, int cursor );
 

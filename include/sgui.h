@@ -34,7 +34,6 @@
 #include "sgui_link.h"
 #include "sgui_skin.h"
 #include "sgui_window.h"
-#include "sgui_predef.h"
 
 #include "sgui_widget.h"
 #include "sgui_widget_manager.h"

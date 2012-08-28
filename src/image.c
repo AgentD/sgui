@@ -43,27 +43,21 @@ sgui_image;
 
 
 
-void sgui_image_on_event( sgui_widget* widget, sgui_window* wnd,
-                          int type, sgui_event* event )
+void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_image* img = (sgui_image*)widget;
-    sgui_canvas* cv = sgui_window_get_canvas( wnd );
-    (void)event;
 
-    if( type == SGUI_DRAW_EVENT )
+    if( img->blend )
     {
-        if( img->blend )
-        {
-            sgui_canvas_blend( cv, widget->x, widget->y,
-                               widget->width, widget->height, SCF_RGBA8,
-                               img->data );
-        }
-        else
-        {
-            sgui_canvas_blit( cv, widget->x, widget->y,
-                              widget->width, widget->height,
-                              img->alpha ? SCF_RGBA8 : SCF_RGB8, img->data );
-        }
+        sgui_canvas_blend( cv, widget->x, widget->y,
+                           widget->width, widget->height, SCF_RGBA8,
+                           img->data );
+    }
+    else
+    {
+        sgui_canvas_blit( cv, widget->x, widget->y,
+                          widget->width, widget->height,
+                          img->alpha ? SCF_RGBA8 : SCF_RGB8, img->data );
     }
 }
 
@@ -89,7 +83,7 @@ sgui_widget* sgui_image_create( int x, int y,
         img->data = (unsigned char*)data;
     }
 
-    img->widget.window_event_callback = sgui_image_on_event;
+    img->widget.draw_callback = sgui_image_draw;
     img->alpha = alpha;
     img->blend = blend && alpha;
     img->is_mine = copy;
