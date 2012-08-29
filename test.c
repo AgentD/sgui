@@ -88,7 +88,6 @@ int main( void )
     sgui_font* font_italic;
     sgui_font* font_bold_italic;
 
-    sgui_font_init( );
     sgui_skin_init( );
 
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
@@ -226,7 +225,6 @@ int main( void )
     sgui_font_destroy( font );
 
     sgui_skin_deinit( );
-    sgui_font_deinit( );
 
     return 0;
 }

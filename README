@@ -18,21 +18,16 @@
   What's the status?
   ******************
 
-  At the moment, the library is not really useful, with the possible
-  exception for ripping the code apart and using it in similar works.
-
   There are working Xlib and WinDOS back ends that basically mange a window,
-  handle input and display an in memory back buffer on request and have an API
-  to draw/blit to the back buffer.
+  handle input and display a memory back buffer on request.
 
-  There is a widget manager that receives input and manages widgets (duh) with
-  a few widget stubs already implemented.
+  The memory back buffer of the windows is provided/handled/managed by a
+  canvas object, widgets are managed by a widget manager object.
 
-  Widget rendering is done in a centralized fashion by a skinning subsystem
-  that renders to a scratch buffer and blits it onto the window; so it is
-  possible to implement, e.g. loading GUI skins from an image file, etc...
+  Widgets render themselves using a canvas object (e.g. from a window) and
+  by using a skinning subsystem.
 
-  Font rasterisation is done using FreeType 2 directly.
+  Font rasterisation is done using FreeType 2 directly inside the canvas code.
 
   There is a signals & slots like widget intercommunication, called "links",
   i.e. one can register an arbitrary function to a widget with arguments and
@@ -40,9 +35,10 @@
   get called with the registered parameters.
 
   On my system, the library compiles without warnings with all gcc warning
-  flags set and has, according to valgrind, no memory leaks whatsoever and
-  the WinDOS port has been confirmed to work under Wine,
-  WinDOS 7 (32 & 64 Bit) and WinDOS 98 on a machine from 2005.
+  flags set and has, according to valgrind, no memory leaks (except for a
+  leak inside Xlib, or is it a valgrind bug?) and the WinDOS port has been
+  confirmed to work under Wine, WinDOS 7 (32 & 64 Bit) and WinDOS 98 on a
+  machine from 2005.
 
 
   What are your plans?
@@ -50,10 +46,11 @@
 
   Short term:
     - Add more useful widgets
-    - Make the library useful for small GUI applications
+    - Add widgets that can contain other widgets (frame, tab)
+    - Clean and improve the code
 
   Mid term:
-    - Load GUI skin and default fonts from image & config files
+    - Loadable GUI skin
     - Built in dialog boxes like message box, file open and file safe
     - Assure thread safety
     - OpenGL back end

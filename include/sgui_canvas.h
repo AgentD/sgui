@@ -52,23 +52,6 @@ typedef struct sgui_font   sgui_font;
 
 
 /**
- * \brief Initialise the font rasterisation subsystem
- *
- * \note Call this before any other sgui_font_* function!
- *
- * \return non-zero on success, zero on failure.
- */
-int sgui_font_init( void );
-
-/**
- * \brief Uninitialise the font rasterisation subsystem
- *
- * \note Call this after you're done with font rasterisation and do not call
- *       any other sgui_font_* function afterwards!
- */
-void sgui_font_deinit( void );
-
-/**
  * \brief Load a font face from a file using STDIO
  *
  * \param filename The path to the font file
