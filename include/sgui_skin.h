@@ -200,6 +200,18 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
                               const char* text,
                               unsigned int width, int cursor );
 
+/**
+ * \brief Draw a frame onto a canvas
+ *
+ * \param cv     The canvas to draw to
+ * \param x      Distance from the left of the frame to the left of the canvas
+ * \param y      Distance from the top of the frame to the top of the canvas
+ * \param width  The width of the frame
+ * \param height The height of the frame
+ */
+void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
+                           unsigned int height );
+
 
 
 #ifdef __cplusplus

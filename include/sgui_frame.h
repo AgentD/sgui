@@ -1,5 +1,5 @@
 /*
- * sgui.h
+ * sgui_frame.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,28 +22,60 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_H
-#define SGUI_H
+#ifndef SGUI_FRAME_H
+#define SGUI_FRAME_H
 
 
-
-#include "sgui_canvas.h"
-#include "sgui_event.h"
-#include "sgui_keycodes.h"
-#include "sgui_link.h"
-#include "sgui_skin.h"
-#include "sgui_window.h"
 
 #include "sgui_widget.h"
-#include "sgui_widget_manager.h"
-#include "sgui_button.h"
-#include "sgui_edit_box.h"
-#include "sgui_frame.h"
-#include "sgui_image.h"
-#include "sgui_progress_bar.h"
-#include "sgui_static_text.h"
 
 
 
-#endif /* SGUI_H */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * \brief Create a frame widget, a simple widget that can contain other
+ *        widgets
+ *
+ * \param x      The horizontal component of the frames position
+ * \param y      The vertical component of the frames position
+ * \param width  The width of the frame
+ * \param height The height of the frame
+ *
+ * \return A pointer to a new frame widget
+ */
+sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
+                                unsigned int height );
+
+/**
+ * \brief Destroy a frame widget
+ *
+ * \param frame The frame widget to destroy
+ */
+void sgui_frame_destroy( sgui_widget* frame );
+
+/**
+ * \brief Add a widget to a frame
+ *
+ * \param frame The frame to add the widget to
+ * \param w     The widget to add
+ */
+void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w );
+
+/**
+ * \brief Remove a widget from a frame
+ *
+ * \param frame The frame to remove the widget from
+ * \param w     The widget to remove
+ */
+void sgui_frame_remove_widget( sgui_widget* frame, sgui_widget* w );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SGUI_FRAME_H */
 

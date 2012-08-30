@@ -6,7 +6,7 @@
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
-sgui_widget *r0, *r1, *r2, *eb;
+sgui_widget *r0, *r1, *r2, *eb, *f;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -133,44 +133,46 @@ int main( void )
     p3 = sgui_progress_bar_create( 355, 10, 1, 1, 0.5f, 300 );
 
     tex = sgui_static_text_create( 10, 400, text );
-    butt = sgui_button_create( 180, 100, 80, 30, "Button" );
-
-    c0 = sgui_checkbox_create( 180, 150, "Checkbox 1" );
-    c1 = sgui_checkbox_create( 180, 175, "Checkbox 2" );
-    c2 = sgui_checkbox_create( 180, 200, "Checkbox 3" );
+    butt = sgui_button_create( 150, 100, 80, 30, "Button" );
 
     i0 = sgui_image_create( 10, 100, 128, 128, image, 1, 0, 0 );
     i1 = sgui_image_create( 10, 250, 128, 128, image, 1, 1, 0 );
 
-    r0 = sgui_radio_button_create( 180, 250, "Option 1" );
-    r1 = sgui_radio_button_create( 180, 275, "Option 2" );
-    r2 = sgui_radio_button_create( 180, 300, "Option 3" );
+    f = sgui_frame_create( 150, 140, 150, 250 );
+    c0 = sgui_checkbox_create( 10, 10, "Checkbox 1" );
+    c1 = sgui_checkbox_create( 10, 35, "Checkbox 2" );
+    c2 = sgui_checkbox_create( 10, 60, "Checkbox 3" );
+
+    r0 = sgui_radio_button_create( 10, 100, "Option 1" );
+    r1 = sgui_radio_button_create( 10, 125, "Option 2" );
+    r2 = sgui_radio_button_create( 10, 150, "Option 3" );
 
     sgui_radio_button_connect( r0, NULL,   r1 );
     sgui_radio_button_connect( r1, r0,     r2 );
     sgui_radio_button_connect( r2, r1,   NULL );
-
     sgui_button_set_state( r0, 1 );
 
-    eb = sgui_edit_box_create( 180, 350, 100, 100 );
+    eb = sgui_edit_box_create( 10, 200, 100, 100 );
 
     sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
 
+    sgui_frame_add_widget( f, c0 );
+    sgui_frame_add_widget( f, c1 );
+    sgui_frame_add_widget( f, c2 );
+    sgui_frame_add_widget( f, r0 );
+    sgui_frame_add_widget( f, r1 );
+    sgui_frame_add_widget( f, r2 );
+    sgui_frame_add_widget( f, eb );
+
+    sgui_window_add_widget( a, f );
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
     sgui_window_add_widget( a, i0 );
     sgui_window_add_widget( a, i1 );
-    sgui_window_add_widget( a, c0 );
-    sgui_window_add_widget( a, c1 );
-    sgui_window_add_widget( a, c2 );
     sgui_window_add_widget( a, p0 );
     sgui_window_add_widget( a, p1 );
     sgui_window_add_widget( a, p2 );
     sgui_window_add_widget( a, p3 );
-    sgui_window_add_widget( a, r0 );
-    sgui_window_add_widget( a, r1 );
-    sgui_window_add_widget( a, r2 );
-    sgui_window_add_widget( a, eb );
 
     /*
         when the button butt triggers an SGUI_BUTTON_CLICK_EVENT, the
@@ -199,6 +201,8 @@ int main( void )
         }
     }
 
+    sgui_frame_destroy( f );
+
     sgui_static_text_destroy( tex );
 
     sgui_button_destroy( butt );
@@ -216,8 +220,6 @@ int main( void )
 
     sgui_image_destroy( i0 );
     sgui_image_destroy( i1 );
-
-    sgui_edit_box_destroy( eb );
 
     sgui_font_destroy( font_bold );
     sgui_font_destroy( font_italic );

@@ -400,3 +400,19 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
     }
 }
 
+void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
+                           unsigned int height )
+{
+    unsigned char color[4] = { 0x00, 0x00, 0x00, 0x80 };
+
+    sgui_canvas_draw_box( cv, x, y, width, height, color, SCF_RGBA8 );
+
+    color[3] = 0xFF;
+    sgui_canvas_draw_line( cv, x, y, width,  1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x, y, height, 0, color, SCF_RGB8 );
+
+    color[0] = color[1] = color[2] = 0xFF;
+    sgui_canvas_draw_line( cv, x, y+height-1, width,  1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+width-1, y,  height, 0, color, SCF_RGB8 );
+}
+
