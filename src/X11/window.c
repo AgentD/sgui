@@ -121,7 +121,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
-    /** **/
+    /*********** Create an input method and context ************/
     wnd->im = XOpenIM( wnd->dpy, NULL, NULL, NULL );
 
     if( !wnd->im )
@@ -163,8 +163,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h,
-                          rgb, SCF_RGB8 );
+    sgui_canvas_set_background_color(wnd->back_buffer_canvas, rgb, SCF_RGB8);
+
+    sgui_canvas_clear( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -287,7 +288,6 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     XSizeHints hints;
     XWindowAttributes attr;
-    unsigned char rgb[3];
     char* data;
 
     if( !wnd || !width || !height )
@@ -323,10 +323,7 @@ void sgui_window_set_size( sgui_window* wnd,
                                      (char*)data, wnd->w, wnd->h, 32, 0 );
 
     /* redraw everything */
-    sgui_skin_get_window_background_color( rgb );
-
-    sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h,
-                          rgb, SCF_RGB8 );
+    sgui_canvas_clear( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h );
 
     sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer_canvas );
 }
@@ -381,7 +378,6 @@ int sgui_window_update( sgui_window* wnd )
     Status stat;
     KeySym sym;
     char* data;
-    unsigned char rgb[3];
 
     if( !wnd || !wnd->mapped )
         return 0;
@@ -537,10 +533,7 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
-            sgui_skin_get_window_background_color( rgb );
-
-            sgui_canvas_draw_box( wnd->back_buffer_canvas, 0, 0,
-                                  wnd->w, wnd->h, rgb, SCF_RGB8 );
+            sgui_canvas_clear(wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h);
 
             sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer_canvas );
             break;

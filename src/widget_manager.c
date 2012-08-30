@@ -24,7 +24,6 @@
  */
 #include "sgui_widget_manager.h"
 #include "sgui_widget.h"
-#include "sgui_skin.h"
 #include "sgui_canvas.h"
 
 #include <stdlib.h>
@@ -127,7 +126,6 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 {
     unsigned int i, w, h;
     int x, y, redraw = 0;
-    unsigned char rgb[3];
 
     if( !mgr || !cv )
         return 0;
@@ -143,8 +141,7 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
             sgui_widget_get_position( mgr->widgets[i], &x, &y );
             sgui_widget_get_size( mgr->widgets[i], &w, &h );
 
-            sgui_skin_get_window_background_color( rgb );
-            sgui_canvas_draw_box( cv, x, y, w, h, rgb, SCF_RGB8 );
+            sgui_canvas_clear( cv, x, y, w, h );
 
             sgui_widget_draw( mgr->widgets[i], cv );
         }

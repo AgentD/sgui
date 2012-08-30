@@ -36,7 +36,6 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     WCHAR c[2];
     UINT key;
     void* data;
-    unsigned char rgb[3];
 
     wnd = (sgui_window*)GET_USER_PTR( hWnd );
 
@@ -161,10 +160,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         sgui_canvas_set_raw_data( wnd->back_buffer, SCF_BGRA8, wnd->w, wnd->h,
                                   data );
 
-        sgui_skin_get_window_background_color( rgb );
-
-        sgui_canvas_draw_box( wnd->back_buffer, 0, 0, wnd->w, wnd->h,
-                              rgb, SCF_RGB8 );
+        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
         /* send size change event */
         e.size.new_width  = wnd->w;
@@ -290,9 +286,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
 
     sgui_skin_get_window_background_color( rgb );
+    sgui_canvas_set_background_color( wnd->back_buffer, rgb, SCF_RGB8 );
 
-    sgui_canvas_draw_box( wnd->back_buffer, 0, 0, wnd->w, wnd->h,
-                          rgb, SCF_RGB8 );
+    sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
     return wnd;
 }
@@ -402,7 +398,6 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
-    unsigned char rgb[3];
     void* data;
 
     if( wnd )
@@ -436,10 +431,7 @@ void sgui_window_set_size( sgui_window* wnd,
         sgui_canvas_set_raw_data( wnd->back_buffer, SCF_BGRA8, wnd->w, wnd->h,
                                   data );
 
-        sgui_skin_get_window_background_color( rgb );
-
-        sgui_canvas_draw_box( wnd->back_buffer, 0, 0, wnd->w, wnd->h,
-                              rgb, SCF_RGB8 );
+        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
         /* redraw everything */
         sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );

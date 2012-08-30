@@ -172,6 +172,28 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 
 
 /**
+ * \brief Set the background color of the canvas
+ *
+ * \param color  The background color
+ * \param format The format of the given color
+ */
+void sgui_canvas_set_background_color( sgui_canvas* canvas,
+                                       unsigned char* color,
+                                       SGUI_COLOR_FORMAT format );
+
+/**
+ * \brief Clear a rectangular region on the canvas to the background color
+ *
+ * \param x      Distance from the left of the rect to the left of the canvas
+ * \param y      Distance from the top of the rect to the top of the canvas
+ * \param width  Width of the rectangular area
+ * \param height Height of the rectangular area
+ */
+void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
+                        unsigned int width, unsigned int height );
+
+
+/**
  * \brief Set the scissor rect of a canvas
  *
  * Rendering to a canvas is only allowed inside the scissor rect, everything
@@ -188,6 +210,21 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
  */
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                                    unsigned int width, unsigned int height );
+
+/**
+ * \brief Get the position and size of the currently set scissor rect of a
+ *        canvas
+ *
+ * \param x      Returns the distance from the left of the scissor rect to the
+ *               left of the canvas.
+ * \param y      Returns distance from the top of the scissor rect to the
+ *               top of the canvas.
+ * \param width  Returns the width of the scissor rect.
+ * \param height Returns the height of the scissor rect.
+ */
+void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, int* x, int* y,
+                                   unsigned int* width,
+                                   unsigned int* height );
 
 /**
  * \brief Blit an image onto a canvas

@@ -47,6 +47,8 @@ struct sgui_canvas
     unsigned int bpp;
     int own_buffer;
 
+    unsigned char bg_color[3];
+
     int sx, sy, sex, sey;
 };
 
@@ -475,6 +477,72 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 
 
 
+void sgui_canvas_set_background_color( sgui_canvas* canvas,
+                                       unsigned char* color,
+                                       SGUI_COLOR_FORMAT format )
+{
+    if( canvas && color )
+    {
+        if( ((format==SCF_RGB8 || format==SCF_RGBA8) &&
+             (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
+            ((format==SCF_BGR8 || format==SCF_BGRA8) &&
+             (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+        {
+            canvas->bg_color[0] = color[0];
+            canvas->bg_color[1] = color[1];
+            canvas->bg_color[2] = color[2];
+        }
+        else
+        {
+            canvas->bg_color[0] = color[2];
+            canvas->bg_color[1] = color[1];
+            canvas->bg_color[2] = color[0];
+        }
+    }
+}
+
+void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
+                        unsigned int width, unsigned int height )
+{
+    unsigned int i, j;
+    unsigned char R, G, B, *dst, *row;
+
+    if( !canvas || x>canvas->sex || y>canvas->sey )
+        return;
+
+    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
+        return;
+
+    /* adjust parameters to only draw visible portion */
+    if( y<canvas->sy ) { height -= canvas->sy-y; y = canvas->sy; }
+    if( x<canvas->sx ) { width  -= canvas->sx-x; x = canvas->sx; }
+
+    if( (y+((int)height-1)) > canvas->sey )
+        height = canvas->sey - y;
+
+    if( (x+((int)width-1)) > canvas->sex )
+        width = canvas->sex - x;
+
+    dst = (unsigned char*)canvas->data + (y*canvas->width+x)*canvas->bpp;
+
+    /* clear */
+    R = canvas->bg_color[0];
+    G = canvas->bg_color[1];
+    B = canvas->bg_color[2];
+
+    for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp )
+    {
+        for( row=dst, i=0; i<width; ++i, row+=canvas->bpp )
+        {
+            row[0] = R;
+            row[1] = G;
+            row[2] = B;
+        }
+    }
+}
+
+
+
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                                    unsigned int width, unsigned int height )
 {
@@ -506,6 +574,19 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
             canvas->sex = canvas->width  ? (canvas->width -1) : 0;
             canvas->sey = canvas->height ? (canvas->height-1) : 0;
         }
+    }
+}
+
+void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, int* x, int* y,
+                                   unsigned int* width,
+                                   unsigned int* height )
+{
+    if( canvas )
+    {
+        if( x      ) *x      = canvas->sx;
+        if( y      ) *y      = canvas->sy;
+        if( width  ) *width  = canvas->sex - canvas->sx;
+        if( height ) *height = canvas->sey - canvas->sy;
     }
 }
 
