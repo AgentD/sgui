@@ -37,6 +37,7 @@ struct sgui_widget_manager
     sgui_widget** widgets;
     unsigned int num_widgets;
     unsigned int widgets_avail;
+    int clear_bg;
 };
 
 
@@ -53,6 +54,7 @@ sgui_widget_manager* sgui_widget_manager_create( void )
     mgr->focus         = NULL;
     mgr->num_widgets   = 0;
     mgr->widgets_avail = 10;
+    mgr->clear_bg      = 1;
 
     if( !mgr->widgets )
     {
@@ -70,6 +72,12 @@ void sgui_widget_manager_destroy( sgui_widget_manager* mgr )
         free( mgr->widgets );
         free( mgr );
     }
+}
+
+void sgui_widget_manager_enable_clear( sgui_widget_manager* mgr, int enable )
+{
+    if( mgr )
+        mgr->clear_bg = enable;
 }
 
 void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
@@ -121,30 +129,19 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
     }
 }
 
-int sgui_widget_manager_update( sgui_widget_manager* mgr,
-                                sgui_canvas* cv )
+int sgui_widget_manager_update( sgui_widget_manager* mgr )
 {
-    unsigned int i, w, h;
-    int x, y, redraw = 0;
+    unsigned int i, redraw = 0;
 
-    if( !mgr || !cv )
+    if( !mgr )
         return 0;
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
         sgui_widget_update( mgr->widgets[i] );
 
-        if( sgui_widget_need_redraw( mgr->widgets[i] ) )
-        {
+        if( sgui_widget_need_redraw( mgr->widgets[i], 1 ) )
             redraw = 1;
-
-            sgui_widget_get_position( mgr->widgets[i], &x, &y );
-            sgui_widget_get_size( mgr->widgets[i], &w, &h );
-
-            sgui_canvas_clear( cv, x, y, w, h );
-
-            sgui_widget_draw( mgr->widgets[i], cv );
-        }
     }
 
     return redraw;
@@ -152,13 +149,89 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr,
 
 void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
 {
-    unsigned int i;
+    unsigned int i, w, h;
+    int x, y;
 
     if( !mgr || !cv )
         return;
 
-    for( i=0; i<mgr->num_widgets; ++i )
-        sgui_widget_draw( mgr->widgets[i], cv );
+    if( mgr->clear_bg )
+    {
+        for( i=0; i<mgr->num_widgets; ++i )
+        {
+            if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) )
+            {
+                /* clear the background */
+                sgui_widget_get_position( mgr->widgets[i], &x, &y );
+                sgui_widget_get_size( mgr->widgets[i], &w, &h );
+
+                sgui_canvas_clear( cv, x, y, w, h );
+
+                /* draw the widget */
+                sgui_widget_draw( mgr->widgets[i], cv );
+            }
+        }
+    }
+    else
+    {
+        for( i=0; i<mgr->num_widgets; ++i )
+        {
+            if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) )
+                sgui_widget_draw( mgr->widgets[i], cv );
+        }
+    }
+
+    return;
+}
+
+void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
+                                     sgui_canvas* cv, int x, int y,
+                                     unsigned int w, unsigned int h )
+{
+    unsigned int i, ww, wh;
+    int wx, wy;
+
+    if( !mgr || !cv )
+        return;
+
+    sgui_canvas_set_scissor_rect( cv, x, y, w, h );
+
+    if( mgr->clear_bg )
+    {
+        for( i=0; i<mgr->num_widgets; ++i )
+        {
+            if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) )
+            {
+                /* make sure the need redraw flag is cleared */
+                sgui_widget_need_redraw( mgr->widgets[i], 0 );
+
+                /* clear the background */
+                sgui_widget_get_position( mgr->widgets[i], &wx, &wy );
+                sgui_widget_get_size( mgr->widgets[i], &ww, &wh );
+
+                sgui_canvas_clear( cv, wx, wy, ww, wh );
+
+                /* draw the widget */
+                sgui_widget_draw( mgr->widgets[i], cv );
+            }
+        }
+    }
+    else
+    {
+        for( i=0; i<mgr->num_widgets; ++i )
+        {
+            if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) )
+            {
+                /* make sure the need redraw flag is cleared */
+                sgui_widget_need_redraw( mgr->widgets[i], 0 );
+
+                /* draw the widget */
+                sgui_widget_draw( mgr->widgets[i], cv );
+            }
+        }
+    }
+
+    sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
 }
 
 void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,

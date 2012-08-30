@@ -199,7 +199,9 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
  * Rendering to a canvas is only allowed inside the scissor rect, everything
  * outside will be clipped.
  *
- * To reset the scissor rect to default, simply set all parameters to zero.
+ * Scissor rects are stackable, a new rect will be merged with the current set
+ * and the current stored on a stack, to restore the current one, simply set
+ * all parameters to zero.
  *
  * \param x      The distance from the left of the scissor rect to the
  *               left of the canvas.
@@ -225,6 +227,21 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
 void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, int* x, int* y,
                                    unsigned int* width,
                                    unsigned int* height );
+
+/**
+ * \brief Set an offset added to all drawing and scissor positions
+ *
+ * Offsets are stackable, a new offset will be added to the current one
+ * and the current stored on a stack, to restore the current one, simply call
+ * sgui_canvas_restore_offset.
+ *
+ * \param x The distance from the left of the canvas.
+ * \param y The distance from the top of the canvas.
+ */
+void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
+
+/** \brief Restores the previous offset of a canvas */
+void sgui_canvas_restore_offset( sgui_canvas* canvas );
 
 /**
  * \brief Blit an image onto a canvas

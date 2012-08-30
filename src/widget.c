@@ -137,7 +137,7 @@ void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv )
         widget->draw_callback( widget, cv );
 }
 
-int sgui_widget_need_redraw( sgui_widget* widget )
+int sgui_widget_need_redraw( sgui_widget* widget, int keep )
 {
     int result = 0;
 
@@ -145,7 +145,7 @@ int sgui_widget_need_redraw( sgui_widget* widget )
     {
         result = widget->need_redraw;
 
-        widget->need_redraw = 0;
+        widget->need_redraw = keep ? result : 0;
     }
 
     return result;

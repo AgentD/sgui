@@ -169,7 +169,8 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* redraw everything */
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
+        sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
+                                        0, 0, wnd->w, wnd->h );
         break;
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
@@ -434,7 +435,8 @@ void sgui_window_set_size( sgui_window* wnd,
         sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
         /* redraw everything */
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
+        sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
+                                        0, 0, wnd->w, wnd->h );
     }
 }
 
@@ -510,8 +512,9 @@ int sgui_window_update( sgui_window* wnd )
         return 0;
 
     /* update the widgets, redraw window if there was any change */
-    if( sgui_widget_manager_update( wnd->mgr, wnd->back_buffer ) )
+    if( sgui_widget_manager_update( wnd->mgr ) )
     {
+        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
         SetRect( &r, 0, 0, wnd->w-1, wnd->h-1 );
         InvalidateRect( wnd->hWnd, &r, TRUE );
     }

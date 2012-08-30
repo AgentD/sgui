@@ -39,6 +39,10 @@ struct sgui_font
     void* buffer;
 };
 
+
+
+#define SGUI_CANVAS_STACK_DEPTH 10
+
 struct sgui_canvas
 {
     unsigned int width, height;
@@ -49,7 +53,17 @@ struct sgui_canvas
 
     unsigned char bg_color[3];
 
-    int sx, sy, sex, sey;
+    int sx, sy, sex, sey, ox, oy;
+
+    int sc_stack_x [ SGUI_CANVAS_STACK_DEPTH ];
+    int sc_stack_y [ SGUI_CANVAS_STACK_DEPTH ];
+    int sc_stack_ex[ SGUI_CANVAS_STACK_DEPTH ];
+    int sc_stack_ey[ SGUI_CANVAS_STACK_DEPTH ];
+    unsigned int scissor_stack_pointer;
+
+    int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];
+    int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
+    unsigned int offset_stack_pointer;
 };
 
 /***************************** Helper functions *****************************/
@@ -369,6 +383,8 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
     if( format==SCF_RGBA8 || format==SCF_BGRA8 )
         bpp = 4;
 
+    memset( cv, 0, sizeof(sgui_canvas) );
+
     cv->width      = width;
     cv->height     = height;
     cv->data       = malloc( width * height * bpp );
@@ -376,8 +392,6 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
     cv->bpp        = bpp;
     cv->own_buffer = 1;
 
-    cv->sx         = 0;
-    cv->sy         = 0;
     cv->sex        = width  ? (width -1) : 0;
     cv->sey        = height ? (height-1) : 0;
 
@@ -404,15 +418,14 @@ sgui_canvas* sgui_canvas_create_use_buffer( void* buffer,
     if( format==SCF_RGBA8 || format==SCF_BGRA8 )
         bpp = 4;
 
+    memset( cv, 0, sizeof(sgui_canvas) );
+
     cv->width      = width;
     cv->height     = height;
     cv->data       = buffer;
     cv->format     = format;
     cv->bpp        = bpp;
-    cv->own_buffer = 0;
 
-    cv->sx         = 0;
-    cv->sy         = 0;
     cv->sex        = width  ? (width -1) : 0;
     cv->sey        = height ? (height-1) : 0;
 
@@ -507,7 +520,13 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
     unsigned int i, j;
     unsigned char R, G, B, *dst, *row;
 
-    if( !canvas || x>canvas->sex || y>canvas->sey )
+    if( !canvas )
+        return;
+
+    x += canvas->ox;
+    y += canvas->oy;
+
+    if( x>canvas->sex || y>canvas->sey )
         return;
 
     if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
@@ -546,33 +565,80 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                                    unsigned int width, unsigned int height )
 {
+    int sx, sy, sex, sey;
+
     if( canvas )
     {
+        x += canvas->ox;
+        y += canvas->oy;
+
         if( width && height )
         {
-            canvas->sx  = x;
-            canvas->sy  = y;
-            canvas->sex = x + width;
-            canvas->sey = y + height;
+            if( canvas->scissor_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
+                return;
 
-            if( canvas->sx < 0 )
-                canvas->sx = 0;
+            /* push current scissor rect */
+            canvas->sc_stack_x [canvas->scissor_stack_pointer] = canvas->sx;
+            canvas->sc_stack_y [canvas->scissor_stack_pointer] = canvas->sy;
+            canvas->sc_stack_ex[canvas->scissor_stack_pointer] = canvas->sex;
+            canvas->sc_stack_ey[canvas->scissor_stack_pointer] = canvas->sey;
 
-            if( canvas->sy < 0 )
-                canvas->sy = 0;
+            ++(canvas->scissor_stack_pointer);
+
+            /* merge rectangles */
+            sx = x;
+            sy = y;
+            sex = x + width;
+            sey = y + height;
+
+            if( sx<canvas->sx     ) x   = canvas->sx;
+            if( sy<canvas->sy     ) y   = canvas->sy;
+            if( sex > canvas->sex ) sex = canvas->sex;
+            if( sey > canvas->sey ) sey = canvas->sey;
+
+            /* set scissor rect */
+            canvas->sx  = sx;
+            canvas->sy  = sy;
+            canvas->sex = sex;
+            canvas->sey = sey;
+
+            /* sanity adjustments */
+            if( canvas->sx < 0 ) canvas->sx = 0;
+            if( canvas->sy < 0 ) canvas->sy = 0;
 
             if( canvas->sex>=(int)canvas->width )
                 canvas->sex = canvas->width ? (canvas->width -1) : 0;
 
             if( canvas->sey>=(int)canvas->height )
                 canvas->sey = canvas->height ? (canvas->height-1) : 0;
+
+            if( canvas->sx > canvas->sex ) canvas->sex = canvas->sx;
+            if( canvas->sy > canvas->sey ) canvas->sey = canvas->sy;
         }
         else
         {
-            canvas->sx  = 0;
-            canvas->sy  = 0;
-            canvas->sex = canvas->width  ? (canvas->width -1) : 0;
-            canvas->sey = canvas->height ? (canvas->height-1) : 0;
+            if( canvas->scissor_stack_pointer )
+            {
+                /* pop old scissor rect from stack */
+                --(canvas->scissor_stack_pointer);
+
+                sx  = canvas->sc_stack_x [ canvas->scissor_stack_pointer ];
+                sy  = canvas->sc_stack_y [ canvas->scissor_stack_pointer ];
+                sex = canvas->sc_stack_ex[ canvas->scissor_stack_pointer ];
+                sey = canvas->sc_stack_ey[ canvas->scissor_stack_pointer ];
+
+                canvas->sx  = sx;
+                canvas->sy  = sy;
+                canvas->sex = sex;
+                canvas->sey = sey;
+            }
+            else
+            {
+                canvas->sx  = 0;
+                canvas->sy  = 0;
+                canvas->sex = canvas->width  ? (canvas->width -1) : 0;
+                canvas->sey = canvas->height ? (canvas->height-1) : 0;
+            }
         }
     }
 }
@@ -590,6 +656,42 @@ void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, int* x, int* y,
     }
 }
 
+void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )
+{
+    if( canvas )
+    {
+        if( canvas->offset_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
+            return;
+
+        canvas->offset_stack_x[ canvas->offset_stack_pointer ] = canvas->ox;
+        canvas->offset_stack_y[ canvas->offset_stack_pointer ] = canvas->oy;
+
+        canvas->ox += x;
+        canvas->oy += y;
+
+        ++(canvas->offset_stack_pointer);
+    }
+}
+
+void sgui_canvas_restore_offset( sgui_canvas* canvas )
+{
+    if( canvas )
+    {
+        if( canvas->offset_stack_pointer )
+        {
+            --(canvas->offset_stack_pointer);
+
+            canvas->ox = canvas->offset_stack_x[canvas->offset_stack_pointer];
+            canvas->oy = canvas->offset_stack_y[canvas->offset_stack_pointer];
+        }
+        else
+        {
+            canvas->ox = 0;
+            canvas->oy = 0;
+        }
+    }
+}
+
 void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
                        unsigned int height, SGUI_COLOR_FORMAT format,
                        const void* data )
@@ -600,6 +702,9 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
 
     if( !canvas || !width || !height || !data )
         return;
+
+    x += canvas->ox;
+    y += canvas->oy;
 
     /* don't blit if outside the drawing area */
     if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
@@ -676,6 +781,9 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     if( format!=SCF_RGBA8 && format!=SCF_BGRA8 )
         return;
 
+    x += canvas->ox;
+    y += canvas->oy;
+
     /* don't blend outside the drawing area */
     if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
         return;
@@ -747,6 +855,9 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
 
     if( !canvas || !color )
         return;
+
+    x += canvas->ox;
+    y += canvas->oy;
 
     /* don't draw outside the drawing area */
     if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
@@ -823,6 +934,9 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 
     if( canvas )
     {
+        x += canvas->ox;
+        y += canvas->oy;
+
         if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
              (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
             ((format==SCF_BGRA8 && format==SCF_BGR8) &&
@@ -945,6 +1059,9 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
     if( !canvas || !font_face || !font_height )
         return;
 
+    x += canvas->ox;
+    y += canvas->oy;
+
     if( x>canvas->sex || y>canvas->sey )
         return;
 
@@ -1023,6 +1140,9 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
     col[0] = color[0];
     col[1] = color[1];
     col[2] = color[2];
+
+    x += canvas->ox;
+    y += canvas->oy;
 
     for( ; text && text[ i ]; ++i )
     {

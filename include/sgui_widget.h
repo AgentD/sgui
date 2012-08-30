@@ -127,15 +127,17 @@ void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv );
 /**
  * \brief Returns non-zero if a widget needs to be redrawn
  *
- * After calling, the internal state of the widget is reset, so it no longer
- * reports that it needs to be redrawn.
+ * If desired, after calling, the internal state of the widget is reset, so it
+ * no longer reports that it needs to be redrawn.
  *
  * This is called inside the sgui_window_update function to check which
  * widgets assigned to a window need to be redrawn.
  *
+ * \param keep Non-zero to keep the state of the flag, zero to reset it
+ *
  * \param widget The widget to test
  */
-int sgui_widget_need_redraw( sgui_widget* widget );
+int sgui_widget_need_redraw( sgui_widget* widget, int keep );
 
 
 

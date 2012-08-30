@@ -55,6 +55,17 @@ sgui_widget_manager* sgui_widget_manager_create( void );
 void sgui_widget_manager_destroy( sgui_widget_manager* mgr );
 
 /**
+ * \brief Enable clearing the background behind a widget: default on
+ *
+ * If clearing is enabled, the background behind a widget is cleared before
+ * rendering it. Default is enabled
+ *
+ * \param mgr    The widget manager
+ * \param enable Whether to enable clearing
+ */
+void sgui_widget_manager_enable_clear( sgui_widget_manager* mgr, int enable );
+
+/**
  * \brief Add a widget to a widget manager
  *
  * \param mgr    The widget manager
@@ -76,18 +87,33 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
  * \brief Update all widgets managed by a widget manager
  *
  * \param mgr The widget manager
- * \param cv  The canvas to draw to, in case a widget needs redrawing
+ *
+ * \return non-zero if at least one widget needs redrawing
  */
-int sgui_widget_manager_update( sgui_widget_manager* mgr, sgui_canvas* cv );
+int sgui_widget_manager_update( sgui_widget_manager* mgr );
 
 /**
- * \brief Force redrawing of all widgets all widgets managed by a widget
- *        manager
+ * \brief Redraw all widgets of a widget manager, that need a redaw
  *
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
  */
 void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv );
+
+/**
+ * \brief Force redrawing of all widgets of a widget manager, that are inside
+ *        a given area
+ *
+ * \param mgr The widget manager
+ * \param cv  The canvas to draw to
+ * \param x   The distance from the left of the canvas to the redraw area
+ * \param y   The distance from the top of the canvas to the redraw area
+ * \param w   The width of the redraw area
+ * \param h   The height of the redraw area
+ */
+void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
+                                     sgui_canvas* cv, int x, int y,
+                                     unsigned int w, unsigned int h );
 
 /**
  * \brief Send a window event to all widgets held by a widget manager
