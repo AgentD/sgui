@@ -41,6 +41,7 @@
 #include "sgui_frame.h"
 #include "sgui_image.h"
 #include "sgui_progress_bar.h"
+#include "sgui_scroll_bar.h"
 #include "sgui_static_text.h"
 
 

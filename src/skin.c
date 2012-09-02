@@ -154,6 +154,30 @@ unsigned int sgui_skin_get_edit_box_height( void )
     return (font_height + (font_height / 2) + 4);
 }
 
+void sgui_skin_get_scroll_bar_extents( int horizontal, unsigned int length,
+                                       unsigned int* width,
+                                       unsigned int* height,
+                                       unsigned int* bw, unsigned int* bh )
+{
+    *bw = *bh = 20;
+
+    if( horizontal )
+    {
+        *width = length;
+        *height = 20;
+    }
+    else
+    {
+        *width = 20;
+        *height = length;
+    }
+}
+
+unsigned int sgui_skin_get_frame_border_width( void )
+{
+    return 1;
+}
+
 /***************************************************************************/
 
 void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
@@ -407,12 +431,83 @@ void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
 
     sgui_canvas_draw_box( cv, x, y, width, height, color, SCF_RGBA8 );
 
-    color[3] = 0xFF;
     sgui_canvas_draw_line( cv, x, y, width,  1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x, y, height, 0, color, SCF_RGB8 );
 
     color[0] = color[1] = color[2] = 0xFF;
     sgui_canvas_draw_line( cv, x, y+height-1, width,  1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x+width-1, y,  height, 0, color, SCF_RGB8 );
+}
+
+void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
+                                int horizontal, unsigned int length,
+                                unsigned int p_offset, unsigned int p_length,
+                                int inc_button_state, int dec_button_state )
+{
+    unsigned char color[4] = { 0x64, 0x64, 0x64, 0xFF };
+    int i, ox=0, oy=0;
+
+    if( horizontal )
+    {
+        sgui_canvas_draw_box( cv, x+20, y, length-40, 20, color, SCF_RGB8 );
+
+        color[0] = color[1] = color[2] = 0xFF;
+
+        /* left button */
+        sgui_skin_draw_button( cv, x, y, 20, 20, dec_button_state );
+
+        ox = oy = dec_button_state ? 1 : 0;
+        ox += x + 12;
+        oy += y + 5;
+
+        for( i=0; i<6; ++i )
+            sgui_canvas_draw_line( cv, ox-i, oy+i, 11-2*i, 0,
+                                   color, SCF_RGB8 );
+
+        /* right button */
+        sgui_skin_draw_button( cv, x+length-20, y, 20, 20, inc_button_state );
+
+        ox = oy = inc_button_state ? 1 : 0;
+        ox += x+length-1-12;
+        oy += y+5;
+
+        for( i=0; i<6; ++i )
+            sgui_canvas_draw_line( cv, ox+i, oy+i, 11-2*i, 0,
+                                   color, SCF_RGB8 );
+
+        /* pane */
+        sgui_skin_draw_button( cv, x+20+p_offset, y, p_length, 20, 0 );
+    }
+    else
+    {
+        sgui_canvas_draw_box( cv, x, y+20, 20, length-40, color, SCF_RGB8 );
+
+        color[0] = color[1] = color[2] = 0xFF;
+
+        /* upper button */
+        sgui_skin_draw_button( cv, x, y, 20, 20, dec_button_state );
+
+        ox = oy = dec_button_state ? 1 : 0;
+        ox += x+5;
+        oy += y+12;
+
+        for( i=0; i<6; ++i )
+            sgui_canvas_draw_line( cv, ox+i, oy-i, 11-2*i, 1,
+                                   color, SCF_RGB8 );
+
+        /* lower button */
+        sgui_skin_draw_button( cv, x, y+length-20, 20, 20, inc_button_state );
+
+        ox = oy = inc_button_state ? 1 : 0;
+        ox += x + 5;
+        oy += y+length-1-12;
+
+        for( i=0; i<6; ++i )
+            sgui_canvas_draw_line( cv, ox+i, oy+i, 11-2*i, 1,
+                                   color, SCF_RGB8 );
+
+        /* pane */
+        sgui_skin_draw_button( cv, x, y+20+p_offset, 20, p_length, 0 );
+    }
 }
 

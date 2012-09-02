@@ -126,6 +126,25 @@ void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
 /** \brief Get the default height of an edit box */
 unsigned int sgui_skin_get_edit_box_height( void );
 
+/**
+ * \brief Get the dimensions of a scroll bar
+ *
+ * \param horizontal Whether the bar is horizontal (non-zero) or
+ *                   vertical (zero).
+ * \param length     The length of the scroll bar in pixels.
+ * \param width      Returns the width of the bar
+ * \param height     Returns the height of the bar
+ * \param bw         Returns the width of the buttons attached to the bar
+ * \param bh         Returns the height of the buttons attached to the bar
+ */
+void sgui_skin_get_scroll_bar_extents( int horizontal, unsigned int length,
+                                       unsigned int* width,
+                                       unsigned int* height,
+                                       unsigned int* bw, unsigned int* bh );
+
+/** \brief Get the width of the border around a frame */
+unsigned int sgui_skin_get_frame_border_width( void );
+
 
 
 /**
@@ -211,6 +230,12 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
  */
 void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
                            unsigned int height );
+
+void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
+                                int horizontal, unsigned int length,
+                                unsigned int p_offset,
+                                unsigned int p_length,
+                                int inc_button_state, int dec_button_state );
 
 
 

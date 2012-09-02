@@ -138,7 +138,7 @@ int main( void )
     i0 = sgui_image_create( 10, 100, 128, 128, image, 1, 0, 0 );
     i1 = sgui_image_create( 10, 250, 128, 128, image, 1, 1, 0 );
 
-    f = sgui_frame_create( 150, 140, 150, 250 );
+    f = sgui_frame_create( 150, 140, 150, 150 );
     c0 = sgui_checkbox_create( 10, 10, "Checkbox 1" );
     c1 = sgui_checkbox_create( 10, 35, "Checkbox 2" );
     c2 = sgui_checkbox_create( 10, 60, "Checkbox 3" );
@@ -204,6 +204,8 @@ int main( void )
     sgui_frame_destroy( f );
 
     sgui_static_text_destroy( tex );
+
+    sgui_edit_box_destroy( eb );
 
     sgui_button_destroy( butt );
     sgui_button_destroy( c0 );
