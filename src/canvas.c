@@ -66,6 +66,16 @@ struct sgui_canvas
     unsigned int offset_stack_pointer;
 };
 
+#define IS_OUTSIDE_SCISSOR_RECT( x, y, w, h, canvas ) \
+           ( (x)>(canvas)->sex || (y)>(canvas)->sey ||\
+            ((x)+(int)(w))<(canvas)->sx || ((y)+(int)(h))<(canvas)->sy )
+
+#define NEED_CHANNEL_SWAP( format, canvas )\
+            ((((format)==SCF_RGBA8 || (format)==SCF_RGB8) &&\
+              ((canvas)->format==SCF_BGR8 || (canvas)->format==SCF_BGRA8)) ||\
+              (((format)==SCF_BGRA8 && (format)==SCF_BGR8) &&\
+              ((canvas)->format==SCF_RGB8 || (canvas)->format==SCF_RGBA8)) )
+
 /***************************** Helper functions *****************************/
 int utf8_char_length( unsigned char c )
 {
@@ -115,23 +125,19 @@ int blend_glyph_on_canvas( sgui_canvas* canvas, unsigned char* glyph,
                            unsigned char R, unsigned char G, unsigned char B )
 {
     unsigned char A, iA, *src, *dst, *row;
-    unsigned int i, j, ds, dt;
-
-    /* don't blend if outside the drawing area */
-    if( (x+(int)w)<canvas->sx || (y+(int)h)<canvas->sy )
-        return -1;
-
-    if( x>canvas->sex || y>canvas->sey )
-        return 1;
+    unsigned int i, j, ds, dt, delta;
 
     /* adjust parameters to only blend visible portion */
     dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*canvas->bpp;
 
     if( y<canvas->sy )
     {
-        dst += (canvas->sy-y)*canvas->width*canvas->bpp;
-        glyph += (canvas->sy-y)*w;
-        y = 0;
+        delta = canvas->sy-y;
+
+        dst += delta*canvas->width*canvas->bpp;
+        glyph += delta*w;
+        h -= delta;
+        y = canvas->sy;
     }
 
     if( (y+(int)h) > canvas->sey )
@@ -142,8 +148,10 @@ int blend_glyph_on_canvas( sgui_canvas* canvas, unsigned char* glyph,
 
     if( x < canvas->sx )
     {
-        w -= canvas->sx - x;
-        glyph += canvas->sx - x;
+        delta = canvas->sx - x;
+
+        w -= delta;
+        glyph += delta;
         x = canvas->sx;
     }
 
@@ -496,10 +504,7 @@ void sgui_canvas_set_background_color( sgui_canvas* canvas,
 {
     if( canvas && color )
     {
-        if( ((format==SCF_RGB8 || format==SCF_RGBA8) &&
-             (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-            ((format==SCF_BGR8 || format==SCF_BGRA8) &&
-             (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+        if( NEED_CHANNEL_SWAP( format, canvas ) )
         {
             canvas->bg_color[0] = color[0];
             canvas->bg_color[1] = color[1];
@@ -526,10 +531,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
     x += canvas->ox;
     y += canvas->oy;
 
-    if( x>canvas->sex || y>canvas->sey )
-        return;
-
-    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
+    if( IS_OUTSIDE_SCISSOR_RECT( x, y, width, height, canvas ) )
         return;
 
     /* adjust parameters to only draw visible portion */
@@ -707,20 +709,14 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
     y += canvas->oy;
 
     /* don't blit if outside the drawing area */
-    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
-        return;
-
-    if( x>canvas->sex || y>canvas->sey )
+    if( IS_OUTSIDE_SCISSOR_RECT( x, y, width, height, canvas ) )
         return;
 
     /* color format checks */
     if( format==SCF_RGBA8 || format==SCF_BGRA8 )
         src_bpp = 4;
 
-    if( ((format==SCF_RGB8 || format==SCF_RGBA8) &&
-         (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-        ((format==SCF_BGR8 || format==SCF_BGRA8) &&
-         (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+    if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
         R = 2;
         G = 1;
@@ -785,17 +781,11 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     y += canvas->oy;
 
     /* don't blend outside the drawing area */
-    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
-        return;
-
-    if( x>canvas->sex || y>canvas->sey )
+    if( IS_OUTSIDE_SCISSOR_RECT( x, y, width, height, canvas ) )
         return;
 
     /* color format checks */
-    if( (format==SCF_RGBA8 &&
-         (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-        (format==SCF_BGRA8 &&
-         (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+    if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
         R = 2;
         G = 1;
@@ -860,17 +850,11 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
     y += canvas->oy;
 
     /* don't draw outside the drawing area */
-    if( (x+(int)width)<canvas->sx || (y+(int)height)<canvas->sy )
-        return;
-
-    if( x>canvas->sex || y>canvas->sey )
+    if( IS_OUTSIDE_SCISSOR_RECT( x, y, width, height, canvas ) )
         return;
 
     /* color format checks */
-    if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
-         (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-        ((format==SCF_BGRA8 && format==SCF_BGR8) &&
-         (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+    if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
         R = color[2];
         G = color[1];
@@ -937,10 +921,7 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
         x += canvas->ox;
         y += canvas->oy;
 
-        if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
-             (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-            ((format==SCF_BGRA8 && format==SCF_BGR8) &&
-             (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+        if( NEED_CHANNEL_SWAP( format, canvas ) )
         {
             R = color[2];
             G = color[1];
@@ -955,10 +936,10 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 
         if( horizontal )
         {
-            if( y<canvas->sy || y>canvas->sey )
+            if( y<canvas->sy || y>=canvas->sey )
                 return;
 
-            if( (x+(int)length)<canvas->sx || x>canvas->sex )
+            if( (x+(int)length)<canvas->sx || x>=canvas->sex )
                 return;
 
             if( x<canvas->sx )
@@ -997,10 +978,10 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
         }
         else
         {
-            if( x<canvas->sx || x>canvas->sex )
+            if( x<canvas->sx || x>=canvas->sex )
                 return;
 
-            if( (y+(int)length)<canvas->sy || y>canvas->sey )
+            if( (y+(int)length)<canvas->sy || y>=canvas->sey )
                 return;
 
             if( y<canvas->sy )
@@ -1065,10 +1046,7 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
     if( x>canvas->sex || y>canvas->sey )
         return;
 
-    if( ((format==SCF_RGBA8 || format==SCF_RGB8) &&
-         (canvas->format==SCF_BGR8 || canvas->format==SCF_BGRA8)) ||
-        ((format==SCF_BGRA8 && format==SCF_BGR8) &&
-         (canvas->format==SCF_RGB8 || canvas->format==SCF_RGBA8)) )
+    if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
         R = color[2];
         G = color[1];
@@ -1110,11 +1088,12 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
 
         bearing = font_height - glyph->bitmap_top;
 
-        if( blend_glyph_on_canvas( canvas, glyph->bitmap.buffer, x, y+bearing,
-                                   glyph->bitmap.width, glyph->bitmap.rows,
-                                   R, G, B ) > 0 )
+        if( !IS_OUTSIDE_SCISSOR_RECT( x, y+bearing, glyph->bitmap.width,
+                                      glyph->bitmap.rows, canvas ) )
         {
-            break;
+            blend_glyph_on_canvas( canvas, glyph->bitmap.buffer, x, y+bearing,
+                                   glyph->bitmap.width, glyph->bitmap.rows,
+                                   R, G, B );
         }
 
         x += font_face->face->glyph->bitmap.width + 1;
