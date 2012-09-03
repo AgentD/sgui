@@ -30,7 +30,7 @@
 #include "widget_internal.h"
 
 #include <stdlib.h>
-
+#include <string.h>
 
 
 typedef struct
@@ -179,8 +179,22 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                 unsigned int height )
 {
     unsigned int w, h, bw, bh;
-
     sgui_frame* f = malloc( sizeof(sgui_frame) );
+
+    if( !f )
+        return NULL;
+
+    memset( f, 0, sizeof(sgui_frame) );
+
+    f->mgr = sgui_widget_manager_create( );
+
+    if( !f->mgr )
+    {
+        free( f );
+        return NULL;
+    }
+
+    sgui_widget_manager_enable_clear( f->mgr, 0 );
 
     sgui_skin_get_scroll_bar_extents( 0, height, &w, &h, &bw, &bh );
 
@@ -189,20 +203,19 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     f->widget.draw_callback         = frame_draw;
     f->widget.update_callback       = frame_update;
     f->widget.window_event_callback = frame_on_event;
-    f->mgr                          = sgui_widget_manager_create( );
     f->border                       = sgui_skin_get_frame_border_width( );
     f->v_bar_dist                   = width - w - f->border;
-    f->draw_v_bar                   = 0;
-    f->mouse_x                      = 0;
-    f->mouse_y                      = 0;
-    f->v_bar                        = sgui_scroll_bar_create( f->v_bar_dist,
-                                                              f->border, 0,
-                                                              height-
-                                                              2*f->border,
-                                                              height,
-                                                              height );
 
-    sgui_widget_manager_enable_clear( f->mgr, 0 );
+    f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->border, 0,
+                                       height-2*f->border, height, height );
+
+    if( !f->v_bar )
+    {
+        sgui_internal_widget_deinit( (sgui_widget*)f );
+        sgui_widget_manager_destroy( f->mgr );
+        free( f );
+        return NULL;
+    }
 
     return (sgui_widget*)f;
 }

@@ -66,15 +66,22 @@ sgui_widget* sgui_image_create( int x, int y,
                                 const void* data, int alpha,
                                 int blend, int copy )
 {
-    sgui_image* img;
+    sgui_image* img = malloc( sizeof(sgui_image) );
 
-    img = malloc( sizeof(sgui_image) );
+    if( !img )
+        return NULL;
 
     sgui_internal_widget_init( (sgui_widget*)img, x, y, width, height, 0 );
 
     if( copy )
     {
         img->data = malloc( width*height*(alpha ? 4 : 3) );
+
+        if( !img->data )
+        {
+            free( img );
+            return NULL;
+        }
 
         memcpy( img->data, data, width*height*(alpha ? 4 : 3) );
     }

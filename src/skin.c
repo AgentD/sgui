@@ -110,13 +110,6 @@ unsigned int sgui_skin_default_font_extents( const char* text,
     return sgui_font_get_text_extents_plain( f, font_height, text, length );
 }
 
-void sgui_skin_get_text_extents( const char* text,
-                                 unsigned int* width, unsigned int* height )
-{
-    sgui_font_get_text_extents( font_norm, font_bold, font_ital, font_boit,
-                                font_height, text, width, height );
-}
-
 void sgui_skin_get_checkbox_extents( unsigned int* width,
                                      unsigned int* height )
 {

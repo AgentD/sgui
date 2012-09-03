@@ -65,6 +65,9 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 
     b = malloc( sizeof(sgui_progress_bar) );
 
+    if( !b )
+        return NULL;
+
     sgui_skin_get_progress_bar_extents( length, style, vertical, &w, &h );
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 0 );

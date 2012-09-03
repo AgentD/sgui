@@ -27,7 +27,7 @@
 #include "widget_internal.h"
 
 #include <stdlib.h>
-
+#include <string.h>
 
 
 typedef struct
@@ -171,6 +171,11 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     sgui_scroll_bar* b = malloc( sizeof(sgui_scroll_bar) );
     unsigned int w, h;
 
+    if( !b )
+        return NULL;
+
+    memset( b, 0, sizeof(sgui_scroll_bar) );
+
     sgui_skin_get_scroll_bar_extents( horizontal, length, &w, &h,
                                       &b->bw, &b->bh );
 
@@ -186,10 +191,6 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     b->length               = length;
     b->v_length             = disp_area_length;
     b->v_max                = scroll_area_length;
-    b->p_offset             = 0;
-    b->v_offset             = 0;
-    b->inc_button_state     = 0;
-    b->dec_button_state     = 0;
     b->p_length             = ((float)b->v_length / (float)b->v_max) *
                               (length - 2*(horizontal ? b->bw : b->bh));
 

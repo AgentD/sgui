@@ -55,7 +55,17 @@ sgui_link_list* sgui_link_list_create( void )
 
     l = malloc( sizeof(sgui_link_list) );
 
-    l->links     = malloc( sizeof(sgui_link) * 10 );
+    if( !l )
+        return NULL;
+
+    l->links = malloc( sizeof(sgui_link) * 10 );
+
+    if( !l->links )
+    {
+        free( l );
+        return NULL;
+    }
+
     l->num_links = 0;
     l->num_avail = 10;
 

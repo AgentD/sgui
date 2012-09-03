@@ -91,17 +91,35 @@ sgui_widget* sgui_group_box_create( int x, int y,
 {
     sgui_group_box* b = malloc( sizeof(sgui_group_box) );
 
+    if( !b )
+        return NULL;
+
+    b->mgr = sgui_widget_manager_create( );
+
+    if( !b->mgr )
+    {
+        free( b );
+        return NULL;
+    }
+
+    sgui_widget_manager_enable_clear( b->mgr, 0 );
+
+    b->caption = malloc( strlen( caption ) + 1 );
+
+    if( !b->caption )
+    {
+        sgui_widget_manager_destroy( b->mgr );
+        free( b );
+        return NULL;
+    }
+
+    strcpy( b->caption, caption );
+
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 0 );
 
     b->widget.draw_callback         = group_box_draw;
     b->widget.update_callback       = group_box_update;
     b->widget.window_event_callback = group_box_on_event;
-    b->mgr                          = sgui_widget_manager_create( );
-
-    b->caption = malloc( strlen( caption ) + 1 );
-    strcpy( b->caption, caption );
-
-    sgui_widget_manager_enable_clear( b->mgr, 0 );
 
     return (sgui_widget*)b;
 

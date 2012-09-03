@@ -76,6 +76,21 @@ struct sgui_canvas
               (((format)==SCF_BGRA8 && (format)==SCF_BGR8) &&\
               ((canvas)->format==SCF_RGB8 || (canvas)->format==SCF_RGBA8)) )
 
+#define HAS_ALPHA_CHANNEL( f ) ((f)==SCF_RGBA8 || (f)==SCF_BGRA8)
+
+#define COLOR_COPY( a, b ) (a)[0]=(b)[0]; (a)[1]=(b)[1]; (a)[2]=(b)[2]
+#define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
+
+#define COLOR_BLEND( a, b, A, iA )\
+        (a)[0] = ((a)[0]*iA + (b)[0]*A)>>8;\
+        (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
+        (a)[2] = ((a)[2]*iA + (b)[2]*A)>>8;
+
+#define COLOR_BLEND_INV( a, b, A, iA )\
+        (a)[0] = ((a)[0]*iA + (b)[2]*A)>>8;\
+        (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
+        (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
+
 /***************************** Helper functions *****************************/
 int utf8_char_length( unsigned char c )
 {
@@ -122,7 +137,7 @@ unsigned long to_utf32( const unsigned char* utf8, int* length )
 
 int blend_glyph_on_canvas( sgui_canvas* canvas, unsigned char* glyph,
                            int x, int y, unsigned int w, unsigned int h,
-                           unsigned char R, unsigned char G, unsigned char B )
+                           unsigned char color[3] )
 {
     unsigned char A, iA, *src, *dst, *row;
     unsigned int i, j, ds, dt, delta;
@@ -166,9 +181,7 @@ int blend_glyph_on_canvas( sgui_canvas* canvas, unsigned char* glyph,
             A = *src;
             iA = 255-A;
 
-            row[0] = (R*A + row[0]*iA) >> 8;
-            row[1] = (G*A + row[1]*iA) >> 8;
-            row[2] = (B*A + row[2]*iA) >> 8;
+            COLOR_BLEND( row, color, A, iA );
         }
     }
 
@@ -388,7 +401,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
     if( !cv )
         return NULL;
 
-    if( format==SCF_RGBA8 || format==SCF_BGRA8 )
+    if( HAS_ALPHA_CHANNEL( format ) )
         bpp = 4;
 
     memset( cv, 0, sizeof(sgui_canvas) );
@@ -423,7 +436,7 @@ sgui_canvas* sgui_canvas_create_use_buffer( void* buffer,
     if( !cv )
         return NULL;
 
-    if( format==SCF_RGBA8 || format==SCF_BGRA8 )
+    if( HAS_ALPHA_CHANNEL( format ) )
         bpp = 4;
 
     memset( cv, 0, sizeof(sgui_canvas) );
@@ -506,15 +519,11 @@ void sgui_canvas_set_background_color( sgui_canvas* canvas,
     {
         if( NEED_CHANNEL_SWAP( format, canvas ) )
         {
-            canvas->bg_color[0] = color[0];
-            canvas->bg_color[1] = color[1];
-            canvas->bg_color[2] = color[2];
+            COLOR_COPY( canvas->bg_color, color );
         }
         else
         {
-            canvas->bg_color[0] = color[2];
-            canvas->bg_color[1] = color[1];
-            canvas->bg_color[2] = color[0];
+            COLOR_COPY_INV( canvas->bg_color, color );
         }
     }
 }
@@ -523,7 +532,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
                         unsigned int width, unsigned int height )
 {
     unsigned int i, j;
-    unsigned char R, G, B, *dst, *row;
+    unsigned char *dst, *row;
 
     if( !canvas )
         return;
@@ -547,17 +556,11 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
     dst = (unsigned char*)canvas->data + (y*canvas->width+x)*canvas->bpp;
 
     /* clear */
-    R = canvas->bg_color[0];
-    G = canvas->bg_color[1];
-    B = canvas->bg_color[2];
-
     for( j=0; j<height; ++j, dst+=canvas->width*canvas->bpp )
     {
         for( row=dst, i=0; i<width; ++i, row+=canvas->bpp )
         {
-            row[0] = R;
-            row[1] = G;
-            row[2] = B;
+            COLOR_COPY( row, canvas->bg_color );
         }
     }
 }
@@ -590,8 +593,8 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
             /* merge rectangles */
             sx = x;
             sy = y;
-            sex = x + width;
-            sey = y + height;
+            sex = x + width - 1;
+            sey = y + height - 1;
 
             if( sx<canvas->sx     ) x   = canvas->sx;
             if( sy<canvas->sy     ) y   = canvas->sy;
@@ -699,7 +702,7 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
                        const void* data )
 {
     unsigned char *dst, *src, *drow, *srow;
-    unsigned int i, j, src_bpp = 3, R = 0, G = 1, B = 2;
+    unsigned int i, j, src_bpp = 3;
     unsigned int ds, dt;
 
     if( !canvas || !width || !height || !data )
@@ -713,15 +716,8 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
         return;
 
     /* color format checks */
-    if( format==SCF_RGBA8 || format==SCF_BGRA8 )
+    if( HAS_ALPHA_CHANNEL( format ) )
         src_bpp = 4;
-
-    if( NEED_CHANNEL_SWAP( format, canvas ) )
-    {
-        R = 2;
-        G = 1;
-        B = 0;
-    }
 
     /* compute source and destination pointers */
     dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*canvas->bpp;
@@ -752,14 +748,26 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
         width = canvas->sex - x;
 
     /* do the blit */
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
-        for( drow=dst, srow=src, i=0; i<width; ++i, drow+=canvas->bpp,
-                                                    srow+=src_bpp )
+        for( j=0; j<height; ++j, src+=ds, dst+=dt )
         {
-            drow[ 0 ] = srow[ R ];
-            drow[ 1 ] = srow[ G ];
-            drow[ 2 ] = srow[ B ];
+            for( drow=dst, srow=src, i=0; i<width; ++i, drow+=canvas->bpp,
+                                                        srow+=src_bpp )
+            {
+                COLOR_COPY_INV( drow, srow );
+            }
+        }
+    }
+    else
+    {
+        for( j=0; j<height; ++j, src+=ds, dst+=dt )
+        {
+            for( drow=dst, srow=src, i=0; i<width; ++i, drow+=canvas->bpp,
+                                                        srow+=src_bpp )
+            {
+                COLOR_COPY( drow, srow );
+            }
         }
     }
 }
@@ -769,12 +777,12 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
                         const void* data )
 {
     unsigned char *dst, *src, *drow, *srow, A, iA;
-    unsigned int i, j, R = 0, G = 1, B = 2, ds, dt;
+    unsigned int i, j, ds, dt;
 
     if( !canvas || !width || !height || !data )
         return;
 
-    if( format!=SCF_RGBA8 && format!=SCF_BGRA8 )
+    if( !HAS_ALPHA_CHANNEL( format ) )
         return;
 
     x += canvas->ox;
@@ -783,14 +791,6 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     /* don't blend outside the drawing area */
     if( IS_OUTSIDE_SCISSOR_RECT( x, y, width, height, canvas ) )
         return;
-
-    /* color format checks */
-    if( NEED_CHANNEL_SWAP( format, canvas ) )
-    {
-        R = 2;
-        G = 1;
-        B = 0;
-    }
 
     /* compute source and destination pointers */
     dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*canvas->bpp;
@@ -821,16 +821,30 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
         width = canvas->sex - x;
 
     /* do the blend */
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
-        for( drow=dst, srow=src, i=0; i<width; ++i, drow+=canvas->bpp,
-                                                    srow+=4 )
+        for( j=0; j<height; ++j, src+=ds, dst+=dt )
         {
-            A = srow[3], iA = 255-A;
+            for( drow=dst, srow=src, i=0; i<width; ++i, drow+=canvas->bpp,
+                                                        srow+=4 )
+            {
+                A = srow[3], iA = 255-A;
 
-            drow[0] = (srow[R]*A + drow[0]*iA) >> 8;
-            drow[1] = (srow[G]*A + drow[1]*iA) >> 8;
-            drow[2] = (srow[B]*A + drow[2]*iA) >> 8;
+                COLOR_BLEND_INV( drow, srow, A, iA );
+            }
+        }
+    }
+    else
+    {
+        for( j=0; j<height; ++j, src+=ds, dst+=dt )
+        {
+            for( drow=dst, srow=src, i=0; i<width; ++i, drow+=canvas->bpp,
+                                                        srow+=4 )
+            {
+                A = srow[3], iA = 255-A;
+
+                COLOR_BLEND( drow, srow, A, iA );
+            }
         }
     }
 }
@@ -839,7 +853,7 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
                            unsigned int width, unsigned int height,
                            unsigned char* color, SGUI_COLOR_FORMAT format )
 {
-    unsigned char R=0, G=1, B=2, A, iA;
+    unsigned char c[3], A, iA;
     unsigned int i, j;
     unsigned char *dst, *row;
 
@@ -856,15 +870,11 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
     /* color format checks */
     if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
-        R = color[2];
-        G = color[1];
-        B = color[0];
+        COLOR_COPY_INV( c, color );
     }
     else
     {
-        R = color[0];
-        G = color[1];
-        B = color[2];
+        COLOR_COPY( c, color );
     }
 
     /* adjust parameters to only draw visible portion */
@@ -879,7 +889,7 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
 
     dst = (unsigned char*)canvas->data + (y*canvas->width+x)*canvas->bpp;
 
-    if( format==SCF_RGBA8 || format==SCF_BGRA8 )
+    if( HAS_ALPHA_CHANNEL( format ) )
     {
         A = color[3];
         iA = 255 - A;
@@ -888,9 +898,7 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
         {
             for( row=dst, i=0; i<width; ++i, row+=canvas->bpp )
             {
-                row[0] = (row[0]*iA + R*A) >> 8;
-                row[1] = (row[1]*iA + G*A) >> 8;
-                row[2] = (row[2]*iA + B*A) >> 8;
+                COLOR_BLEND( row, c, A, iA );
             }
         }
     }
@@ -900,9 +908,7 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
         {
             for( row=dst, i=0; i<width; ++i, row+=canvas->bpp )
             {
-                row[0] = R;
-                row[1] = G;
-                row[2] = B;
+                COLOR_COPY( row, c );
             }
         }
     }
@@ -913,8 +919,8 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                             unsigned char* color, SGUI_COLOR_FORMAT format )
 {
     unsigned char* dst;
-    unsigned char R, G, B, A, iA;
-    unsigned int i;
+    unsigned char c[3], A, iA;
+    unsigned int i, delta;
 
     if( canvas )
     {
@@ -923,23 +929,19 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 
         if( NEED_CHANNEL_SWAP( format, canvas ) )
         {
-            R = color[2];
-            G = color[1];
-            B = color[0];
+            COLOR_COPY_INV( c, color );
         }
         else
         {
-            R = color[0];
-            G = color[1];
-            B = color[2];
+            COLOR_COPY( c, color );
         }
 
         if( horizontal )
         {
-            if( y<canvas->sy || y>=canvas->sey )
+            if( y<canvas->sy || y>canvas->sey )
                 return;
 
-            if( (x+(int)length)<canvas->sx || x>=canvas->sex )
+            if( (x+(int)length)<canvas->sx || x>canvas->sex )
                 return;
 
             if( x<canvas->sx )
@@ -951,37 +953,14 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
             if( (x+(int)length) > canvas->sex )
                 length = canvas->sex - x;
 
-            dst = (unsigned char*)canvas->data +
-                  (y*canvas->width+x)*canvas->bpp;
-
-            if( format==SCF_RGBA8 || format==SCF_BGRA8 )
-            {
-                A = color[3];
-                iA = 255 - A;
-
-                for( i=0; i<length; ++i, dst+=canvas->bpp )
-                {
-                    dst[0] = (R*A + iA*dst[0]) >> 8;
-                    dst[1] = (G*A + iA*dst[1]) >> 8;
-                    dst[2] = (B*A + iA*dst[2]) >> 8;
-                }
-            }
-            else
-            {
-                for( i=0; i<length; ++i, dst+=canvas->bpp )
-                {
-                    dst[0] = R;
-                    dst[1] = G;
-                    dst[2] = B;
-                }
-            }
+            delta = canvas->bpp;
         }
         else
         {
-            if( x<canvas->sx || x>=canvas->sex )
+            if( x<canvas->sx || x>canvas->sex )
                 return;
 
-            if( (y+(int)length)<canvas->sy || y>=canvas->sey )
+            if( (y+(int)length)<canvas->sy || y>canvas->sey )
                 return;
 
             if( y<canvas->sy )
@@ -990,32 +969,30 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                 y = canvas->sy;
             }
 
-            dst = (unsigned char*)canvas->data +
-                  (y*canvas->width+x)*canvas->bpp;
-
             if( (y+(int)length) > canvas->sey )
                 length = canvas->sey - y;
 
-            if( format==SCF_RGBA8 || format==SCF_BGRA8 )
-            {
-                A = color[3];
-                iA = 255 - A;
+            delta = canvas->width*canvas->bpp;
+        }
 
-                for( i=0; i<length; ++i, dst+=canvas->width*canvas->bpp )
-                {
-                    dst[0] = (R*A + iA*dst[0]) >> 8;
-                    dst[1] = (G*A + iA*dst[1]) >> 8;
-                    dst[2] = (B*A + iA*dst[2]) >> 8;
-                }
-            }
-            else
+        dst = (unsigned char*)canvas->data +
+              (y*canvas->width+x)*canvas->bpp;
+
+        if( HAS_ALPHA_CHANNEL( format ) )
+        {
+            A = color[3];
+            iA = 255 - A;
+
+            for( i=0; i<length; ++i, dst+=delta )
             {
-                for( i=0; i<length; ++i, dst+=canvas->width*canvas->bpp )
-                {
-                    dst[0] = R;
-                    dst[1] = G;
-                    dst[2] = B;
-                }
+                COLOR_BLEND( dst, c, A, iA );
+            }
+        }
+        else
+        {
+            for( i=0; i<length; ++i, dst+=delta )
+            {
+                COLOR_COPY( dst, c );
             }
         }
     }
@@ -1035,7 +1012,7 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
     int len = 0, bearing;
     unsigned int i;
     unsigned long character;
-    unsigned char R = color[0], G = color[1], B = color[2];
+    unsigned char c[3];
 
     if( !canvas || !font_face || !font_height )
         return;
@@ -1048,9 +1025,11 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
 
     if( NEED_CHANNEL_SWAP( format, canvas ) )
     {
-        R = color[2];
-        G = color[1];
-        B = color[0];
+        COLOR_COPY_INV( c, color );
+    }
+    else
+    {
+        COLOR_COPY( c, color );
     }
 
     FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
@@ -1093,7 +1072,7 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
         {
             blend_glyph_on_canvas( canvas, glyph->bitmap.buffer, x, y+bearing,
                                    glyph->bitmap.width, glyph->bitmap.rows,
-                                   R, G, B );
+                                   c );
         }
 
         x += font_face->face->glyph->bitmap.width + 1;
@@ -1116,9 +1095,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
     if( !canvas || !font_norm || !font_height || !color || !text )
         return;
 
-    col[0] = color[0];
-    col[1] = color[1];
-    col[2] = color[2];
+    COLOR_COPY( col, color );
 
     x += canvas->ox;
     y += canvas->oy;
@@ -1136,9 +1113,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
             {
                 if( !strncmp( text+i+9, "default", 7 ) )
                 {
-                    col[0] = color[0];
-                    col[1] = color[1];
-                    col[2] = color[2];
+                    COLOR_COPY( col, color );
                 }
                 else
                 {
@@ -1210,7 +1185,7 @@ void sgui_canvas_set_raw_data( sgui_canvas* canvas, SGUI_COLOR_FORMAT format,
         canvas->width  = width;
         canvas->height = height;
         canvas->format = format;
-        canvas->bpp    = (format==SCF_RGBA8 || format==SCF_BGRA8) ? 4 : 3;
+        canvas->bpp    = HAS_ALPHA_CHANNEL( format ) ? 4 : 3;
 
         canvas->sx     = 0;
         canvas->sy     = 0;
