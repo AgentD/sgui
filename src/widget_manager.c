@@ -313,6 +313,12 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
             mgr->focus = NULL;
         }
     }
+    else if( event==SGUI_MOUSE_WHEEL_EVENT )
+    {
+        /* only send mouse wheel events to mouse over widget */
+        if( mgr->mouse_over )
+            sgui_widget_send_window_event( mgr->mouse_over, event, e );
+    }
     else if( (event==SGUI_KEY_PRESSED_EVENT) ||
              (event==SGUI_KEY_RELEASED_EVENT) || (event==SGUI_CHAR_EVENT) )
     {
