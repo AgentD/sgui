@@ -148,9 +148,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
              b->num_entered )
     {
         unsigned int new_cur;
-        int x = event->mouse_press.x - widget->x;
     
-        new_cur = sgui_edit_box_cursor_from_mouse( b, x );
+        new_cur = sgui_edit_box_cursor_from_mouse( b, event->mouse_press.x );
 
         if( new_cur != b->cursor )
         {

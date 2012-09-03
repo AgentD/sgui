@@ -77,6 +77,11 @@ void sgui_widget_get_position( sgui_widget* w, int* x, int* y )
         if( x ) *x = w->x;
         if( y ) *y = w->y;
     }
+    else
+    {
+        if( x ) *x = 0;
+        if( y ) *y = 0;
+    }
 }
 
 void sgui_widget_get_size( sgui_widget* w,
@@ -86,6 +91,11 @@ void sgui_widget_get_size( sgui_widget* w,
     {
         if( width  ) *width  = w->width;
         if( height ) *height = w->height;
+    }
+    else
+    {
+        if( width  ) *width  = 0;
+        if( height ) *height = 0;
     }
 }
 

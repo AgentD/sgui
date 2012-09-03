@@ -55,10 +55,9 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
     }
     else if( type==SGUI_MOUSE_PRESS_EVENT )
     {
-        b->dec_button_state = event->mouse_press.x <
-                              (widget->x+(int)b->bw);
+        b->dec_button_state = event->mouse_press.x < (int)b->bw;
         b->inc_button_state = event->mouse_press.x >
-                              (widget->x+(int)b->length-(int)b->bw);
+                              ((int)b->length-(int)b->bw);
 
         widget->need_redraw = 1;
 
@@ -111,10 +110,9 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
     }
     else if( type==SGUI_MOUSE_PRESS_EVENT )
     {
-        b->dec_button_state = event->mouse_press.y <
-                              (widget->y+(int)b->bh);
+        b->dec_button_state = event->mouse_press.y < (int)b->bh;
         b->inc_button_state = event->mouse_press.y >
-                              (widget->y+(int)b->length-(int)b->bh);
+                              ((int)b->length-(int)b->bh);
 
         widget->need_redraw = 1;
 
