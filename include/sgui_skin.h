@@ -231,11 +231,38 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
 void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
                            unsigned int height );
 
+/**
+ * \brief Draw a scroll bar onto a canvas
+ *
+ * \param cv               The canvas to draw to
+ * \param x                Distance from the left of the canvas
+ * \param y                Distance from the top of the canvas
+ * \param horizontal       Whether the bar is a horizontal or vertical bar
+ * \param length           Length of the scroll bar
+ * \param p_offset         Offset of the scroll bar pane
+ * \param p_length         Length of the scroll bar pane
+ * \param inc_button_state State of the button that increments the bar value
+ * \param dec_button_state State of the button that decrements the bar value
+ */
 void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
                                 int horizontal, unsigned int length,
                                 unsigned int p_offset,
                                 unsigned int p_length,
                                 int inc_button_state, int dec_button_state );
+
+/**
+ * \brief Draw a happy little group box onto a canvas
+ *
+ * \param cv      The canvas to draw to
+ * \param x       Distance from the left of the canvas
+ * \param y       Distance from the top of the canvas
+ * \param width   The width of the group box
+ * \param height  The height of the group box
+ * \param caption The caption of the group box
+ */
+void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
+                               unsigned int width, unsigned int height,
+                               const char* caption );
 
 
 

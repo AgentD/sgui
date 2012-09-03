@@ -1,5 +1,5 @@
 /*
- * sgui.h
+ * sgui_group_box.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,30 +22,32 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_H
-#define SGUI_H
+#ifndef SGUI_GROUP_BOX_H
+#define SGUI_GROUP_BOX_H
 
 
-
-#include "sgui_canvas.h"
-#include "sgui_event.h"
-#include "sgui_keycodes.h"
-#include "sgui_link.h"
-#include "sgui_skin.h"
-#include "sgui_window.h"
 
 #include "sgui_widget.h"
-#include "sgui_widget_manager.h"
-#include "sgui_button.h"
-#include "sgui_edit_box.h"
-#include "sgui_frame.h"
-#include "sgui_group_box.h"
-#include "sgui_image.h"
-#include "sgui_progress_bar.h"
-#include "sgui_scroll_bar.h"
-#include "sgui_static_text.h"
 
 
 
-#endif /* SGUI_H */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+sgui_widget* sgui_group_box_create( int x, int y,
+                                    unsigned int width, unsigned int height,
+                                    const char* caption );
+
+void sgui_group_box_destroy( sgui_widget* box );
+
+void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w );
+
+void sgui_group_box_remove_widget( sgui_widget* box, sgui_widget* w );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SGUI_GROUP_BOX_H */
 

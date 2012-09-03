@@ -511,3 +511,41 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
     }
 }
 
+void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
+                               unsigned int width, unsigned int height,
+                               const char* caption )
+{
+    unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
+    unsigned int len;
+
+    len = sgui_font_get_text_extents_plain( font_norm, font_height,
+                                            caption, (unsigned int)-1 );
+
+    sgui_canvas_draw_text_plain( cv, x+13, y, font_norm, font_height,
+                                 color, SCF_RGB8, caption,
+                                 (unsigned int)-1 );
+
+    y += font_height/2;
+    height -= font_height/2;
+
+    /* the top line has a gap for the caption */
+    sgui_canvas_draw_line(cv,x+1,     y+1, 9,            1, color, SCF_RGB8);
+    sgui_canvas_draw_line(cv,x+16+len,y+1, width-15-len, 1, color, SCF_RGB8);
+
+    /* left, right and bottom lines */
+    sgui_canvas_draw_line( cv, x+1, y+1,      height, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+width, y+1,  height, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+1, y+height, width,  1, color, SCF_RGB8 );
+
+    color[0] = color[1] = color[2] = 0x00;
+
+    /* again, a gap for the caption */
+    sgui_canvas_draw_line(cv, x,        y,           10, 1, color, SCF_RGB8);
+    sgui_canvas_draw_line(cv, x+16+len, y, width-16-len, 1, color, SCF_RGB8);
+
+    /* left right and bottom lines */
+    sgui_canvas_draw_line( cv, x, y,          height, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+width-1, y,  height, 0, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x, y+height-1, width,  1, color, SCF_RGB8 );
+}
+

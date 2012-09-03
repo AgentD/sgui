@@ -6,7 +6,7 @@
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
-sgui_widget *r0, *r1, *r2, *eb, *f;
+sgui_widget *r0, *r1, *r2, *eb, *f, *gb, *ra, *rb, *rc;
 unsigned char image[128*128*4];
 
 const char* text =
@@ -164,6 +164,22 @@ int main( void )
     sgui_frame_add_widget( f, r2 );
     sgui_frame_add_widget( f, eb );
 
+    gb = sgui_group_box_create( 150, 310, 150, 60, "Group Box" );
+
+    ra = sgui_radio_button_create(  10, 25, "A" );
+    rb = sgui_radio_button_create(  60, 25, "B" );
+    rc = sgui_radio_button_create( 110, 25, "C" );
+
+    sgui_radio_button_connect( ra, NULL,   rb );
+    sgui_radio_button_connect( rb, ra,     rc );
+    sgui_radio_button_connect( rc, rb,   NULL );
+    sgui_button_set_state( ra, 1 );
+
+    sgui_group_box_add_widget( gb, ra );
+    sgui_group_box_add_widget( gb, rb );
+    sgui_group_box_add_widget( gb, rc );
+
+    sgui_window_add_widget( a, gb );
     sgui_window_add_widget( a, f );
     sgui_window_add_widget( a, tex );
     sgui_window_add_widget( a, butt );
@@ -201,6 +217,7 @@ int main( void )
         }
     }
 
+    sgui_group_box_destroy( gb );
     sgui_frame_destroy( f );
 
     sgui_static_text_destroy( tex );
@@ -214,6 +231,9 @@ int main( void )
     sgui_button_destroy( r0 );
     sgui_button_destroy( r1 );
     sgui_button_destroy( r2 );
+    sgui_button_destroy( ra );
+    sgui_button_destroy( rb );
+    sgui_button_destroy( rc );
 
     sgui_progress_bar_destroy( p0 );
     sgui_progress_bar_destroy( p1 );
