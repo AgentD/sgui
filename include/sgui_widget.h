@@ -71,6 +71,19 @@ void sgui_widget_get_size( sgui_widget* w,
                            unsigned int* width, unsigned int* height );
 
 /**
+ * \brief Returns non-zero if the given widget is configured to be rendered
+ */
+int sgui_widget_is_visible( sgui_widget* w );
+
+/**
+ * \brief Set whether a given widget should be rendered or not
+ *
+ * \param w       The widget
+ * \param visible Non-zero to allow rendering of the widget, zero to prohibit.
+ */
+void sgui_widget_set_visible( sgui_widget* w, int visible );
+
+/**
  * \brief Returns non-zero if a widget intersects a given area, zero if not
  *
  * \param w      The widget to test

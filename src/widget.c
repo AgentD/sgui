@@ -39,6 +39,7 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->width                 = width;
     widget->height                = height;
     widget->need_redraw           = 1;
+    widget->visible               = 1;
     widget->draw_callback         = NULL;
     widget->update_callback       = NULL;
     widget->window_event_callback = NULL;
@@ -97,6 +98,17 @@ void sgui_widget_get_size( sgui_widget* w,
         if( width  ) *width  = 0;
         if( height ) *height = 0;
     }
+}
+
+int sgui_widget_is_visible( sgui_widget* w )
+{
+    return w ? w->visible : 0;
+}
+
+void sgui_widget_set_visible( sgui_widget* w, int visible )
+{
+    if( w )
+        w->visible = visible;
 }
 
 int sgui_widget_intersects_area( sgui_widget* w, int x, int y,

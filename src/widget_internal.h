@@ -41,6 +41,9 @@ struct sgui_widget
 
     int need_redraw;        /**< \brief non-zero if need for redrawing */
 
+    int visible;            /**< \brief zero if the widget should not be
+                                        rendered */
+
     /**
      * \brief List of links to implement signals and slots like widget
      *        intercommunication.

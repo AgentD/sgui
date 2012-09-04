@@ -159,7 +159,8 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
     {
         for( i=0; i<mgr->num_widgets; ++i )
         {
-            if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) )
+            if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) &&
+                sgui_widget_is_visible( mgr->widgets[i] ) )
             {
                 /* clear the background */
                 sgui_widget_get_position( mgr->widgets[i], &x, &y );
@@ -176,8 +177,11 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
     {
         for( i=0; i<mgr->num_widgets; ++i )
         {
-            if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) )
+            if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) &&
+                sgui_widget_is_visible( mgr->widgets[i] ) )
+            {
                 sgui_widget_draw( mgr->widgets[i], cv );
+            }
         }
     }
 
@@ -200,7 +204,8 @@ void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
     {
         for( i=0; i<mgr->num_widgets; ++i )
         {
-            if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) )
+            if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) &&
+                sgui_widget_is_visible( mgr->widgets[i] ) )
             {
                 /* make sure the need redraw flag is cleared */
                 sgui_widget_need_redraw( mgr->widgets[i], 0 );
@@ -220,7 +225,8 @@ void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
     {
         for( i=0; i<mgr->num_widgets; ++i )
         {
-            if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) )
+            if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) &&
+                sgui_widget_is_visible( mgr->widgets[i] ) )
             {
                 /* make sure the need redraw flag is cleared */
                 sgui_widget_need_redraw( mgr->widgets[i], 0 );

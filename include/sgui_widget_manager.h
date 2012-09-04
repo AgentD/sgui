@@ -93,7 +93,8 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
 int sgui_widget_manager_update( sgui_widget_manager* mgr );
 
 /**
- * \brief Redraw all widgets of a widget manager, that need a redaw
+ * \brief Redraw all widgets of a widget manager that need a redaw and ara
+ *        flaged visible
  *
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
@@ -101,8 +102,8 @@ int sgui_widget_manager_update( sgui_widget_manager* mgr );
 void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv );
 
 /**
- * \brief Force redrawing of all widgets of a widget manager, that are inside
- *        a given area
+ * \brief Force redrawing of all widgets of a widget manager that are inside
+ *        a given area and flaged visible
  *
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
