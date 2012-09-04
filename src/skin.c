@@ -171,6 +171,20 @@ unsigned int sgui_skin_get_frame_border_width( void )
     return 1;
 }
 
+unsigned int sgui_skin_get_tab_caption_width( const char* caption )
+{
+    unsigned int w;
+
+    w = sgui_skin_default_font_extents( caption, (unsigned int)-1, 0, 0 );
+
+    return w + 10;
+}
+
+unsigned int sgui_skin_get_tab_caption_height( void )
+{
+    return font_height + font_height / 2;
+}
+
 /***************************************************************************/
 
 void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
@@ -276,15 +290,6 @@ void sgui_skin_draw_button( sgui_canvas* cv, int x, int y,
     color[0] = color[1] = color[2] = state ? 0xFF : 0x00;
     sgui_canvas_draw_line( cv, x, y+height-1, width, 1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x+width-1, y, height, 0, color, SCF_RGB8 );
-}
-
-void sgui_skin_draw_text( sgui_canvas* cv, int x, int y,
-                          const char* text )
-{
-    unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
-
-    sgui_canvas_draw_text( cv, x, y, font_norm, font_bold, font_ital,
-                           font_boit, font_height, color, SCF_RGB8, text );
 }
 
 void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state )
@@ -540,5 +545,40 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
     sgui_canvas_draw_line( cv, x, y,          height, 0, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x+width-1, y,  height, 0, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x, y+height-1, width,  1, color, SCF_RGB8 );
+}
+
+void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
+                                 unsigned int width, const char* caption )
+{
+    unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned int h = font_height + font_height / 2;
+
+    sgui_canvas_draw_line( cv, x, y, width, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x, y, h,     0, color, SCF_RGB8 );
+
+    color[0] = color[1] = color[2] = 0x00;
+    sgui_canvas_draw_line( cv, x+width-1, y, h, 0, color, SCF_RGB8 );
+
+    color[0] = color[1] = color[2] = 0xFF;
+    sgui_canvas_draw_text_plain( cv, x+5, y, font_norm, font_height,
+                                 color, SCF_RGB8, caption,
+                                 (unsigned int)-1 );
+}
+
+void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,
+                         unsigned int height, unsigned int gap,
+                         unsigned int gap_width )
+{
+    unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned int w_remain = width - gap - gap_width;
+    int x_after = x + gap + gap_width;
+
+    sgui_canvas_draw_line( cv, x,       y, gap+1,     1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x_after, y, w_remain,  1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x,       y, height,    0, color, SCF_RGB8 );
+
+    color[0] = color[1] = color[2] = 0x00;
+    sgui_canvas_draw_line( cv, x, y+height-1, width, 1, color, SCF_RGB8 );
+    sgui_canvas_draw_line( cv, x+width-1, y, height, 0, color, SCF_RGB8 );
 }
 

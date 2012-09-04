@@ -45,9 +45,9 @@
   ********************
 
   Short term:
+    - Clean, improve and optimise the existing code
     - Add more useful widgets
-    - Add widgets that can contain other widgets (frame, tab)
-    - Clean and improve the code
+    - Make canvas object platform dependend, utilizing platform drawing APIs
 
   Mid term:
     - Loadable GUI skin

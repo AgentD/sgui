@@ -1097,9 +1097,6 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
 
     COLOR_COPY( col, color );
 
-    x += canvas->ox;
-    y += canvas->oy;
-
     for( ; text && text[ i ]; ++i )
     {
         if( text[ i ] == '<' )

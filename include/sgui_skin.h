@@ -146,6 +146,13 @@ void sgui_skin_get_scroll_bar_extents( int horizontal, unsigned int length,
 unsigned int sgui_skin_get_frame_border_width( void );
 
 
+/** \brief Get the width of a tab caption */
+unsigned int sgui_skin_get_tab_caption_width( const char* caption );
+
+/** \brief Get the default height of a tab caption */
+unsigned int sgui_skin_get_tab_caption_height( void );
+
+
 
 /**
  * \brief Draw a progress bar onto a canvas
@@ -264,6 +271,32 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
                                unsigned int width, unsigned int height,
                                const char* caption );
 
+/**
+ * \brief Draw the caption of a tab onto a canvas
+ *
+ * \param cv      The canvas to draw to
+ * \param x       Distance from the left of the canvas
+ * \param y       Distance from the top of the canvas
+ * \param width   The width of the tab caption
+ * \param caption The caption text
+ */
+void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
+                                 unsigned int width, const char* caption );
+
+/**
+ * \brif Draw a tab onto onto a canvas
+ *
+ * \param cv        The canvas to draw to
+ * \param x         Distance from the left of the canvas
+ * \param y         Distance from the top of the canvas
+ * \param width     The width of the tab
+ * \param height    The height of the tab
+ * \param gap       The offset at witch to insert a gap for the caption
+ * \param gap_width The width of the gap
+ */
+void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,
+                         unsigned int height, unsigned int gap,
+                         unsigned int gap_width );
 
 
 #ifdef __cplusplus

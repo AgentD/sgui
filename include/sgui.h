@@ -44,6 +44,7 @@
 #include "sgui_progress_bar.h"
 #include "sgui_scroll_bar.h"
 #include "sgui_static_text.h"
+#include "sgui_tab.h"
 
 
 
