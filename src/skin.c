@@ -177,7 +177,7 @@ unsigned int sgui_skin_get_tab_caption_width( const char* caption )
 
     w = sgui_skin_default_font_extents( caption, (unsigned int)-1, 0, 0 );
 
-    return w + 10;
+    return w + 20;
 }
 
 unsigned int sgui_skin_get_tab_caption_height( void )
@@ -560,7 +560,7 @@ void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
     sgui_canvas_draw_line( cv, x+width-1, y, h, 0, color, SCF_RGB8 );
 
     color[0] = color[1] = color[2] = 0xFF;
-    sgui_canvas_draw_text_plain( cv, x+5, y, font_norm, font_height,
+    sgui_canvas_draw_text_plain( cv, x+10, y, font_norm, font_height,
                                  color, SCF_RGB8, caption,
                                  (unsigned int)-1 );
 }

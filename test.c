@@ -22,8 +22,8 @@ int main( void )
     int a_active=1, b_active=1, x, y;
     sgui_font* font;
     sgui_font* font_bold;
-    sgui_font* font_italic;
-    sgui_font* font_bold_italic;
+    sgui_font* font_ital;
+    sgui_font* font_boit;
 
     sgui_skin_init( );
 
@@ -52,13 +52,13 @@ int main( void )
             image[ (y*128 + x)*4 + 3 ] = 0xFF * (x/128.0f);
         }
 
-    font = sgui_font_load_from_file( "font/FreeSans.ttf" );
-    font_bold = sgui_font_load_from_file( "font/FreeSansBold.ttf" );
-    font_italic = sgui_font_load_from_file( "font/FreeSansOblique.ttf" );
-    font_bold_italic=sgui_font_load_from_file("font/FreeSansBoldOblique.ttf");
+    font = sgui_font_load_from_file( "font/SourceSansPro-Regular.ttf" );
+    font_bold = sgui_font_load_from_file( "font/SourceSansPro-Semibold.ttf" );
+    font_ital = sgui_font_load_from_file( "font/SourceSansPro-It.ttf" );
+    font_boit = sgui_font_load_from_file("font/SourceSansPro-SemiboldIt.ttf");
 
-    sgui_skin_set_default_font( font, font_bold, font_italic,
-                                font_bold_italic, 16 );
+    sgui_skin_set_default_font( font, font_bold, font_ital,
+                                font_boit, 16 );
 
     tab = sgui_tab_group_create( 10, 10, 500, 400 );
 
@@ -179,8 +179,8 @@ int main( void )
     sgui_image_destroy( i1 );
 
     sgui_font_destroy( font_bold );
-    sgui_font_destroy( font_italic );
-    sgui_font_destroy( font_bold_italic );
+    sgui_font_destroy( font_ital );
+    sgui_font_destroy( font_boit );
     sgui_font_destroy( font );
 
     sgui_skin_deinit( );

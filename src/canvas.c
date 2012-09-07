@@ -385,7 +385,7 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
         longest = X;
 
     if( width  ) *width  = longest;
-    if( height ) *height = lines * (font_height+font_height/4);
+    if( height ) *height = lines * font_height;
 }
 
 
@@ -1160,7 +1160,7 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
             text += i + 1;
             i = -1;
             X = 0;
-            y += font_height+font_height/4;
+            y += font_height;
         }
     }
 
