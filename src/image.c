@@ -49,6 +49,9 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
 
     if( img->blend )
     {
+        sgui_canvas_clear( cv, widget->x, widget->y,
+                               widget->width, widget->height );
+
         sgui_canvas_blend( cv, widget->x, widget->y,
                            widget->width, widget->height, SCF_RGBA8,
                            img->data );

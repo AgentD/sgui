@@ -121,6 +121,11 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
             f->mouse_y = event->mouse_move.y;
         }
     }
+    else if( type==SGUI_MOUSE_LEAVE_EVENT ||
+             type==SGUI_FOCUS_LOSE_EVENT )
+    {
+        sgui_widget_send_window_event( f->v_bar, type, event );
+    }
 
     /* send the event to the frames widgets */
     if( send_v_bar )
@@ -141,13 +146,16 @@ void frame_update( sgui_widget* widget )
 void frame_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_frame* f = (sgui_frame*)widget;
-    int offset;
+    int offset, clear;
 
     offset = sgui_scroll_bar_get_offset( f->v_bar );
+    clear  = sgui_canvas_is_clear_allowed( cv );
 
     /* draw background */
     sgui_skin_draw_frame( cv, widget->x, widget->y,
                               widget->width, widget->height );
+
+    sgui_canvas_allow_clear( cv, 0 );
 
     /* adjust offset and scissor rect to frame area */
     sgui_canvas_set_offset( cv, widget->x, widget->y );
@@ -168,9 +176,10 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
     if( f->draw_v_bar )
         sgui_widget_draw( f->v_bar, cv );
 
-    /* restore scissor rect and offset */
+    /* restore canvas state */
     sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
     sgui_canvas_restore_offset( cv );
+    sgui_canvas_allow_clear( cv, clear );
 }
 
 
@@ -193,8 +202,6 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
         free( f );
         return NULL;
     }
-
-    sgui_widget_manager_enable_clear( f->mgr, 0 );
 
     sgui_skin_get_scroll_bar_extents( 0, height, &w, &h, &bw, &bh );
 

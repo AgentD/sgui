@@ -102,8 +102,6 @@ sgui_widget* sgui_group_box_create( int x, int y,
         return NULL;
     }
 
-    sgui_widget_manager_enable_clear( b->mgr, 0 );
-
     b->caption = malloc( strlen( caption ) + 1 );
 
     if( !b->caption )

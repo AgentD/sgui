@@ -55,17 +55,6 @@ sgui_widget_manager* sgui_widget_manager_create( void );
 void sgui_widget_manager_destroy( sgui_widget_manager* mgr );
 
 /**
- * \brief Enable clearing the background behind a widget: default on
- *
- * If clearing is enabled, the background behind a widget is cleared before
- * rendering it. Default is enabled
- *
- * \param mgr    The widget manager
- * \param enable Whether to enable clearing
- */
-void sgui_widget_manager_enable_clear( sgui_widget_manager* mgr, int enable );
-
-/**
  * \brief Add a widget to a widget manager
  *
  * \param mgr    The widget manager

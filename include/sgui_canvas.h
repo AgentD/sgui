@@ -213,20 +213,9 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                                    unsigned int width, unsigned int height );
 
-/**
- * \brief Get the position and size of the currently set scissor rect of a
- *        canvas
- *
- * \param x      Returns the distance from the left of the scissor rect to the
- *               left of the canvas.
- * \param y      Returns distance from the top of the scissor rect to the
- *               top of the canvas.
- * \param width  Returns the width of the scissor rect.
- * \param height Returns the height of the scissor rect.
- */
-void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, int* x, int* y,
-                                   unsigned int* width,
-                                   unsigned int* height );
+void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
+
+int sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
 
 /**
  * \brief Set an offset added to all drawing and scissor positions

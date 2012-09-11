@@ -49,7 +49,7 @@ struct sgui_canvas
     void* data;
     SGUI_COLOR_FORMAT format;
     unsigned int bpp;
-    int own_buffer;
+    int own_buffer, clear;
 
     unsigned char bg_color[3];
 
@@ -412,6 +412,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
     cv->format     = format;
     cv->bpp        = bpp;
     cv->own_buffer = 1;
+    cv->clear      = 1;
 
     cv->sex        = width  ? (width -1) : 0;
     cv->sey        = height ? (height-1) : 0;
@@ -446,6 +447,7 @@ sgui_canvas* sgui_canvas_create_use_buffer( void* buffer,
     cv->data       = buffer;
     cv->format     = format;
     cv->bpp        = bpp;
+    cv->clear      = 1;
 
     cv->sex        = width  ? (width -1) : 0;
     cv->sey        = height ? (height-1) : 0;
@@ -534,7 +536,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
     unsigned int i, j;
     unsigned char *dst, *row;
 
-    if( !canvas )
+    if( !canvas || !canvas->clear )
         return;
 
     x += canvas->ox;
@@ -648,17 +650,15 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
     }
 }
 
-void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, int* x, int* y,
-                                   unsigned int* width,
-                                   unsigned int* height )
+void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear )
 {
     if( canvas )
-    {
-        if( x      ) *x      = canvas->sx;
-        if( y      ) *y      = canvas->sy;
-        if( width  ) *width  = canvas->sex - canvas->sx;
-        if( height ) *height = canvas->sey - canvas->sy;
-    }
+        canvas->clear = clear;
+}
+
+int sgui_canvas_is_clear_allowed( sgui_canvas* canvas )
+{
+    return canvas ? canvas->clear : 0;
 }
 
 void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )

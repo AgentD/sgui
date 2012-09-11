@@ -230,7 +230,7 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     sgui_button* b = (sgui_button*)w;
     sgui_font* f   = sgui_skin_get_default_font( 0, 0 );
     unsigned int h = sgui_skin_get_default_font_height( );
-    int oy         = h > b->cy ? (h/2 - b->cy/2) : 0;
+    int oy         = h > b->cy ? (h/2-b->cy/4) : 0;
 
     sgui_skin_get_default_font_color( color );
 
@@ -244,12 +244,15 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
 
     if( b->type == BUTTON_NORMAL )
     {
+        sgui_canvas_clear( cv, b->cx - b->state, b->cy - b->state,
+                               b->text_width, h );
         sgui_canvas_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
                                      f, h, color, SCF_RGB8,
                                      b->text, (unsigned int)-1 );
     }
     else
     {
+        sgui_canvas_clear( cv, w->x + b->cx, w->y, b->text_width, w->height );
         sgui_canvas_draw_text_plain( cv, w->x + b->cx, w->y, f, h, color,
                                      SCF_RGB8, b->text, (unsigned int)-1 );
     }

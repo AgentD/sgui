@@ -237,8 +237,6 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
                 return -1;
             }
 
-            sgui_widget_manager_enable_clear( g->tabs[ index ].mgr, 0 );
-
             g->tabs[ index ].caption = malloc( strlen(caption) + 1 );
 
             if( !g->tabs[ index ].caption )
