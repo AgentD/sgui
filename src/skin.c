@@ -584,8 +584,6 @@ void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,
     unsigned int w_remain = width - gap - gap_width;
     int x_after = x + gap + gap_width;
 
-    sgui_canvas_clear( cv, x, y, width, height );
-
     sgui_canvas_draw_line( cv, x,       y, gap+1,     1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x_after, y, w_remain,  1, color, SCF_RGB8 );
     sgui_canvas_draw_line( cv, x,       y, height,    0, color, SCF_RGB8 );

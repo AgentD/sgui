@@ -69,10 +69,10 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
     sgui_button* i;
     (void)event;
 
-    if( type == SGUI_MOUSE_RELEASE_EVENT )
+    if( type == SGUI_MOUSE_RELEASE_EVENT && !b->state )
     {
-        b->state = 1;
         b->widget.need_redraw = 1;
+        b->state              = 1;
 
         sgui_internal_widget_fire_event( widget,
                                          SGUI_RADIO_BUTTON_SELECT_EVENT );

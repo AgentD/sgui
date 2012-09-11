@@ -50,7 +50,7 @@ typedef struct
     unsigned int tabs_avail;
     unsigned int tab_cap_height;
 
-    int selected;
+    int selected, full_redraw;
 }
 sgui_tab_group;
 
@@ -80,6 +80,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
         if( i<g->num_tabs && (int)i!=g->selected )
         {
             g->selected = i;
+            g->full_redraw = 1;
             widget->need_redraw = 1;
         }
 
@@ -110,6 +111,9 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
     unsigned int i, gap, gap_w;
     int x = widget->x, y = widget->y;
 
+    if( !widget->need_redraw )
+        g->full_redraw = 1;
+
     for( i=0; i<g->num_tabs; ++i )
     {
         sgui_skin_draw_tab_caption( cv, x, y, g->tabs[i].caption_width,
@@ -125,6 +129,13 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         for( i=0, gap=0; i<(unsigned int)g->selected; ++i )
             gap += g->tabs[i].caption_width;
 
+        if( g->full_redraw )
+        {
+            sgui_canvas_clear( cv, widget->x, widget->y + g->tab_cap_height,
+                                   widget->width,
+                                   widget->height - g->tab_cap_height );
+        }
+
         sgui_skin_draw_tab( cv, widget->x,
                                 widget->y + g->tab_cap_height, 
                                 widget->width,
@@ -137,8 +148,17 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
                                       widget->width, widget->height );
 
         /* draw the widgets */
-        sgui_widget_manager_force_draw( g->tabs[g->selected].mgr, cv, 0, 0,
-                                        widget->width, widget->height );
+        if( g->full_redraw )
+        {
+            sgui_widget_manager_force_draw( g->tabs[g->selected].mgr, cv,
+                                            0, 0,
+                                            widget->width, widget->height );
+            g->full_redraw = 0;
+        }
+        else
+        {
+            sgui_widget_manager_draw( g->tabs[g->selected].mgr, cv );
+        }
 
         /* restore scissor rect and offset */
         sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
@@ -173,6 +193,7 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     g->tabs_avail                   = 10;
     g->tab_cap_height               = sgui_skin_get_tab_caption_height( );
     g->selected                     = -1;
+    g->full_redraw                  = 1;
 
     return (sgui_widget*)g;
 }

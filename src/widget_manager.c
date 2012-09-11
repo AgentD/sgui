@@ -147,10 +147,14 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
-        if( sgui_widget_need_redraw( mgr->widgets[i], 0 ) &&
+        if( sgui_widget_need_redraw( mgr->widgets[i], 1 ) &&
             sgui_widget_is_visible( mgr->widgets[i] ) )
         {
+            /* redraw widget */
             sgui_widget_draw( mgr->widgets[i], cv );
+
+            /* clear redraw flag */
+            sgui_widget_need_redraw( mgr->widgets[i], 0 );
         }
     }
 
