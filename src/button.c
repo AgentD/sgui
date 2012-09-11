@@ -244,8 +244,8 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
 
     if( b->type == BUTTON_NORMAL )
     {
-        sgui_canvas_clear( cv, b->cx - b->state, b->cy - b->state,
-                               b->text_width, h );
+        sgui_canvas_clear( cv, b->cx - b->state-1, b->cy - b->state-1,
+                               b->text_width+2, h+2 );
         sgui_canvas_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
                                      f, h, color, SCF_RGB8,
                                      b->text, (unsigned int)-1 );
