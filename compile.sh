@@ -23,8 +23,8 @@ SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/canvas.c
                       src/frame.c src/scroll_bar.c src/group_box.c src/tab.c"
 
 # Platform specific source code files
-SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c"
-SOURCE_WIN="src/WIN32/window.c"
+SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c"
+SOURCE_WIN="src/WIN32/window.c src/WIN32/canvas.c"
 
 # Platform specific libraries
 INCLUDE_X11="-I/usr/include -I/usr/include/freetype2"

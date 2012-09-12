@@ -39,6 +39,7 @@
 #include <windows.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 #ifndef MAPVK_VSC_TO_VK_EX
@@ -62,14 +63,42 @@
 
 
 
+#define SGUI_CANVAS_STACK_DEPTH 10
+
+struct sgui_canvas
+{
+    unsigned int width, height;
+    void* data;
+    int clear;
+    HDC dc;
+    BITMAPINFO info;
+    HBITMAP bitmap;
+    HBRUSH bg_brush;
+
+    RECT sc;
+    int ox, oy;
+
+    RECT sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
+    unsigned int scissor_stack_pointer;
+
+    int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];
+    int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
+    unsigned int offset_stack_pointer;
+};
+
+sgui_canvas* sgui_canvas_create( unsigned int width,
+                                 unsigned int height );
+
+void sgui_canvas_destroy( sgui_canvas* canvas );
+
+void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+                         unsigned int height );
+
+
 struct sgui_window
 {
     HWND hWnd;
     HINSTANCE hInstance;
-    HDC dc;
-    BITMAPINFO info;
-    HBITMAP bitmap;
-    HBITMAP old_bitmap;
     sgui_canvas* back_buffer;
 
     unsigned int w, h;

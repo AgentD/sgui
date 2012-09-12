@@ -119,37 +119,6 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
 
 
 /**
- * \brief Create a canvas object
- *
- * \param width  The widht of the canvas
- * \param height The height of the canvas
- * \param format The color format of the canvas
- *
- * \return A pointer to a new canvas object
- */
-sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
-                                 SGUI_COLOR_FORMAT format );
-
-/**
- * \brief Create a canvas object that uses a memory buffer, ownership of the
- *        buffer remains with the caller
- *
- * \param buffer The buffer to use
- * \param width  The widht of the canvas
- * \param height The height of the canvas
- * \param format The color format of the buffer
- *
- * \return A pointer to a new canvas object
- */
-sgui_canvas* sgui_canvas_create_use_buffer( void* buffer,
-                                            unsigned int width,
-                                            unsigned int height,
-                                            SGUI_COLOR_FORMAT format );
-
-/** \brief Destroy a canvas object */
-void sgui_canvas_destroy( sgui_canvas* canvas );
-
-/**
  * \brief Get the size of a canvas
  *
  * \param canvas The canvas to report the size of
@@ -158,18 +127,6 @@ void sgui_canvas_destroy( sgui_canvas* canvas );
  */
 void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
                            unsigned int* height );
-
-/**
- * \brief Resize a canvas that does not use an external buffer, losing all
- *        previous contents of the canvas.
- *
- * \param width  The new width of the canvas
- * \param height The new height of the canvas
- */
-void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                         unsigned int height );
-
-
 
 /**
  * \brief Set the background color of the canvas
@@ -338,21 +295,6 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                             sgui_font* font_ital, sgui_font* font_boit,
                             unsigned int font_height, unsigned char* color,
                             SGUI_COLOR_FORMAT format, const char* text );
-
-/** \brief Get a pointer to the raw data buffer of a canvas */
-void* sgui_canvas_get_raw_data( sgui_canvas* canvas );
-
-/**
- * \brief Set a buffer for a canvas to render to
- *
- * \param format The color format to use
- * \param width  The width of the canvas
- * \param height The height of the canvas
- * \param data   A pointer to the buffer to use
- */
-void sgui_canvas_set_raw_data( sgui_canvas* canvas, SGUI_COLOR_FORMAT format,
-                               unsigned int width, unsigned int height,
-                               void* data );
 
 
 

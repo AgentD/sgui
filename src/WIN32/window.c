@@ -35,7 +35,6 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     HDC hDC;
     WCHAR c[2];
     UINT key;
-    void* data;
 
     wnd = (sgui_window*)GET_USER_PTR( hWnd );
 
@@ -144,38 +143,23 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         wnd->w = LOWORD( lp );
         wnd->h = HIWORD( lp );
 
-        /* resize the double buffering context/bitmap */
-        wnd->info.bmiHeader.biWidth  = wnd->w;
-        wnd->info.bmiHeader.biHeight = -((int)wnd->h);
-
-        SelectObject( wnd->dc, wnd->old_bitmap );
-        DeleteObject( wnd->bitmap );
-        DeleteDC( wnd->dc );
-
-        wnd->dc = CreateCompatibleDC( NULL );
-        wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
-                                        (void**)&data, 0, 0 );
-        wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
-
-        sgui_canvas_set_raw_data( wnd->back_buffer, SCF_BGRA8, wnd->w, wnd->h,
-                                  data );
-
-        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
-
         /* send size change event */
         e.size.new_width  = wnd->w;
         e.size.new_height = wnd->h;
 
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
 
-        /* redraw everything */
+        /* resize canvas and redraw everything */
+        sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
         sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
                                         0, 0, wnd->w, wnd->h );
         break;
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
 
-        BitBlt( hDC, 0, 0, wnd->w+1, wnd->h, wnd->dc, 0, 0, SRCCOPY );
+        BitBlt( hDC, 0, 0, wnd->w, wnd->h,
+                wnd->back_buffer->dc, 0, 0, SRCCOPY );
 
         EndPaint( hWnd, &ps );
         break;
@@ -198,7 +182,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     DWORD style;
     RECT r;
     unsigned char rgb[3];
-    void* data;
 
     if( !width || !height )
         return NULL;
@@ -263,22 +246,8 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->w = width;
     wnd->h = height;
 
-    /* create double buffering context/bitmap */
-    wnd->info.bmiHeader.biSize        = sizeof(wnd->info.bmiHeader);
-    wnd->info.bmiHeader.biBitCount    = 32;
-    wnd->info.bmiHeader.biCompression = BI_RGB;
-    wnd->info.bmiHeader.biPlanes      = 1;
-    wnd->info.bmiHeader.biWidth       = wnd->w;
-    wnd->info.bmiHeader.biHeight      = -((int)wnd->h);
-
-    wnd->dc = CreateCompatibleDC( NULL );
-    wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
-                                    (void**)&data, 0, 0 );
-    wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
-
-
-    wnd->back_buffer = sgui_canvas_create_use_buffer( data, wnd->w, wnd->h,
-                                                      SCF_BGRA8 );
+    /* create canvas */
+    wnd->back_buffer = sgui_canvas_create( wnd->w, wnd->h );
 
     if( !wnd->back_buffer )
     {
@@ -301,13 +270,6 @@ void sgui_window_destroy( sgui_window* wnd )
     if( wnd )
     {
         SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
-
-        if( wnd->dc )
-        {
-            SelectObject( wnd->dc, wnd->old_bitmap );
-            DeleteObject( wnd->bitmap );
-            DeleteDC( wnd->dc );
-        }
 
         if( wnd->hWnd )
         {
@@ -399,7 +361,6 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
-    void* data;
 
     if( wnd )
     {
@@ -416,25 +377,12 @@ void sgui_window_set_size( sgui_window* wnd,
         wnd->w = width;
         wnd->h = height;
 
-        /* resize the double buffering context/bitmap */
-        wnd->info.bmiHeader.biWidth  = wnd->w;
-        wnd->info.bmiHeader.biHeight = -((int)wnd->h);
-
-        SelectObject( wnd->dc, wnd->old_bitmap );
-        DeleteObject( wnd->bitmap );
-        DeleteDC( wnd->dc );
-
-        wnd->dc = CreateCompatibleDC( NULL );
-        wnd->bitmap = CreateDIBSection( wnd->dc, &wnd->info, DIB_RGB_COLORS,
-                                        (void**)&data, 0, 0 );
-        wnd->old_bitmap = (HBITMAP)SelectObject( wnd->dc, wnd->bitmap );
-
-        sgui_canvas_set_raw_data( wnd->back_buffer, SCF_BGRA8, wnd->w, wnd->h,
-                                  data );
-
-        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+        /* resize the canvas */
+        sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
         /* redraw everything */
+        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+
         sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
                                         0, 0, wnd->w, wnd->h );
     }

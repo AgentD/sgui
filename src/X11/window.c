@@ -41,7 +41,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     XWindowAttributes attr;
     unsigned long color = 0;
     unsigned char rgb[3];
-    char* buffer;
 
     if( !width || !height )
         return NULL;
@@ -142,9 +141,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
 
     /************ create an image for local drawing ************/
-    wnd->back_buffer_canvas = sgui_canvas_create( wnd->w, wnd->w, SCF_BGRA8 );
+    wnd->back_buffer = sgui_canvas_create( wnd->w, wnd->w, wnd->dpy );
 
-    if( !wnd->back_buffer_canvas )
+    if( !wnd->back_buffer )
     {
         sgui_window_destroy( wnd );
         return NULL;
@@ -152,20 +151,15 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     wnd->gc = XCreateGC( wnd->dpy, wnd->wnd, 0, 0 );
 
-    buffer = (char*)sgui_canvas_get_raw_data( wnd->back_buffer_canvas );
-
-    wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
-                                     buffer, wnd->w, wnd->h, 32, 0 );
-
-    if( !wnd->back_buffer || !wnd->gc )
+    if( !wnd->gc )
     {
         sgui_window_destroy( wnd );
         return NULL;
     }
 
-    sgui_canvas_set_background_color(wnd->back_buffer_canvas, rgb, SCF_RGB8);
+    sgui_canvas_set_background_color( wnd->back_buffer, rgb, SCF_RGB8 );
 
-    sgui_canvas_clear( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -184,14 +178,8 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->ic ) XDestroyIC( wnd->ic );
         if( wnd->im ) XCloseIM( wnd->im );
 
-        if( wnd->back_buffer_canvas )
-            sgui_canvas_destroy( wnd->back_buffer_canvas );
-
         if( wnd->back_buffer )
-        {
-            wnd->back_buffer->data = NULL;
-            XDestroyImage( wnd->back_buffer );
-        }
+            sgui_canvas_destroy( wnd->back_buffer );
 
         if( wnd->gc  ) XFreeGC( wnd->dpy, wnd->gc );
         if( wnd->wnd ) XDestroyWindow( wnd->dpy, wnd->wnd );
@@ -288,7 +276,6 @@ void sgui_window_set_size( sgui_window* wnd,
 {
     XSizeHints hints;
     XWindowAttributes attr;
-    char* data;
 
     if( !wnd || !width || !height )
         return;
@@ -313,19 +300,12 @@ void sgui_window_set_size( sgui_window* wnd,
     wnd->h = (unsigned int)attr.height;
 
     /* resize the back buffer image */
-    sgui_canvas_resize( wnd->back_buffer_canvas, wnd->w, wnd->h );
-    data = (char*)sgui_canvas_get_raw_data( wnd->back_buffer_canvas );
-
-    wnd->back_buffer->data = NULL;
-    XDestroyImage( wnd->back_buffer );
-
-    wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24, ZPixmap, 0,
-                                     (char*)data, wnd->w, wnd->h, 32, 0 );
+    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h, wnd->dpy );
 
     /* redraw everything */
-    sgui_canvas_clear( wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-    sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer_canvas,
+    sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
                                     0, 0, wnd->w, wnd->h );
 }
 
@@ -378,7 +358,6 @@ int sgui_window_update( sgui_window* wnd )
     XExposeEvent exp;
     Status stat;
     KeySym sym;
-    char* data;
 
     if( !wnd || !wnd->mapped )
         return 0;
@@ -398,7 +377,7 @@ int sgui_window_update( sgui_window* wnd )
         exp.count      = 0;
 
         XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer_canvas );
+        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
     }
 
     /* message loop */
@@ -521,23 +500,15 @@ int sgui_window_update( sgui_window* wnd )
             wnd->h = (unsigned int)e.xconfigure.height;
 
             /* resize the back buffer image */
-            sgui_canvas_resize( wnd->back_buffer_canvas, wnd->w, wnd->h );
-            data = (char*)sgui_canvas_get_raw_data( wnd->back_buffer_canvas );
-
-            wnd->back_buffer->data = NULL;
-            XDestroyImage( wnd->back_buffer );
-
-            wnd->back_buffer = XCreateImage( wnd->dpy, CopyFromParent, 24,
-                                             ZPixmap, 0, (char*)data,
-                                             wnd->w, wnd->h, 32, 0 );
+            sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h, wnd->dpy );
 
             /* send a size change event */
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
-            sgui_canvas_clear(wnd->back_buffer_canvas, 0, 0, wnd->w, wnd->h);
+            sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-            sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer_canvas,
+            sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
                                             0, 0, wnd->w, wnd->h );
             break;
         case ClientMessage:
@@ -551,8 +522,9 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
             break;
         case Expose:
-            XPutImage( wnd->dpy, wnd->wnd, wnd->gc, wnd->back_buffer,
-                       0, 0, 0, 0, wnd->w, wnd->h );
+            XPutImage( wnd->dpy, wnd->wnd, wnd->gc, wnd->back_buffer->img,
+                       e.xexpose.x, e.xexpose.y, e.xexpose.x, e.xexpose.y,
+                       e.xexpose.width, e.xexpose.height );
             break;
         };
     }
@@ -584,6 +556,6 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
-    return wnd ? wnd->back_buffer_canvas : NULL;
+    return wnd ? wnd->back_buffer : NULL;
 }
 
