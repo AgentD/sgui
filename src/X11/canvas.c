@@ -24,18 +24,6 @@
  */
 #include "internal.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
-
-
-struct sgui_font
-{
-    FT_Library freetype;
-    FT_Face face;
-    void* buffer;
-};
-
 
 
 #define IS_OUTSIDE_SCISSOR_RECT( x, y, w, h, canvas ) \
@@ -44,7 +32,7 @@ struct sgui_font
 
 #define NEED_CHANNEL_SWAP( f ) ((f)==SCF_RGBA8 || (f)==SCF_RGB8)
 
-#define HAS_ALPHA_CHANNEL( f ) ((f)==SCF_RGBA8 || (f)==SCF_BGRA8)
+#define HAS_ALPHA_CHANNEL( f ) ((f)==SCF_RGBA8)
 
 #define COLOR_COPY( a, b ) (a)[0]=(b)[0]; (a)[1]=(b)[1]; (a)[2]=(b)[2]
 #define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
@@ -58,236 +46,6 @@ struct sgui_font
         (a)[0] = ((a)[0]*iA + (b)[2]*A)>>8;\
         (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
         (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
-
-/***************************** Helper functions *****************************/
-int utf8_char_length( unsigned char c )
-{
-    c >>= 3;
-
-    if( c == 0x1E )
-        return 4;
-
-    c >>= 1;
-
-    if( c == 0x0E )
-        return 3;
-
-    c >>= 1;
-
-    return (c==0x06) ? 2 : 1;
-}
-
-unsigned long to_utf32( const unsigned char* utf8, int* length )
-{
-    unsigned long ch;
-    int i;
-
-    *length = utf8_char_length( *utf8 );
-
-    switch( *length )
-    {
-    case 4: ch = (*utf8 ^ 0xf0); break;
-    case 3: ch = (*utf8 ^ 0xe0); break;
-    case 2: ch = (*utf8 ^ 0xc0); break;
-    case 1: ch =  *utf8;         break;
-    }
-
-    ++utf8;
-
-    for( i=*length; i>1; --i, ++utf8 )
-    {
-        ch <<= 6;
-        ch |= (*utf8 ^ 0x80);
-    }
-
-    return ch;
-}
-
-int blend_glyph_on_canvas( sgui_canvas* canvas, unsigned char* glyph,
-                           int x, int y, unsigned int w, unsigned int h,
-                           unsigned char color[3] )
-{
-    unsigned char A, iA, *src, *dst, *row;
-    unsigned int i, j, ds, dt, delta;
-
-    /* adjust parameters to only blend visible portion */
-    dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*4;
-
-    if( y<canvas->sy )
-    {
-        delta = canvas->sy-y;
-
-        dst += delta*canvas->width*4;
-        glyph += delta*w;
-        h -= delta;
-        y = canvas->sy;
-    }
-
-    if( (y+(int)h) > canvas->sey )
-        h = canvas->sey - y;
-
-    ds = w;
-    dt = canvas->width*4;
-
-    if( x < canvas->sx )
-    {
-        delta = canvas->sx - x;
-
-        w -= delta;
-        glyph += delta;
-        x = canvas->sx;
-    }
-
-    if( (x+(int)w) >= canvas->sex )
-        w = canvas->sex - x;
-
-    /* do the blend */
-    for( j=0; j<h; ++j, glyph+=ds, dst+=dt )
-    {
-        for( src=glyph, row=dst, i=0; i<w; ++i, row+=4, ++src )
-        {
-            A = *src;
-            iA = 255-A;
-
-            COLOR_BLEND( row, color, A, iA );
-        }
-    }
-
-    return 0;
-}
-
-/****************************** Font functions ******************************/
-sgui_font* sgui_font_load_from_file( const char* filename )
-{
-    sgui_font* font;
-
-    /* allocate font structure */
-    font = malloc( sizeof(sgui_font) );
-
-    if( !font )
-        return NULL;
-
-    /* load font */
-    if( FT_Init_FreeType( &font->freetype ) )
-    {
-        free( font );
-        return NULL;
-    }
-
-    if( FT_New_Face( font->freetype, filename, 0, &font->face ) )
-    {
-        FT_Done_FreeType( font->freetype );
-        free( font );
-        return NULL;
-    }
-
-    font->buffer = NULL;
-
-    return font;
-}
-
-sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
-{
-    sgui_font* font;
-
-    /* sanity check */
-    if( !buffer || !buffersize )
-        return NULL;
-
-    /* allocate font structure */
-    font = malloc( sizeof(sgui_font) );
-
-    if( !font )
-        return NULL;
-
-    /* load font */
-    if( FT_Init_FreeType( &font->freetype ) )
-    {
-        free( font );
-        return NULL;
-    }
-
-    if(FT_New_Memory_Face(font->freetype, buffer, buffersize, 0, &font->face))
-    {
-        FT_Done_FreeType( font->freetype );
-        free( font );
-        free( buffer );
-        return NULL;
-    }
-
-    font->buffer = buffer;
-
-    return font;
-}
-
-void sgui_font_destroy( sgui_font* font )
-{
-    if( font )
-    {
-        FT_Done_Face( font->face );
-        FT_Done_FreeType( font->freetype );
-
-        free( font->buffer );
-        free( font );
-    }
-}
-
-unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
-                                               unsigned int font_height,
-                                               const char* text,
-                                               unsigned int length )
-{
-    unsigned int x = 0;
-    unsigned long character;
-    int len = 0;
-    FT_UInt glyph_index = 0;
-    FT_UInt previous = 0;
-    FT_Bool useKerning;
-    unsigned int i;
-
-    /* sanity check */
-    if( !text || !font_face || !font_height || !length )
-        return 0;
-
-    /* set rendering pixel size */
-    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
-
-    useKerning = FT_HAS_KERNING( font_face->face );
-
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
-    {
-        if( *text == ' ' )
-        {
-            x += (font_height/3);
-            len = 1;
-            continue;
-        }
-
-        /* UTF8 -> UTF32 -> glyph index */
-        character = to_utf32( (const unsigned char*)text, &len );
-        glyph_index = FT_Get_Char_Index( font_face->face, character );
-
-        /* load and render */
-        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
-        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
-
-        /* apply kerning */
-        if( useKerning && previous && glyph_index )
-        {
-            FT_Vector delta;
-            FT_Get_Kerning( font_face->face, previous, glyph_index,
-                            FT_KERNING_DEFAULT, &delta );
-            x -= (abs( delta.x ) >> 6);
-        }
-
-        /* advance */
-        x += font_face->face->glyph->bitmap.width + 1;
-
-        previous = glyph_index;
-    }
-
-    return x;
-}
 
 /***************************** Canvas functions *****************************/
 sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
@@ -871,85 +629,65 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
     }
 }
 
-void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
-                                  sgui_font* font_face,
-                                  unsigned int font_height,
-                                  unsigned char* color,
-                                  SGUI_COLOR_FORMAT format,
-                                  const char* text, unsigned int length )
+int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
+                               int x, int y, unsigned int w, unsigned int h,
+                               unsigned char* color )
 {
-    FT_UInt glyph_index = 0;
-    FT_UInt previous = 0;
-    FT_GlyphSlot glyph;
-    FT_Bool useKerning;
-    int len = 0, bearing;
-    unsigned int i;
-    unsigned long character;
-    unsigned char c[3];
-
-    if( !canvas || !font_face || !font_height )
-        return;
+    unsigned char A, iA, *src, *dst, *row;
+    unsigned int i, j, ds, dt, delta;
 
     x += canvas->ox;
     y += canvas->oy;
 
-    if( x>canvas->sex || y>canvas->sey )
-        return;
+    if( (x+(int)w)<(int)canvas->sx || (y+(int)h)<(int)canvas->sy )
+        return -1;
 
-    if( NEED_CHANNEL_SWAP( format ) )
+    if( x>=canvas->sex || y>=canvas->sey )
+        return 1;
+
+    /* adjust parameters to only blend visible portion */
+    dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*4;
+
+    if( y<canvas->sy )
     {
-        COLOR_COPY_INV( c, color );
+        delta = canvas->sy-y;
+
+        dst += delta*canvas->width*4;
+        buffer += delta*w;
+        h -= delta;
+        y = canvas->sy;
     }
-    else
+
+    if( (y+(int)h) > canvas->sey )
+        h = canvas->sey - y;
+
+    ds = w;
+    dt = canvas->width*4;
+
+    if( x < canvas->sx )
     {
-        COLOR_COPY( c, color );
+        delta = canvas->sx - x;
+
+        w -= delta;
+        buffer += delta;
+        x = canvas->sx;
     }
 
-    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
+    if( (x+(int)w) >= canvas->sex )
+        w = canvas->sex - x;
 
-    useKerning = FT_HAS_KERNING( font_face->face );
-
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    /* do the blend */
+    for( j=0; j<h; ++j, buffer+=ds, dst+=dt )
     {
-        if( *text == ' ' )
+        for( src=buffer, row=dst, i=0; i<w; ++i, row+=4, ++src )
         {
-            x += ((int)font_height/3);
-            len = 1;
-            continue;
+            A = *src;
+            iA = 255-A;
+
+            COLOR_BLEND_INV( row, color, A, iA );
         }
-
-        /* UTF8 -> UTF32 -> glyph index */
-        character = to_utf32( (const unsigned char*)text, &len );
-        glyph_index = FT_Get_Char_Index( font_face->face, character );
-
-        /* load and render glyph */
-        FT_Load_Glyph( font_face->face, glyph_index, FT_LOAD_DEFAULT );
-        FT_Render_Glyph( font_face->face->glyph, FT_RENDER_MODE_NORMAL );
-
-        /* apply kerning */
-        if( useKerning && previous && glyph_index )
-        {
-            FT_Vector delta;
-            FT_Get_Kerning( font_face->face, previous, glyph_index,
-                            FT_KERNING_DEFAULT, &delta );
-            x -= abs( delta.x ) >> 6;
-        } 
-
-        /* blend onto destination buffer */
-        glyph = font_face->face->glyph;
-
-        bearing = font_height - glyph->bitmap_top;
-
-        if( !IS_OUTSIDE_SCISSOR_RECT( x, y+bearing, glyph->bitmap.width,
-                                      glyph->bitmap.rows, canvas ) )
-        {
-            blend_glyph_on_canvas( canvas, glyph->bitmap.buffer, x, y+bearing,
-                                   glyph->bitmap.width, glyph->bitmap.rows,
-                                   c );
-        }
-
-        x += font_face->face->glyph->bitmap.width + 1;
-        previous = glyph_index;
     }
+
+    return 0;
 }
 

@@ -392,8 +392,8 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
 
     sgui_canvas_set_scissor_rect( cv, x+2, y+2, width-2, height-2 );
 
-    sgui_canvas_draw_text_plain( cv, x+2, y+2, font_norm, font_height,
-                                 color, SCF_RGB8, text, (unsigned int)-1 );
+    sgui_font_draw_text_plain( cv, x+2, y+2, font_norm, font_height,
+                               color, text, (unsigned int)-1 );
 
     sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
 
@@ -528,9 +528,8 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
 
     sgui_canvas_clear( cv, x+10, y, len+6, font_height );
 
-    sgui_canvas_draw_text_plain( cv, x+13, y, font_norm, font_height,
-                                 color, SCF_RGB8, caption,
-                                 (unsigned int)-1 );
+    sgui_font_draw_text_plain( cv, x+13, y, font_norm, font_height,
+                               color, caption, (unsigned int)-1 );
 
     y += font_height/2;
     height -= font_height/2;
@@ -571,9 +570,8 @@ void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
     sgui_canvas_draw_line( cv, x+width-1, y, h, 0, color, SCF_RGB8 );
 
     color[0] = color[1] = color[2] = 0xFF;
-    sgui_canvas_draw_text_plain( cv, x+10, y, font_norm, font_height,
-                                 color, SCF_RGB8, caption,
-                                 (unsigned int)-1 );
+    sgui_font_draw_text_plain( cv, x+10, y, font_norm, font_height,
+                               color, caption, (unsigned int)-1 );
 }
 
 void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,

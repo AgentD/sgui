@@ -57,9 +57,8 @@ void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
 
     sgui_canvas_clear( cv, w->x, w->y, w->width, w->height );
 
-    sgui_canvas_draw_text( cv, w->x, w->y, font_norm, font_bold,
-                           font_ital, font_boit, h, color,
-                           SCF_RGB8, t->text );
+    sgui_font_draw_text( cv, w->x, w->y, font_norm, font_bold,
+                         font_ital, font_boit, h, color, t->text );
 }
 
 

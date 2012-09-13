@@ -37,84 +37,13 @@ extern "C"
 typedef enum
 {
     SCF_RGB8 = 0,
-    SCF_RGBA8,
-
-    SCF_BGR8,
-    SCF_BGRA8
+    SCF_RGBA8
 }
 SGUI_COLOR_FORMAT;
 
 
 
 typedef struct sgui_canvas sgui_canvas;
-typedef struct sgui_font   sgui_font;
-
-
-
-/**
- * \brief Load a font face from a file using STDIO
- *
- * \param filename The path to the font file
- *
- * \returns A font object
- */
-sgui_font* sgui_font_load_from_file( const char* filename );
-
-/**
- * \brief Load a font from a memory buffer
- *
- * This is usefull when loading fonts from other resources than the standard
- * file system (e.g. custom virtual filesystems like physicsFS et al.)
- *
- * \note This function takes ownership of the given buffer. Do NOT delete it
- *       on your own afterwards.
- *
- * \param buffer     Pointer to a buffer containing the loaded font file data
- * \param buffersize The size of the buffer in bytes
- *
- * \returns A font object
- */
-sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize );
-
-/** \brief Destroy a font object */
-void sgui_font_destroy( sgui_font* font );
-
-/**
- * \brief Get the with of a single line of text, in a single font face,
- *        in pixels
- *
- * \param font_face   The font face to use
- * \param font_height The height of the font in pixels
- * \param text        The UTF8 text to determine the rendered width of
- * \param length      The number of bytes to read
- */
-unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
-                                               unsigned int font_height,
-                                               const char* text,
-                                               unsigned int length );
-
-/**
- * \brief Get the with and height of a multi line text that uses html like
- *        tags to determine color and font face
- *
- * \see sgui_canvas_draw_text
- *
- * \param font_norm   The font face to use for normal text
- * \param font_bold   The font face to use for bold text
- * \param font_ital   The font face to use for italic text
- * \param font_boit   The font face to use for bold and italic text
- * \param font_height The height of the font in pixels
- * \param text        The UTF8 text to determine the rendered size of
- * \param width       Returns the width of the rendered text
- * \param height      Returns the height of the rendererd text
- */
-void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
-                                 sgui_font* font_ital, sgui_font* font_boit,
-                                 unsigned int font_height, const char* text,
-                                 unsigned int* width, unsigned int* height );
-
-
-
 
 
 
@@ -170,8 +99,10 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                                    unsigned int width, unsigned int height );
 
+/** \brief Enable or disable background clearing */
 void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
 
+/** \brief Returns non-zero if background clearing is enabled */
 int sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
 
 /**
@@ -250,51 +181,24 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                             unsigned char* color, SGUI_COLOR_FORMAT format );
 
 /**
- * \brief Render one line of text in a single font face
+ * \brief Perform a stencil blend on a canvas (e.g. glyph rendering)
  *
- * \param x         Distance from the left of the canvas to the left of the
- *                  text.
- * \param y         Distance from the top of the canvas to the top of the
- *                  text.
- * \param font_face The font face to use.
- * \param height    The height of the text in pixels.
- * \param color     The color to draw the text in.
- * \param format    The format of the given color.
- * \param text      The text to draw.
- * \param length    The number of bytes to read from the text.
- */
-void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
-                                  sgui_font* font_face, unsigned int height,
-                                  unsigned char* color,
-                                  SGUI_COLOR_FORMAT format,
-                                  const char* text, unsigned int length );
-
-/**
- * \brief Render a multi line text that uses html like tags to switch color
- *        or font_face
+ * \param buffer A monochrome buffer holding coverage values that are used to
+ *               blend the given RGB color onto
+ * \param x      Distance from the left of the canvas to the left of the
+ *               object
+ * \param y      Distance from the top of the canvas to the top of the object
+ * \param w      The width of the buffer
+ * \param h      The height of the buffer
+ * \param color  The color to draw
  *
- * \param x           Distance from the left of the text to the left of the
- *                    canvas.
- * \param y           Distance from the top of the text to the top of the
- *                    canvas.
- * \param font_norm   The font face to use for normal text.
- * \param font_bold   The font face to use for bold text.
- * \param font_ital   The font face to use for italic text.
- * \param font_boit   The font face to use for bold and italic text.
- * \param font_height The height of the font faces in pixels
- * \param color       The default color to use.
- * \param format      The format of the given default color
- * \param text        The UTF8 text to print. The LF ('\n') character can be
- *                    used for line wraps, the \<b\> \</b\> and \<i\> \</i\>
- *                    for writing text bold or italic. A \<color="#RRGGBB"\>
- *                    tag can be used to switch text color, where the value
- *                    "default" for color switches back to default color.
+ * \return A negative value if the target was to the left or above the drawing
+ *         area, a positive value if it was to the right or below and zero
+ *         otherwise.
  */
-void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
-                            sgui_font* font_norm, sgui_font* font_bold,
-                            sgui_font* font_ital, sgui_font* font_boit,
-                            unsigned int font_height, unsigned char* color,
-                            SGUI_COLOR_FORMAT format, const char* text );
+int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
+                               int x, int y, unsigned int w, unsigned int h,
+                               unsigned char* color );
 
 
 

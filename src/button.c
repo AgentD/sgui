@@ -246,15 +246,14 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     {
         sgui_canvas_clear( cv, b->cx - b->state-1, b->cy - b->state-1,
                                b->text_width+2, h+2 );
-        sgui_canvas_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
-                                     f, h, color, SCF_RGB8,
-                                     b->text, (unsigned int)-1 );
+        sgui_font_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
+                                   f, h, color, b->text, (unsigned int)-1 );
     }
     else
     {
         sgui_canvas_clear( cv, w->x + b->cx, w->y, b->text_width, w->height );
-        sgui_canvas_draw_text_plain( cv, w->x + b->cx, w->y, f, h, color,
-                                     SCF_RGB8, b->text, (unsigned int)-1 );
+        sgui_font_draw_text_plain( cv, w->x + b->cx, w->y, f, h, color,
+                                   b->text, (unsigned int)-1 );
     }
 }
 

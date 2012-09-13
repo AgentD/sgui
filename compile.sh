@@ -17,7 +17,7 @@ if [ "$?" == "127" ]; then
 fi
 
 # Common source code files
-SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/canvas.c
+SOURCE_COMMON="test.c src/widget.c src/progress_bar.c src/font.c
                       src/widget_manager.c src/static_text.c src/button.c
                       src/skin.c src/link.c src/image.c src/edit_box.c
                       src/frame.c src/scroll_bar.c src/group_box.c src/tab.c"
