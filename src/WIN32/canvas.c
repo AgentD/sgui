@@ -26,14 +26,6 @@
  
 
 
-#define IS_OUTSIDE_SCISSOR_RECT( x, y, w, h, canvas ) \
-           ( (x)>(canvas)->sc.right || (y)>(canvas)->sc.bottom ||\
-            ((x)+(int)(w))<(canvas)->sc.left || ((y)+(int)(h))<(canvas)->sc.top )
-
-#define NEED_CHANNEL_SWAP( f ) ((f)==SCF_RGBA8 || (f)==SCF_RGB8)
-
-#define HAS_ALPHA_CHANNEL( f ) ((f)==SCF_RGBA8)
-
 #define COLOR_COPY( a, b ) (a)[0]=(b)[0]; (a)[1]=(b)[1]; (a)[2]=(b)[2]
 #define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
 
@@ -47,7 +39,7 @@
         (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
         (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
 
-/***************************** Canvas functions *****************************/
+/************************ internal canvas functions ************************/
 sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
 {
     sgui_canvas* cv = malloc( sizeof(sgui_canvas) );
@@ -135,9 +127,7 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
     }
 }
 
-
-
-
+/************************* public canvas functions *************************/
 void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
                            unsigned int* height )
 {
@@ -146,8 +136,7 @@ void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
 }
 
 void sgui_canvas_set_background_color( sgui_canvas* canvas,
-                                       unsigned char* color,
-                                       SGUI_COLOR_FORMAT format )
+                                       unsigned char* color )
 {
     COLORREF c;
 
@@ -156,10 +145,7 @@ void sgui_canvas_set_background_color( sgui_canvas* canvas,
         if( canvas->bg_brush )
             DeleteObject( (HGDIOBJ)canvas->bg_brush );
 
-        if( format==SCF_RGB8 || format==SCF_RGBA8 )
-            c = RGB( color[0], color[1], color[2] );
-        else
-            c = RGB( color[2], color[1], color[0] );
+        c = RGB( color[0], color[1], color[2] );
 
         canvas->bg_brush = CreateSolidBrush( c );
     }
@@ -297,7 +283,7 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
         return;
 
     /* color format checks */
-    if( HAS_ALPHA_CHANNEL( format ) )
+    if( format==SCF_RGBA8 )
         src_bpp = 4;
 
     /* compute source and destination pointers */
@@ -310,26 +296,12 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
     dt = canvas->width * 4;
 
     /* do the blit */
-    if( NEED_CHANNEL_SWAP( format ) )
+    for( j=r.top; j!=r.bottom; ++j, src+=ds, dst+=dt )
     {
-        for( j=r.top; j!=r.bottom; ++j, src+=ds, dst+=dt )
+        for( drow=dst, srow=src, i=r.left; i!=r.right; ++i, drow+=4,
+                                                       srow+=src_bpp )
         {
-            for( drow=dst, srow=src, i=r.left; i!=r.right; ++i, drow+=4,
-                                                           srow+=src_bpp )
-            {
-                COLOR_COPY_INV( drow, srow );
-            }
-        }
-    }
-    else
-    {
-        for( j=r.top; j!=r.bottom; ++j, src+=ds, dst+=dt )
-        {
-            for( drow=dst, srow=src, i=r.left; i!=r.right; ++i, drow+=4,
-                                                           srow+=src_bpp )
-            {
-                COLOR_COPY( drow, srow );
-            }
+            COLOR_COPY_INV( drow, srow );
         }
     }
 }
@@ -342,10 +314,7 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     unsigned int i, j, ds, dt;
     RECT r, r0;
 
-    if( !canvas || !width || !height || !data )
-        return;
-
-    if( !HAS_ALPHA_CHANNEL( format ) )
+    if( !canvas || !width || !height || !data || format!=SCF_RGBA8 )
         return;
 
     x += canvas->ox;
@@ -367,28 +336,13 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     dt = canvas->width * 4;
 
     /* do the blend */
-    if( NEED_CHANNEL_SWAP( format ) )
+    for( j=0; j<height; ++j, src+=ds, dst+=dt )
     {
-        for( j=0; j<height; ++j, src+=ds, dst+=dt )
+        for( drow=dst, srow=src, i=0; i<width; ++i, drow+=4, srow+=4 )
         {
-            for( drow=dst, srow=src, i=0; i<width; ++i, drow+=4, srow+=4 )
-            {
-                A = srow[3], iA = 255-A;
+            A = srow[3], iA = 255-A;
 
-                COLOR_BLEND_INV( drow, srow, A, iA );
-            }
-        }
-    }
-    else
-    {
-        for( j=0; j<height; ++j, src+=ds, dst+=dt )
-        {
-            for( drow=dst, srow=src, i=0; i<width; ++i, drow+=4, srow+=4 )
-            {
-                A = srow[3], iA = 255-A;
-
-                COLOR_BLEND( drow, srow, A, iA );
-            }
+            COLOR_BLEND_INV( drow, srow, A, iA );
         }
     }
 }
@@ -417,16 +371,9 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
         return;
 
     /* draw */
-    if( HAS_ALPHA_CHANNEL( format ) )
+    if( format==SCF_RGBA8 )
     {
-        if( NEED_CHANNEL_SWAP( format ) )
-        {
-            COLOR_COPY_INV( c, color );
-        }
-        else
-        {
-            COLOR_COPY( c, color );
-        }
+        COLOR_COPY_INV( c, color );
 
         dst = ((unsigned char*)canvas->data) + (r.top*canvas->width+r.left)*4;
 
@@ -472,16 +419,9 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
     if( !PtInRect( &canvas->sc, pt[0] ) && !PtInRect( &canvas->sc, pt[1] ) )
         return;
 
-    if( HAS_ALPHA_CHANNEL( format ) )
+    if( format==SCF_RGBA8 )
     {
-        if( NEED_CHANNEL_SWAP( format ) )
-        {
-            COLOR_COPY_INV( c, color );
-        }
-        else
-        {
-            COLOR_COPY( c, color );
-        }
+        COLOR_COPY_INV( c, color );
 
         A = color[3];
         iA = 255 - A;
@@ -528,52 +468,34 @@ int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
                                unsigned char* color )
 {
     unsigned char A, iA, *src, *dst, *row;
-    unsigned int i, j, ds, dt, delta;
+    int i, j;
+    RECT r, r0;
 
-    x += canvas->ox;
-    y += canvas->oy;
+    if( !canvas || !buffer || !color || !w || !h )
+        return 0;
 
-    if( (x+(int)w)<(int)canvas->sc.left || (y+(int)h)<(int)canvas->sc.top )
+    x+=canvas->ox;
+    y+=canvas->oy;
+
+    if( (x+(int)w)<canvas->sc.left || (y+(int)h)<canvas->sc.top )
         return -1;
 
     if( x>=canvas->sc.right || y>=canvas->sc.bottom )
         return 1;
 
-    /* adjust parameters to only blend visible portion */
-    dst = ((unsigned char*)canvas->data) + (y*canvas->width + x)*4;
+    SetRect( &r0, x, y, x+w, y+h );
+    IntersectRect( &r, &canvas->sc, &r0 );
 
-    if( y<canvas->sc.top )
-    {
-        delta = canvas->sc.top-y;
+    /* compute source and destination buffer pointer */
+    dst = ((unsigned char*)canvas->data) + (r.top*canvas->width + r.left)*4;
 
-        dst += delta*canvas->width*4;
-        buffer += delta*w;
-        h -= delta;
-        y = canvas->sc.top;
-    }
-
-    if( (y+(int)h) > canvas->sc.bottom )
-        h = canvas->sc.bottom - y;
-
-    ds = w;
-    dt = canvas->width*4;
-
-    if( x < canvas->sc.left )
-    {
-        delta = canvas->sc.left - x;
-
-        w -= delta;
-        buffer += delta;
-        x = canvas->sc.left;
-    }
-
-    if( (x+(int)w) >= canvas->sc.right )
-        w = canvas->sc.right - x;
+    dst    += (r.top - r0.top) * canvas->width*4;
+    buffer += (r.top - r0.top) * w + (r.left - r0.left);
 
     /* do the blend */
-    for( j=0; j<h; ++j, buffer+=ds, dst+=dt )
+    for( j=r.top; j!=r.bottom; ++j, buffer+=w, dst+=canvas->width*4 )
     {
-        for( src=buffer, row=dst, i=0; i<w; ++i, row+=4, ++src )
+        for( src=buffer, row=dst, i=r.left; i!=r.right; ++i, row+=4, ++src )
         {
             A = *src;
             iA = 255-A;

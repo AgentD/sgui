@@ -60,12 +60,10 @@ void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
 /**
  * \brief Set the background color of the canvas
  *
- * \param color  The background color
- * \param format The format of the given color
+ * \param color The background color
  */
 void sgui_canvas_set_background_color( sgui_canvas* canvas,
-                                       unsigned char* color,
-                                       SGUI_COLOR_FORMAT format );
+                                       unsigned char* color );
 
 /**
  * \brief Clear a rectangular region on the canvas to the background color

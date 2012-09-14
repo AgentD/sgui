@@ -32,6 +32,7 @@
 #include "sgui_widget_manager.h"
 #include "sgui_keycodes.h"
 #include "sgui_canvas.h"
+#include "sgui_rect.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -69,12 +70,12 @@ struct sgui_canvas
 
     unsigned char bg_color[3];
 
-    int sx, sy, sex, sey, ox, oy;
+    int ox, oy;
 
-    int sc_stack_x [ SGUI_CANVAS_STACK_DEPTH ];
-    int sc_stack_y [ SGUI_CANVAS_STACK_DEPTH ];
-    int sc_stack_ex[ SGUI_CANVAS_STACK_DEPTH ];
-    int sc_stack_ey[ SGUI_CANVAS_STACK_DEPTH ];
+    sgui_rect screen;
+    sgui_rect sc;
+
+    sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
     unsigned int scissor_stack_pointer;
 
     int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];

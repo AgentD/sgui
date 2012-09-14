@@ -157,7 +157,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    sgui_canvas_set_background_color( wnd->back_buffer, rgb, SCF_RGB8 );
+    sgui_canvas_set_background_color( wnd->back_buffer, rgb );
 
     sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
