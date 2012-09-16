@@ -211,7 +211,8 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
             }
             else
             {
-                sgui_rect_set_size( &canvas->sc, 0, 0, width, height );
+                sgui_rect_set_size( &canvas->sc, 0, 0,
+                                    canvas->width, canvas->height );
             }
         }
     }
