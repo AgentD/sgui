@@ -31,6 +31,7 @@
 #include "sgui_skin.h"
 #include "sgui_widget_manager.h"
 #include "sgui_canvas.h"
+#include "sgui_rect.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRA_LEAN
@@ -73,12 +74,12 @@ struct sgui_canvas
     HDC dc;
     BITMAPINFO info;
     HBITMAP bitmap;
-    HBRUSH bg_brush;
+    unsigned char bg_color[3];
 
-    RECT sc;
+    sgui_rect sc;
     int ox, oy;
 
-    RECT sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
+    sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
     unsigned int scissor_stack_pointer;
 
     int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];

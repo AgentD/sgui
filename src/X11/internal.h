@@ -63,16 +63,13 @@
 
 struct sgui_canvas
 {
-    unsigned int width, height;
     void* data;
-    int clear;
     XImage* img;
+    int clear;
+    int ox, oy;
 
     unsigned char bg_color[3];
 
-    int ox, oy;
-
-    sgui_rect screen;
     sgui_rect sc;
 
     sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];

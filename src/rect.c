@@ -41,8 +41,8 @@ void sgui_rect_set_size( sgui_rect* r, int left, int top,
     {
         r->left   = left;
         r->top    = top;
-        r->right  = left + (int)width;
-        r->bottom = top + (int)height;
+        r->right  = left + (int)width - 1;
+        r->bottom = top + (int)height - 1;
     }
 }
 
@@ -144,7 +144,7 @@ int sgui_rect_clip_line( sgui_rect* r, int horizontal, int* x, int* y,
 
     if( horizontal )
     {
-        if( Y <= rT || Y >= rB || X >= rR || (X+L) <= rL )
+        if( Y < rT || Y > rB || X > rR || (X+L) < rL )
             return 0;
 
         if( X < rL )
@@ -158,7 +158,7 @@ int sgui_rect_clip_line( sgui_rect* r, int horizontal, int* x, int* y,
     }
     else
     {
-        if( X <= rL || X >= rR || Y >= rB || (Y+L) <= rT )
+        if( X < rL || X > rR || Y > rB || (Y+L) < rT )
             return 0;
 
         if( Y < rT )

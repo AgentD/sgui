@@ -80,7 +80,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
     cv->height = height;
     cv->clear  = 1;
 
-    SetRect( &cv->sc, 0, 0, width, height );
+    sgui_rect_set_size( &cv->sc, 0, 0, width, height );
 
     return cv;
 }
@@ -89,9 +89,6 @@ void sgui_canvas_destroy( sgui_canvas* canvas )
 {
     if( canvas )
     {
-        if( canvas->bg_brush )
-            DeleteObject( (HGDIOBJ)canvas->bg_brush );
-
         if( canvas->dc )
         {
             SelectObject( canvas->dc, 0 );
@@ -123,7 +120,8 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
         canvas->width  = width;
         canvas->height = height;
 
-        SetRect( &canvas->sc, 0, 0, width, height );
+        canvas->scissor_stack_pointer = 0;
+        sgui_rect_set_size( &canvas->sc, 0, 0, width, height );
     }
 }
 
@@ -138,34 +136,37 @@ void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
 void sgui_canvas_set_background_color( sgui_canvas* canvas,
                                        unsigned char* color )
 {
-    COLORREF c;
-
     if( canvas && color )
     {
-        if( canvas->bg_brush )
-            DeleteObject( (HGDIOBJ)canvas->bg_brush );
-
-        c = RGB( color[0], color[1], color[2] );
-
-        canvas->bg_brush = CreateSolidBrush( c );
+        COLOR_COPY_INV( canvas->bg_color, color );
     }
 }
 
 void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
                         unsigned int width, unsigned int height )
 {
-    RECT r, r0;
+    unsigned char *dst, *row;
+    int i, j;
+    sgui_rect r;
 
     if( !canvas || !canvas->clear )
         return;
 
-    x += canvas->ox;
-    y += canvas->oy;
+    sgui_rect_set_size( &r, x+canvas->ox, y+canvas->oy, width, height );
 
-    SetRect( &r0, x, y, x+width, y+height );
+    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
+        return;
 
-    if( IntersectRect( &r, &canvas->sc, &r0 ) )
-        FillRect( canvas->dc, &r, canvas->bg_brush );
+    dst = (unsigned char*)canvas->data + (r.top*canvas->width+r.left)*4;
+
+    /* clear */
+    for( j=r.top; j<=r.bottom; ++j, dst+=canvas->width*4 )
+    {
+        for( row=dst, i=r.left; i<=r.right; ++i, row+=4 )
+        {
+            COLOR_COPY( row, canvas->bg_color );
+        }
+    }
 }
 
 
@@ -173,28 +174,29 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                                    unsigned int width, unsigned int height )
 {
-    RECT r, r0;
+    sgui_rect r;
 
     if( canvas )
     {
-        x += canvas->ox;
-        y += canvas->oy;
-
         if( width && height )
         {
             if( canvas->scissor_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
                 return;
 
             /* push current scissor rect */
-            CopyRect( canvas->sc_stack+canvas->scissor_stack_pointer,
-                      &canvas->sc );
+            sgui_rect_copy( canvas->sc_stack + canvas->scissor_stack_pointer,
+                            &canvas->sc );
 
             ++(canvas->scissor_stack_pointer);
 
             /* merge rectangles */
-            SetRect( &r0, x, y, x+width, y+height );
-            IntersectRect( &r, &canvas->sc, &r0 );
-            CopyRect( &canvas->sc, &r );
+            sgui_rect_set_size( &r, x+canvas->ox, y+canvas->oy,
+                                    width, height );
+
+            sgui_rect_get_intersection( &r, &canvas->sc, &r );
+
+            /* set scissor rect */
+            sgui_rect_copy( &canvas->sc, &r );
         }
         else
         {
@@ -203,12 +205,13 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
                 /* pop old scissor rect from stack */
                 --(canvas->scissor_stack_pointer);
 
-                CopyRect( &canvas->sc,
-                          canvas->sc_stack+canvas->scissor_stack_pointer );
+                sgui_rect_copy( &canvas->sc,
+                                canvas->sc_stack+
+                                canvas->scissor_stack_pointer );
             }
             else
             {
-                SetRect( &canvas->sc, 0, 0, canvas->width, canvas->height );
+                sgui_rect_set_size( &canvas->sc, 0, 0, width, height );
             }
         }
     }
@@ -268,18 +271,14 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
     unsigned char *dst, *src, *drow, *srow;
     unsigned int ds, dt;
     int i, j, src_bpp = 3;
-    RECT r, r0;
+    sgui_rect r, r0;
 
     if( !canvas || !width || !height || !data )
         return;
 
-    x += canvas->ox;
-    y += canvas->oy;
+    sgui_rect_set_size( &r0, x+canvas->ox, y+canvas->oy, width, height );
 
-    SetRect( &r0, x, y, x+width, y+height );
-
-    /* don't blit if outside the drawing area */
-    if( !IntersectRect( &r, &canvas->sc, &r0 ) )
+    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r0 ) )
         return;
 
     /* color format checks */
@@ -288,17 +287,16 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
 
     /* compute source and destination pointers */
     dst = ((unsigned char*)canvas->data) + (r.top*canvas->width + r.left)*4;
+    src = (unsigned char*)data +
+          ((r.top-r0.top)*width + r.left-r0.left)*src_bpp;
 
-    src = (unsigned char*)data;
-    src += ((r.top-r0.top)*canvas->width + r.left-r0.left)*4;
-
-    ds = width * src_bpp;
-    dt = canvas->width * 4;
+    ds = width*src_bpp;
+    dt = canvas->width*4;
 
     /* do the blit */
-    for( j=r.top; j!=r.bottom; ++j, src+=ds, dst+=dt )
+    for( j=r.top; j<=r.bottom; ++j, src+=ds, dst+=dt )
     {
-        for( drow=dst, srow=src, i=r.left; i!=r.right; ++i, drow+=4,
+        for( drow=dst, srow=src, i=r.left; i<=r.right; ++i, drow+=4,
                                                        srow+=src_bpp )
         {
             COLOR_COPY_INV( drow, srow );
@@ -311,36 +309,32 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
                         const void* data )
 {
     unsigned char *dst, *src, *drow, *srow, A, iA;
-    unsigned int i, j, ds, dt;
-    RECT r, r0;
+    unsigned int ds, dt;
+    int i, j;
+    sgui_rect r, r0;
 
     if( !canvas || !width || !height || !data || format!=SCF_RGBA8 )
         return;
 
-    x += canvas->ox;
-    y += canvas->oy;
+    sgui_rect_set_size( &r0, x+canvas->ox, y+canvas->oy, width, height );
 
-    SetRect( &r0, x, y, x+width, y+height );
-
-    /* don't blend outside the drawing area */
-    if( !IntersectRect( &r, &canvas->sc, &r0 ) )
+    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r0 ) )
         return;
 
     /* compute source and destination pointers */
     dst = ((unsigned char*)canvas->data) + (r.top*canvas->width + r.left)*4;
+    src = (unsigned char*)data + ((r.top-r0.top)*width + r.left-r0.left)*4;
 
-    src = (unsigned char*)data;
-    src += ((r.top-r0.top)*canvas->width + r.left-r0.left)*4;
+    ds = width*4;
+    dt = canvas->width*4;
 
-    ds = width * 4;
-    dt = canvas->width * 4;
-
-    /* do the blend */
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    /* do the blit */
+    for( j=r.top; j<=r.bottom; ++j, src+=ds, dst+=dt )
     {
-        for( drow=dst, srow=src, i=0; i<width; ++i, drow+=4, srow+=4 )
+        for( drow=dst, srow=src, i=r.left; i<=r.right; ++i, drow+=4, srow+=4 )
         {
-            A = srow[3], iA = 255-A;
+            A = srow[3];
+            iA = 0xFF-A;
 
             COLOR_BLEND_INV( drow, srow, A, iA );
         }
@@ -354,35 +348,28 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
     unsigned char c[3], A, iA;
     unsigned char *dst, *row;
     int i, j;
-    COLORREF ref;
-    HBRUSH brush;
-    RECT r0, r;
+    sgui_rect r;
 
     if( !canvas || !color )
         return;
 
-    /* Determine rect to draw to */
-    x += canvas->ox;
-    y += canvas->oy;
+    sgui_rect_set_size( &r, x+canvas->ox, y+canvas->oy, width, height );
 
-    SetRect( &r0, x, y, x+width, y+height );
-
-    if( !IntersectRect( &r, &canvas->sc, &r0 ) )
+    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
         return;
 
-    /* draw */
+    COLOR_COPY_INV( c, color );
+
+    dst = (unsigned char*)canvas->data + (r.top*canvas->width+r.left)*4;
+
     if( format==SCF_RGBA8 )
     {
-        COLOR_COPY_INV( c, color );
-
-        dst = ((unsigned char*)canvas->data) + (r.top*canvas->width+r.left)*4;
-
         A = color[3];
         iA = 255 - A;
 
-        for( j=r.top; j!=r.bottom; ++j, dst+=canvas->width*4 )
+        for( j=r.top; j<=r.bottom; ++j, dst+=canvas->width*4 )
         {
-            for( row=dst, i=r.left; i!=r.right; ++i, row+=4 )
+            for( row=dst, i=r.left; i<=r.right; ++i, row+=4 )
             {
                 COLOR_BLEND( row, c, A, iA );
             }
@@ -390,12 +377,13 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
     }
     else
     {
-        ref = format==SCF_RGB8 ? RGB( color[0], color[1], color[2] ) :
-                                 RGB( color[2], color[1], color[0] );
-
-        brush = CreateSolidBrush( ref );
-        FillRect( canvas->dc, &r, brush );
-        DeleteObject( brush );
+        for( j=r.top; j<=r.bottom; ++j, dst+=canvas->width*4 )
+        {
+            for( row=dst, i=r.left; i<=r.right; ++i, row+=4 )
+            {
+                COLOR_COPY( row, c );
+            }
+        }
     }
 }
 
@@ -405,61 +393,38 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 {
     unsigned char* dst;
     unsigned char c[3], A, iA;
-    int i;
-    POINT pt[2];
+    unsigned int i, delta;
 
     if( !canvas )
         return;
 
-    pt[0].x = x + canvas->ox;
-    pt[0].y = y + canvas->oy;
-    pt[1].x = horizontal ? (pt[0].x+(int)length) :  pt[0].x;
-    pt[1].y = horizontal ?  pt[0].y              : (pt[0].y+(int)length);
+    x += canvas->ox;
+    y += canvas->oy;
 
-    if( !PtInRect( &canvas->sc, pt[0] ) && !PtInRect( &canvas->sc, pt[1] ) )
+    if( !sgui_rect_clip_line( &canvas->sc, horizontal, &x, &y, &length ) )
         return;
+
+    COLOR_COPY_INV( c, color );
+
+    dst = (unsigned char*)canvas->data + (y*canvas->width + x)*4;
+    delta = horizontal ? 4 : canvas->width*4;
 
     if( format==SCF_RGBA8 )
     {
-        COLOR_COPY_INV( c, color );
-
         A = color[3];
         iA = 255 - A;
 
-        if( pt[0].x < canvas->sc.left   ) pt[0].x = canvas->sc.left;
-        if( pt[0].y < canvas->sc.top    ) pt[0].y = canvas->sc.top;
-        if( pt[1].x > canvas->sc.right  ) pt[1].x = canvas->sc.right;
-        if( pt[1].y > canvas->sc.bottom ) pt[1].y = canvas->sc.bottom;
-
-        dst = (unsigned char*)canvas->data +
-              (pt[0].y*canvas->width+pt[0].x)*4;
-
-        if( horizontal )
+        for( i=0; i<length; ++i, dst+=delta )
         {
-            for( i=pt[0].x; i!=pt[1].x; ++i, dst+=4 )
-            {
-                COLOR_BLEND( dst, c, A, iA );
-            }
-        }
-        else
-        {
-            for( i=pt[0].y; i!=pt[1].y; ++i, dst+=canvas->width*4 )
-            {
-                COLOR_BLEND( dst, c, A, iA );
-            }
+            COLOR_BLEND( dst, c, A, iA );
         }
     }
     else
     {
-        COLORREF ref = format==SCF_RGB8 ? RGB(color[0], color[1], color[2]) :
-                                          RGB(color[2], color[1], color[0]);
-
-        HPEN pen = CreatePen( PS_SOLID, 1, ref );
-        HGDIOBJ old = SelectObject( canvas->dc, pen );
-
-        Polyline( canvas->dc, pt, 2 );
-        SelectObject( canvas->dc, old );
-        DeleteObject( pen );
+        for( i=0; i<length; ++i, dst+=delta )
+        {
+            COLOR_COPY( dst, c );
+        }
     }
 }
 
@@ -469,7 +434,7 @@ int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
 {
     unsigned char A, iA, *src, *dst, *row;
     int i, j;
-    RECT r, r0;
+    sgui_rect r;
 
     if( !canvas || !buffer || !color || !w || !h )
         return 0;
@@ -477,25 +442,25 @@ int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     x+=canvas->ox;
     y+=canvas->oy;
 
-    if( (x+(int)w)<canvas->sc.left || (y+(int)h)<canvas->sc.top )
+    if( (x+(int)w-1)<canvas->sc.left || (y+(int)h-1)<canvas->sc.top )
         return -1;
 
-    if( x>=canvas->sc.right || y>=canvas->sc.bottom )
+    if( x>canvas->sc.right || y>canvas->sc.bottom )
         return 1;
 
-    SetRect( &r0, x, y, x+w, y+h );
-    IntersectRect( &r, &canvas->sc, &r0 );
+    sgui_rect_set_size( &r, x, y, w, h );
+    sgui_rect_get_intersection( &r, &canvas->sc, &r );
 
     /* compute source and destination buffer pointer */
     dst = ((unsigned char*)canvas->data) + (r.top*canvas->width + r.left)*4;
 
-    dst    += (r.top - r0.top) * canvas->width*4;
-    buffer += (r.top - r0.top) * w + (r.left - r0.left);
+    dst    += (r.top - y) * canvas->width*4;
+    buffer += (r.top - y) * w + (r.left - x);
 
     /* do the blend */
-    for( j=r.top; j!=r.bottom; ++j, buffer+=w, dst+=canvas->width*4 )
+    for( j=r.top; j<=r.bottom; ++j, buffer+=w, dst+=canvas->width*4 )
     {
-        for( src=buffer, row=dst, i=r.left; i!=r.right; ++i, row+=4, ++src )
+        for( src=buffer, row=dst, i=r.left; i<=r.right; ++i, row+=4, ++src )
         {
             A = *src;
             iA = 255-A;
