@@ -28,6 +28,7 @@
 
 
 #include "sgui_canvas.h"
+#include "sgui_filesystem.h"
 
 
 
@@ -42,28 +43,15 @@ typedef struct sgui_font sgui_font;
 
 
 /**
- * \brief Load a font face from a file using STDIO
+ * \brief Load a font face from a file
  *
+ * \param fs       The filesystem driver to use for accessing the font file.
+ *                 Pass NULL to use the default stdio filesystem driver.
  * \param filename The path to the font file
  *
  * \returns A font object
  */
-sgui_font* sgui_font_load_from_file( const char* filename );
-
-/**
- * \brief Load a font from a memory buffer
- *
- * This is usefull when loading fonts from other resources than the standard
- * file system (e.g. custom virtual filesystems like physicsFS et al.)
- *
- * \note Do NOT delete the buffer until the font gets destroyed.
- *
- * \param buffer     Pointer to a buffer containing the loaded font file data
- * \param buffersize The size of the buffer in bytes
- *
- * \returns A font object
- */
-sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize );
+sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename );
 
 /** \brief Destroy a font object */
 void sgui_font_destroy( sgui_font* font );

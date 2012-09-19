@@ -37,6 +37,7 @@ struct sgui_font
 {
     FT_Library freetype;
     FT_Face face;
+    void* buffer;
 };
 
 
@@ -84,60 +85,66 @@ unsigned long to_utf32( const unsigned char* utf8, int* length )
     return ch;
 }
 
-sgui_font* sgui_font_load_from_file( const char* filename )
+sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename )
 {
     sgui_font* font;
+    void* file;
+    void* buffer;
+    size_t size;
+
+    if( !fs )
+        fs = sgui_filesystem_get_default( );
+
+    file = fs->file_open_read( filename );
+
+    if( !file )
+        return NULL;
+
+    size = fs->file_get_length( file );
+
+    if( !size )
+    {
+        fs->file_close( file );
+        return NULL;
+    }
+
+    buffer = malloc( size );
+
+    if( !buffer )
+    {
+        fs->file_close( file );
+        return NULL;
+    }
+
+    fs->file_read( file, buffer, 1, size );
+    fs->file_close( file );
 
     /* allocate font structure */
     font = malloc( sizeof(sgui_font) );
 
     if( !font )
+    {
+        free( buffer );
         return NULL;
+    }
 
     /* load font */
     if( FT_Init_FreeType( &font->freetype ) )
     {
+        free( buffer );
         free( font );
         return NULL;
     }
 
-    if( FT_New_Face( font->freetype, filename, 0, &font->face ) )
+    if( FT_New_Memory_Face( font->freetype, buffer, size, 0, &font->face ) )
     {
         FT_Done_FreeType( font->freetype );
+        free( buffer );
         free( font );
         return NULL;
     }
 
-    return font;
-}
-
-sgui_font* sgui_font_load_from_mem( void* buffer, unsigned int buffersize )
-{
-    sgui_font* font;
-
-    /* sanity check */
-    if( !buffer || !buffersize )
-        return NULL;
-
-    /* allocate font structure */
-    font = malloc( sizeof(sgui_font) );
-
-    if( !font )
-        return NULL;
-
-    /* load font */
-    if( FT_Init_FreeType( &font->freetype ) )
-    {
-        free( font );
-        return NULL;
-    }
-
-    if(FT_New_Memory_Face(font->freetype, buffer, buffersize, 0, &font->face))
-    {
-        FT_Done_FreeType( font->freetype );
-        free( font );
-        return NULL;
-    }
+    font->buffer = buffer;
 
     return font;
 }
@@ -149,6 +156,7 @@ void sgui_font_destroy( sgui_font* font )
         FT_Done_Face( font->face );
         FT_Done_FreeType( font->freetype );
 
+        free( font->buffer );
         free( font );
     }
 }
