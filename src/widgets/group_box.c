@@ -57,7 +57,9 @@ void group_box_update( sgui_widget* widget )
 {
     sgui_group_box* b = (sgui_group_box*)widget;
 
-    widget->need_redraw = sgui_widget_manager_update( b->mgr );
+    sgui_widget_manager_update( b->mgr );
+
+    widget->need_redraw = sgui_widget_manager_num_dirty_rects( b->mgr );
 }
 
 void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
@@ -74,10 +76,16 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
 
     /* draw the widgets */
     if( widget->need_redraw )
+    {
         sgui_widget_manager_draw( b->mgr, cv );
+    }
     else
+    {
         sgui_widget_manager_force_draw( b->mgr, cv, 0, 0,
                                         widget->width, widget->height );
+    }
+
+    sgui_widget_manager_clear_dirty_rects( b->mgr );
 
     /* restore scissor rect and offset */
     sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );

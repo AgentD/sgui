@@ -28,6 +28,7 @@
 
 
 #include "sgui_widget.h"
+#include "sgui_widget_manager.h"
 #include "sgui_link.h"
 
 
@@ -43,6 +44,9 @@ struct sgui_widget
 
     int visible;            /**< \brief zero if the widget should not be
                                         rendered */
+
+    /** \brief The widget manager responsible for that widget */
+    sgui_widget_manager* mgr;
 
     /**
      * \brief List of links to implement signals and slots like widget

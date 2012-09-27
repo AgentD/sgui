@@ -178,3 +178,28 @@ int sgui_rect_clip_line( sgui_rect* r, int horizontal, int* x, int* y,
     return 1;
 }
 
+int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch )
+{
+    if( !acc )      /* joining to a non-existant rectangle always fails */
+        return 0;
+
+    if( !r )        /* joining a non-existant rectangle always succeeds */
+        return 1;
+
+    if( only_if_touch )
+    {
+        if( r->left  > acc->right || r->top    > acc->bottom ||
+            r->right < acc->left  || r->bottom < acc->top )
+        {
+            return 0;
+        }
+    }
+
+    acc->left   = MIN( acc->left,   r->left   );
+    acc->top    = MIN( acc->top,    r->top    );
+    acc->right  = MAX( acc->right,  r->right  );
+    acc->bottom = MAX( acc->bottom, r->bottom );
+
+    return 1;
+}
+

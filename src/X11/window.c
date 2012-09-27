@@ -358,27 +358,38 @@ int sgui_window_update( sgui_window* wnd )
     XExposeEvent exp;
     Status stat;
     KeySym sym;
+    unsigned int i, num;
+    sgui_rect r;
 
     if( !wnd || !wnd->mapped )
         return 0;
 
     /* update the widgets, redraw window if there was any change */
-    if( sgui_widget_manager_update( wnd->mgr ) )
+    sgui_widget_manager_update( wnd->mgr );
+
+    num = sgui_widget_manager_num_dirty_rects( wnd->mgr );
+
+    exp.type       = Expose;
+    exp.serial     = 0;
+    exp.send_event = 1;
+    exp.display    = wnd->dpy;
+    exp.window     = wnd->wnd;
+    exp.count      = 0;
+
+    for( i=0; i<num; ++i )
     {
-        exp.type       = Expose;
-        exp.serial     = 0;
-        exp.send_event = 1;
-        exp.display    = wnd->dpy;
-        exp.window     = wnd->wnd;
-        exp.x          = 0;
-        exp.y          = 0;
-        exp.width      = (int)wnd->w;
-        exp.height     = (int)wnd->h;
-        exp.count      = 0;
+        sgui_widget_manager_get_dirty_rect( wnd->mgr, &r, i );
+
+        exp.x      = r.left;
+        exp.y      = r.top;
+        exp.width  = r.right  - r.left + 1;
+        exp.height = r.bottom - r.top  + 1;
 
         XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
     }
+
+    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
+    sgui_widget_manager_clear_dirty_rects( wnd->mgr );
 
     /* message loop */
     while( XPending( wnd->dpy )>0 )
@@ -508,8 +519,8 @@ int sgui_window_update( sgui_window* wnd )
             /* redraw everything */
             sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-            sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
-                                            0, 0, wnd->w, wnd->h );
+            sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer, 0, 0,
+                                            wnd->w, wnd->h );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );

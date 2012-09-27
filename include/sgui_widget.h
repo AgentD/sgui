@@ -29,6 +29,7 @@
 
 #include "sgui_canvas.h"
 #include "sgui_event.h"
+#include "sgui_rect.h"
 
 
 
@@ -84,16 +85,12 @@ int sgui_widget_is_visible( sgui_widget* w );
 void sgui_widget_set_visible( sgui_widget* w, int visible );
 
 /**
- * \brief Returns non-zero if a widget intersects a given area, zero if not
+ * \brief Get the bounding rectangle of a widget
  *
- * \param w      The widget to test
- * \param x      The x component of the position of the region to test
- * \param y      The y component of the position of the region to test
- * \param width  The width of the region to test
- * \param height The height of the region to test
+ * \param w The widget
+ * \param r Returns the rectangle
  */
-int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
-                                 unsigned int width, unsigned int height );
+void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r );
 
 /**
  * \brief Returns non-zero if a point is inside the bounding box of a widget

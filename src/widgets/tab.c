@@ -30,6 +30,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 
@@ -100,8 +101,10 @@ void sgui_tab_update( sgui_widget* widget )
 
     if( g->selected>=0 && g->selected<(int)g->num_tabs )
     {
-        widget->need_redraw |=
         sgui_widget_manager_update( g->tabs[ g->selected ].mgr );
+
+        widget->need_redraw |=
+        sgui_widget_manager_num_dirty_rects( g->tabs[ g->selected ].mgr );
     }
 }
 
@@ -151,14 +154,17 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         if( g->full_redraw )
         {
             sgui_widget_manager_force_draw( g->tabs[g->selected].mgr, cv,
-                                            0, 0,
-                                            widget->width, widget->height );
+                                            0, 0, widget->width,
+                                            widget->height );
+
             g->full_redraw = 0;
         }
         else
         {
             sgui_widget_manager_draw( g->tabs[g->selected].mgr, cv );
         }
+
+        sgui_widget_manager_clear_dirty_rects( g->tabs[ g->selected ].mgr );
 
         /* restore scissor rect and offset */
         sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );

@@ -30,6 +30,7 @@
 #include "sgui_widget.h"
 #include "sgui_canvas.h"
 #include "sgui_event.h"
+#include "sgui_rect.h"
 
 
 
@@ -76,14 +77,47 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
  * \brief Update all widgets managed by a widget manager
  *
  * \param mgr The widget manager
- *
- * \return non-zero if at least one widget needs redrawing
  */
-int sgui_widget_manager_update( sgui_widget_manager* mgr );
+void sgui_widget_manager_update( sgui_widget_manager* mgr );
 
 /**
- * \brief Redraw all widgets of a widget manager that need a redaw and ara
- *        flaged visible
+ * \brief Add a dirty rect (area that needs redraw) to a widget manager
+ *
+ * \param mgr The widget manager
+ * \param r   The dirty rectangle
+ */
+void sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
+                                         sgui_rect* r );
+
+/**
+ * \brief Get the number of dirty rectangles from a widget manager
+ *
+ * \param mgr The widget manager
+ *
+ * \return The number of dirty rectangles
+ */
+unsigned int sgui_widget_manager_num_dirty_rects( sgui_widget_manager* mgr );
+
+/**
+ * \brief Get a dirty rectangle from a widget manager by index
+ *
+ * \param mgr  The widget manager
+ * \param rect A pointer to a rectangle to write to
+ * \param i    The index of the dirty rectangle
+ */
+void sgui_widget_manager_get_dirty_rect( sgui_widget_manager* mgr,
+                                         sgui_rect* rect, unsigned int i );
+
+/**
+ * \brief Clear the dirty rects of a widget manager
+ *
+ * \param mgr The widget manager
+ */
+void sgui_widget_manager_clear_dirty_rects( sgui_widget_manager* mgr );
+
+/**
+ * \brief Redraw all widgets of a widget manager that are flaged visible and
+ *        are within a dirty rect
  *
  * \param mgr The widget manager
  * \param cv  The canvas to draw to

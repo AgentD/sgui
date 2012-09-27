@@ -138,9 +138,13 @@ void frame_update( sgui_widget* widget )
 {
     sgui_frame* f = (sgui_frame*)widget;
 
-    widget->need_redraw = sgui_widget_manager_update( f->mgr );
+    sgui_widget_manager_update( f->mgr );
+
+    widget->need_redraw = sgui_widget_manager_num_dirty_rects( f->mgr );
 
     widget->need_redraw |= sgui_widget_need_redraw( f->v_bar, 0 );
+
+    sgui_widget_manager_clear_dirty_rects( f->mgr );
 }
 
 void frame_draw( sgui_widget* widget, sgui_canvas* cv )

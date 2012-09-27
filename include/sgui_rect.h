@@ -129,6 +129,18 @@ int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a, sgui_rect* b );
 int sgui_rect_clip_line( sgui_rect* r, int horizontal, int* x, int* y,
                          unsigned int* length );
 
+/**
+ * \brief Join two rectangles
+ *
+ * \param acc           The accumulator rectangle.
+ * \param r             The rectangle to join to the accumulator rectangle.
+ * \param only_if_touch If non-zero, the rectangles are only joined if they
+ *                      touch.
+ *
+ * \return Non-zero on success, zero otherwise.
+ */
+int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch );
+
 
 
 #ifdef __cplusplus

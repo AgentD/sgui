@@ -25,7 +25,13 @@
 #include "sgui_widget_manager.h"
 #include "sgui_widget.h"
 
+#include "widget_internal.h"
+
 #include <stdlib.h>
+
+
+
+#define WIDGET_MANAGER_MAX_DIRTY 10
 
 
 
@@ -36,6 +42,9 @@ struct sgui_widget_manager
     sgui_widget** widgets;
     unsigned int num_widgets;
     unsigned int widgets_avail;
+
+    sgui_rect dirty[ WIDGET_MANAGER_MAX_DIRTY ];
+    unsigned int num_dirty;
 };
 
 
@@ -52,6 +61,7 @@ sgui_widget_manager* sgui_widget_manager_create( void )
     mgr->focus         = NULL;
     mgr->num_widgets   = 0;
     mgr->widgets_avail = 10;
+    mgr->num_dirty     = 0;
 
     if( !mgr->widgets )
     {
@@ -75,6 +85,9 @@ void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
                                      sgui_widget* widget )
 {
     sgui_widget** nw;
+    unsigned int w, h;
+    int x, y;
+    sgui_rect r;
 
     if( !mgr || !widget )
         return;
@@ -97,12 +110,23 @@ void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
 
     /* add widget */
     mgr->widgets[ mgr->num_widgets++ ] = widget;
+
+    widget->mgr = mgr;
+
+    sgui_widget_get_position( widget, &x, &y );
+    sgui_widget_get_size( widget, &w, &h );
+
+    sgui_rect_set_size( &r, x, y, w, h );
+
+    sgui_widget_manager_add_dirty_rect( mgr, &r );
 }
 
 void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
                                         sgui_widget* widget )
 {
-    unsigned int i;
+    unsigned int i, w, h;
+    int x, y;
+    sgui_rect r;
 
     if( !mgr || !widget )
         return;
@@ -118,47 +142,116 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
             break;
         }
     }
+
+    sgui_widget_get_position( widget, &x, &y );
+    sgui_widget_get_size( widget, &w, &h );
+
+    sgui_rect_set_size( &r, x, y, w, h );
+
+    sgui_widget_manager_add_dirty_rect( mgr, &r );
+
+    widget->mgr = NULL;
 }
 
-int sgui_widget_manager_update( sgui_widget_manager* mgr )
+void sgui_widget_manager_update( sgui_widget_manager* mgr )
 {
-    unsigned int i, redraw = 0;
+    unsigned int i, w, h;
+    int x, y;
+    sgui_rect r;
 
     if( !mgr )
-        return 0;
+        return;
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
         sgui_widget_update( mgr->widgets[i] );
 
         if( sgui_widget_need_redraw( mgr->widgets[i], 1 ) )
-            redraw = 1;
+        {
+            sgui_widget_get_position( mgr->widgets[i], &x, &y );
+            sgui_widget_get_size( mgr->widgets[i], &w, &h );
+
+            sgui_rect_set_size( &r, x, y, w, h );
+
+            sgui_widget_manager_add_dirty_rect( mgr, &r );
+        }
+    }
+}
+
+void sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
+                                         sgui_rect* r )
+{
+    unsigned int i;
+
+    if( !mgr || !r )
+        return;
+
+    for( i=0; i<mgr->num_dirty; ++i )
+    {
+        if( sgui_rect_join( mgr->dirty + i, r, 1 ) )
+            return;
     }
 
-    return redraw;
+    if( mgr->num_dirty < WIDGET_MANAGER_MAX_DIRTY )
+    {
+        sgui_rect_copy( mgr->dirty + (mgr->num_dirty++), r );
+    }
+    else
+    {
+        for( i=1; i<mgr->num_dirty; ++i )
+            sgui_rect_join( mgr->dirty, mgr->dirty + i, 0 );
+
+        sgui_rect_copy( mgr->dirty + 1, r );
+        mgr->num_dirty = 2;
+    }
+}
+
+unsigned int sgui_widget_manager_num_dirty_rects( sgui_widget_manager* mgr )
+{
+    return mgr ? mgr->num_dirty : 0;
+}
+
+void sgui_widget_manager_get_dirty_rect( sgui_widget_manager* mgr,
+                                         sgui_rect* rect, unsigned int i )
+{
+    if( mgr && (i < mgr->num_dirty) )
+        sgui_rect_copy( rect, mgr->dirty + i );
+}
+
+void sgui_widget_manager_clear_dirty_rects( sgui_widget_manager* mgr )
+{
+    if( mgr )
+        mgr->num_dirty = 0;
 }
 
 void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
 {
-    unsigned int i;
+    unsigned int i, j;
+    sgui_rect* r;
+    sgui_rect wr;
 
     if( !mgr || !cv )
         return;
 
-    for( i=0; i<mgr->num_widgets; ++i )
+    for( j=0; j<mgr->num_dirty; ++j )
     {
-        if( sgui_widget_need_redraw( mgr->widgets[i], 1 ) &&
-            sgui_widget_is_visible( mgr->widgets[i] ) )
-        {
-            /* redraw widget */
-            sgui_widget_draw( mgr->widgets[i], cv );
+        r = mgr->dirty + j;
 
-            /* clear redraw flag */
-            sgui_widget_need_redraw( mgr->widgets[i], 0 );
+        for( i=0; i<mgr->num_widgets; ++i )
+        {
+            sgui_widget_get_rect( mgr->widgets[i], &wr );
+
+            if( sgui_rect_get_intersection( NULL, r, &wr ) &&
+                sgui_widget_is_visible( mgr->widgets[i] ) )
+            {
+                /* draw the widget */
+                sgui_widget_draw( mgr->widgets[i], cv );
+
+                /* make sure the need redraw flag is cleared */
+                sgui_widget_need_redraw( mgr->widgets[i], 0 );
+            }
         }
     }
-
-    return;
 }
 
 void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
@@ -166,15 +259,19 @@ void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
                                      unsigned int w, unsigned int h )
 {
     unsigned int i;
+    sgui_rect r, r0;
 
     if( !mgr || !cv )
         return;
 
+    sgui_rect_set_size( &r0, x, y, w, h );
     sgui_canvas_set_scissor_rect( cv, x, y, w, h );
 
     for( i=0; i<mgr->num_widgets; ++i )
     {
-        if( sgui_widget_intersects_area( mgr->widgets[i], x, y, w, h ) &&
+        sgui_widget_get_rect( mgr->widgets[i], &r );
+
+        if( sgui_rect_get_intersection( NULL, &r, &r0 ) &&
             sgui_widget_is_visible( mgr->widgets[i] ) )
         {
             /* make sure the need redraw flag is cleared */

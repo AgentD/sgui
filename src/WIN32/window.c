@@ -453,17 +453,26 @@ void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
 
 int sgui_window_update( sgui_window* wnd )
 {
+    unsigned int i, num;
     MSG msg;
     RECT r;
+    sgui_rect sr;
 
     if( !wnd || !wnd->visible )
         return 0;
 
     /* update the widgets, redraw window if there was any change */
-    if( sgui_widget_manager_update( wnd->mgr ) )
+    sgui_widget_manager_update( wnd->mgr );
+
+    num = sgui_widget_manager_num_dirty_rects( wnd->mgr );
+
+    for( i=0; i<num; ++i )
     {
+        sgui_widget_manager_get_dirty_rect( wnd->mgr, &sr, i );
+
         sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
-        SetRect( &r, 0, 0, wnd->w-1, wnd->h-1 );
+
+        SetRect( &r, sr.left, sr.top, sr.right, sr.bottom );
         InvalidateRect( wnd->hWnd, &r, TRUE );
     }
 

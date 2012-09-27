@@ -64,10 +64,18 @@ void sgui_internal_widget_fire_event( sgui_widget* widget, int event )
 
 void sgui_widget_set_position( sgui_widget* w, int x, int y )
 {
+    sgui_rect r;
+
     if( w )
     {
+        sgui_rect_set_size( &r, w->x, w->y, w->width, w->height );
+        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
+
         w->x = x;
         w->y = y;
+
+        sgui_rect_set_size( &r, w->x, w->y, w->width, w->height );
+        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
     }
 }
 
@@ -111,19 +119,9 @@ void sgui_widget_set_visible( sgui_widget* w, int visible )
         w->visible = visible;
 }
 
-int sgui_widget_intersects_area( sgui_widget* w, int x, int y,
-                                 unsigned int width, unsigned int height )
+void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r )
 {
-    if( !w )
-        return 0;
-
-    if( (w->x >= (x+(int)width)) || (w->y >= (y+(int)height)) )
-        return 0;
-
-    if( ((w->x + (int)w->width) < x) || ((w->y + (int)w->height) < y) )
-        return 0;
-
-    return 1;
+    sgui_rect_set_size( r, w->x, w->y, w->width, w->height );
 }
 
 int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
