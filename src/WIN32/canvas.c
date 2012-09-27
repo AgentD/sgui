@@ -40,6 +40,17 @@
         (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
 
 /************************* public canvas functions *************************/
+void canvas_gdi_begin( sgui_canvas* canvas, sgui_rect* r )
+{
+    (void)canvas;
+    (void)r;
+}
+
+void canvas_gdi_end( sgui_canvas* canvas )
+{
+    (void)canvas;
+}
+
 void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
@@ -207,8 +218,6 @@ sgui_canvas_gdi* sgui_canvas_create( unsigned int width, unsigned int height )
     if( !cv )
         return NULL;
 
-    memset( cv, 0, sizeof(sgui_canvas_gdi) );
-
     cv->dc = CreateCompatibleDC( NULL );
 
     if( !cv->dc )
@@ -238,6 +247,8 @@ sgui_canvas_gdi* sgui_canvas_create( unsigned int width, unsigned int height )
 
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
+    cv->canvas.begin = canvas_gdi_begin;
+    cv->canvas.end = canvas_gdi_end;
     cv->canvas.clear = canvas_gdi_clear;
     cv->canvas.blit = canvas_gdi_blit;
     cv->canvas.blend = canvas_gdi_blend;
@@ -282,9 +293,6 @@ void sgui_canvas_resize( sgui_canvas_gdi* canvas, unsigned int width,
 
         canvas->canvas.width  = width;
         canvas->canvas.height = height;
-
-        canvas->canvas.scissor_stack_pointer = 0;
-        sgui_rect_set_size( &canvas->canvas.sc, 0, 0, width, height );
     }
 }
 

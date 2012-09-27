@@ -40,6 +40,17 @@
         (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
 
 /************************* public canvas functions *************************/
+void canvas_xlib_begin( sgui_canvas* canvas, sgui_rect* r )
+{
+    (void)canvas;
+    (void)r;
+}
+
+void canvas_xlib_end( sgui_canvas* canvas )
+{
+    (void)canvas;
+}
+
 void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
@@ -208,8 +219,6 @@ sgui_canvas_xlib* sgui_canvas_create( unsigned int width, unsigned int height,
     if( !cv )
         return NULL;
 
-    memset( cv, 0, sizeof(sgui_canvas_xlib) );
-
     cv->data = malloc( width * height * 4 );
 
     if( !cv->data )
@@ -230,6 +239,8 @@ sgui_canvas_xlib* sgui_canvas_create( unsigned int width, unsigned int height,
 
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
+    cv->canvas.begin = canvas_xlib_begin;
+    cv->canvas.end = canvas_xlib_end;
     cv->canvas.clear = canvas_xlib_clear;
     cv->canvas.blit = canvas_xlib_blit;
     cv->canvas.blend = canvas_xlib_blend;
@@ -277,11 +288,5 @@ void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
 
     canvas->canvas.width = width;
     canvas->canvas.height = height;
-
-    sgui_rect_set_size( &canvas->canvas.sc, 0, 0, width, height );
-    canvas->canvas.scissor_stack_pointer = 0;
-    canvas->canvas.offset_stack_pointer = 0;
-    canvas->canvas.ox = 0;
-    canvas->canvas.oy = 0;
 }
 

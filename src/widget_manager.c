@@ -222,9 +222,7 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
     {
         r = mgr->dirty + j;
 
-        sgui_canvas_set_scissor_rect( cv, r->left, r->top,
-                                      r->right  - r->left + 1,
-                                      r->bottom - r->top  + 1 );
+        sgui_canvas_begin( cv, r );
 
         for( i=0; i<mgr->num_widgets; ++i )
         {
@@ -237,7 +235,7 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv )
             }
         }
 
-        sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
+        sgui_canvas_end( cv );
     }
 }
 
@@ -245,14 +243,32 @@ void sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
                                    sgui_canvas* cv )
 {
     unsigned int i;
+    sgui_rect acc, r;
 
-    if( mgr && cv )
+    if( mgr && cv && mgr->num_widgets )
     {
+        sgui_widget_get_rect( mgr->widgets[0], &acc );
+
+        for( i=1; i<mgr->num_widgets; ++i )
+        {
+            if( sgui_widget_is_visible( mgr->widgets[i] ) )
+            {
+                sgui_widget_get_rect( mgr->widgets[i], &r );
+                sgui_rect_join( &acc, &r, 0 );
+            }
+        }
+
+        sgui_canvas_begin( cv, &acc );
+
         for( i=0; i<mgr->num_widgets; ++i )
         {
             if( sgui_widget_is_visible( mgr->widgets[i] ) )
+            {
                 sgui_widget_draw( mgr->widgets[i], cv );
+            }
         }
+
+        sgui_canvas_end( cv );
 
         mgr->num_dirty = 0;
     }

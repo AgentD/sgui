@@ -51,8 +51,14 @@ struct sgui_canvas
     int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
     unsigned int offset_stack_pointer;
 
+    int began;
+
     unsigned char bg_color[3];
 
+
+    void(* begin )( sgui_canvas* canvas, sgui_rect* r );
+
+    void(* end )( sgui_canvas* canvas );
 
     void(* clear )( sgui_canvas* canvas, sgui_rect* r );
 

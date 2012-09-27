@@ -27,6 +27,10 @@
 
 
 
+#include "sgui_rect.h"
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -64,6 +68,28 @@ void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
  */
 void sgui_canvas_set_background_color( sgui_canvas* canvas,
                                        unsigned char* color );
+
+
+
+/**
+ * \brief Call to start drawing to an area on the canvas
+ *
+ * A call to this function enables redrawing of a certain portion of a canvas.
+ * Call sgui_canvas_end( ) when you are done drawing.
+ *
+ * \param r The rectangle to draw to
+ */
+void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r );
+
+/**
+ * \brief Call when you are done with drawing
+ *
+ * This resets the drawing state (scissor rect and offset) and the canvas
+ * implementation uploads the modified portion.
+ */
+void sgui_canvas_end( sgui_canvas* canvas );
+
+
 
 /**
  * \brief Clear a rectangular region on the canvas to the background color
