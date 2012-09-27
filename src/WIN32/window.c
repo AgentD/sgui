@@ -151,8 +151,10 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
         /* resize canvas and redraw everything */
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
-        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
-        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+        sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0,
+                           wnd->w, wnd->h );
+        sgui_widget_manager_draw_all( wnd->mgr,
+                                      (sgui_canvas*)wnd->back_buffer );
         break;
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
@@ -255,9 +257,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
 
     sgui_skin_get_window_background_color( rgb );
-    sgui_canvas_set_background_color( wnd->back_buffer, rgb );
+    sgui_canvas_set_background_color( (sgui_canvas*)wnd->back_buffer, rgb );
 
-    sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
     return wnd;
 }
@@ -380,9 +382,11 @@ void sgui_window_set_size( sgui_window* wnd,
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
         /* redraw everything */
-        sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+        sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer,
+                           0, 0, wnd->w, wnd->h );
 
-        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+        sgui_widget_manager_draw_all( wnd->mgr,
+                                      (sgui_canvas*)wnd->back_buffer );
     }
 }
 
@@ -472,7 +476,7 @@ int sgui_window_update( sgui_window* wnd )
         InvalidateRect( wnd->hWnd, &r, TRUE );
     }
 
-    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
+    sgui_widget_manager_draw( wnd->mgr, (sgui_canvas*)wnd->back_buffer );
     sgui_widget_manager_clear_dirty_rects( wnd->mgr );
 
     /* message loop */
@@ -508,6 +512,6 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
-    return wnd ? wnd->back_buffer : NULL;
+    return wnd ? (sgui_canvas*)wnd->back_buffer : NULL;
 }
 

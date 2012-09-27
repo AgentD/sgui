@@ -1,5 +1,5 @@
 /*
- * widget_internal.h
+ * sgui_internal.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,14 +22,64 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_WIDGET_INTERNAL_H
-#define SGUI_WIDGET_INTERNAL_H
+#ifndef SGUI_INTERNAL_H
+#define SGUI_INTERNAL_H
 
 
 
 #include "sgui_widget.h"
 #include "sgui_widget_manager.h"
 #include "sgui_link.h"
+
+
+
+#define SGUI_CANVAS_STACK_DEPTH 10
+
+struct sgui_canvas
+{
+    int allow_clear;
+    int ox, oy;
+
+    unsigned int width, height;
+
+    sgui_rect sc;
+
+    sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
+    unsigned int scissor_stack_pointer;
+
+    int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];
+    int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
+    unsigned int offset_stack_pointer;
+
+    unsigned char bg_color[3];
+
+
+    void(* clear )( sgui_canvas* canvas, sgui_rect* r );
+
+
+    void(* blit )( sgui_canvas* canvas, int x, int y, unsigned int width,
+                   unsigned int height, unsigned int scanline_length,
+                   SGUI_COLOR_FORMAT format, const void* data );
+
+    void(* blend )( sgui_canvas* canvas, int x, int y,
+                    unsigned int width, unsigned int height,
+                    unsigned int scanline_length, const void* data );
+
+    void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
+                       unsigned char* color, SGUI_COLOR_FORMAT format );
+
+    void(* draw_line )( sgui_canvas* canvas, int x, int y,
+                        unsigned int length, int horizontal,
+                        unsigned char* color, SGUI_COLOR_FORMAT format );
+
+    void(* blend_stencil )( sgui_canvas* canvas, unsigned char* buffer,
+                            int x, int y, unsigned int w, unsigned int h,
+                            unsigned int scan, unsigned char* color );
+};
+
+void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
+                                unsigned int height );
+
 
 
 

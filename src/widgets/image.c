@@ -24,8 +24,7 @@
  */
 #include "sgui_image.h"
 #include "sgui_canvas.h"
-
-#include "widget_internal.h"
+#include "sgui_internal.h"
 
 #include <stdlib.h>
 #include <string.h>

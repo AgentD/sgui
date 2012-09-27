@@ -157,9 +157,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    sgui_canvas_set_background_color( wnd->back_buffer, rgb );
+    sgui_canvas_set_background_color( (sgui_canvas*)wnd->back_buffer, rgb );
 
-    sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -303,9 +303,9 @@ void sgui_window_set_size( sgui_window* wnd,
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h, wnd->dpy );
 
     /* redraw everything */
-    sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-    sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+    sgui_widget_manager_draw_all( wnd->mgr, (sgui_canvas*)wnd->back_buffer );
 }
 
 void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
@@ -387,7 +387,7 @@ int sgui_window_update( sgui_window* wnd )
         XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
     }
 
-    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
+    sgui_widget_manager_draw( wnd->mgr, (sgui_canvas*)wnd->back_buffer );
     sgui_widget_manager_clear_dirty_rects( wnd->mgr );
 
     /* message loop */
@@ -516,9 +516,11 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
-            sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+            sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0,
+                               wnd->w, wnd->h );
 
-            sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+            sgui_widget_manager_draw_all( wnd->mgr,
+                                          (sgui_canvas*)wnd->back_buffer );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );
@@ -565,6 +567,6 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
 
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
-    return wnd ? wnd->back_buffer : NULL;
+    return wnd ? (sgui_canvas*)wnd->back_buffer : NULL;
 }
 

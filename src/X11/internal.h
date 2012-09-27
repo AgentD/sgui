@@ -33,6 +33,7 @@
 #include "sgui_keycodes.h"
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
+#include "sgui_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -59,33 +60,21 @@
 
 
 
-#define SGUI_CANVAS_STACK_DEPTH 10
-
-struct sgui_canvas
+typedef struct
 {
+    sgui_canvas canvas;
+
     void* data;
     XImage* img;
-    int clear;
-    int ox, oy;
+}
+sgui_canvas_xlib;
 
-    unsigned char bg_color[3];
+sgui_canvas_xlib* sgui_canvas_create( unsigned int width, unsigned int height,
+                                      Display* dpy );
 
-    sgui_rect sc;
+void sgui_canvas_destroy( sgui_canvas_xlib* canvas );
 
-    sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
-    unsigned int scissor_stack_pointer;
-
-    int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];
-    int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
-    unsigned int offset_stack_pointer;
-};
-
-sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height,
-                                 Display* dpy );
-
-void sgui_canvas_destroy( sgui_canvas* canvas );
-
-void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
                          unsigned int height, Display* dpy );
 
 
@@ -99,7 +88,7 @@ struct sgui_window
     XIM im;
     XIC ic;
 
-    sgui_canvas* back_buffer;
+    sgui_canvas_xlib* back_buffer;
 
     sgui_widget_manager* mgr;
 

@@ -32,6 +32,7 @@
 #include "sgui_widget_manager.h"
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
+#include "sgui_internal.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRA_LEAN
@@ -64,35 +65,23 @@
 
 
 
-#define SGUI_CANVAS_STACK_DEPTH 10
-
-struct sgui_canvas
+typedef struct
 {
-    unsigned int width, height;
+    sgui_canvas canvas;
+
     void* data;
-    int clear;
     HDC dc;
     BITMAPINFO info;
     HBITMAP bitmap;
-    unsigned char bg_color[3];
+}
+sgui_canvas_gdi;
 
-    sgui_rect sc;
-    int ox, oy;
+sgui_canvas_gdi* sgui_canvas_create( unsigned int width,
+                                     unsigned int height );
 
-    sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
-    unsigned int scissor_stack_pointer;
+void sgui_canvas_destroy( sgui_canvas_gdi* canvas );
 
-    int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];
-    int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
-    unsigned int offset_stack_pointer;
-};
-
-sgui_canvas* sgui_canvas_create( unsigned int width,
-                                 unsigned int height );
-
-void sgui_canvas_destroy( sgui_canvas* canvas );
-
-void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+void sgui_canvas_resize( sgui_canvas_gdi* canvas, unsigned int width,
                          unsigned int height );
 
 
@@ -100,7 +89,7 @@ struct sgui_window
 {
     HWND hWnd;
     HINSTANCE hInstance;
-    sgui_canvas* back_buffer;
+    sgui_canvas_gdi* back_buffer;
 
     unsigned int w, h;
 

@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_widget.h"
-#include "widget_internal.h"
+#include "sgui_internal.h"
 #include "sgui_link.h"
 
 #include <stddef.h>

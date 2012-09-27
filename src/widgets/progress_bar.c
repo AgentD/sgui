@@ -24,8 +24,7 @@
  */
 #include "sgui_progress_bar.h"
 #include "sgui_skin.h"
-
-#include "widget_internal.h"
+#include "sgui_internal.h"
 
 #include <stdlib.h>
 #include <string.h>

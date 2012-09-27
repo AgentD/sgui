@@ -24,7 +24,8 @@ SOURCE_WIDGETS="src/widgets/progress_bar.c src/widgets/static_text.c
                 src/widgets/tab.c"
 
 SOURCE_COMMON="test.c src/widget.c src/font.c src/rect.c src/widget_manager.c
-                      src/skin.c src/link.c src/filesystem.c $SOURCE_WIDGETS"
+                      src/skin.c src/link.c src/filesystem.c src/canvas.c
+                      $SOURCE_WIDGETS"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c"
