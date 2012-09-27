@@ -41,8 +41,8 @@ typedef struct
     sgui_widget* v_bar;         /* vertical scroll bar */
 
     /*
-        border width, distance to vertical scroll bar,
-        and whether to draw the vertical scroll bar
+        border width, distance to vertical scroll bar and whether to draw
+        the vertical scroll bar
      */
     int border, v_bar_dist, draw_v_bar;
 
@@ -59,6 +59,7 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
     int send_v_bar = 0;
     int offset = sgui_scroll_bar_get_offset( f->v_bar );
     sgui_event e;
+    sgui_rect r;
 
     /* "manually" scroll the frame on mouse wheel */
     if( type==SGUI_MOUSE_WHEEL_EVENT && event )
@@ -85,7 +86,8 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
         sgui_widget_manager_send_window_event( f->mgr, SGUI_MOUSE_MOVE_EVENT,
                                                &e );
 
-        widget->need_redraw = 1;
+        sgui_widget_get_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         return;
     }
 
@@ -137,14 +139,16 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
 void frame_update( sgui_widget* widget )
 {
     sgui_frame* f = (sgui_frame*)widget;
+    sgui_rect r;
 
     sgui_widget_manager_update( f->mgr );
 
-    widget->need_redraw = sgui_widget_manager_num_dirty_rects( f->mgr );
-
-    widget->need_redraw |= sgui_widget_need_redraw( f->v_bar, 0 );
-
-    sgui_widget_manager_clear_dirty_rects( f->mgr );
+    if( sgui_widget_manager_num_dirty_rects( f->mgr ) )
+    {
+        sgui_widget_get_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_clear_dirty_rects( f->mgr );
+    }
 }
 
 void frame_draw( sgui_widget* widget, sgui_canvas* cv )
@@ -171,14 +175,11 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_canvas_set_offset( cv, 0, -offset );
 
     /* draw the widgets */
-    sgui_widget_manager_force_draw( f->mgr, cv, 0, offset,
-                                    widget->width, widget->height );
+    sgui_widget_manager_draw_all( f->mgr, cv );
 
     /* draw the scroll bar "manually" at fixed position */
     sgui_canvas_restore_offset( cv );
-
-    if( f->draw_v_bar )
-        sgui_widget_draw( f->v_bar, cv );
+    sgui_widget_draw( f->v_bar, cv );
 
     /* restore canvas state */
     sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );

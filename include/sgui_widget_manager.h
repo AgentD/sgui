@@ -125,19 +125,14 @@ void sgui_widget_manager_clear_dirty_rects( sgui_widget_manager* mgr );
 void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv );
 
 /**
- * \brief Force redrawing of all widgets of a widget manager that are inside
- *        a given area and flaged visible
+ * \brief Force redrawing of all widgets of a widget manager that are
+ *        flaged visible
  *
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
- * \param x   The distance from the left of the canvas to the redraw area
- * \param y   The distance from the top of the canvas to the redraw area
- * \param w   The width of the redraw area
- * \param h   The height of the redraw area
  */
-void sgui_widget_manager_force_draw( sgui_widget_manager* mgr,
-                                     sgui_canvas* cv, int x, int y,
-                                     unsigned int w, unsigned int h );
+void sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
+                                   sgui_canvas* cv );
 
 /**
  * \brief Send a window event to all widgets held by a widget manager

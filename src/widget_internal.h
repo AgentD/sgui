@@ -40,8 +40,6 @@ struct sgui_widget
     unsigned int width;     /**< \brief widget width */
     unsigned int height;    /**< \brief widget height */
 
-    int need_redraw;        /**< \brief non-zero if need for redrawing */
-
     int visible;            /**< \brief zero if the widget should not be
                                         rendered */
 

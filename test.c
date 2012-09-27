@@ -25,8 +25,6 @@ int main( void )
     sgui_font* font_ital;
     sgui_font* font_boit;
 
-    sgui_skin_init( );
-
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
     b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
 
@@ -182,8 +180,6 @@ int main( void )
     sgui_font_destroy( font_ital );
     sgui_font_destroy( font_boit );
     sgui_font_destroy( font );
-
-    sgui_skin_deinit( );
 
     return 0;
 }

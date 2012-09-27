@@ -152,8 +152,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         /* resize canvas and redraw everything */
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
         sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
-        sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
-                                        0, 0, wnd->w, wnd->h );
+        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
         break;
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
@@ -383,8 +382,7 @@ void sgui_window_set_size( sgui_window* wnd,
         /* redraw everything */
         sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-        sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
-                                        0, 0, wnd->w, wnd->h );
+        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
     }
 }
 
@@ -470,11 +468,12 @@ int sgui_window_update( sgui_window* wnd )
     {
         sgui_widget_manager_get_dirty_rect( wnd->mgr, &sr, i );
 
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
-
         SetRect( &r, sr.left, sr.top, sr.right, sr.bottom );
         InvalidateRect( wnd->hWnd, &r, TRUE );
     }
+
+    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
+    sgui_widget_manager_clear_dirty_rects( wnd->mgr );
 
     /* message loop */
     while( PeekMessage( &msg, wnd->hWnd, 0, 0, PM_REMOVE ) )

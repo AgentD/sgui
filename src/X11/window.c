@@ -305,8 +305,7 @@ void sgui_window_set_size( sgui_window* wnd,
     /* redraw everything */
     sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-    sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer,
-                                    0, 0, wnd->w, wnd->h );
+    sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
 }
 
 void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
@@ -519,8 +518,7 @@ int sgui_window_update( sgui_window* wnd )
             /* redraw everything */
             sgui_canvas_clear( wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
-            sgui_widget_manager_force_draw( wnd->mgr, wnd->back_buffer, 0, 0,
-                                            wnd->w, wnd->h );
+            sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
             break;
         case ClientMessage:
             atom = XGetAtomName( wnd->dpy, e.xclient.message_type );

@@ -56,10 +56,16 @@ void group_box_on_event( sgui_widget* widget, int type, sgui_event* event )
 void group_box_update( sgui_widget* widget )
 {
     sgui_group_box* b = (sgui_group_box*)widget;
+    sgui_rect r;
 
     sgui_widget_manager_update( b->mgr );
 
-    widget->need_redraw = sgui_widget_manager_num_dirty_rects( b->mgr );
+    if( sgui_widget_manager_num_dirty_rects( b->mgr ) )
+    {
+        sgui_widget_get_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_clear_dirty_rects( b->mgr );
+    }
 }
 
 void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
@@ -75,17 +81,7 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_canvas_set_scissor_rect( cv, 0, 0, widget->width, widget->height );
 
     /* draw the widgets */
-    if( widget->need_redraw )
-    {
-        sgui_widget_manager_draw( b->mgr, cv );
-    }
-    else
-    {
-        sgui_widget_manager_force_draw( b->mgr, cv, 0, 0,
-                                        widget->width, widget->height );
-    }
-
-    sgui_widget_manager_clear_dirty_rects( b->mgr );
+    sgui_widget_manager_draw_all( b->mgr, cv );
 
     /* restore scissor rect and offset */
     sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );

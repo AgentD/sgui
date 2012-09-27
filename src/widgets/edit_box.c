@@ -130,16 +130,19 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
                              sgui_event* event )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
+    sgui_rect r;
+
+    sgui_widget_get_rect( widget, &r );
 
     if( type == SGUI_FOCUS_EVENT )
     {
         b->draw_cursor = 1;
-        widget->need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
     else if( type == SGUI_FOCUS_LOSE_EVENT )
     {
         b->draw_cursor = 0;
-        widget->need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
     else if( (type == SGUI_MOUSE_RELEASE_EVENT) &&
              (event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT) &&
@@ -152,7 +155,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         if( new_cur != b->cursor )
         {
             b->cursor = new_cur;
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
     }
     else if( type == SGUI_KEY_PRESSED_EVENT )
@@ -171,7 +174,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             b->num_entered -= 1;
             b->end -= (old - b->cursor);
 
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         else if( (event->keyboard_event.code==SGUI_KC_DELETE) &&
@@ -188,14 +191,14 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             b->num_entered -= 1;
             b->end -= (offset - b->cursor);
 
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         else if( (event->keyboard_event.code==SGUI_KC_LEFT) && b->cursor )
         {
             ROLL_BACK_UTF8( b->buffer, b->cursor );
 
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         else if( (event->keyboard_event.code==SGUI_KC_RIGHT) &&
@@ -203,7 +206,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         {
             ADVANCE_UTF8( b->buffer, b->cursor );
 
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         else if( (event->keyboard_event.code==SGUI_KC_HOME) &&
@@ -211,14 +214,14 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         {
             b->cursor = 0;
             b->offset = 0;
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
         else if( (event->keyboard_event.code==SGUI_KC_END) &&
                  (b->cursor < b->end) )
         {
             b->cursor = b->end;
             b->offset = b->end;
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
     }
@@ -239,7 +242,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         b->end += len;
         b->cursor += len;
         b->num_entered += 1;
-        widget->need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         sgui_edit_box_determine_offset( b );
     }
 }
@@ -297,6 +300,7 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
 {
     unsigned int i;
     sgui_edit_box* b = (sgui_edit_box*)box;
+    sgui_rect r;
 
     if( !box )
         return;
@@ -326,6 +330,7 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     b->cursor = 0;
     b->offset = 0;
 
-    box->need_redraw = 1;
+    sgui_widget_get_rect( box, &r );
+    sgui_widget_manager_add_dirty_rect( box->mgr, &r );
 }
 

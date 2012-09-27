@@ -34,28 +34,13 @@
 
 
 
-static sgui_font* font_norm;
-static sgui_font* font_bold;
-static sgui_font* font_ital;
-static sgui_font* font_boit;
-static unsigned int font_height;
+static sgui_font* font_norm = NULL;
+static sgui_font* font_bold = NULL;
+static sgui_font* font_ital = NULL;
+static sgui_font* font_boit = NULL;
+static unsigned int font_height = 0;
 
-/***************************************************************************/
 
-void sgui_skin_init( void )
-{
-    font_norm = NULL;
-    font_bold = NULL;
-    font_ital = NULL;
-    font_boit = NULL;
-    font_height = 0;
-}
-
-void sgui_skin_deinit( void )
-{
-}
-
-/***************************************************************************/
 
 void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                  sgui_font* italic, sgui_font* bold_italic,
@@ -89,14 +74,9 @@ unsigned int sgui_skin_get_default_font_height( void )
 
 sgui_font* sgui_skin_get_default_font( int bold, int italic )
 {
-    if( bold && italic )
-        return font_boit;
-
-    if( bold )
-        return font_bold;
-
-    if( italic )
-        return font_ital;
+    if( bold && italic ) return font_boit;
+    if( bold           ) return font_bold;
+    if( italic         ) return font_ital;
 
     return font_norm;
 }

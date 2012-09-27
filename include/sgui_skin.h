@@ -40,12 +40,6 @@ extern "C"
 
 
 
-void sgui_skin_init( void );
-
-void sgui_skin_deinit( void );
-
-
-
 /**
  * \brief Override the default font for the skin
  *

@@ -45,11 +45,14 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bw;
+    sgui_rect r;
+
+    sgui_widget_get_rect( widget, &r );
 
     if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
         if( b->dec_button_state || b->inc_button_state )
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         b->dec_button_state = b->inc_button_state = 0;
     }
@@ -59,7 +62,7 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
         b->inc_button_state = event->mouse_press.x >
                               ((int)b->length-(int)b->bw);
 
-        widget->need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         if( b->inc_button_state )
         {
@@ -68,13 +71,11 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
             {
                 b->p_offset += b->p_length / 4;
                 b->v_offset += b->v_length / 4;
-                widget->need_redraw = 1;
             }
             else
             {
                 b->p_offset = l - b->p_length;
                 b->v_offset = b->v_max - b->v_length;
-                widget->need_redraw = 1;            
             }
         }
         else if( b->dec_button_state )
@@ -84,13 +85,11 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
             {
                 b->p_offset -= b->p_length / 4;
                 b->v_offset -= b->v_length / 4;
-                widget->need_redraw = 1;
             }
             else
             {
                 b->p_offset = 0;
-                b->v_offset = 0;
-                widget->need_redraw = 1;            
+                b->v_offset = 0;            
             }
         }
     }
@@ -100,11 +99,14 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bh;
+    sgui_rect r;
+
+    sgui_widget_get_rect( widget, &r );
 
     if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
         if( b->dec_button_state || b->inc_button_state )
-            widget->need_redraw = 1;
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         b->dec_button_state = b->inc_button_state = 0;
     }
@@ -114,7 +116,7 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
         b->inc_button_state = event->mouse_press.y >
                               ((int)b->length-(int)b->bh);
 
-        widget->need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         if( b->inc_button_state )
         {
@@ -123,13 +125,11 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
             {
                 b->p_offset += b->p_length / 4;
                 b->v_offset += b->v_length / 4;
-                widget->need_redraw = 1;
             }
             else
             {
                 b->p_offset = l - b->p_length;
                 b->v_offset = b->v_max - b->v_length;
-                widget->need_redraw = 1;            
             }
         }
         else if( b->dec_button_state )
@@ -139,13 +139,11 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
             {
                 b->p_offset -= b->p_length / 4;
                 b->v_offset -= b->v_length / 4;
-                widget->need_redraw = 1;
             }
             else
             {
                 b->p_offset = 0;
                 b->v_offset = 0;
-                widget->need_redraw = 1;            
             }
         }
     }
@@ -209,6 +207,7 @@ void sgui_scroll_bar_destroy( sgui_widget* bar )
 void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    sgui_rect r;
 
     if( b )
     {
@@ -225,7 +224,8 @@ void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
             b->p_offset = l - b->p_length;
         }
 
-        bar->need_redraw = 1;
+        sgui_widget_get_rect( bar, &r );
+        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
     }
 }
 
@@ -239,6 +239,7 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
                                unsigned int disp_area_length )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    sgui_rect r;
 
     if( b )
     {
@@ -247,7 +248,8 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
         b->p_length = ((float)b->v_length / (float)b->v_max) *
                        (b->length - 2*(b->horizontal ? b->bw : b->bh));
 
-        bar->need_redraw = 1;
+        sgui_widget_get_rect( bar, &r );
+        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
     }
 }
 

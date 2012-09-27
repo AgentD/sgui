@@ -67,12 +67,15 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
     sgui_button* i;
+    sgui_rect r;
     (void)event;
 
     if( type == SGUI_MOUSE_RELEASE_EVENT && !b->state )
     {
-        b->widget.need_redraw = 1;
-        b->state              = 1;
+        sgui_widget_get_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+
+        b->state = 1;
 
         sgui_internal_widget_fire_event( widget,
                                          SGUI_RADIO_BUTTON_SELECT_EVENT );
@@ -80,13 +83,17 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
         /* uncheck all preceeding and following radio buttons */
         for( i=b->prev; i!=NULL; i=i->prev )
         {
-            i->widget.need_redraw = i->state;
+            sgui_widget_get_rect( (sgui_widget*)i, &r );
+            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+
             i->state = 0;
         }
 
         for( i=b->next; i!=NULL; i=i->next )
         {
-            i->widget.need_redraw = i->state;
+            sgui_widget_get_rect( (sgui_widget*)i, &r );
+            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+
             i->state = 0;
         }
     }
@@ -137,12 +144,15 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
 void sgui_checkbox_on_event(sgui_widget* widget, int type, sgui_event* event)
 {
     sgui_button* b = (sgui_button*)widget;
+    sgui_rect r;
     (void)event;
 
     if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
         b->state = !b->state;
-        b->widget.need_redraw = 1;
+
+        sgui_widget_get_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         sgui_internal_widget_fire_event( widget, b->state ?
                                          SGUI_CHECKBOX_CHECK_EVENT :
@@ -174,17 +184,22 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
+    sgui_rect r;
     (void)event;
+
+    sgui_widget_get_rect( widget, &r );
 
     if( type == SGUI_MOUSE_LEAVE_EVENT )
     {
-        b->widget.need_redraw = (b->state!=0);
+        if( b->state!=0 )
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+
         b->state = 0;
     }
     else if( type == SGUI_MOUSE_PRESS_EVENT )
     {
         b->state = 1;
-        b->widget.need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
     else if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
@@ -195,7 +210,7 @@ void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
         }
 
         b->state = 0;
-        b->widget.need_redraw = 1;
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
 }
 
@@ -346,6 +361,7 @@ void sgui_button_set_state( sgui_widget* button, int state )
 {
     sgui_button* b = (sgui_button*)button;
     sgui_button* i;
+    sgui_rect r;
 
     if( !b || b->type==BUTTON_NORMAL || (b->type==BUTTON_RADIO && !state) )
         return;
@@ -357,13 +373,17 @@ void sgui_button_set_state( sgui_widget* button, int state )
     {
         for( i=b->prev; i!=NULL; i=i->prev )
         {
-            i->widget.need_redraw = i->state;
+            sgui_widget_get_rect( (sgui_widget*)i, &r );
+            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+
             i->state = 0;
         }
 
         for( i=b->next; i!=NULL; i=i->next )
         {
-            i->widget.need_redraw = i->state;
+            sgui_widget_get_rect( (sgui_widget*)i, &r );
+            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+
             i->state = 0;
         }
     }

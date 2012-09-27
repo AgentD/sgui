@@ -51,7 +51,7 @@ typedef struct
     unsigned int tabs_avail;
     unsigned int tab_cap_height;
 
-    int selected, full_redraw;
+    int selected;
 }
 sgui_tab_group;
 
@@ -61,6 +61,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
+    sgui_rect r;
     unsigned int i;
     int x;
 
@@ -81,8 +82,8 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
         if( i<g->num_tabs && (int)i!=g->selected )
         {
             g->selected = i;
-            g->full_redraw = 1;
-            widget->need_redraw = 1;
+            sgui_widget_get_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
 
         return;
@@ -98,13 +99,29 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
 void sgui_tab_update( sgui_widget* widget )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
+    sgui_widget_manager* mgr;
+    sgui_rect r;
+    unsigned int i, num;
 
     if( g->selected>=0 && g->selected<(int)g->num_tabs )
     {
-        sgui_widget_manager_update( g->tabs[ g->selected ].mgr );
+        mgr = g->tabs[ g->selected ].mgr;
 
-        widget->need_redraw |=
-        sgui_widget_manager_num_dirty_rects( g->tabs[ g->selected ].mgr );
+        sgui_widget_manager_update( mgr );
+
+        num = sgui_widget_manager_num_dirty_rects( mgr );
+
+        for( i=0; i<num; ++i )
+        {
+            sgui_widget_manager_get_dirty_rect( mgr, &r, i );
+
+            r.left += widget->x; r.right  += widget->x;
+            r.top  += widget->y; r.bottom += widget->y;
+
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        }
+
+        sgui_widget_manager_clear_dirty_rects( g->tabs[ g->selected ].mgr );
     }
 }
 
@@ -113,9 +130,6 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int i, gap, gap_w;
     int x = widget->x, y = widget->y;
-
-    if( !widget->need_redraw )
-        g->full_redraw = 1;
 
     for( i=0; i<g->num_tabs; ++i )
     {
@@ -132,12 +146,9 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         for( i=0, gap=0; i<(unsigned int)g->selected; ++i )
             gap += g->tabs[i].caption_width;
 
-        if( g->full_redraw )
-        {
-            sgui_canvas_clear( cv, widget->x, widget->y + g->tab_cap_height,
-                                   widget->width,
-                                   widget->height - g->tab_cap_height );
-        }
+        sgui_canvas_clear( cv, widget->x, widget->y + g->tab_cap_height,
+                               widget->width,
+                               widget->height - g->tab_cap_height );
 
         sgui_skin_draw_tab( cv, widget->x,
                                 widget->y + g->tab_cap_height, 
@@ -151,20 +162,7 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
                                       widget->width, widget->height );
 
         /* draw the widgets */
-        if( g->full_redraw )
-        {
-            sgui_widget_manager_force_draw( g->tabs[g->selected].mgr, cv,
-                                            0, 0, widget->width,
-                                            widget->height );
-
-            g->full_redraw = 0;
-        }
-        else
-        {
-            sgui_widget_manager_draw( g->tabs[g->selected].mgr, cv );
-        }
-
-        sgui_widget_manager_clear_dirty_rects( g->tabs[ g->selected ].mgr );
+        sgui_widget_manager_draw_all( g->tabs[g->selected].mgr, cv );
 
         /* restore scissor rect and offset */
         sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
@@ -199,7 +197,6 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     g->tabs_avail                   = 10;
     g->tab_cap_height               = sgui_skin_get_tab_caption_height( );
     g->selected                     = -1;
-    g->full_redraw                  = 1;
 
     return (sgui_widget*)g;
 }
