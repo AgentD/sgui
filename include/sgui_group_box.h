@@ -35,14 +35,46 @@
 extern "C" {
 #endif
 
+/**
+ * \brief Create a group box
+ *
+ * A group box is a very simple widget that may group other widgets
+ * (e.g. radio buttons for a radio button menu). A group box has a border that
+ * seperates the contained widgets and a caption.
+ *
+ * \param x       The horizontal component of the group box position
+ * \param y       The vertical component of the group box position
+ * \param width   The width of the group box
+ * \param height  The height of the group box
+ * \param caption The caption of the group box
+ *
+ * \return A pointer to a new group box widget
+ */
 sgui_widget* sgui_group_box_create( int x, int y,
                                     unsigned int width, unsigned int height,
                                     const char* caption );
 
+/**
+ * \brief Destroy a group box widget
+ *
+ * \param box A pointer to a group box widget
+ */
 void sgui_group_box_destroy( sgui_widget* box );
 
+/**
+ * \brief Add a widget to a group box
+ *
+ * \param box A pointer to a group box widget
+ * \param w   A pointer to the widget to add
+ */
 void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w );
 
+/**
+ * \brief Remove a widget from a group box
+ *
+ * \param box A pointer to a group box widget
+ * \param w   A pointer to the widget to remove
+ */
 void sgui_group_box_remove_widget( sgui_widget* box, sgui_widget* w );
 
 #ifdef __cplusplus

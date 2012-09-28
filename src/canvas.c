@@ -86,8 +86,6 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
 
             sgui_rect_copy( &canvas->sc, r );
 
-            canvas->begin( canvas, r );
-
             if( canvas->sc.left < 0 )
                 canvas->sc.left = 0;
 
@@ -99,6 +97,8 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
 
             if( canvas->sc.bottom >= (int)canvas->height )
                 canvas->sc.bottom = canvas->height - 1;
+
+            canvas->begin( canvas, &canvas->sc );
         }
 
         ++canvas->began;

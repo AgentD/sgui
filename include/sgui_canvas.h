@@ -75,7 +75,15 @@ void sgui_canvas_set_background_color( sgui_canvas* canvas,
  * \brief Call to start drawing to an area on the canvas
  *
  * A call to this function enables redrawing of a certain portion of a canvas.
- * Call sgui_canvas_end( ) when you are done drawing.
+ * Call sgui_canvas_end( ) when you are done drawing. Drawing outside begin
+ * and end is not possible (except clearing).
+ *
+ * To support nested widget managers, multiple succeeding begin calls are
+ * ignored, but the end function must be called for each begin call.
+ *
+ * The begin function resets the drawing state of the canvas (i.e. scissor
+ * rect and offset, stacks are cleared). The scissor rect is immediately set
+ * to the given rect.
  *
  * \param r The rectangle to draw to
  */
@@ -84,8 +92,7 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r );
 /**
  * \brief Call when you are done with drawing
  *
- * This resets the drawing state (scissor rect and offset) and the canvas
- * implementation uploads the modified portion.
+ * \see sgui_canvas_begin
  */
 void sgui_canvas_end( sgui_canvas* canvas );
 

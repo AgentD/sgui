@@ -37,8 +37,10 @@ extern "C"
 #endif
 
 /**
- * \brief Create a frame widget, a simple widget that can contain other
- *        widgets
+ * \brief Create a frame widget
+ *
+ * A frame is a simple widget that can contain other widgets. A frame uses a
+ * scroll bar in case there are more widgets than it can display at once.
  *
  * \param x      The horizontal component of the frames position
  * \param y      The vertical component of the frames position
