@@ -170,18 +170,11 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
  * \brief Draw a button widget onto a canvas
  *
  * \param cv     The canvas to draw to.
- * \param x      The distance from the left side of the button to the left of
- *               the window.
- * \param y      The distance from the top of the button to the top of
- *               the window.
- * \param width  The width of the button.
- * \param height The height of the button.
+ * \param r      The button area.
  * \param state  Zero if the button is in default state, non-zero if it is
  *               pressed.
  */
-void sgui_skin_draw_button( sgui_canvas* cv, int x, int y,
-                            unsigned int width, unsigned int height,
-                            int state );
+void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* r, int state );
 
 /**
  * \brief Draw a checkbox onto a canvas

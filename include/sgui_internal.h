@@ -38,11 +38,11 @@
 struct sgui_canvas
 {
     int allow_clear;
-    int ox, oy;
+    int ox, oy;                     /**< \brief current offset */
 
-    unsigned int width, height;
+    unsigned int width, height;     /**< \brief Size of the canvas */
 
-    sgui_rect sc;
+    sgui_rect sc;                   /**< \brief current scissor rect */
 
     sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
     unsigned int scissor_stack_pointer;
@@ -53,7 +53,7 @@ struct sgui_canvas
 
     int began;
 
-    unsigned char bg_color[3];
+    unsigned char bg_color[3];      /**< \brief RGB8 background color */
 
 
     void(* begin )( sgui_canvas* canvas, sgui_rect* r );
@@ -91,10 +91,7 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 
 struct sgui_widget
 {
-    int x;                  /**< \brief x component of widget position */
-    int y;                  /**< \brief y component of widget position */
-    unsigned int width;     /**< \brief widget width */
-    unsigned int height;    /**< \brief widget height */
+    sgui_rect area;         /**< \brief The area occupied by a widget */
 
     int visible;            /**< \brief zero if the widget should not be
                                         rendered */

@@ -48,8 +48,9 @@ void sgui_progress_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)widget;
 
-    sgui_skin_draw_progress_bar( cv, widget->x, widget->y, b->length,
-                                 b->vertical, b->style, b->progress );
+    sgui_skin_draw_progress_bar( cv, widget->area.left, widget->area.top,
+                                 b->length, b->vertical, b->style,
+                                 b->progress );
 }
 
 

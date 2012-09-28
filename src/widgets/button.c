@@ -245,28 +245,34 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     sgui_font* f   = sgui_skin_get_default_font( 0, 0 );
     unsigned int h = sgui_skin_get_default_font_height( );
     int oy         = h > b->cy ? (h/2-b->cy/4) : 0;
+    sgui_rect r;
 
     sgui_skin_get_default_font_color( color );
 
     if( b->type == BUTTON_RADIO )
-        sgui_skin_draw_radio_button( cv, w->x, w->y + oy, b->state );
+        sgui_skin_draw_radio_button( cv, w->area.left, w->area.top + oy,
+                                     b->state );
     else if( b->type == BUTTON_CHECKBOX )
-        sgui_skin_draw_checkbox( cv, w->x, w->y + oy, b->state );
+        sgui_skin_draw_checkbox( cv, w->area.left, w->area.top + oy,
+                                 b->state );
     else
-        sgui_skin_draw_button( cv, w->x, w->y,
-                               w->width, w->height, b->state );
+        sgui_skin_draw_button( cv, &w->area, b->state );
 
     if( b->type == BUTTON_NORMAL )
     {
-        sgui_canvas_clear( cv, b->cx - b->state-1, b->cy - b->state-1,
-                               b->text_width+2, h+2 );
+        sgui_rect_set_size( &r, b->cx - b->state-1, b->cy - b->state-1,
+                                b->text_width+2, h+2 );
+        sgui_canvas_clear( cv, &r );
         sgui_font_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
                                    f, h, color, b->text, (unsigned int)-1 );
     }
     else
     {
-        sgui_canvas_clear( cv, w->x + b->cx, w->y, b->text_width, w->height );
-        sgui_font_draw_text_plain( cv, w->x + b->cx, w->y, f, h, color,
+        r = w->area;
+        r.left += b->cx;
+        r.right = r.left + b->text_width - 1;
+        sgui_canvas_clear( cv, &r );
+        sgui_font_draw_text_plain( cv, r.left, r.top, f, h, color,
                                    b->text, (unsigned int)-1 );
     }
 }
@@ -332,13 +338,11 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
 
     if( b->type == BUTTON_NORMAL )
     {
-        button->width  = button->width<b->text_width ?
-                         b->text_width : button->width;
-        button->height = button->height<(h + h/2) ? (h + h/2) :
-                         button->height;
+        b->cx = button->area.left +
+                SGUI_RECT_WIDTH(button->area)/2 - b->text_width/2;
 
-        b->cx = button->x + button->width /2 - b->text_width/2;
-        b->cy = button->y + button->height/2 -             h/2 - h/8;
+        b->cy = button->area.right +
+                SGUI_RECT_HEIGHT(button->area)/2 - h/2 - h/8;
     }
     else
     {
@@ -347,8 +351,7 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
         else
             sgui_skin_get_radio_button_extents( &b->cx, &b->cy );
 
-        button->width  = b->cx + b->text_width;
-        button->height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
+        button->area.right = button->area.left + b->cx + b->text_width;
     }
 
     free( b->text );

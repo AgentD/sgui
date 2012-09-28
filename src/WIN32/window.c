@@ -151,8 +151,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
         /* resize canvas and redraw everything */
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
-        sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0,
-                           wnd->w, wnd->h );
+        sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
         sgui_widget_manager_draw_all( wnd->mgr,
                                       (sgui_canvas*)wnd->back_buffer );
         break;
@@ -259,7 +258,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     sgui_skin_get_window_background_color( rgb );
     sgui_canvas_set_background_color( (sgui_canvas*)wnd->back_buffer, rgb );
 
-    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
 
     return wnd;
 }
@@ -382,8 +381,7 @@ void sgui_window_set_size( sgui_window* wnd,
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
         /* redraw everything */
-        sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer,
-                           0, 0, wnd->w, wnd->h );
+        sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
 
         sgui_widget_manager_draw_all( wnd->mgr,
                                       (sgui_canvas*)wnd->back_buffer );

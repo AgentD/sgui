@@ -66,9 +66,9 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
         f->mouse_y -= offset;
 
         if( event->mouse_wheel.direction > 0 )
-            offset -= widget->height / 4;
+            offset -= SGUI_RECT_HEIGHT(widget->area) / 4;
         else
-            offset += widget->height / 4;
+            offset += SGUI_RECT_HEIGHT(widget->area) / 4;
 
         if( offset < 0 )
             offset = 0;
@@ -154,21 +154,26 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_frame* f = (sgui_frame*)widget;
     int offset, clear;
+    sgui_rect r;
 
     offset = sgui_scroll_bar_get_offset( f->v_bar );
     clear  = sgui_canvas_is_clear_allowed( cv );
 
     /* draw background */
-    sgui_skin_draw_frame( cv, widget->x, widget->y,
-                              widget->width, widget->height );
+    sgui_skin_draw_frame( cv, widget->area.left, widget->area.top,
+                              SGUI_RECT_WIDTH(widget->area),
+                              SGUI_RECT_HEIGHT(widget->area) );
 
     sgui_canvas_allow_clear( cv, 0 );
 
     /* adjust offset and scissor rect to frame area */
-    sgui_canvas_set_offset( cv, widget->x, widget->y );
-    sgui_canvas_set_scissor_rect(cv, f->border, f->border,
-                                     widget->width-2*f->border,
-                                     widget->height-2*f->border );
+    sgui_canvas_set_offset( cv, widget->area.left, widget->area.top );
+
+    sgui_rect_set_size( &r, f->border, f->border,
+                            SGUI_RECT_WIDTH(widget->area)-2*f->border,
+                            SGUI_RECT_HEIGHT(widget->area)-2*f->border );
+
+    sgui_canvas_set_scissor_rect( cv, &r );
 
     /* apply scrolling offset */
     sgui_canvas_set_offset( cv, 0, -offset );
@@ -181,7 +186,7 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_widget_draw( f->v_bar, cv );
 
     /* restore canvas state */
-    sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
+    sgui_canvas_set_scissor_rect( cv, NULL );
     sgui_canvas_restore_offset( cv );
     sgui_canvas_allow_clear( cv, clear );
 }
@@ -247,7 +252,7 @@ void sgui_frame_destroy( sgui_widget* frame )
 void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w )
 {
     sgui_frame* f = (sgui_frame*)frame;
-    unsigned int ww, wh;
+    unsigned int ww, wh, fh;
     int wx, wy;
 
     if( f && w )
@@ -257,12 +262,13 @@ void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w )
         /* check if the widget lies outside the displayed frame area */
         sgui_widget_get_position( w, &wx, &wy );
         sgui_widget_get_size( w, &ww, &wh );
+        fh = SGUI_RECT_HEIGHT( frame->area );
 
         /* if so, draw the vertical scroll bar */
-        if( ((unsigned int)wy+wh) > (frame->height-2*f->border) )
+        if( ((unsigned int)wy+wh) > (fh-2*f->border) )
         {
             f->draw_v_bar = 1;
-            sgui_scroll_bar_set_area( f->v_bar, wy+wh+10, frame->height );
+            sgui_scroll_bar_set_area( f->v_bar, wy+wh+10, fh );
         }
     }
 }

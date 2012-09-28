@@ -153,7 +153,7 @@ void scroll_bar_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
 
-    sgui_skin_draw_scroll_bar( cv, widget->x, widget->y,
+    sgui_skin_draw_scroll_bar( cv, widget->area.left, widget->area.top,
                                b->horizontal, b->length,
                                b->p_offset, b->p_length,
                                b->inc_button_state, b->dec_button_state );

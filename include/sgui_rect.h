@@ -38,6 +38,14 @@ sgui_rect;
 
 
 
+#define SGUI_RECT_WIDTH( r ) ((r).right - (r).left + 1)
+#define SGUI_RECT_HEIGHT( r ) ((r).bottom - (r).top + 1)
+
+#define SGUI_RECT_WIDTH_V( r ) ((r)->right - (r)->left + 1)
+#define SGUI_RECT_HEIGHT_V( r ) ((r)->bottom - (r)->top + 1)
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -159,7 +159,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     sgui_canvas_set_background_color( (sgui_canvas*)wnd->back_buffer, rgb );
 
-    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -303,7 +303,7 @@ void sgui_window_set_size( sgui_window* wnd,
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h, wnd->dpy );
 
     /* redraw everything */
-    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0, wnd->w, wnd->h );
+    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
 
     sgui_widget_manager_draw_all( wnd->mgr, (sgui_canvas*)wnd->back_buffer );
 }
@@ -516,8 +516,7 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
-            sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, 0, 0,
-                               wnd->w, wnd->h );
+            sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
 
             sgui_widget_manager_draw_all( wnd->mgr,
                                           (sgui_canvas*)wnd->back_buffer );

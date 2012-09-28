@@ -55,9 +55,9 @@ void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
 
     sgui_skin_get_default_font_color( color );
 
-    sgui_canvas_clear( cv, w->x, w->y, w->width, w->height );
+    sgui_canvas_clear( cv, &w->area );
 
-    sgui_font_draw_text( cv, w->x, w->y, font_norm, font_bold,
+    sgui_font_draw_text( cv, w->area.left, w->area.top, font_norm, font_bold,
                          font_ital, font_boit, h, color, t->text );
 }
 

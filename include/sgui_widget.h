@@ -90,7 +90,7 @@ void sgui_widget_set_visible( sgui_widget* w, int visible );
  * \param w The widget
  * \param r Returns the rectangle
  */
-void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r );
+void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
 
 /**
  * \brief Returns non-zero if a point is inside the bounding box of a widget

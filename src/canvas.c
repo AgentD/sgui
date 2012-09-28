@@ -27,6 +27,13 @@
 
 
 
+#define COPY_RECT_OFFSET( dst, src )\
+        dst.left = src->left + canvas->ox;\
+        dst.right = src->right + canvas->ox;\
+        dst.top = src->top + canvas->oy;\
+        dst.bottom = src->bottom + canvas->oy;
+
+
 
 void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                 unsigned int height )
@@ -106,56 +113,52 @@ void sgui_canvas_end( sgui_canvas* canvas )
             --canvas->began;
 
         if( !canvas->began )
-        {
-            canvas->ox = 0;
-            canvas->oy = 0;
-            canvas->scissor_stack_pointer = 0;
-            canvas->offset_stack_pointer = 0;
-
-            sgui_rect_set( &canvas->sc, 0, 0, 0, 0 );
-
             canvas->end( canvas );
-        }
     }
 }
 
-void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
-                        unsigned int width, unsigned int height )
+void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
 {
-    sgui_rect r;
+    sgui_rect r1;
 
     if( !canvas || !canvas->allow_clear )
         return;
 
+    if( r )
+    {
+        COPY_RECT_OFFSET( r1, r );
+    }
+    else
+    {
+        sgui_rect_set_size( &r1, 0, 0, canvas->width, canvas->height );
+    }
+
     if( canvas->began )
     {
-        sgui_rect_set_size( &r, x+canvas->ox, y+canvas->oy, width, height );
-
-        if( !sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
+        if( !sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
             return;
     }
     else
     {
-        sgui_rect_set_size( &r, x, y, width, height );
-
-        if( r.left   <  0                   ) r.left   = 0;
-        if( r.top    <  0                   ) r.top    = 0;
-        if( r.right  >= (int)canvas->width  ) r.right  = canvas->width - 1;
-        if( r.bottom >= (int)canvas->height ) r.bottom = canvas->height - 1;
+        if( r1.left   <  0                   ) r1.left   = 0;
+        if( r1.top    <  0                   ) r1.top    = 0;
+        if( r1.right  >= (int)canvas->width  ) r1.right  = canvas->width - 1;
+        if( r1.bottom >= (int)canvas->height ) r1.bottom = canvas->height - 1;
     }
 
-    canvas->clear( canvas, &r );
+    canvas->clear( canvas, &r1 );
 }
 
-void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
-                                   unsigned int width, unsigned int height )
+void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
 {
-    sgui_rect r;
+    sgui_rect r1;
 
     if( canvas && canvas->began )
     {
-        if( width && height )
+        if( r )
         {
+            COPY_RECT_OFFSET( r1, r );
+
             if( canvas->scissor_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
                 return;
 
@@ -165,21 +168,14 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
             ++(canvas->scissor_stack_pointer);
 
             /* merge rectangles */
-            sgui_rect_set_size( &r, x+canvas->ox, y+canvas->oy,
-                                    width, height );
-
-            sgui_rect_get_intersection( &r, &canvas->sc, &r );
-
-            /* set scissor rect */
-            sgui_rect_copy( &canvas->sc, &r );
+            sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
         }
         else if( canvas->scissor_stack_pointer )
         {
             /* pop old scissor rect from stack */
             --(canvas->scissor_stack_pointer);
 
-            sgui_rect_copy( &canvas->sc,
-                            canvas->sc_stack+canvas->scissor_stack_pointer );
+            canvas->sc = canvas->sc_stack[ canvas->scissor_stack_pointer ];
         }
     }
 }
@@ -266,21 +262,20 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
                    r.bottom - r.top + 1, width, data );
 }
 
-void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
-                           unsigned int width, unsigned int height,
+void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
                            unsigned char* color, SGUI_COLOR_FORMAT format )
 {
-    sgui_rect r;
+    sgui_rect r1;
 
-    if( !canvas || !color || !canvas->began )
+    if( !canvas || !color || !canvas->began || !r )
         return;
 
-    sgui_rect_set_size( &r, x+canvas->ox, y+canvas->oy, width, height );
+    COPY_RECT_OFFSET( r1, r );
 
-    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
+    if( !sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
         return;
 
-    canvas->draw_box( canvas, &r, color, format );
+    canvas->draw_box( canvas, &r1, color, format );
 }
 
 

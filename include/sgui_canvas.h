@@ -94,13 +94,9 @@ void sgui_canvas_end( sgui_canvas* canvas );
 /**
  * \brief Clear a rectangular region on the canvas to the background color
  *
- * \param x      Distance from the left of the rect to the left of the canvas
- * \param y      Distance from the top of the rect to the top of the canvas
- * \param width  Width of the rectangular area
- * \param height Height of the rectangular area
+ * \param r The area to clear
  */
-void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
-                        unsigned int width, unsigned int height );
+void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
 
 
 /**
@@ -113,15 +109,9 @@ void sgui_canvas_clear( sgui_canvas* canvas, int x, int y,
  * and the current stored on a stack, to restore the current one, simply set
  * all parameters to zero.
  *
- * \param x      The distance from the left of the scissor rect to the
- *               left of the canvas.
- * \param y      The distance from the top of the scissor rect to the
- *               top of the canvas.
- * \param width  The width of the scissor rect.
- * \param height The height of the scissor rect.
+ * \param r The scissor rect to apply or NULL to restore the previous one
  */
-void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, int x, int y,
-                                   unsigned int width, unsigned int height );
+void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r );
 
 /** \brief Enable or disable background clearing */
 void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
@@ -176,15 +166,11 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
 /**
  * \brief Draw a rectangle onto a canvas
  *
- * \param x      Distance from the left of the canvas to the left of the box
- * \param y      Distance from the top of the canvas to the top of the box
- * \param width  The width of the box
- * \param height The height of the box
+ * \param r      The geometry of the box to draw
  * \param color  The color to draw the box in
  * \param format The color format stored in the color array
  */
-void sgui_canvas_draw_box( sgui_canvas* canvas, int x, int y,
-                           unsigned int width, unsigned int height,
+void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
                            unsigned char* color, SGUI_COLOR_FORMAT format );
 
 /**

@@ -72,18 +72,13 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_group_box* b = (sgui_group_box*)widget;
 
     /* draw background */
-    sgui_skin_draw_group_box( cv, widget->x, widget->y,
-                                  widget->width, widget->height, b->caption );
+    sgui_skin_draw_group_box( cv, widget->area.left, widget->area.top,
+                              SGUI_RECT_WIDTH(widget->area),
+                              SGUI_RECT_HEIGHT(widget->area), b->caption );
 
-    /* adjust offset and scissor rect to box area */
-    sgui_canvas_set_offset( cv, widget->x, widget->y );
-    sgui_canvas_set_scissor_rect( cv, 0, 0, widget->width, widget->height );
-
-    /* draw the widgets */
+    /* adjust offset and draw */
+    sgui_canvas_set_offset( cv, widget->area.left, widget->area.top );
     sgui_widget_manager_draw_all( b->mgr, cv );
-
-    /* restore scissor rect and offset */
-    sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
     sgui_canvas_restore_offset( cv );
 }
 

@@ -114,8 +114,8 @@ void sgui_tab_update( sgui_widget* widget )
         {
             sgui_widget_manager_get_dirty_rect( mgr, &r, i );
 
-            r.left += widget->x; r.right  += widget->x;
-            r.top  += widget->y; r.bottom += widget->y;
+            r.left += widget->area.left; r.right  += widget->area.left;
+            r.top  += widget->area.top;  r.bottom += widget->area.top;
 
             sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
@@ -128,7 +128,8 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int i, gap, gap_w;
-    int x = widget->x, y = widget->y;
+    int x = widget->area.left, y = widget->area.top;
+    sgui_rect r;
 
     for( i=0; i<g->num_tabs; ++i )
     {
@@ -145,26 +146,21 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         for( i=0, gap=0; i<(unsigned int)g->selected; ++i )
             gap += g->tabs[i].caption_width;
 
-        sgui_canvas_clear( cv, widget->x, widget->y + g->tab_cap_height,
-                               widget->width,
-                               widget->height - g->tab_cap_height );
+        r = widget->area;
+        r.top += g->tab_cap_height;
+        r.bottom -= g->tab_cap_height + g->tab_cap_height;
 
-        sgui_skin_draw_tab( cv, widget->x,
-                                widget->y + g->tab_cap_height, 
-                                widget->width,
-                                widget->height - g->tab_cap_height,
-                                gap, gap_w );
+        sgui_canvas_clear( cv, &r );
 
-        /* adjust offset and scissor rect to tab area */
-        sgui_canvas_set_offset( cv, widget->x, widget->y );
-        sgui_canvas_set_scissor_rect( cv, 0, 0,
-                                      widget->width, widget->height );
+        sgui_skin_draw_tab( cv, widget->area.left,
+                                widget->area.top + g->tab_cap_height, 
+                                SGUI_RECT_WIDTH(widget->area),
+                                SGUI_RECT_HEIGHT(widget->area) -
+                                g->tab_cap_height, gap, gap_w );
 
-        /* draw the widgets */
+        /* adjust offset and draw the tab area */
+        sgui_canvas_set_offset( cv, widget->area.left, widget->area.top );
         sgui_widget_manager_draw_all( g->tabs[g->selected].mgr, cv );
-
-        /* restore scissor rect and offset */
-        sgui_canvas_set_scissor_rect( cv, 0, 0, 0, 0 );
         sgui_canvas_restore_offset( cv );
     }
 }

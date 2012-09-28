@@ -63,7 +63,7 @@ sgui_edit_box;
 /* Adjust text render offset after moving the cursor */
 void sgui_edit_box_determine_offset( sgui_edit_box* b )
 {
-    unsigned int cx;
+    unsigned int cx, w;
 
     if( !b->num_entered )
         return;
@@ -71,10 +71,12 @@ void sgui_edit_box_determine_offset( sgui_edit_box* b )
     cx = sgui_skin_default_font_extents( b->buffer + b->offset,
                                          b->cursor - b->offset, 0, 0 );
 
+    w = SGUI_RECT_WIDTH( b->widget.area );
+
     if( b->offset && (b->cursor <= b->offset) )
     {
         /* roll offset back, until render space is exceeded */
-        while( b->offset && (cx < b->widget.width) )
+        while( b->offset && (cx < w) )
         {
             ROLL_BACK_UTF8( b->buffer, b->offset );
 
@@ -89,7 +91,7 @@ void sgui_edit_box_determine_offset( sgui_edit_box* b )
             ADVANCE_UTF8( b->buffer, b->offset );
         }
     }
-    else if( cx > b->widget.width )
+    else if( cx > w )
     {
         b->offset = b->cursor;
 
@@ -119,8 +121,9 @@ void sgui_edit_box_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
 
-    sgui_skin_draw_edit_box( cv, widget->x, widget->y,
-                             b->buffer + b->offset, widget->width,
+    sgui_skin_draw_edit_box( cv, widget->area.left, widget->area.top,
+                             b->buffer + b->offset,
+                             SGUI_RECT_WIDTH(widget->area),
                              b->draw_cursor ?
                              (int)(b->cursor-b->offset) : -1 );
 }

@@ -34,12 +34,10 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
                                 unsigned int width, unsigned int height,
                                 int triggers_events )
 {
-    widget->x                     = x;
-    widget->y                     = y;
-    widget->width                 = width;
-    widget->height                = height;
-    widget->mgr                   = NULL;
+    sgui_rect_set_size( &widget->area, x, y, width, height );
+
     widget->visible               = 1;
+    widget->mgr                   = NULL;
     widget->draw_callback         = NULL;
     widget->update_callback       = NULL;
     widget->window_event_callback = NULL;
@@ -64,18 +62,19 @@ void sgui_internal_widget_fire_event( sgui_widget* widget, int event )
 
 void sgui_widget_set_position( sgui_widget* w, int x, int y )
 {
-    sgui_rect r;
+    int dx, dy;
 
     if( w )
     {
-        sgui_rect_set_size( &r, w->x, w->y, w->width, w->height );
-        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
 
-        w->x = x;
-        w->y = y;
+        dx = x - w->area.left;
+        dy = y - w->area.top;
 
-        sgui_rect_set_size( &r, w->x, w->y, w->width, w->height );
-        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
+        w->area.left += dx; w->area.right  += dx;
+        w->area.top  += dy; w->area.bottom += dy;
+
+        sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
     }
 }
 
@@ -83,8 +82,8 @@ void sgui_widget_get_position( sgui_widget* w, int* x, int* y )
 {
     if( w )
     {
-        if( x ) *x = w->x;
-        if( y ) *y = w->y;
+        if( x ) *x = w->area.left;
+        if( y ) *y = w->area.top;
     }
     else
     {
@@ -98,8 +97,8 @@ void sgui_widget_get_size( sgui_widget* w,
 {
     if( w )
     {
-        if( width  ) *width  = w->width;
-        if( height ) *height = w->height;
+        if( width  ) *width  = SGUI_RECT_WIDTH( w->area );
+        if( height ) *height = SGUI_RECT_HEIGHT( w->area );
     }
     else
     {
@@ -121,7 +120,7 @@ void sgui_widget_set_visible( sgui_widget* w, int visible )
 
 void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r )
 {
-    sgui_rect_set_size( r, w->x, w->y, w->width, w->height );
+    sgui_rect_copy( r, &w->area );
 }
 
 int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
@@ -129,10 +128,10 @@ int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
     if( !w )
         return 0;
 
-    if( (x < w->x) || (y < w->y) )
+    if( x < w->area.left || y < w->area.top )
         return 0;
 
-    if( (x >= (w->x + (int)w->width)) || (y >= (w->y + (int)w->height)) )
+    if( x > w->area.right || y > w->area.bottom )
         return 0;
 
     return 1;
