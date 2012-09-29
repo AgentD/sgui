@@ -43,6 +43,16 @@ extern "C"
 
 typedef struct sgui_widget_manager sgui_widget_manager;
 
+/**
+ * \brief A callback for listening to widget events
+ *
+ * \param widget The widget that triggered the event
+ * \param type   An identifyer describing the event
+ * \param user   User data that was registered with the callback function
+ */
+typedef void (* sgui_widget_callback ) ( sgui_widget* widget, int type,
+                                         void* user );
+
 
 
 /**
@@ -147,6 +157,26 @@ void sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
 void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
                                             int event, sgui_event* e );
 
+
+/**
+ * \brief Register a callback to be called on a widget event
+ *
+ * \param mgr  The widget manager
+ * \param fun  The function to call when a widget event occours
+ * \param user A user data pointer that is passed to the given function
+ */
+void sgui_widget_manager_on_event( sgui_widget_manager* mgr,
+                                   sgui_widget_callback fun, void* user );
+
+/**
+ * \brief Trigger a widget event
+ *
+ * \param mgr    The widget manager
+ * \param widget The widget that triggered the event (must not be NULL)
+ * \param event  The event that got triggered
+ */
+void sgui_widget_manager_fire_widget_event( sgui_widget_manager* mgr,
+                                            sgui_widget* widget, int event );
 
 
 #ifdef __cplusplus

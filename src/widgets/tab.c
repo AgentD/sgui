@@ -56,6 +56,16 @@ sgui_tab_group;
 
 
 
+
+/* widget manager callback that passes widget events to the parent manager */
+void tab_pass_event( sgui_widget* widget, int type, void* user )
+{
+    sgui_widget_manager_fire_widget_event( ((sgui_widget*)user)->mgr,
+                                           widget, type );
+}
+
+
+
 void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
@@ -79,10 +89,16 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
         }
 
         /* select coresponding tab and mark widget area dirty */
+        if( g->selected>=0 )
+            sgui_widget_manager_on_event( g->tabs[ g->selected ].mgr,
+                                          NULL, NULL );
+
         if( i<g->num_tabs && (int)i!=g->selected )
         {
             g->selected = i;
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_manager_on_event( g->tabs[ g->selected ].mgr,
+                                          tab_pass_event, widget );
         }
     }
     else if( g->selected>=0 && g->selected<(int)g->num_tabs )
@@ -186,7 +202,7 @@ sgui_widget* sgui_tab_group_create( int x, int y,
         return NULL;
     }
 
-    sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height, 0 );
+    sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
 
     g->widget.draw_callback         = sgui_tab_group_draw;
     g->widget.window_event_callback = sgui_tab_group_on_event;
@@ -206,8 +222,6 @@ void sgui_tab_group_destroy( sgui_widget* tab )
 
     if( t )
     {
-        sgui_internal_widget_deinit( tab );
-
         for( i=0; i<t->num_tabs; ++i )
         {
             sgui_widget_manager_destroy( t->tabs[ i ].mgr );
@@ -250,9 +264,6 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
         /* initialise new tab */
         if( index>=0 )
         {
-            if( g->selected < 0 ) /* if it's the first tab added, select it */
-                g->selected = 0;
-
             /* try to create a widget manager for the tab */
             g->tabs[ index ].mgr = sgui_widget_manager_create( );
 
@@ -260,6 +271,14 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
             {
                 g->num_tabs -= 1;
                 return -1;
+            }
+
+            /* if it's the first tab added, select it */
+            if( g->selected < 0 )
+            {
+                g->selected = 0;
+                sgui_widget_manager_on_event( g->tabs[ g->selected ].mgr,
+                                              tab_pass_event, tab );
             }
 
             /* try to store the caption string */

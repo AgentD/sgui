@@ -30,6 +30,7 @@
 #include "sgui_event.h"
 #include "sgui_widget.h"
 #include "sgui_canvas.h"
+#include "sgui_widget_manager.h"
 
 
 
@@ -240,6 +241,16 @@ void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
  * \param widget The widget to remove
  */
 void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget );
+
+/**
+ * \brief Register a callback to be called on a widget event
+ *
+ * \param wnd  A pointer to a window
+ * \param fun  The function to call when a widget event occours
+ * \param user A user data pointer that is passed to the given function
+ */
+void sgui_window_on_widget_event( sgui_window* wnd,
+                                  sgui_widget_callback fun, void* user );
 
 
 

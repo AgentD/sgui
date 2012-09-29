@@ -24,15 +24,13 @@
  */
 #include "sgui_widget.h"
 #include "sgui_internal.h"
-#include "sgui_link.h"
 
 #include <stddef.h>
 
 
 
 void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
-                                unsigned int width, unsigned int height,
-                                int triggers_events )
+                                unsigned int width, unsigned int height )
 {
     sgui_rect_set_size( &widget->area, x, y, width, height );
 
@@ -41,21 +39,6 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->draw_callback         = NULL;
     widget->update_callback       = NULL;
     widget->window_event_callback = NULL;
-
-    if( triggers_events )
-        widget->links = sgui_link_list_create( );
-    else
-        widget->links = NULL;
-}
-
-void sgui_internal_widget_deinit( sgui_widget* widget )
-{
-    sgui_link_list_destroy( widget->links );
-}
-
-void sgui_internal_widget_fire_event( sgui_widget* widget, int event )
-{
-    sgui_link_list_process( widget->links, event );
 }
 
 
@@ -154,109 +137,5 @@ void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     if( widget && widget->draw_callback )
         widget->draw_callback( widget, cv );
-}
-
-void sgui_widget_on_event( sgui_widget* widget, int event, void* callback,
-                           void* object )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback )
-    {
-        v.type = SGUI_VOID;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_i( sgui_widget* widget, int event, void* callback,
-                             void* object, int arg )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback )
-    {
-        v.data.i = arg;
-        v.type   = SGUI_INT;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_ui( sgui_widget* widget, int event, void* callback,
-                              void* object, unsigned int arg )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback )
-    {
-        v.data.ui = arg;
-        v.type    = SGUI_UINT;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_i2( sgui_widget* widget, int event, void* callback,
-                              void* object, int px, int py )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback )
-    {
-        v.data.ivec2.x = px;
-        v.data.ivec2.y = py;
-        v.type         = SGUI_INT_VEC2;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_ui2( sgui_widget* widget, int event, void* callback,
-                               void* object, unsigned int px,
-                               unsigned int py )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback )
-    {
-        v.data.uivec2.x = px;
-        v.data.uivec2.y = py;
-        v.type          = SGUI_UINT_VEC2;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_i_fun( sgui_widget* widget, int event,
-                                 void* callback, void* object,
-                                 void* get_callback, void* get_object )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback && get_callback )
-    {
-        v.data.get_fun.fun = get_callback;
-        v.data.get_fun.obj = get_object;
-        v.type             = SGUI_INT_FROM_FUNCTION;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_ui_fun( sgui_widget* widget, int event,
-                                 void* callback, void* object,
-                                 void* get_callback, void* get_object )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback && get_callback )
-    {
-        v.data.get_fun.fun = get_callback;
-        v.data.get_fun.obj = get_object;
-        v.type             = SGUI_UINT_FROM_FUNCTION;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
 }
 

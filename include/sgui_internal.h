@@ -29,7 +29,6 @@
 
 #include "sgui_widget.h"
 #include "sgui_widget_manager.h"
-#include "sgui_link.h"
 
 
 
@@ -163,19 +162,6 @@ struct sgui_canvas
                             unsigned int scan, unsigned char* color );
 };
 
-/**
- * \brief Initialise a canvas structure
- *
- * \param cv     A pointer to the canvas structure
- * \param width  The width of the canvas
- * \param height The height of the canvas
- */
-void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
-                                unsigned int height );
-
-
-
-
 struct sgui_widget
 {
     sgui_rect area;         /**< \brief The area occupied by a widget */
@@ -185,12 +171,6 @@ struct sgui_widget
 
     /** \brief The widget manager responsible for that widget */
     sgui_widget_manager* mgr;
-
-    /**
-     * \brief List of links to implement signals and slots like widget
-     *        intercommunication.
-     */
-    sgui_link_list* links;
 
     /**
      * \brief Callback that is called to draw a widget
@@ -230,27 +210,24 @@ extern "C" {
 /**
  * \brief Initialise a widget structure
  *
- * \param widget          A pointer to the widget structure
- * \param x               The horizontal component of the widgets position
- * \param y               The vertical component of the widgets position
- * \param width           The width of the widget
- * \param height          The height of the widget
- * \param triggers_events Non-zero to create a link list for the widget
+ * \param widget A pointer to the widget structure
+ * \param x      The horizontal component of the widgets position
+ * \param y      The vertical component of the widgets position
+ * \param width  The width of the widget
+ * \param height The height of the widget
  */
 void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
-                                unsigned int width, unsigned int height,
-                                int triggers_events );
-
-/** \brief Uninitialise a widget structure (e.g. free link list, etc.) */
-void sgui_internal_widget_deinit( sgui_widget* widget );
+                                unsigned int width, unsigned int height );
 
 /**
- * \brief Fire a widget event (fire all links registered for an event)
+ * \brief Initialise a canvas structure
  *
- * \param widget The widget firing the event
- * \param event  The event ID
+ * \param cv     A pointer to the canvas structure
+ * \param width  The width of the canvas
+ * \param height The height of the canvas
  */
-void sgui_internal_widget_fire_event( sgui_widget* widget, int event );
+void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
+                                unsigned int height );
 
 #ifdef __cplusplus
 }

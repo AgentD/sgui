@@ -177,7 +177,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     sgui_skin_get_scroll_bar_extents( horizontal, length, &w, &h,
                                       &b->bw, &b->bh );
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 0 );
+    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
 
     if( horizontal )
         b->widget.window_event_callback = scroll_bar_on_event_h;
@@ -200,10 +200,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 void sgui_scroll_bar_destroy( sgui_widget* bar )
 {
     if( bar )
-    {
-        sgui_internal_widget_deinit( bar );
         free( bar );
-    }
 }
 
 void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )

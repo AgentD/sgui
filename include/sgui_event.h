@@ -31,30 +31,44 @@
 
 
 
-#define SGUI_MOUSE_BUTTON_LEFT   0
-#define SGUI_MOUSE_BUTTON_MIDDLE 1
-#define SGUI_MOUSE_BUTTON_RIGHT  2
+enum
+{
+    SGUI_MOUSE_BUTTON_LEFT = 0,
+    SGUI_MOUSE_BUTTON_MIDDLE,
+    SGUI_MOUSE_BUTTON_RIGHT
+};
 
+enum
+{
+    /* window events */
+    SGUI_USER_CLOSED_EVENT = 0,
+    SGUI_API_INVISIBLE_EVENT,
+    SGUI_API_DESTROY_EVENT,
+    SGUI_SIZE_CHANGE_EVENT,
 
+    SGUI_MOUSE_MOVE_EVENT,
+    SGUI_MOUSE_PRESS_EVENT,
+    SGUI_MOUSE_RELEASE_EVENT,
+    SGUI_MOUSE_WHEEL_EVENT,
+    SGUI_MOUSE_ENTER_EVENT,
+    SGUI_MOUSE_LEAVE_EVENT,
 
-#define SGUI_USER_CLOSED_EVENT        0
-#define SGUI_API_INVISIBLE_EVENT      1
-#define SGUI_API_DESTROY_EVENT        2
-#define SGUI_SIZE_CHANGE_EVENT        3
+    SGUI_KEY_PRESSED_EVENT,
+    SGUI_KEY_RELEASED_EVENT,
+    SGUI_CHAR_EVENT,
 
-#define SGUI_MOUSE_MOVE_EVENT         4
-#define SGUI_MOUSE_PRESS_EVENT        5
-#define SGUI_MOUSE_RELEASE_EVENT      6
-#define SGUI_MOUSE_WHEEL_EVENT        7
-#define SGUI_MOUSE_ENTER_EVENT        8
-#define SGUI_MOUSE_LEAVE_EVENT        9
+    /* widget manager events */
+    SGUI_FOCUS_EVENT,
+    SGUI_FOCUS_LOSE_EVENT,
 
-#define SGUI_KEY_PRESSED_EVENT       10
-#define SGUI_KEY_RELEASED_EVENT      11
-#define SGUI_CHAR_EVENT              12
+    /* button events */
+    SGUI_BUTTON_CLICK_EVENT,
 
-#define SGUI_FOCUS_EVENT             13
-#define SGUI_FOCUS_LOSE_EVENT        14
+    SGUI_RADIO_BUTTON_SELECT_EVENT,
+
+    SGUI_CHECKBOX_CHECK_EVENT,
+    SGUI_CHECKBOX_UNCHECK_EVENT
+};
 
 
 
@@ -73,8 +87,6 @@ typedef union
     struct { char as_utf8_str[8]; } char_event;
 }
 sgui_event;
-
-
 
 #endif /* SGUI_EVENT_H */
 

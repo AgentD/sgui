@@ -506,6 +506,13 @@ void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
         sgui_widget_manager_remove_widget( wnd->mgr, widget );
 }
 
+void sgui_window_on_widget_event( sgui_window* wnd,
+                                  sgui_widget_callback fun, void* user )
+{
+    if( wnd )
+        sgui_widget_manager_on_event( wnd->mgr, fun, user );
+}
+
 
 
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )

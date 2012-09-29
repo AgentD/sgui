@@ -269,7 +269,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     }
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width,
-                               sgui_skin_get_edit_box_height( ), 0 );
+                               sgui_skin_get_edit_box_height( ) );
 
     b->widget.window_event_callback = sgui_edit_box_on_event;
     b->widget.draw_callback         = sgui_edit_box_draw;
@@ -283,8 +283,6 @@ void sgui_edit_box_destroy( sgui_widget* box )
 {
     if( box )
     {
-        sgui_internal_widget_deinit( box );
-
         free( ((sgui_edit_box*)box)->buffer );
         free( box );
     }

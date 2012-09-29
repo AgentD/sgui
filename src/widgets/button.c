@@ -74,8 +74,8 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
 
         b->state = 1;
 
-        sgui_internal_widget_fire_event( widget,
-                                         SGUI_RADIO_BUTTON_SELECT_EVENT );
+        sgui_widget_manager_fire_widget_event(widget->mgr, widget,
+                                              SGUI_RADIO_BUTTON_SELECT_EVENT);
 
         /* uncheck all preceeding and following radio buttons */
         for( i=b->prev; i!=NULL; i=i->prev )
@@ -110,7 +110,7 @@ sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
         width  = b->cx + b->text_width;
         height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
 
-        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
+        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
         b->widget.window_event_callback = sgui_radio_on_event;
         b->widget.draw_callback         = sgui_button_draw;
@@ -141,6 +141,7 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
 void sgui_checkbox_on_event(sgui_widget* widget, int type, sgui_event* event)
 {
     sgui_button* b = (sgui_button*)widget;
+    int e;
     (void)event;
 
     if( type == SGUI_MOUSE_RELEASE_EVENT )
@@ -149,9 +150,10 @@ void sgui_checkbox_on_event(sgui_widget* widget, int type, sgui_event* event)
 
         sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
-        sgui_internal_widget_fire_event( widget, b->state ?
-                                         SGUI_CHECKBOX_CHECK_EVENT :
-                                         SGUI_CHECKBOX_UNCHECK_EVENT );
+        e = b->state ? SGUI_CHECKBOX_CHECK_EVENT : 
+                       SGUI_CHECKBOX_UNCHECK_EVENT;
+
+        sgui_widget_manager_fire_widget_event( widget->mgr, widget, e );
     }
 }
 
@@ -166,7 +168,7 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
         width  = b->cx + b->text_width;
         height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
 
-        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
+        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
         b->widget.window_event_callback = sgui_checkbox_on_event;
         b->widget.draw_callback         = sgui_button_draw;
@@ -197,8 +199,8 @@ void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
     {
         if( b->state )
         {
-            sgui_internal_widget_fire_event( widget,
-                                             SGUI_BUTTON_CLICK_EVENT );
+            sgui_widget_manager_fire_widget_event( widget->mgr, widget,
+                                                   SGUI_BUTTON_CLICK_EVENT );
         }
 
         b->state = 0;
@@ -221,7 +223,7 @@ sgui_widget* sgui_button_create( int x, int y,
         width  = width  < b->text_width ? b->text_width : width;
         height = height < (h + h/2)     ? (h + h/2)     : height;
 
-        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
+        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
         b->widget.window_event_callback = sgui_button_on_event;
         b->widget.draw_callback         = sgui_button_draw;
@@ -311,8 +313,6 @@ void sgui_button_destroy( sgui_widget* button )
             if( b->prev ) b->prev->next = b->next;
             if( b->next ) b->next->prev = b->prev;
         }
-
-        sgui_internal_widget_deinit( button );
 
         free( b->text );
         free( button );

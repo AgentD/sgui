@@ -44,6 +44,9 @@ struct sgui_widget_manager
 
     sgui_rect dirty[ WIDGET_MANAGER_MAX_DIRTY ];
     unsigned int num_dirty;
+
+    sgui_widget_callback fun;
+    void* fun_user;
 };
 
 
@@ -61,6 +64,8 @@ sgui_widget_manager* sgui_widget_manager_create( void )
     mgr->num_widgets   = 0;
     mgr->widgets_avail = 10;
     mgr->num_dirty     = 0;
+    mgr->fun           = NULL;
+    mgr->fun_user      = NULL;
 
     if( !mgr->widgets )
     {
@@ -357,5 +362,22 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
             sgui_widget_send_window_event( mgr->widgets[i], event, e );
         break;
     }
+}
+
+void sgui_widget_manager_on_event( sgui_widget_manager* mgr,
+                                   sgui_widget_callback fun, void* user )
+{
+    if( mgr )
+    {
+        mgr->fun = fun;
+        mgr->fun_user = user;
+    }
+}
+
+void sgui_widget_manager_fire_widget_event( sgui_widget_manager* mgr,
+                                            sgui_widget* widget, int event )
+{
+    if( mgr && widget )
+        mgr->fun( widget, event, mgr->fun_user );
 }
 

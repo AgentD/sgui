@@ -28,10 +28,9 @@
   Font rasterisation is done using FreeType 2 directly through wrapper
   functions.
 
-  There is a signals & slots like widget intercommunication, called "links",
-  i.e. one can register an arbitrary function to a widget with arguments and
-  when a given event gets triggered, the functions registered for that event
-  gets called with the registered parameters.
+  Widget events (e.g. button pressed, checkbox checked, ...) and window
+  events (e.g. left clicked, 's' key pressed, window closed, ...) can be
+  received over callbacks, registered at a centralized location.
 
   On my system, the library compiles without warnings with all gcc warning
   flags set and has, according to valgrind, no memory leaks (except for a

@@ -74,7 +74,7 @@ sgui_widget* sgui_image_create( int x, int y,
     if( !img )
         return NULL;
 
-    sgui_internal_widget_init( (sgui_widget*)img, x, y, width, height, 0 );
+    sgui_internal_widget_init( (sgui_widget*)img, x, y, width, height );
 
     if( copy )
     {

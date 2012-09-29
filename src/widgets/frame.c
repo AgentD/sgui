@@ -52,6 +52,17 @@ sgui_frame;
 
 
 
+
+/* widget manager callback that passes widget events to the parent manager */
+void frame_pass_event( sgui_widget* widget, int type, void* user )
+{
+    sgui_widget_manager_fire_widget_event( ((sgui_widget*)user)->mgr,
+                                           widget, type );
+}
+
+
+
+
 void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_frame* f = (sgui_frame*)widget;
@@ -182,11 +193,13 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
         return NULL;
     }
 
+    sgui_widget_manager_on_event( f->mgr, frame_pass_event, f );
+
     /* determine dimensions of a possible scroll bar */
     sgui_skin_get_scroll_bar_extents( 0, height, &w, &h, &bw, &bh );
 
     /* initialise the widget base structure */
-    sgui_internal_widget_init( (sgui_widget*)f, x, y, width, height, 0 );
+    sgui_internal_widget_init( (sgui_widget*)f, x, y, width, height );
 
     f->widget.draw_callback         = frame_draw;
     f->widget.update_callback       = frame_update;
@@ -201,7 +214,6 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
 
     if( !f->v_bar )
     {
-        sgui_internal_widget_deinit( (sgui_widget*)f );
         sgui_widget_manager_destroy( f->mgr );
         free( f );
         return NULL;
@@ -221,7 +233,6 @@ void sgui_frame_destroy( sgui_widget* frame )
     if( f )
     {
         sgui_scroll_bar_destroy( f->v_bar );
-        sgui_internal_widget_deinit( frame );
         sgui_widget_manager_destroy( f->mgr );
         free( f );
     }

@@ -72,7 +72,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 
     sgui_skin_get_progress_bar_extents( length, style, vertical, &w, &h );
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h, 0 );
+    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
 
     b->widget.draw_callback = sgui_progress_draw;
     b->vertical             = vertical;
@@ -105,9 +105,6 @@ unsigned int sgui_progress_bar_get_progress( sgui_widget* bar )
 void sgui_progress_bar_destroy( sgui_widget* bar )
 {
     if( bar )
-    {
-        sgui_internal_widget_deinit( bar );
         free( bar );
-    }
 }
 

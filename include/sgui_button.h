@@ -28,6 +28,7 @@
 
 
 #include "sgui_widget.h"
+#include "sgui_event.h"
 
 
 
@@ -35,17 +36,6 @@
 extern "C"
 {
 #endif
-
-
-
-#define SGUI_BUTTON_CLICK_EVENT        0
-
-#define SGUI_RADIO_BUTTON_SELECT_EVENT 1
-
-#define SGUI_CHECKBOX_CHECK_EVENT      2
-#define SGUI_CHECKBOX_UNCHECK_EVENT    3
-
-
 
 /**
  * \brief Create a button widget
@@ -129,8 +119,6 @@ void sgui_button_set_state( sgui_widget* button, int state );
  *         non-zero means pressed down.
  */
 int sgui_button_get_state( sgui_widget* button );
-
-
 
 #ifdef __cplusplus
 }

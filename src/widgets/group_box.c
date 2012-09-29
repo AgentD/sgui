@@ -44,6 +44,14 @@ sgui_group_box;
 
 
 
+/* widget manager callback that passes widget events to the parent manager */
+void group_box_pass_event( sgui_widget* widget, int type, void* user )
+{
+    sgui_widget_manager_fire_widget_event( ((sgui_widget*)user)->mgr,
+                                           widget, type );
+}
+
+
 
 void group_box_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
@@ -106,6 +114,8 @@ sgui_widget* sgui_group_box_create( int x, int y,
         return NULL;
     }
 
+    sgui_widget_manager_on_event( b->mgr, group_box_pass_event, b );
+
     /* try to store the caption string */
     b->caption = malloc( strlen( caption ) + 1 );
 
@@ -119,7 +129,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
     strcpy( b->caption, caption );
 
     /* initialize widget base struct */
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 0 );
+    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
     b->widget.draw_callback         = group_box_draw;
     b->widget.update_callback       = group_box_update;
@@ -134,7 +144,6 @@ void sgui_group_box_destroy( sgui_widget* box )
 
     if( b )
     {
-        sgui_internal_widget_deinit( box );
         sgui_widget_manager_destroy( b->mgr );
         free( b->caption );
         free( b );
