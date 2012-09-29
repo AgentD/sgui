@@ -33,13 +33,11 @@ extern "C"
 typedef enum
 {
     SGUI_VOID = 0,
-    SGUI_FLOAT,
     SGUI_INT,
     SGUI_UINT,
     SGUI_INT_VEC2,
     SGUI_UINT_VEC2,
 
-    SGUI_FLOAT_FROM_FUNCTION,
     SGUI_INT_FROM_FUNCTION,
     SGUI_UINT_FROM_FUNCTION
 }
@@ -51,7 +49,6 @@ typedef struct
 {
     union
     {
-        float f;
         int i;
         unsigned int ui;
 

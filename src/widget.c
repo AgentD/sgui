@@ -169,20 +169,6 @@ void sgui_widget_on_event( sgui_widget* widget, int event, void* callback,
     }
 }
 
-void sgui_widget_on_event_f( sgui_widget* widget, int event, void* callback,
-                             void* object, float arg )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback )
-    {
-        v.data.f = arg;
-        v.type   = SGUI_FLOAT;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
 void sgui_widget_on_event_i( sgui_widget* widget, int event, void* callback,
                              void* object, int arg )
 {
@@ -237,22 +223,6 @@ void sgui_widget_on_event_ui2( sgui_widget* widget, int event, void* callback,
         v.data.uivec2.x = px;
         v.data.uivec2.y = py;
         v.type          = SGUI_UINT_VEC2;
-
-        sgui_link_list_add( widget->links, event, callback, object, v );
-    }
-}
-
-void sgui_widget_on_event_f_fun( sgui_widget* widget, int event,
-                                 void* callback, void* object,
-                                 void* get_callback, void* get_object )
-{
-    sgui_variant v;
-
-    if( widget && widget->links && callback && get_callback )
-    {
-        v.data.get_fun.fun = get_callback;
-        v.data.get_fun.obj = get_object;
-        v.type             = SGUI_FLOAT_FROM_FUNCTION;
 
         sgui_link_list_add( widget->links, event, callback, object, v );
     }

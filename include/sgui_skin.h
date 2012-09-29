@@ -160,11 +160,11 @@ unsigned int sgui_skin_get_tab_caption_height( void );
  * \param length   The length of the bar.
  * \param vertical Non-zero for vertical bars, zero for horizontal.
  * \param style    The style of the bar (stippled or continuous).
- * \param value    The progress value to indicate (value between 0.0 and 1.0).
+ * \param value    The progress value to indicate (value between 0 and 100).
  */
 void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
                                   unsigned int length, int vertical,
-                                  int style, float value );
+                                  int style, unsigned int value );
 
 /**
  * \brief Draw a button widget onto a canvas

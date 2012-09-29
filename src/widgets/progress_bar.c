@@ -35,7 +35,7 @@ typedef struct
 {
     sgui_widget widget;
 
-    float progress;
+    unsigned int progress;
     int style;
     int vertical;
     unsigned int length;
@@ -56,12 +56,14 @@ void sgui_progress_draw( sgui_widget* widget, sgui_canvas* cv )
 
 
 sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
-                                       float progress, unsigned int length )
+                                       unsigned int progress,
+                                       unsigned int length )
 {
     sgui_progress_bar* b;
     unsigned int w, h;
 
-    progress = (progress>1.0f) ? 1.0f : ((progress<0.0f) ? 0.0f : progress);
+    if( progress > 100 )
+        progress = 100;
 
     b = malloc( sizeof(sgui_progress_bar) );
 
@@ -81,25 +83,23 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     return (sgui_widget*)b;
 }
 
-void sgui_progress_bar_set_progress( sgui_widget* bar, float progress )
+void sgui_progress_bar_set_progress( sgui_widget* bar, unsigned int progress )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
-
-    progress = (progress>1.0f) ? 1.0f : ((progress<0.0f) ? 0.0f : progress);
 
     if( b )
     {
         sgui_widget_manager_add_dirty_rect( bar->mgr, &bar->area );
 
-        b->progress = progress;
+        b->progress = progress > 100 ? 100 : progress;
     }
 }
 
-float sgui_progress_bar_get_progress( sgui_widget* bar )
+unsigned int sgui_progress_bar_get_progress( sgui_widget* bar )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
 
-    return b ? b->progress : 0.0f;
+    return b ? b->progress : 0;
 }
 
 void sgui_progress_bar_destroy( sgui_widget* bar )

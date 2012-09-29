@@ -169,7 +169,7 @@ unsigned int sgui_skin_get_tab_caption_height( void )
 
 void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
                                   unsigned int length, int vertical,
-                                  int style, float value )
+                                  int style, unsigned int value )
 {
     int ox, oy;
     unsigned char color[4];
@@ -210,7 +210,7 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
 
     if( vertical )
     {
-        height = (wh - 2*oy) * value;
+        height = ((wh - 2*oy) * value) / 100;
         width  =  ww - 2*ox;
         ox += x;
 
@@ -237,7 +237,7 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
     }
     else
     {
-        width  = (ww - 2*ox) * value;
+        width  = ((ww - 2*ox) * value) / 100;
         height =  wh - 2*oy;
         ox += x;
         oy += y;

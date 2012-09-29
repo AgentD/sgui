@@ -50,26 +50,30 @@ extern "C" {
  *                 SGUI_PROGRESS_BAR_STIPPLED for a bar out of discrete
  *                 slices.
  * \param vertical Non-zero for a vertical bar, zero for a horizontal bar.
- * \param progress Initial progress for the bar (value between 0.0 and 1.0)
+ * \param progress Initial progress for the bar (value between 0 and 100)
  * \param length   The length of the bar in pixels.
  */
 sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
-                                       float progress, unsigned int length );
+                                       unsigned int progress,
+                                       unsigned int length );
 
 /**
  * \brief Set the progress on a progress bar
  *
  * \param bar      The progress bar to alter.
- * \param progress Value between 0.0 and 1.0 for the bar to display.
+ * \param progress Value between 0 and 100 for the bar to display.
  */
-void sgui_progress_bar_set_progress( sgui_widget* bar, float progress );
+void sgui_progress_bar_set_progress( sgui_widget* bar,
+                                     unsigned int progress );
 
 /**
  * \brief Get the progress on a progress bar
  *
- * \param bar The progress bar to alter.
+ * \param bar The progress bar.
+ *
+ + \return Progress value (percentage, value between 0 and 100)
  */
-float sgui_progress_bar_get_progress( sgui_widget* bar );
+unsigned int sgui_progress_bar_get_progress( sgui_widget* bar );
 
 /**
  * \brief Destroy a progress bar widget

@@ -113,7 +113,6 @@ void sgui_link_list_process( sgui_link_list* list, int event )
         void* vp;
 
         void(* f_void )(void*);
-        void(* f_float )(void*,float);
         void(* f_int )(void*,int);
         void(* f_uint )(void*,unsigned int);
         void(* f_int2 )(void*,int,int);
@@ -125,7 +124,6 @@ void sgui_link_list_process( sgui_link_list* list, int event )
     {
         void* vp;
 
-        float(* f_float )(void*);
         int(* f_int )(void*);
         unsigned int(* f_uint )(void*);
     }
@@ -148,9 +146,6 @@ void sgui_link_list_process( sgui_link_list* list, int event )
         case SGUI_VOID:
             fun.f_void( l->this_ptr );
             break;
-        case SGUI_FLOAT:
-            fun.f_float( l->this_ptr, l->arg.data.f );
-            break;
         case SGUI_INT:
             fun.f_int( l->this_ptr, l->arg.data.i );
             break;
@@ -164,11 +159,6 @@ void sgui_link_list_process( sgui_link_list* list, int event )
         case SGUI_UINT_VEC2:
             fun.f_uint2( l->this_ptr, l->arg.data.uivec2.x,
                                       l->arg.data.uivec2.y );
-            break;
-        case SGUI_FLOAT_FROM_FUNCTION:
-            get_fun.vp = l->arg.data.get_fun.fun;
-            fun.f_float( l->this_ptr,
-                         get_fun.f_float( l->arg.data.get_fun.obj ) );
             break;
         case SGUI_INT_FROM_FUNCTION:
             get_fun.vp = l->arg.data.get_fun.fun;

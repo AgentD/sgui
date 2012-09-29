@@ -122,10 +122,10 @@ int main( void )
     /* output widget tab */
     sgui_tab_group_add_tab( tab, "Output" );
 
-    p0 = sgui_progress_bar_create( 10,  40, 0, 0, 0.5f, 300 );
-    p1 = sgui_progress_bar_create( 10,  80, 1, 0, 0.5f, 300 );
-    p2 = sgui_progress_bar_create( 320, 40, 0, 1, 0.5f, 300 );
-    p3 = sgui_progress_bar_create( 355, 40, 1, 1, 0.5f, 300 );
+    p0 = sgui_progress_bar_create( 10,  40, 0, 0, 50, 300 );
+    p1 = sgui_progress_bar_create( 10,  80, 1, 0, 50, 300 );
+    p2 = sgui_progress_bar_create( 320, 40, 0, 1, 50, 300 );
+    p3 = sgui_progress_bar_create( 355, 40, 1, 1, 50, 300 );
 
     sgui_tab_group_add_widget( tab, 2, p0 );
     sgui_tab_group_add_widget( tab, 2, p1 );

@@ -189,8 +189,10 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     b->length               = length;
     b->v_length             = disp_area_length;
     b->v_max                = scroll_area_length;
-    b->p_length             = ((float)b->v_length / (float)b->v_max) *
+    b->p_length             = ((b->v_length<<8) / b->v_max) *
                               (length - 2*(horizontal ? b->bw : b->bh));
+
+    b->p_length >>= 8;
 
     return (sgui_widget*)b;
 }
@@ -215,7 +217,7 @@ void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
         if( (offset + b->v_length) < b->v_max )
         {
             b->v_offset = offset;
-            b->p_offset = ((float)offset/(float)b->v_max) * l;
+            b->p_offset = (((offset<<8)/b->v_max) * l) >> 8;
         }
         else
         {
@@ -242,8 +244,10 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
     {
         b->v_length = disp_area_length;
         b->v_max    = scroll_area_length;
-        b->p_length = ((float)b->v_length / (float)b->v_max) *
+        b->p_length = ((b->v_length<<8) / b->v_max) *
                        (b->length - 2*(b->horizontal ? b->bw : b->bh));
+
+        b->p_length >>= 8;
 
         sgui_widget_manager_add_dirty_rect( bar->mgr, &bar->area );
     }
