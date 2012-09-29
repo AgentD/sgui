@@ -2,37 +2,36 @@
   What is this?
   *************
 
-  This (sgui) is an excessively overgrown Xlib play pen that is on the way of
-  morphing into a small, cross platform GUI library.
+  This (sgui) is a miniature cross platform GUI library that originally
+  started out as an overgrown Xlib play pen.
 
-  The whole library is written in plain C89 with a simple build system
-  consisting of a shell script that executes gcc for the *nix version and
-  mingw for the WinDOS cross compilation.
+  The whole library is written in plain ANSI C (C89) with a simple build
+  system consisting of a single shell script that keeps track of changes and
+  executes gcc for the *nix version and mingw for the WinDOS cross
+  compilation.
 
-  The 's' in "sgui" really was intended to mean "small", but when raping it
-  with abstraction layers and piecing together a working WinDOS back end, lots
-  of other possible meanings for the letter 's' came to my mind, so the s
-  stands for whatever you want it to.
+  The 's' in "sgui" really was intended to mean "small" or "simple", but over
+  time, lots of other possible meanings for the letter 's' came to my mind, so
+  the s stands for whatever you want it to.
 
 
   What's the status?
   ******************
 
   There are working Xlib and WinDOS back ends that basically mange a window,
-  handle input and display a memory back buffer on request.
-
-  The memory back buffer of the windows is provided/handled/managed by a
-  canvas object, widgets are managed by a widget manager object.
+  handle input and provide an implementation of an abstract canvas type for
+  rendering. Widgets are managed by a widget manager.
 
   Widgets render themselves using a canvas object (e.g. from a window) and
   by using a skinning subsystem.
 
-  Font rasterisation is done using FreeType 2 directly inside the canvas code.
+  Font rasterisation is done using FreeType 2 directly through wrapper
+  functions.
 
   There is a signals & slots like widget intercommunication, called "links",
   i.e. one can register an arbitrary function to a widget with arguments and
   when a given event gets triggered, the functions registered for that event
-  get called with the registered parameters.
+  gets called with the registered parameters.
 
   On my system, the library compiles without warnings with all gcc warning
   flags set and has, according to valgrind, no memory leaks (except for a
@@ -45,15 +44,14 @@
   ********************
 
   Short term:
-    - Clean, improve and optimise the existing code
     - Add more useful widgets
-    - Make canvas object platform dependend, utilizing platform drawing APIs
+    - OpenGL back end
+    - Port xlib code to xcb
 
   Mid term:
     - Loadable GUI skin
     - Built in dialog boxes like message box, file open and file safe
     - Assure thread safety
-    - OpenGL back end
 
   Long term:
     - Figure out why I'm doing this
