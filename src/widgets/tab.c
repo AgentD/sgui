@@ -60,13 +60,13 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
-    sgui_rect r;
     unsigned int i;
     int x;
 
     if( type == SGUI_MOUSE_PRESS_EVENT &&
         event->mouse_press.y < (int)g->tab_cap_height )
     {
+        /* determine which tab caption was clicked */
         for( x=0, i=0; i<g->num_tabs; ++i )
         {
             if( event->mouse_press.x>x &&
@@ -78,18 +78,16 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
             x += g->tabs[i].caption_width;
         }
 
+        /* select coresponding tab and mark widget area dirty */
         if( i<g->num_tabs && (int)i!=g->selected )
         {
             g->selected = i;
-            sgui_widget_get_rect( widget, &r );
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
         }
-
-        return;
     }
-
-    if( g->selected>=0 && g->selected<(int)g->num_tabs )
+    else if( g->selected>=0 && g->selected<(int)g->num_tabs )
     {
+        /* send event to selected tab */
         sgui_widget_manager_send_window_event( g->tabs[ g->selected ].mgr,
                                                type, event );
     }
@@ -104,10 +102,12 @@ void sgui_tab_update( sgui_widget* widget )
 
     if( g->selected>=0 && g->selected<(int)g->num_tabs )
     {
+        /* update widget manager of selected tab */
         mgr = g->tabs[ g->selected ].mgr;
 
         sgui_widget_manager_update( mgr );
 
+        /* transfer dirty rects from tab manager to parent widget manager */
         num = sgui_widget_manager_num_dirty_rects( mgr );
 
         for( i=0; i<num; ++i )
@@ -131,6 +131,7 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
     int x = widget->area.left, y = widget->area.top;
     sgui_rect r;
 
+    /* draw tab captions */
     for( i=0; i<g->num_tabs; ++i )
     {
         sgui_skin_draw_tab_caption( cv, x, y, g->tabs[i].caption_width,
@@ -139,8 +140,10 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         x += g->tabs[i].caption_width;
     }
 
+    /* draw selected tab */
     if( g->selected >= 0 && (unsigned int)g->selected < g->num_tabs )
     {
+        /* draw tab frame */
         gap_w = g->tabs[ g->selected ].caption_width;
 
         for( i=0, gap=0; i<(unsigned int)g->selected; ++i )
@@ -224,6 +227,7 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
 
     if( g && caption )
     {
+        /* resize tab aray if required and acquire a new tab */
         if( g->num_tabs < g->tabs_avail )
         {
             index = g->num_tabs;
@@ -243,11 +247,13 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
             }
         }
 
+        /* initialise new tab */
         if( index>=0 )
         {
-            if( g->selected < 0 )
+            if( g->selected < 0 ) /* if it's the first tab added, select it */
                 g->selected = 0;
 
+            /* try to create a widget manager for the tab */
             g->tabs[ index ].mgr = sgui_widget_manager_create( );
 
             if( !g->tabs[ index ].mgr )
@@ -256,6 +262,7 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
                 return -1;
             }
 
+            /* try to store the caption string */
             g->tabs[ index ].caption = malloc( strlen(caption) + 1 );
 
             if( !g->tabs[ index ].caption )

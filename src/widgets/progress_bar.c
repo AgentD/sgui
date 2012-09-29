@@ -84,14 +84,12 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 void sgui_progress_bar_set_progress( sgui_widget* bar, float progress )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
-    sgui_rect r;
 
     progress = (progress>1.0f) ? 1.0f : ((progress<0.0f) ? 0.0f : progress);
 
     if( b )
     {
-        sgui_widget_get_rect( bar, &r );
-        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( bar->mgr, &bar->area );
 
         b->progress = progress;
     }

@@ -55,14 +55,16 @@ void group_box_on_event( sgui_widget* widget, int type, sgui_event* event )
 void group_box_update( sgui_widget* widget )
 {
     sgui_group_box* b = (sgui_group_box*)widget;
-    sgui_rect r;
 
     sgui_widget_manager_update( b->mgr );
 
+    /*
+        If we need a redraw, redraw eniter group box. No sane human would
+        place more than a few widgets in a group box anyway.
+     */
     if( sgui_widget_manager_num_dirty_rects( b->mgr ) )
     {
-        sgui_widget_get_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
         sgui_widget_manager_clear_dirty_rects( b->mgr );
     }
 }
@@ -95,6 +97,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
     if( !b )
         return NULL;
 
+    /* try to create a widget manager */
     b->mgr = sgui_widget_manager_create( );
 
     if( !b->mgr )
@@ -103,6 +106,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
         return NULL;
     }
 
+    /* try to store the caption string */
     b->caption = malloc( strlen( caption ) + 1 );
 
     if( !b->caption )
@@ -114,6 +118,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
 
     strcpy( b->caption, caption );
 
+    /* initialize widget base struct */
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 0 );
 
     b->widget.draw_callback         = group_box_draw;
@@ -121,7 +126,6 @@ sgui_widget* sgui_group_box_create( int x, int y,
     b->widget.window_event_callback = group_box_on_event;
 
     return (sgui_widget*)b;
-
 }
 
 void sgui_group_box_destroy( sgui_widget* box )
@@ -139,17 +143,13 @@ void sgui_group_box_destroy( sgui_widget* box )
 
 void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w )
 {
-    sgui_group_box* b = (sgui_group_box*)box;
-
-    if( b )
-        sgui_widget_manager_add_widget( b->mgr, w );
+    if( box )
+        sgui_widget_manager_add_widget( ((sgui_group_box*)box)->mgr, w );
 }
 
 void sgui_group_box_remove_widget( sgui_widget* box, sgui_widget* w )
 {
-    sgui_group_box* b = (sgui_group_box*)box;
-
-    if( b )
-        sgui_widget_manager_remove_widget( b->mgr, w );
+    if( box )
+        sgui_widget_manager_remove_widget( ((sgui_group_box*)box)->mgr, w );
 }
 

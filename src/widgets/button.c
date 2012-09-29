@@ -66,13 +66,11 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
     sgui_button* i;
-    sgui_rect r;
     (void)event;
 
     if( type == SGUI_MOUSE_RELEASE_EVENT && !b->state )
     {
-        sgui_widget_get_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
         b->state = 1;
 
@@ -82,17 +80,17 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
         /* uncheck all preceeding and following radio buttons */
         for( i=b->prev; i!=NULL; i=i->prev )
         {
-            sgui_widget_get_rect( (sgui_widget*)i, &r );
-            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
-
+            if( i->state )
+                sgui_widget_manager_add_dirty_rect( i->widget.mgr,
+                                                    &i->widget.area );
             i->state = 0;
         }
 
         for( i=b->next; i!=NULL; i=i->next )
         {
-            sgui_widget_get_rect( (sgui_widget*)i, &r );
-            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
-
+            if( i->state )
+                sgui_widget_manager_add_dirty_rect( i->widget.mgr,
+                                                    &i->widget.area );
             i->state = 0;
         }
     }
@@ -103,20 +101,20 @@ sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
     unsigned int width, height, h = sgui_skin_get_default_font_height( );
     sgui_button* b = sgui_button_create_common( text, BUTTON_RADIO );
 
-    if( !b )
-        return NULL;
+    if( b )
+    {
+        b->prev = NULL;
+        b->next = NULL;
 
-    b->prev = NULL;
-    b->next = NULL;
+        sgui_skin_get_radio_button_extents( &b->cx, &b->cy );
+        width  = b->cx + b->text_width;
+        height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
 
-    sgui_skin_get_radio_button_extents( &b->cx, &b->cy );
-    width  = b->cx + b->text_width;
-    height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
+        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
-
-    b->widget.window_event_callback = sgui_radio_on_event;
-    b->widget.draw_callback         = sgui_button_draw;
+        b->widget.window_event_callback = sgui_radio_on_event;
+        b->widget.draw_callback         = sgui_button_draw;
+    }
 
     return (sgui_widget*)b;
 }
@@ -143,15 +141,13 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
 void sgui_checkbox_on_event(sgui_widget* widget, int type, sgui_event* event)
 {
     sgui_button* b = (sgui_button*)widget;
-    sgui_rect r;
     (void)event;
 
     if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
         b->state = !b->state;
 
-        sgui_widget_get_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
         sgui_internal_widget_fire_event( widget, b->state ?
                                          SGUI_CHECKBOX_CHECK_EVENT :
@@ -164,17 +160,17 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
     unsigned int width, height, h = sgui_skin_get_default_font_height( );
     sgui_button* b = sgui_button_create_common( text, BUTTON_CHECKBOX );
 
-    if( !b )
-        return NULL;
+    if( b )
+    {
+        sgui_skin_get_checkbox_extents( &b->cx, &b->cy );
+        width  = b->cx + b->text_width;
+        height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
 
-    sgui_skin_get_checkbox_extents( &b->cx, &b->cy );
-    width  = b->cx + b->text_width;
-    height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
+        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
-
-    b->widget.window_event_callback = sgui_checkbox_on_event;
-    b->widget.draw_callback         = sgui_button_draw;
+        b->widget.window_event_callback = sgui_checkbox_on_event;
+        b->widget.draw_callback         = sgui_button_draw;
+    }
 
     return (sgui_widget*)b;
 }
@@ -183,22 +179,19 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
-    sgui_rect r;
     (void)event;
-
-    sgui_widget_get_rect( widget, &r );
 
     if( type == SGUI_MOUSE_LEAVE_EVENT )
     {
         if( b->state!=0 )
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
         b->state = 0;
     }
     else if( type == SGUI_MOUSE_PRESS_EVENT )
     {
         b->state = 1;
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
     }
     else if( type == SGUI_MOUSE_RELEASE_EVENT )
     {
@@ -209,7 +202,7 @@ void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
         }
 
         b->state = 0;
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
     }
 }
 
@@ -220,19 +213,19 @@ sgui_widget* sgui_button_create( int x, int y,
     unsigned int h = sgui_skin_get_default_font_height( );
     sgui_button* b = sgui_button_create_common( text, BUTTON_NORMAL );
 
-    if( !b )
-        return NULL;
+    if( b )
+    {
+        b->cx  = x + width /2 - b->text_width/2;
+        b->cy  = y + height/2 -             h/2 - h/8;
 
-    b->cx  = x + width /2 - b->text_width/2;
-    b->cy  = y + height/2 -             h/2 - h/8;
+        width  = width  < b->text_width ? b->text_width : width;
+        height = height < (h + h/2)     ? (h + h/2)     : height;
 
-    width  = width  < b->text_width ? b->text_width : width;
-    height = height < (h + h/2)     ? (h + h/2)     : height;
+        sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height, 1 );
-
-    b->widget.window_event_callback = sgui_button_on_event;
-    b->widget.draw_callback         = sgui_button_draw;
+        b->widget.window_event_callback = sgui_button_on_event;
+        b->widget.draw_callback         = sgui_button_draw;
+    }
 
     return (sgui_widget*)b;
 }
@@ -242,22 +235,23 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
 {
     unsigned char color[3];
     sgui_button* b = (sgui_button*)w;
-    sgui_font* f   = sgui_skin_get_default_font( 0, 0 );
+    sgui_font* f = sgui_skin_get_default_font( 0, 0 );
     unsigned int h = sgui_skin_get_default_font_height( );
-    int oy         = h > b->cy ? (h/2-b->cy/4) : 0;
+    int oy = h > b->cy ? (h/2-b->cy/4) : 0;
+    int x = w->area.left, y = w->area.top;
     sgui_rect r;
 
     sgui_skin_get_default_font_color( color );
 
+    /* draw widget */
     if( b->type == BUTTON_RADIO )
-        sgui_skin_draw_radio_button( cv, w->area.left, w->area.top + oy,
-                                     b->state );
+        sgui_skin_draw_radio_button( cv, x, y + oy, b->state );
     else if( b->type == BUTTON_CHECKBOX )
-        sgui_skin_draw_checkbox( cv, w->area.left, w->area.top + oy,
-                                 b->state );
+        sgui_skin_draw_checkbox( cv, x, y + oy, b->state );
     else
         sgui_skin_draw_button( cv, &w->area, b->state );
 
+    /* draw text */
     if( b->type == BUTTON_NORMAL )
     {
         sgui_rect_set_size( &r, b->cx - b->state-1, b->cy - b->state-1,
@@ -268,11 +262,11 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     }
     else
     {
-        r = w->area;
-        r.left += b->cx;
-        r.right = r.left + b->text_width - 1;
+        r.left = w->area.left + b->cx; r.right  = w->area.right - b->cx;
+        r.top  = w->area.top;          r.bottom = w->area.bottom;
+
         sgui_canvas_clear( cv, &r );
-        sgui_font_draw_text_plain( cv, r.left, r.top, f, h, color,
+        sgui_font_draw_text_plain( cv, x+b->cx, y, f, h, color,
                                    b->text, (unsigned int)-1 );
     }
 }
@@ -282,24 +276,26 @@ sgui_button* sgui_button_create_common( const char* text, int type )
     unsigned int len;
     sgui_button* b = malloc( sizeof(sgui_button) );
 
-    if( !b )
-        return NULL;
-
-    len = strlen( text );
-
-    b->text = malloc( len + 1 );
-
-    if( !b->text )
+    if( b )
     {
-        free( b );
-        return NULL;
+        len = strlen( text );
+
+        b->text = malloc( len + 1 );
+
+        if( b->text )
+        {
+            memcpy( b->text, text, len + 1 );
+
+            b->state      = 0;
+            b->type       = type;
+            b->text_width = sgui_skin_default_font_extents( text, len, 0, 0 );
+        }
+        else
+        {
+            free( b );
+            b = NULL;
+        }
     }
-
-    memcpy( b->text, text, len + 1 );
-
-    b->state      = 0;
-    b->type       = type;
-    b->text_width = sgui_skin_default_font_extents( text, len, 0, 0 );
 
     return b;
 }
@@ -363,7 +359,6 @@ void sgui_button_set_state( sgui_widget* button, int state )
 {
     sgui_button* b = (sgui_button*)button;
     sgui_button* i;
-    sgui_rect r;
 
     if( !b || b->type==BUTTON_NORMAL || (b->type==BUTTON_RADIO && !state) )
         return;
@@ -375,16 +370,18 @@ void sgui_button_set_state( sgui_widget* button, int state )
     {
         for( i=b->prev; i!=NULL; i=i->prev )
         {
-            sgui_widget_get_rect( (sgui_widget*)i, &r );
-            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+            if( i->state )
+                sgui_widget_manager_add_dirty_rect( i->widget.mgr,
+                                                    &i->widget.area );
 
             i->state = 0;
         }
 
         for( i=b->next; i!=NULL; i=i->next )
         {
-            sgui_widget_get_rect( (sgui_widget*)i, &r );
-            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+            if( i->state )
+                sgui_widget_manager_add_dirty_rect( i->widget.mgr,
+                                                    &i->widget.area );
 
             i->state = 0;
         }

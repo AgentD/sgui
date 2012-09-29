@@ -55,16 +55,15 @@ sgui_frame;
 void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_frame* f = (sgui_frame*)widget;
-    int send_v_bar = 0;
     int offset = sgui_scroll_bar_get_offset( f->v_bar );
     sgui_event e;
-    sgui_rect r;
 
     /* "manually" scroll the frame on mouse wheel */
     if( type==SGUI_MOUSE_WHEEL_EVENT && event )
     {
         f->mouse_y -= offset;
 
+        /* apply a scroll of a quarter frame height */
         if( event->mouse_wheel.direction > 0 )
             offset -= SGUI_RECT_HEIGHT(widget->area) / 4;
         else
@@ -85,67 +84,44 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
         sgui_widget_manager_send_window_event( f->mgr, SGUI_MOUSE_MOVE_EVENT,
                                                &e );
 
-        sgui_widget_get_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
         return;
     }
 
     /* adjust the mouse position for mouse events */
     if( type==SGUI_MOUSE_MOVE_EVENT && event )
     {
-        if( event->mouse_move.x >= f->v_bar_dist && f->draw_v_bar )
-        {
-            /* redirect to scrollbar */
-            send_v_bar = 1;
-            event->mouse_move.x -= f->v_bar_dist;
-        }
-        else
-        {
-            event->mouse_move.y += offset;
-            f->mouse_x = event->mouse_move.x;
-            f->mouse_y = event->mouse_move.y;
-        }
+        event->mouse_move.y += offset;
+        f->mouse_x = event->mouse_move.x;
+        f->mouse_y = event->mouse_move.y;
     }
     else if( (type==SGUI_MOUSE_PRESS_EVENT || type==SGUI_MOUSE_RELEASE_EVENT)
              && event )
     {
-        if( event->mouse_press.x >= f->v_bar_dist && f->draw_v_bar )
-        {
-            /* redirect to scrollbar */
-            send_v_bar = 1;
-            event->mouse_move.x -= f->v_bar_dist;
-        }
-        else
-        {
-            event->mouse_press.y += offset;
-            f->mouse_x = event->mouse_move.x;
-            f->mouse_y = event->mouse_move.y;
-        }
-    }
-    else if( type==SGUI_MOUSE_LEAVE_EVENT ||
-             type==SGUI_FOCUS_LOSE_EVENT )
-    {
-        sgui_widget_send_window_event( f->v_bar, type, event );
+        event->mouse_press.y += offset;
+        f->mouse_x = event->mouse_move.x;
+        f->mouse_y = event->mouse_move.y;
     }
 
     /* send the event to the frames widgets */
-    if( send_v_bar )
-        sgui_widget_send_window_event( f->v_bar, type, event );
-    else
-        sgui_widget_manager_send_window_event( f->mgr, type, event );
+    sgui_widget_manager_send_window_event( f->mgr, type, event );
 }
 
 void frame_update( sgui_widget* widget )
 {
     sgui_frame* f = (sgui_frame*)widget;
-    sgui_rect r;
 
+    /* reposition scroll bar to stay at fixed location */
+    f->v_bar->area.bottom -= f->v_bar->area.top;
+    f->v_bar->area.top = sgui_scroll_bar_get_offset( f->v_bar );
+    f->v_bar->area.bottom += f->v_bar->area.top;
+
+    /* update the widget manager and propagate changes */
     sgui_widget_manager_update( f->mgr );
 
     if( sgui_widget_manager_num_dirty_rects( f->mgr ) )
     {
-        sgui_widget_get_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
         sgui_widget_manager_clear_dirty_rects( f->mgr );
     }
 }
@@ -167,27 +143,20 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_canvas_allow_clear( cv, 0 );
 
     /* adjust offset and scissor rect to frame area */
-    sgui_canvas_set_offset( cv, widget->area.left, widget->area.top );
+    r = widget->area;
 
-    sgui_rect_set_size( &r, f->border, f->border,
-                            SGUI_RECT_WIDTH(widget->area)-2*f->border,
-                            SGUI_RECT_HEIGHT(widget->area)-2*f->border );
+    r.left += f->border; r.right  -= f->border;
+    r.top  += f->border; r.bottom -= f->border;
 
     sgui_canvas_set_scissor_rect( cv, &r );
-
-    /* apply scrolling offset */
-    sgui_canvas_set_offset( cv, 0, -offset );
+    sgui_canvas_set_offset( cv, r.left, r.top-offset );
 
     /* draw the widgets */
     sgui_widget_manager_draw_all( f->mgr, cv );
 
-    /* draw the scroll bar "manually" at fixed position */
-    sgui_canvas_restore_offset( cv );
-    sgui_widget_draw( f->v_bar, cv );
-
     /* restore canvas state */
-    sgui_canvas_set_scissor_rect( cv, NULL );
     sgui_canvas_restore_offset( cv );
+    sgui_canvas_set_scissor_rect( cv, NULL );
     sgui_canvas_allow_clear( cv, clear );
 }
 
@@ -204,6 +173,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
 
     memset( f, 0, sizeof(sgui_frame) );
 
+    /* try to create a widget manager */
     f->mgr = sgui_widget_manager_create( );
 
     if( !f->mgr )
@@ -212,18 +182,22 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
         return NULL;
     }
 
+    /* determine dimensions of a possible scroll bar */
     sgui_skin_get_scroll_bar_extents( 0, height, &w, &h, &bw, &bh );
 
+    /* initialise the widget base structure */
     sgui_internal_widget_init( (sgui_widget*)f, x, y, width, height, 0 );
 
     f->widget.draw_callback         = frame_draw;
     f->widget.update_callback       = frame_update;
     f->widget.window_event_callback = frame_on_event;
     f->border                       = sgui_skin_get_frame_border_width( );
-    f->v_bar_dist                   = width - w - f->border;
+    f->v_bar_dist                   = width - w - 2*f->border;
 
-    f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->border, 0,
-                                       height-2*f->border, height, height );
+    /* try to create a scroll bar */
+    f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, 0, 0,
+                                       height-2*f->border, height-2*f->border,
+                                       height-2*f->border );
 
     if( !f->v_bar )
     {
@@ -232,6 +206,10 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
         free( f );
         return NULL;
     }
+
+    /* add the scroll bar to the manager */
+    sgui_widget_manager_add_widget( f->mgr, f->v_bar );
+    sgui_widget_set_visible( f->v_bar, 0 );
 
     return (sgui_widget*)f;
 }
@@ -267,7 +245,7 @@ void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w )
         /* if so, draw the vertical scroll bar */
         if( ((unsigned int)wy+wh) > (fh-2*f->border) )
         {
-            f->draw_v_bar = 1;
+            sgui_widget_set_visible( f->v_bar, 1 );
             sgui_scroll_bar_set_area( f->v_bar, wy+wh+10, fh );
         }
     }

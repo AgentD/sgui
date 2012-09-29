@@ -45,25 +45,25 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bw;
-    sgui_rect r;
-
-    sgui_widget_get_rect( widget, &r );
 
     if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
+        /* buttons return to out state, need redraw */
         if( b->dec_button_state || b->inc_button_state )
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
         b->dec_button_state = b->inc_button_state = 0;
     }
     else if( type==SGUI_MOUSE_PRESS_EVENT )
     {
+        /* update button state, request redraw */
         b->dec_button_state = event->mouse_press.x < (int)b->bw;
         b->inc_button_state = event->mouse_press.x >
                               ((int)b->length-(int)b->bw);
 
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
+        /* modify offset accordingly if a button was pressed */
         if( b->inc_button_state )
         {
             if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
@@ -99,25 +99,25 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bh;
-    sgui_rect r;
-
-    sgui_widget_get_rect( widget, &r );
 
     if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
+        /* buttons return to out state, need redraw */
         if( b->dec_button_state || b->inc_button_state )
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
         b->dec_button_state = b->inc_button_state = 0;
     }
     else if( type==SGUI_MOUSE_PRESS_EVENT )
     {
+        /* update button state, request redraw */
         b->dec_button_state = event->mouse_press.y < (int)b->bh;
         b->inc_button_state = event->mouse_press.y >
                               ((int)b->length-(int)b->bh);
 
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
+        /* modify offset accordingly if a button was pressed */
         if( b->inc_button_state )
         {
             if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
@@ -207,7 +207,6 @@ void sgui_scroll_bar_destroy( sgui_widget* bar )
 void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
-    sgui_rect r;
 
     if( b )
     {
@@ -224,8 +223,7 @@ void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
             b->p_offset = l - b->p_length;
         }
 
-        sgui_widget_get_rect( bar, &r );
-        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( bar->mgr, &bar->area );
     }
 }
 
@@ -239,7 +237,6 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
                                unsigned int disp_area_length )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
-    sgui_rect r;
 
     if( b )
     {
@@ -248,8 +245,7 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
         b->p_length = ((float)b->v_length / (float)b->v_max) *
                        (b->length - 2*(b->horizontal ? b->bw : b->bh));
 
-        sgui_widget_get_rect( bar, &r );
-        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
+        sgui_widget_manager_add_dirty_rect( bar->mgr, &bar->area );
     }
 }
 
