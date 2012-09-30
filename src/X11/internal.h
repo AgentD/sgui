@@ -42,22 +42,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#define DPY_WIDTH DisplayWidth( wnd->dpy, DefaultScreen(wnd->dpy) )
-#define DPY_HEIGHT DisplayHeight( wnd->dpy, DefaultScreen(wnd->dpy) )
-
-#ifndef MIN
-    #define MIN( a, b ) (((a)<(b)) ? (a) : (b))
-#endif
-
-#ifndef MAX
-    #define MAX( a, b ) (((a)>(b)) ? (a) : (b))
-#endif
-
-#define SEND_EVENT( wnd, event, e )\
-            if( wnd->event_fun )\
-                wnd->event_fun( wnd, event, e );\
-            sgui_widget_manager_send_window_event( wnd->mgr, event, e );
-
 
 
 typedef struct
@@ -78,38 +62,11 @@ void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
                          unsigned int height, Display* dpy );
 
 
-
-struct sgui_window
-{
-    Display* dpy;
-    Window wnd;
-    Atom wmDelete;
-    GC gc;
-    XIM im;
-    XIC ic;
-
-    sgui_canvas_xlib* back_buffer;
-
-    sgui_widget_manager* mgr;
-
-    int x, y;
-    unsigned int w, h;
-    int resizeable;
-    int mapped;
-    unsigned int mouse_warped;
-
-    sgui_window_callback event_fun;
-};
-
-
-
 /* initialise keycode symbol lookup table */
 void init_keycodes( );
 
 /* convert KeySym to SGUI_KEY_CODE */
 SGUI_KEY_CODE key_entries_translate( KeySym key );
-
-
 
 #endif /* INTERNAL_H */
 

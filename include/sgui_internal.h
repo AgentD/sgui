@@ -29,6 +29,8 @@
 
 #include "sgui_widget.h"
 #include "sgui_widget_manager.h"
+#include "sgui_window.h"
+#include "sgui_canvas.h"
 
 
 
@@ -201,6 +203,29 @@ struct sgui_widget
                                      sgui_event* event );
 };
 
+struct sgui_window
+{
+    sgui_widget_manager* mgr;
+    sgui_canvas* back_buffer;
+
+    sgui_window_callback event_fun;
+
+    int x, y;
+    unsigned int w, h;
+
+    int visible;
+
+    void (* get_mouse_position )( sgui_window* wnd, int* x, int* y );
+    void (* set_mouse_position )( sgui_window* wnd, int x, int y );
+    void (* set_visible )( sgui_window* wnd, int visible );
+    void (* set_title )( sgui_window* wnd, const char* title );
+    void (* set_size )( sgui_window* wnd,
+                        unsigned int width, unsigned int height );
+    void (* move_center )( sgui_window* wnd );
+    void (* move )( sgui_window* wnd, int x, int y );
+    void (* update )( sgui_window* wnd );
+};
+
 
 
 #ifdef __cplusplus
@@ -228,6 +253,20 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
  */
 void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                 unsigned int height );
+
+int sgui_internal_window_init( sgui_window* wnd );
+
+void sgui_internal_window_deinit( sgui_window* wnd );
+
+/**
+ * \brief Propagate a window event
+ *
+ * \param wnd   The window that trigered the event
+ * \param event The event that got triggered
+ * \param e     A pointer ot a struct with additional information for an event
+ */
+void sgui_internal_window_fire_event( sgui_window* wnd, int event,
+                                      sgui_event* e );
 
 #ifdef __cplusplus
 }

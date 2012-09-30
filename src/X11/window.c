@@ -29,327 +29,118 @@
 #include <ctype.h>
 
 
+typedef struct
+{
+    sgui_window base;
+
+    Display* dpy;
+    Window wnd;
+    Atom wmDelete;
+    GC gc;
+    XIM im;
+    XIC ic;
+
+    int resizeable;
+    unsigned int mouse_warped;
+}
+sgui_window_xlib;
+
+
+#define DPY_WIDTH\
+        DisplayWidth( TO_X11(wnd)->dpy, DefaultScreen(TO_X11(wnd)->dpy) )
+
+#define DPY_HEIGHT\
+        DisplayHeight( TO_X11(wnd)->dpy, DefaultScreen(TO_X11(wnd)->dpy) )
+
+
 const char* wmDeleteWindow = "WM_DELETE_WINDOW";
 
 
+#define TO_X11( window ) ((sgui_window_xlib*)window)
+#define SEND_EVENT( WND, ID, E ) sgui_internal_window_fire_event( WND, ID, E )
 
-sgui_window* sgui_window_create( unsigned int width, unsigned int height,
-                                 int resizeable )
-{
-    sgui_window* wnd;
-    XSizeHints hints;
-    XWindowAttributes attr;
-    unsigned long color = 0;
-    unsigned char rgb[3];
 
-    if( !width || !height )
-        return NULL;
-
-    /********* allocate space for the window structure *********/
-    wnd = malloc( sizeof(sgui_window) );
-
-    if( !wnd )
-        return NULL;
-
-    memset( wnd, 0, sizeof(sgui_window) );
-
-    /***************** create a widget manager *****************/
-    wnd->mgr = sgui_widget_manager_create( );
-
-    if( !wnd->mgr )
-    {
-        free( wnd );
-        return NULL;
-    }
-
-    /***************** connect to the X server *****************/
-    wnd->dpy = XOpenDisplay( 0 );
-
-    if( !wnd->dpy )
-    {
-        sgui_window_destroy( wnd );
-        return NULL;
-    }
-
-    /* initialise key code translation LUT */
-    init_keycodes( );
-
-    /******************** create the window ********************/
-    sgui_skin_get_window_background_color( rgb );
-
-    color |= ((unsigned long)rgb[0]) << 16;
-    color |= ((unsigned long)rgb[1]) << 8;
-    color |= ((unsigned long)rgb[2]);
-
-    wnd->wnd = XCreateSimpleWindow( wnd->dpy, DefaultRootWindow(wnd->dpy),
-                                    0, 0, width, height, 0, 0, color );
-
-    if( !wnd->wnd )
-    {
-        sgui_window_destroy( wnd );
-        return NULL;
-    }
-
-    /* make the window non resizeable if required */
-    if( !resizeable )
-    {
-        hints.flags      = PSize | PMinSize | PMaxSize;
-        hints.min_width  = hints.max_width  = hints.base_width  = (int)width;
-        hints.min_height = hints.max_height = hints.base_height = (int)height;
-
-        XSetWMNormalHints( wnd->dpy, wnd->wnd, &hints );
-    }
-
-    /* tell X11 what events we will handle */
-    XSelectInput( wnd->dpy, wnd->wnd, ExposureMask | StructureNotifyMask |
-                                      SubstructureNotifyMask |
-                                      KeyPressMask | KeyReleaseMask |
-                                      PointerMotionMask |
-                                      ButtonPressMask | ButtonReleaseMask );
-
-    wnd->wmDelete = XInternAtom( wnd->dpy, wmDeleteWindow, True );
-    XSetWMProtocols( wnd->dpy, wnd->wnd, &wnd->wmDelete, 1 );
-
-    XFlush( wnd->dpy );
-
-    /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( wnd->dpy, wnd->wnd, &attr );
-
-    wnd->x = attr.x;
-    wnd->y = attr.y;
-    wnd->w = (unsigned int)attr.width;
-    wnd->h = (unsigned int)attr.height;
-
-    /*********** Create an input method and context ************/
-    wnd->im = XOpenIM( wnd->dpy, NULL, NULL, NULL );
-
-    if( !wnd->im )
-    {
-        sgui_window_destroy( wnd );
-        return NULL;
-    }
-
-    wnd->ic = XCreateIC( wnd->im,
-                         XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
-                         XNClientWindow, wnd->wnd,
-                         XNFocusWindow, wnd->wnd, NULL );
-
-    if( !wnd->ic )
-    {
-        sgui_window_destroy( wnd );
-        return NULL;
-    }
-
-    /************ create an image for local drawing ************/
-    wnd->back_buffer = sgui_canvas_create( wnd->w, wnd->w, wnd->dpy );
-
-    if( !wnd->back_buffer )
-    {
-        sgui_window_destroy( wnd );
-        return NULL;
-    }
-
-    wnd->gc = XCreateGC( wnd->dpy, wnd->wnd, 0, 0 );
-
-    if( !wnd->gc )
-    {
-        sgui_window_destroy( wnd );
-        return NULL;
-    }
-
-    sgui_canvas_set_background_color( (sgui_canvas*)wnd->back_buffer, rgb );
-
-    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
-
-    /************* store the remaining information *************/
-    wnd->resizeable = resizeable;
-    wnd->mapped = 0;
-    wnd->event_fun = NULL;
-
-    return wnd;
-}
-
-void sgui_window_destroy( sgui_window* wnd )
-{
-    if( wnd )
-    {
-        SEND_EVENT( wnd, SGUI_API_DESTROY_EVENT, NULL );
-
-        if( wnd->ic ) XDestroyIC( wnd->ic );
-        if( wnd->im ) XCloseIM( wnd->im );
-
-        if( wnd->back_buffer )
-            sgui_canvas_destroy( wnd->back_buffer );
-
-        if( wnd->gc  ) XFreeGC( wnd->dpy, wnd->gc );
-        if( wnd->wnd ) XDestroyWindow( wnd->dpy, wnd->wnd );
-        if( wnd->dpy ) XCloseDisplay( wnd->dpy );
-
-        sgui_widget_manager_destroy( wnd->mgr );
-
-        free( wnd );
-    }
-}
-
-void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     Window t1, t2;
     int t3, t4;
     unsigned int t5;
-    int X, Y;
+    sgui_window_xlib* w = (sgui_window_xlib*)wnd;
 
-    if( wnd )
-    {
-        XQueryPointer( wnd->dpy, wnd->wnd, &t1, &t2, &t3, &t4, &X, &Y, &t5 );
+    XQueryPointer( w->dpy, w->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
+}
 
-        if( x ) *x = X<0 ? 0 : (X>=(int)wnd->w ? ((int)wnd->w-1) : X);
-        if( y ) *y = Y<0 ? 0 : (Y>=(int)wnd->h ? ((int)wnd->h-1) : Y);
-    }
+void window_x11_set_mouse_position( sgui_window* wnd, int x, int y )
+{
+    sgui_window_xlib* w = (sgui_window_xlib*)wnd;
+
+    XWarpPointer( w->dpy, None, w->wnd, 0, 0, wnd->w, wnd->h, x, y );
+    XFlush( w->dpy );
+
+    ++(w->mouse_warped);
+}
+
+void window_x11_set_visible( sgui_window* wnd, int visible )
+{
+    if( visible )
+        XMapWindow( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd );
     else
-    {
-        if( x ) *x = 0;
-        if( y ) *y = 0;
-    }
+        XUnmapWindow( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd );
+
+    XFlush( TO_X11(wnd)->dpy );
 }
 
-void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
-                                     int send_event )
+void window_x11_set_title( sgui_window* wnd, const char* title )
 {
-    sgui_event e;
-
-    if( wnd )
-    {
-        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
-        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
-
-        XWarpPointer( wnd->dpy, None, wnd->wnd, 0, 0, wnd->w, wnd->h, x, y );
-        XFlush( wnd->dpy );
-
-        if( send_event )
-        {
-            e.mouse_move.x = x;
-            e.mouse_move.y = y;
-            SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
-        }
-
-        ++(wnd->mouse_warped);
-    }
+    XStoreName( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, title );
+    XFlush( TO_X11(wnd)->dpy );
 }
 
-void sgui_window_set_visible( sgui_window* wnd, int visible )
-{
-    if( wnd )
-    {
-        wnd->mapped = visible;
-
-        if( visible )
-        {
-            XMapWindow( wnd->dpy, wnd->wnd );
-        }
-        else
-        {
-            XUnmapWindow( wnd->dpy, wnd->wnd );
-
-            SEND_EVENT( wnd, SGUI_API_INVISIBLE_EVENT, NULL );
-        }
-
-        XFlush( wnd->dpy );
-    }
-}
-
-int sgui_window_is_visible( sgui_window* wnd )
-{
-    return wnd ? wnd->mapped : 0;
-}
-
-void sgui_window_set_title( sgui_window* wnd, const char* title )
-{
-    if( wnd )
-    {
-        XStoreName( wnd->dpy, wnd->wnd, title );
-        XFlush( wnd->dpy );
-    }
-}
-
-void sgui_window_set_size( sgui_window* wnd,
-                           unsigned int width, unsigned int height )
+void window_x11_set_size( sgui_window* wnd,
+                          unsigned int width, unsigned int height )
 {
     XSizeHints hints;
     XWindowAttributes attr;
 
-    if( !wnd || !width || !height )
-        return;
-
     /* adjust the fixed size for nonresizeable windows */
-    if( !wnd->resizeable )
+    if( !TO_X11(wnd)->resizeable )
     {
         hints.flags = PSize | PMinSize | PMaxSize;
         hints.min_width  = hints.base_width  = hints.max_width  = (int)width;
         hints.min_height = hints.base_height = hints.max_height = (int)height;
 
-        XSetWMNormalHints( wnd->dpy, wnd->wnd, &hints );
+        XSetWMNormalHints( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, &hints );
     }
 
     /* resize the window */
-    XResizeWindow( wnd->dpy, wnd->wnd, width, height );
-    XFlush( wnd->dpy );
+    XResizeWindow( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, width, height );
+    XFlush( TO_X11(wnd)->dpy );
 
     /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( wnd->dpy, wnd->wnd, &attr );
+    XGetWindowAttributes( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, &attr );
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
 
     /* resize the back buffer image */
-    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h, wnd->dpy );
-
-    /* redraw everything */
-    sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
-
-    sgui_widget_manager_draw_all( wnd->mgr, (sgui_canvas*)wnd->back_buffer );
+    sgui_canvas_resize( (sgui_canvas_xlib*)wnd->back_buffer,
+                        wnd->w, wnd->h, TO_X11(wnd)->dpy );
 }
 
-void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
-                           unsigned int* height )
+void window_x11_move_center( sgui_window* wnd )
 {
-    if( wnd )
-    {
-        if( width  ) *width  = wnd->w;
-        if( height ) *height = wnd->h;
-    }
+    wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
+    wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
+    XMoveWindow( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
+    XFlush( TO_X11(wnd)->dpy );
 }
 
-void sgui_window_move_center( sgui_window* wnd )
+void window_x11_move( sgui_window* wnd, int x, int y )
 {
-    if( wnd )
-    {
-        wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
-        wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
-        XMoveWindow( wnd->dpy, wnd->wnd, wnd->x, wnd->y );
-        XFlush( wnd->dpy );
-    }
+    XMoveWindow( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, x, y );
+    XFlush( TO_X11(wnd)->dpy );
 }
 
-void sgui_window_move( sgui_window* wnd, int x, int y )
-{
-    if( wnd )
-    {
-        XMoveWindow( wnd->dpy, wnd->wnd, x, y );
-        XFlush( wnd->dpy );
-        wnd->x = x;
-        wnd->y = y;
-    }
-}
-
-void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
-{
-    if( wnd )
-    {
-        if( x ) *x = wnd->x;
-        if( y ) *y = wnd->y;
-    }
-}
-
-int sgui_window_update( sgui_window* wnd )
+void window_x11_update( sgui_window* wnd )
 {
     XEvent e, ne;
     char* atom;
@@ -360,9 +151,6 @@ int sgui_window_update( sgui_window* wnd )
     unsigned int i, num;
     sgui_rect r;
 
-    if( !wnd || !wnd->mapped )
-        return 0;
-
     /* update the widgets, redraw window if there was any change */
     sgui_widget_manager_update( wnd->mgr );
 
@@ -371,8 +159,8 @@ int sgui_window_update( sgui_window* wnd )
     exp.type       = Expose;
     exp.serial     = 0;
     exp.send_event = 1;
-    exp.display    = wnd->dpy;
-    exp.window     = wnd->wnd;
+    exp.display    = TO_X11(wnd)->dpy;
+    exp.window     = TO_X11(wnd)->wnd;
     exp.count      = 0;
 
     for( i=0; i<num; ++i )
@@ -384,35 +172,33 @@ int sgui_window_update( sgui_window* wnd )
         exp.width  = r.right  - r.left + 1;
         exp.height = r.bottom - r.top  + 1;
 
-        XSendEvent( wnd->dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+        XSendEvent( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, False, ExposureMask,
+                    (XEvent*)&exp );
     }
 
-    sgui_widget_manager_draw( wnd->mgr, (sgui_canvas*)wnd->back_buffer );
+    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
     sgui_widget_manager_clear_dirty_rects( wnd->mgr );
 
     /* message loop */
-    while( XPending( wnd->dpy )>0 )
+    while( XPending( TO_X11(wnd)->dpy )>0 )
     {
-        XNextEvent( wnd->dpy, &e );
+        XNextEvent( TO_X11(wnd)->dpy, &e );
 
-        if( XFilterEvent( &e, wnd->wnd ) )
+        if( XFilterEvent( &e, TO_X11(wnd)->wnd ) )
             continue;
-
-        memset( &se, 0, sizeof(sgui_event) );
 
         switch( e.type )
         {
         case KeyRelease:
             /*
-                On WinDOS, when holding a key pressed, a series of
-                key-pressed events are generated, but X11 generates
-                a series of key-pressed AND key-released events.
-                Mimic the WinDOS behaviour and swallow the additional
+                On WinDOS, holding a key down, causes a series of key-pressed
+                events, but X11 generates a series of pressed AND released
+                events. Mimic the WinDOS behaviour and swallow the additional
                 key-released events.
              */
-            if( XPending( wnd->dpy ) > 0 )
+            if( XPending( TO_X11(wnd)->dpy ) > 0 )
             {
-                XPeekEvent( wnd->dpy, &ne );
+                XPeekEvent( TO_X11(wnd)->dpy, &ne );
 
                 if( ne.type==KeyPress && ne.xkey.keycode==e.xkey.keycode &&
                     (ne.xkey.time - e.xkey.time)<2 )
@@ -427,7 +213,7 @@ int sgui_window_update( sgui_window* wnd )
             SEND_EVENT( wnd, SGUI_KEY_RELEASED_EVENT, &se );
             break;
         case KeyPress:
-            Xutf8LookupString( wnd->ic, &e.xkey,
+            Xutf8LookupString( TO_X11(wnd)->ic, &e.xkey,
                                (char*)se.char_event.as_utf8_str,
                                sizeof(se.char_event.as_utf8_str),
                                &sym, &stat );
@@ -468,30 +254,26 @@ int sgui_window_update( sgui_window* wnd )
                 else
                     break;
 
-                sgui_window_get_mouse_position( wnd, &se.mouse_press.x,
-                                                     &se.mouse_press.y );
+                window_x11_get_mouse_position( wnd, &se.mouse_press.x,
+                                                    &se.mouse_press.y );
 
                 if( e.type==ButtonPress )
-                {
                     SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &se );
-                }
                 else
-                {
                     SEND_EVENT( wnd, SGUI_MOUSE_RELEASE_EVENT, &se );
-                }
             }
             break;
         case MotionNotify:
-            if( wnd->mouse_warped )
+            if( TO_X11(wnd)->mouse_warped )
             {
-                --(wnd->mouse_warped);
-                break;
+                --(TO_X11(wnd)->mouse_warped);
             }
-
-            se.mouse_move.x = e.xmotion.x<0 ? 0 : e.xmotion.x;
-            se.mouse_move.y = e.xmotion.y<0 ? 0 : e.xmotion.y;
-
-            SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &se );
+            else
+            {
+                se.mouse_move.x = e.xmotion.x<0 ? 0 : e.xmotion.x;
+                se.mouse_move.y = e.xmotion.y<0 ? 0 : e.xmotion.y;
+                SEND_EVENT( wnd, SGUI_MOUSE_MOVE_EVENT, &se );
+            }
             break;
         case ConfigureNotify:
             if( ((int)wnd->w)!=e.xconfigure.width ||
@@ -510,69 +292,199 @@ int sgui_window_update( sgui_window* wnd )
             wnd->h = (unsigned int)e.xconfigure.height;
 
             /* resize the back buffer image */
-            sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h, wnd->dpy );
+            sgui_canvas_resize( (sgui_canvas_xlib*)wnd->back_buffer,
+                                wnd->w, wnd->h, TO_X11(wnd)->dpy );
 
             /* send a size change event */
             SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
             /* redraw everything */
-            sgui_canvas_clear( (sgui_canvas*)wnd->back_buffer, NULL );
+            sgui_canvas_clear( wnd->back_buffer, NULL );
 
-            sgui_widget_manager_draw_all( wnd->mgr,
-                                          (sgui_canvas*)wnd->back_buffer );
+            sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
             break;
         case ClientMessage:
-            atom = XGetAtomName( wnd->dpy, e.xclient.message_type );
+            atom = XGetAtomName( TO_X11(wnd)->dpy, e.xclient.message_type );
 
             if( *atom == *wmDeleteWindow )
-                wnd->mapped = 0;
+                wnd->visible = 0;
 
             XFree( atom );
 
             SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
             break;
         case Expose:
-            XPutImage( wnd->dpy, wnd->wnd, wnd->gc, wnd->back_buffer->img,
+            XPutImage( TO_X11(wnd)->dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->gc,
+                       ((sgui_canvas_xlib*)wnd->back_buffer)->img,
                        e.xexpose.x, e.xexpose.y, e.xexpose.x, e.xexpose.y,
                        e.xexpose.width, e.xexpose.height );
             break;
         };
     }
-
-    return wnd->mapped;
 }
 
-void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
+/****************************************************************************/
+
+sgui_window* sgui_window_create( unsigned int width, unsigned int height,
+                                 int resizeable )
 {
-    if( wnd )
-        wnd->event_fun = fun;
+    sgui_window_xlib* wnd;
+    XSizeHints hints;
+    XWindowAttributes attr;
+    unsigned long color = 0;
+    unsigned char rgb[3];
+
+    if( !width || !height )
+        return NULL;
+
+    /********* allocate space for the window structure *********/
+    wnd = malloc( sizeof(sgui_window_xlib) );
+
+    if( !wnd )
+        return NULL;
+
+    memset( wnd, 0, sizeof(sgui_window_xlib) );
+
+    /************** intitialise the base structure *************/
+    if( !sgui_internal_window_init( (sgui_window*)wnd ) )
+    {
+        free( wnd );
+        return NULL;
+    }
+
+    /***************** connect to the X server *****************/
+    wnd->dpy = XOpenDisplay( 0 );
+
+    if( !wnd->dpy )
+    {
+        sgui_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    /* initialise key code translation LUT */
+    init_keycodes( );
+
+    /******************** create the window ********************/
+    sgui_skin_get_window_background_color( rgb );
+
+    color |= ((unsigned long)rgb[0]) << 16;
+    color |= ((unsigned long)rgb[1]) << 8;
+    color |= ((unsigned long)rgb[2]);
+
+    wnd->wnd = XCreateSimpleWindow( wnd->dpy, DefaultRootWindow(wnd->dpy),
+                                    0, 0, width, height, 0, 0, color );
+
+    if( !wnd->wnd )
+    {
+        sgui_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    /* make the window non resizeable if required */
+    if( !resizeable )
+    {
+        hints.flags      = PSize | PMinSize | PMaxSize;
+        hints.min_width  = hints.max_width  = hints.base_width  = (int)width;
+        hints.min_height = hints.max_height = hints.base_height = (int)height;
+
+        XSetWMNormalHints( wnd->dpy, wnd->wnd, &hints );
+    }
+
+    /* tell X11 what events we will handle */
+    XSelectInput( wnd->dpy, wnd->wnd, ExposureMask | StructureNotifyMask |
+                                      SubstructureNotifyMask |
+                                      KeyPressMask | KeyReleaseMask |
+                                      PointerMotionMask |
+                                      ButtonPressMask | ButtonReleaseMask );
+
+    wnd->wmDelete = XInternAtom( wnd->dpy, wmDeleteWindow, True );
+    XSetWMProtocols( wnd->dpy, wnd->wnd, &wnd->wmDelete, 1 );
+
+    XFlush( wnd->dpy );
+
+    /* get the real geometry as the window manager is free to change it */
+    XGetWindowAttributes( wnd->dpy, wnd->wnd, &attr );
+
+    wnd->base.x = attr.x;
+    wnd->base.y = attr.y;
+    wnd->base.w = (unsigned int)attr.width;
+    wnd->base.h = (unsigned int)attr.height;
+
+    /*********** Create an input method and context ************/
+    wnd->im = XOpenIM( wnd->dpy, NULL, NULL, NULL );
+
+    if( !wnd->im )
+    {
+        sgui_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    wnd->ic = XCreateIC( wnd->im, XNInputStyle,
+                         XIMPreeditNothing | XIMStatusNothing, XNClientWindow,
+                         wnd->wnd, XNFocusWindow, wnd->wnd, NULL );
+
+    if( !wnd->ic )
+    {
+        sgui_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    /********************** create canvas **********************/
+    wnd->base.back_buffer =
+    (sgui_canvas*)sgui_canvas_create( wnd->base.w, wnd->base.h, wnd->dpy );
+
+    if( !wnd->base.back_buffer )
+    {
+        sgui_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    wnd->gc = XCreateGC( wnd->dpy, wnd->wnd, 0, 0 );
+
+    if( !wnd->gc )
+    {
+        sgui_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
+
+    sgui_canvas_clear( wnd->base.back_buffer, NULL );
+
+    /************* store the remaining information *************/
+    wnd->resizeable = resizeable;
+
+    wnd->base.get_mouse_position = window_x11_get_mouse_position;
+    wnd->base.set_mouse_position = window_x11_set_mouse_position;
+    wnd->base.set_visible        = window_x11_set_visible;
+    wnd->base.set_title          = window_x11_set_title;
+    wnd->base.set_size           = window_x11_set_size;
+    wnd->base.move_center        = window_x11_move_center;
+    wnd->base.move               = window_x11_move;
+    wnd->base.update             = window_x11_update;
+
+    return (sgui_window*)wnd;
 }
 
-
-
-void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
+void sgui_window_destroy( sgui_window* wnd )
 {
-    if( wnd )
-        sgui_widget_manager_add_widget( wnd->mgr, widget );
-}
+    if( !wnd )
+        return;
 
-void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
-{
-    if( wnd )
-        sgui_widget_manager_remove_widget( wnd->mgr, widget );
-}
+    sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
-void sgui_window_on_widget_event( sgui_window* wnd,
-                                  sgui_widget_callback fun, void* user )
-{
-    if( wnd )
-        sgui_widget_manager_on_event( wnd->mgr, fun, user );
-}
+    if( TO_X11(wnd)->ic ) XDestroyIC( TO_X11(wnd)->ic );
+    if( TO_X11(wnd)->im ) XCloseIM( TO_X11(wnd)->im );
 
+    if( wnd->back_buffer )
+        sgui_canvas_destroy( (sgui_canvas_xlib*)wnd->back_buffer );
 
+    if( TO_X11(wnd)->gc  ) XFreeGC( TO_X11(wnd)->dpy, TO_X11(wnd)->gc );
+    if( TO_X11(wnd)->wnd ) XDestroyWindow(TO_X11(wnd)->dpy, TO_X11(wnd)->wnd);
+    if( TO_X11(wnd)->dpy ) XCloseDisplay( TO_X11(wnd)->dpy );
 
-sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
-{
-    return wnd ? (sgui_canvas*)wnd->back_buffer : NULL;
+    sgui_internal_window_deinit( wnd );
+
+    free( wnd );
 }
 

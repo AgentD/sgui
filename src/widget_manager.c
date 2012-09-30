@@ -377,7 +377,7 @@ void sgui_widget_manager_on_event( sgui_widget_manager* mgr,
 void sgui_widget_manager_fire_widget_event( sgui_widget_manager* mgr,
                                             sgui_widget* widget, int event )
 {
-    if( mgr && widget )
+    if( mgr && mgr->fun && widget )
         mgr->fun( widget, event, mgr->fun_user );
 }
 

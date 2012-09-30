@@ -44,25 +44,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifndef MAPVK_VSC_TO_VK_EX
-    #define MAPVK_VSC_TO_VK_EX 3
-#endif
-
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) ||\
-    defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
-
-    #define SET_USER_PTR( hwnd, ptr )\
-            SetWindowLongPtr( hwnd, GWLP_USERDATA, (LONG_PTR)ptr )
-
-    #define GET_USER_PTR( hwnd ) GetWindowLongPtr( hwnd, GWLP_USERDATA )
-#else
-    #define SET_USER_PTR( hwnd, ptr )\
-            SetWindowLong( hwnd, GWL_USERDATA, (LONG)ptr )
-
-    #define GET_USER_PTR( hwnd ) GetWindowLong( hwnd, GWL_USERDATA )
-#endif
-
-
 
 
 typedef struct
@@ -83,29 +64,6 @@ void sgui_canvas_destroy( sgui_canvas_gdi* canvas );
 
 void sgui_canvas_resize( sgui_canvas_gdi* canvas, unsigned int width,
                          unsigned int height );
-
-
-struct sgui_window
-{
-    HWND hWnd;
-    HINSTANCE hInstance;
-    sgui_canvas_gdi* back_buffer;
-
-    unsigned int w, h;
-
-    int visible;
-
-    sgui_widget_manager* mgr;
-    sgui_window_callback event_fun;
-};
-
-
-#define SEND_EVENT( wnd, event, e )\
-            if( wnd->event_fun )\
-                wnd->event_fun( wnd, event, e );\
-            sgui_widget_manager_send_window_event( wnd->mgr, event, e );
-
-
 
 #endif /* INTERNAL_H */
 
