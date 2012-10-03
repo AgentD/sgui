@@ -80,8 +80,9 @@ SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
                $SOURCE_WIDGETS"
 
 # Platform specific source code files
-SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c"
-SOURCE_WIN="src/WIN32/window.c src/WIN32/canvas.c"
+SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c
+            src/X11/platform.c"
+SOURCE_WIN="src/WIN32/window.c src/WIN32/canvas.c src/WIN32/platform.c"
 
 ####################### Platform specific dependencies #######################
 INCLUDE_X11="-I/usr/include -I/usr/include/freetype2"

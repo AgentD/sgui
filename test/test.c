@@ -19,11 +19,13 @@ const char* text =
 
 int main( void )
 {
-    int a_active=1, b_active=1, x, y;
+    int x, y;
     sgui_font* font;
     sgui_font* font_bold;
     sgui_font* font_ital;
     sgui_font* font_boit;
+
+    sgui_init( );
 
     a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
     b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
@@ -134,20 +136,10 @@ int main( void )
 
     sgui_window_add_widget( a, tab );
 
-    while( a_active || b_active )
-    {
-        if( a_active && !sgui_window_update( a ) )
-        {
-            a_active = 0;
-            sgui_window_destroy( a );
-        }
+    sgui_main_loop( );
 
-        if( b_active && !sgui_window_update( b ) )
-        {
-            b_active = 0;
-            sgui_window_destroy( b );
-        }
-    }
+    sgui_window_destroy( a );
+    sgui_window_destroy( b );
 
     sgui_group_box_destroy( gb );
     sgui_frame_destroy( f );
@@ -180,6 +172,8 @@ int main( void )
     sgui_font_destroy( font_ital );
     sgui_font_destroy( font_boit );
     sgui_font_destroy( font );
+
+    sgui_deinit( );
 
     return 0;
 }

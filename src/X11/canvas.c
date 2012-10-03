@@ -211,8 +211,8 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
 }
 
 /************************ internal canvas functions ************************/
-sgui_canvas_xlib* sgui_canvas_create( unsigned int width, unsigned int height,
-                                      Display* dpy )
+sgui_canvas_xlib* sgui_canvas_create( unsigned int width,
+                                      unsigned int height )
 {
     sgui_canvas_xlib* cv = malloc( sizeof(sgui_canvas_xlib) );
 
@@ -264,7 +264,7 @@ void sgui_canvas_destroy( sgui_canvas_xlib* canvas )
 }
 
 void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
-                         unsigned int height, Display* dpy )
+                         unsigned int height )
 {
     unsigned int new_mem, old_mem;
 

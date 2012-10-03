@@ -46,6 +46,34 @@
 
 typedef struct
 {
+    sgui_window base;
+
+    Window wnd;
+    Atom wmDelete;
+    GC gc;
+    XIC ic;
+
+    int resizeable;
+    unsigned int mouse_warped;
+}
+sgui_window_xlib;
+
+extern XIM im;
+extern Display* dpy;
+
+/* in platform.c: allocates storate for a window and initialises it */
+sgui_window_xlib* add_window( void );
+
+/* in platform.c: uninitialises a window and frees its memory */
+void remove_window( sgui_window_xlib* window );
+
+/* in window.c: process an XEvent */
+void update_window( sgui_window_xlib* wnd, XEvent* e );
+
+
+
+typedef struct
+{
     sgui_canvas canvas;
 
     void* data;
@@ -53,13 +81,13 @@ typedef struct
 }
 sgui_canvas_xlib;
 
-sgui_canvas_xlib* sgui_canvas_create( unsigned int width, unsigned int height,
-                                      Display* dpy );
+sgui_canvas_xlib* sgui_canvas_create( unsigned int width,
+                                      unsigned int height );
 
 void sgui_canvas_destroy( sgui_canvas_xlib* canvas );
 
 void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
-                         unsigned int height, Display* dpy );
+                         unsigned int height );
 
 
 /* initialise keycode symbol lookup table */

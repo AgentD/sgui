@@ -223,7 +223,6 @@ struct sgui_window
                         unsigned int width, unsigned int height );
     void (* move_center )( sgui_window* wnd );
     void (* move )( sgui_window* wnd, int x, int y );
-    void (* update )( sgui_window* wnd );
 };
 
 

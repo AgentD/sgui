@@ -26,17 +26,6 @@
 
 
 
-typedef struct
-{
-    sgui_window base;
-
-    HWND hWnd;
-    HINSTANCE hInstance;
-}
-sgui_window_w32;
-
-
-
 #ifndef MAPVK_VSC_TO_VK_EX
     #define MAPVK_VSC_TO_VK_EX 3
 #endif
@@ -291,7 +280,9 @@ void window_w32_move( sgui_window* wnd, int x, int y )
     MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
 }
 
-void window_w32_update( sgui_window* wnd )
+/****************************************************************************/
+
+void update_window( sgui_window_w32* wnd )
 {
     unsigned int i, num;
     MSG msg;
@@ -299,23 +290,23 @@ void window_w32_update( sgui_window* wnd )
     sgui_rect sr;
 
     /* update the widgets, redraw window if there was any change */
-    sgui_widget_manager_update( wnd->mgr );
+    sgui_widget_manager_update( wnd->base.mgr );
 
-    num = sgui_widget_manager_num_dirty_rects( wnd->mgr );
+    num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
 
     for( i=0; i<num; ++i )
     {
-        sgui_widget_manager_get_dirty_rect( wnd->mgr, &sr, i );
+        sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &sr, i );
 
         SetRect( &r, sr.left, sr.top, sr.right, sr.bottom );
-        InvalidateRect( TO_W32(wnd)->hWnd, &r, TRUE );
+        InvalidateRect( wnd->hWnd, &r, TRUE );
     }
 
-    sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer );
-    sgui_widget_manager_clear_dirty_rects( wnd->mgr );
+    sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
+    sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
 
     /* message loop */
-    while( PeekMessage( &msg, TO_W32(wnd)->hWnd, 0, 0, PM_REMOVE ) )
+    while( PeekMessage( &msg, wnd->hWnd, 0, 0, PM_REMOVE ) )
     {
         TranslateMessage( &msg );
         DispatchMessage( &msg );
@@ -328,7 +319,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                  int resizeable )
 {
     sgui_window_w32* wnd;
-    WNDCLASSEX wc;
     DWORD style;
     RECT r;
     unsigned char rgb[3];
@@ -337,51 +327,19 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
 
     /*************** allocate space for the window structure ***************/
-    wnd = malloc( sizeof(sgui_window_w32) );
+    wnd = add_window( );
 
     if( !wnd )
         return NULL;
 
-    memset( wnd, 0, sizeof(sgui_window_w32) );
-
-    /******************** initialise the base structure ********************/
-    if( !sgui_internal_window_init( (sgui_window*)wnd ) )
-    {
-        free( wnd );
-        return NULL;
-    }
-
-    /********* get HINSTANCE, window style and actual window size **********/
-    wnd->hInstance = GetModuleHandle( NULL );
-
+    /*************************** create a window ***************************/
     style = resizeable ? WS_OVERLAPPEDWINDOW : (WS_CAPTION | WS_SYSMENU);
 
     SetRect( &r, 0, 0, width, height );
     AdjustWindowRect( &r, style, FALSE );
 
-    /********** setup and register a window class if not done yet **********/
-    if( !GetClassInfoEx( wnd->hInstance, "sgui_wnd_class", &wc ) )
-    {
-        memset( &wc, 0, sizeof(WNDCLASSEX) );
-
-        wc.cbSize        = sizeof(WNDCLASSEX);
-        wc.style         = CS_HREDRAW | CS_VREDRAW;
-        wc.lpfnWndProc   = WindowProcFun;
-        wc.hInstance     = wnd->hInstance;
-        wc.lpszClassName = "sgui_wnd_class";
-        wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
-
-        if( RegisterClassEx( &wc ) == 0 )
-        {
-            sgui_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
-    }
-
-    /*************************** create a window ***************************/
-    wnd->hWnd = CreateWindowEx( 0, "sgui_wnd_class", "", style, 0, 0,
-                                r.right-r.left, r.bottom-r.top,
-                                0, 0, wnd->hInstance, NULL );
+    wnd->hWnd = CreateWindowEx( 0, wndclass, "", style, 0, 0, r.right-r.left,
+                                r.bottom-r.top, 0, 0, hInstance, NULL );
 
     if( !wnd->hWnd )
     {
@@ -417,7 +375,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->base.set_size           = window_w32_set_size;
     wnd->base.move_center        = window_w32_move_center;
     wnd->base.move               = window_w32_move;
-    wnd->base.update             = window_w32_update;
 
     return (sgui_window*)wnd;
 }
@@ -439,9 +396,7 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->back_buffer )
             sgui_canvas_destroy( (sgui_canvas_gdi*)wnd->back_buffer );
 
-        sgui_internal_window_deinit( (sgui_window*)wnd );
-
-        free( wnd );
+        remove_window( (sgui_window_w32*)wnd );
     }
 }
 

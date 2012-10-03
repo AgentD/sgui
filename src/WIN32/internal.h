@@ -48,6 +48,32 @@
 
 typedef struct
 {
+    sgui_window base;
+
+    HWND hWnd;
+}
+sgui_window_w32;
+
+extern HINSTANCE hInstance;
+extern const char* wndclass;
+
+/* in platform.c: allocates storate for a window and initialises it */
+sgui_window_w32* add_window( void );
+
+/* in platform.c: uninitialises a window and frees its memory */
+void remove_window( sgui_window_w32* wnd );
+
+/* in window.c: window callback */
+extern LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg,
+                                       WPARAM wp, LPARAM lp );
+
+/* in window.c: handle window messages */
+void update_window( sgui_window_w32* wnd );
+
+
+
+typedef struct
+{
     sgui_canvas canvas;
 
     void* data;

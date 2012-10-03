@@ -200,17 +200,6 @@ void sgui_window_move( sgui_window* wnd, int x, int y );
 void sgui_window_get_position( sgui_window* wnd, int* x, int* y );
 
 /**
- * \brief Update the window
- *
- * Updates all widgets in the window, redraws them if necessary, handles
- * window system events and generates window events on widgets and callbacks.
- *
- * \return Non-zero if the window is opened, zero if it is invisible(the user
- *         closed it or it is set invisible)
- */
-int sgui_window_update( sgui_window* wnd );
-
-/**
  * \brief Set a window's event callback
  *
  * Each window may have ONE callback registered that gets called when an event

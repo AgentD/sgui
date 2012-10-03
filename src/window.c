@@ -182,13 +182,3 @@ void sgui_window_move( sgui_window* wnd, int x, int y )
     }
 }
 
-int sgui_window_update( sgui_window* wnd )
-{
-    if( !wnd || !wnd->visible )
-        return 0;
-
-    wnd->update( wnd );
-
-    return wnd->visible;
-}
-

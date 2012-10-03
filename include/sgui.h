@@ -50,5 +50,23 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
+int sgui_init( void );
+
+void sgui_deinit( void );
+
+void sgui_main_loop( void );
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* SGUI_H */
 
