@@ -70,26 +70,9 @@ extern LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg,
 /* in window.c: handle window messages */
 void update_window( sgui_window_w32* wnd );
 
-
-
-typedef struct
-{
-    sgui_canvas canvas;
-
-    void* data;
-    HDC dc;
-    BITMAPINFO info;
-    HBITMAP bitmap;
-}
-sgui_canvas_gdi;
-
-sgui_canvas_gdi* sgui_canvas_create( unsigned int width,
-                                     unsigned int height );
-
-void sgui_canvas_destroy( sgui_canvas_gdi* canvas );
-
-void sgui_canvas_resize( sgui_canvas_gdi* canvas, unsigned int width,
-                         unsigned int height );
+/* in canvas.c: display the canvas on a same sized window */
+void display_canvas( HDC dc, sgui_canvas* cv, int x, int y,
+                     unsigned int width, unsigned int height );
 
 #endif /* INTERNAL_H */
 

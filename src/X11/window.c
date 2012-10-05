@@ -103,7 +103,7 @@ void window_x11_set_size( sgui_window* wnd,
     wnd->h = (unsigned int)attr.height;
 
     /* resize the back buffer image */
-    sgui_canvas_resize( (sgui_canvas_xlib*)wnd->back_buffer, wnd->w, wnd->h );
+    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 }
 
 void window_x11_move_center( sgui_window* wnd )
@@ -252,8 +252,7 @@ void update_window( sgui_window_xlib* wnd, XEvent* e )
         wnd->base.h = (unsigned int)e->xconfigure.height;
 
         /* resize the back buffer image */
-        sgui_canvas_resize( (sgui_canvas_xlib*)wnd->base.back_buffer,
-                            wnd->base.w, wnd->base.h );
+        sgui_canvas_resize( wnd->base.back_buffer, wnd->base.w, wnd->base.h );
 
         /* send a size change event */
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
@@ -276,10 +275,9 @@ void update_window( sgui_window_xlib* wnd, XEvent* e )
         XFree( atom );
         break;
     case Expose:
-        XPutImage( dpy, wnd->wnd, wnd->gc,
-                   ((sgui_canvas_xlib*)wnd->base.back_buffer)->img,
-                   e->xexpose.x, e->xexpose.y, e->xexpose.x, e->xexpose.y,
-                   e->xexpose.width, e->xexpose.height );
+        display_canvas( wnd->wnd, wnd->gc, wnd->base.back_buffer,
+                        e->xexpose.x, e->xexpose.y,
+                        e->xexpose.width, e->xexpose.height );
         break;
     };
 }
@@ -362,8 +360,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
 
     /********************** create canvas **********************/
-    wnd->base.back_buffer =
-    (sgui_canvas*)sgui_canvas_create( wnd->base.w, wnd->base.h );
+    wnd->base.back_buffer = sgui_canvas_create( wnd->base.w, wnd->base.h );
 
     if( !wnd->base.back_buffer )
     {
@@ -404,11 +401,11 @@ void sgui_window_destroy( sgui_window* wnd )
 
     sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
 
+    if( wnd->back_buffer )
+        sgui_canvas_destroy( wnd->back_buffer );
+
     if( TO_X11(wnd)->ic )
         XDestroyIC( TO_X11(wnd)->ic );
-
-    if( wnd->back_buffer )
-        sgui_canvas_destroy( (sgui_canvas_xlib*)wnd->back_buffer );
 
     if( TO_X11(wnd)->gc )
         XFreeGC( dpy, TO_X11(wnd)->gc );

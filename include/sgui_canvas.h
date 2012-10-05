@@ -52,6 +52,31 @@ typedef struct sgui_canvas sgui_canvas;
 
 
 /**
+ * \brief Create a canvas object
+ *
+ * \param width  The width of the canvas
+ * \param height The height of the canvas
+ *
+ * \return A pointer to a new canvas object
+ */
+sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height );
+
+/** \brief Destroy a canvas object */
+void sgui_canvas_destroy( sgui_canvas* canvas );
+
+/**
+ * \brief Change the size of a canvas
+ *
+ * \param width  The new width of the canvas
+ * \param height The new height of the canvas
+ */
+void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+                         unsigned int height );
+
+
+
+
+/**
  * \brief Get the size of a canvas
  *
  * \param canvas The canvas to report the size of
@@ -216,8 +241,6 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
                                int x, int y, unsigned int w, unsigned int h,
                                unsigned char* color );
-
-
 
 #ifdef __cplusplus
 }

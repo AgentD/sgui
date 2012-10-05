@@ -39,6 +39,17 @@
         (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
         (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
 
+typedef struct
+{
+    sgui_canvas canvas;
+
+    void* data;
+    HDC dc;
+    BITMAPINFO info;
+    HBITMAP bitmap;
+}
+sgui_canvas_gdi;
+
 /************************* public canvas functions *************************/
 void canvas_gdi_begin( sgui_canvas* canvas, sgui_rect* r )
 {
@@ -210,8 +221,7 @@ void canvas_gdi_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
-/************************ internal canvas functions ************************/
-sgui_canvas_gdi* sgui_canvas_create( unsigned int width, unsigned int height )
+sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
 {
     sgui_canvas_gdi* cv = malloc( sizeof(sgui_canvas_gdi) );
 
@@ -256,43 +266,53 @@ sgui_canvas_gdi* sgui_canvas_create( unsigned int width, unsigned int height )
     cv->canvas.draw_line = canvas_gdi_draw_line;
     cv->canvas.blend_stencil = canvas_gdi_blend_stencil;
 
-    return cv;
+    return (sgui_canvas*)cv;
 }
 
-void sgui_canvas_destroy( sgui_canvas_gdi* canvas )
+void sgui_canvas_destroy( sgui_canvas* canvas )
 {
     if( canvas )
     {
-        if( canvas->dc )
+        if( ((sgui_canvas_gdi*)canvas)->dc )
         {
-            SelectObject( canvas->dc, 0 );
-            DeleteObject( canvas->bitmap );
-            DeleteDC( canvas->dc );
+            SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
+            DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
+            DeleteDC( ((sgui_canvas_gdi*)canvas)->dc );
         }
 
         free( canvas );
     }
 }
 
-void sgui_canvas_resize( sgui_canvas_gdi* canvas, unsigned int width,
+void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
                          unsigned int height )
 {
     if( canvas && width && height )
     {
-        canvas->info.bmiHeader.biWidth  = width;
-        canvas->info.bmiHeader.biHeight = -((int)height);
+        ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biWidth  = width;
+        ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biHeight = -((int)height);
 
-        SelectObject( canvas->dc, 0 );
-        DeleteObject( canvas->bitmap );
+        SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
+        DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
 
-        canvas->bitmap = CreateDIBSection( canvas->dc, &canvas->info,
-                                           DIB_RGB_COLORS,
-                                           &canvas->data, 0, 0 );
+        ((sgui_canvas_gdi*)canvas)->bitmap =
+        CreateDIBSection( ((sgui_canvas_gdi*)canvas)->dc,
+                          &((sgui_canvas_gdi*)canvas)->info, DIB_RGB_COLORS,
+                          &((sgui_canvas_gdi*)canvas)->data, 0, 0 );
 
-        SelectObject( canvas->dc, canvas->bitmap );
+        SelectObject( ((sgui_canvas_gdi*)canvas)->dc,
+                      ((sgui_canvas_gdi*)canvas)->bitmap );
 
-        canvas->canvas.width  = width;
-        canvas->canvas.height = height;
+        canvas->width  = width;
+        canvas->height = height;
     }
+}
+
+/************************ internal canvas functions ************************/
+void display_canvas( HDC dc, sgui_canvas* cv, int x, int y,
+                     unsigned int width, unsigned int height )
+{
+    BitBlt( dc, x, y, width, height, ((sgui_canvas_gdi*)cv)->dc,
+            x, y, SRCCOPY );
 }
 

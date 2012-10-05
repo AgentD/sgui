@@ -39,6 +39,18 @@
         (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
         (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
 
+
+typedef struct
+{
+    sgui_canvas canvas;
+
+    void* data;
+    XImage* img;
+}
+sgui_canvas_xlib;
+
+
+
 /************************* public canvas functions *************************/
 void canvas_xlib_begin( sgui_canvas* canvas, sgui_rect* r )
 {
@@ -210,8 +222,7 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
-/************************ internal canvas functions ************************/
-sgui_canvas_xlib* sgui_canvas_create( unsigned int width,
+sgui_canvas* sgui_canvas_create( unsigned int width,
                                       unsigned int height )
 {
     sgui_canvas_xlib* cv = malloc( sizeof(sgui_canvas_xlib) );
@@ -248,22 +259,22 @@ sgui_canvas_xlib* sgui_canvas_create( unsigned int width,
     cv->canvas.draw_line = canvas_xlib_draw_line;
     cv->canvas.blend_stencil = canvas_xlib_blend_stencil;
 
-    return cv;
+    return (sgui_canvas*)cv;
 }
 
-void sgui_canvas_destroy( sgui_canvas_xlib* canvas )
+void sgui_canvas_destroy( sgui_canvas* canvas )
 {
-    if( canvas->img )
+    if( ((sgui_canvas_xlib*)canvas)->img )
     {
-        canvas->img->data = NULL;
-        XDestroyImage( canvas->img );
+        ((sgui_canvas_xlib*)canvas)->img->data = NULL;
+        XDestroyImage( ((sgui_canvas_xlib*)canvas)->img );
     }
 
-    free( canvas->data );
+    free( ((sgui_canvas_xlib*)canvas)->data );
     free( canvas );
 }
 
-void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
+void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
                          unsigned int height )
 {
     unsigned int new_mem, old_mem;
@@ -272,21 +283,31 @@ void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
         return;
 
     new_mem = width * height;
-    old_mem = canvas->canvas.width * canvas->canvas.height;
+    old_mem = canvas->width * canvas->height;
 
     if( new_mem != old_mem )
     {
-        free( canvas->data );
-        canvas->data = malloc( new_mem * 4 );
+        free( ((sgui_canvas_xlib*)canvas)->data );
+        ((sgui_canvas_xlib*)canvas)->data = malloc( new_mem * 4 );
     }
 
-    canvas->img->data = NULL;
-    XDestroyImage( canvas->img );
+    ((sgui_canvas_xlib*)canvas)->img->data = NULL;
+    XDestroyImage( ((sgui_canvas_xlib*)canvas)->img );
 
-    canvas->img = XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
-                                (char*)canvas->data, width, height, 32, 0 );
+    ((sgui_canvas_xlib*)canvas)->img =
+    XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
+                  (char*)((sgui_canvas_xlib*)canvas)->data,
+                  width, height, 32, 0 );
 
-    canvas->canvas.width = width;
-    canvas->canvas.height = height;
+    canvas->width = width;
+    canvas->height = height;
+}
+
+/************************ internal canvas functions ************************/
+void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
+                     unsigned int width, unsigned int height )
+{
+    XPutImage( dpy, wnd, gc, ((sgui_canvas_xlib*)cv)->img,
+               x, y, x, y, width, height );
 }
 

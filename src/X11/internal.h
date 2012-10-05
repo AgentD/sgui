@@ -70,30 +70,15 @@ void remove_window( sgui_window_xlib* window );
 /* in window.c: process an XEvent */
 void update_window( sgui_window_xlib* wnd, XEvent* e );
 
+/* in canvas.c: display a canvas on a same sized X window */
+void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
+                     unsigned int width, unsigned int height );
 
 
-typedef struct
-{
-    sgui_canvas canvas;
-
-    void* data;
-    XImage* img;
-}
-sgui_canvas_xlib;
-
-sgui_canvas_xlib* sgui_canvas_create( unsigned int width,
-                                      unsigned int height );
-
-void sgui_canvas_destroy( sgui_canvas_xlib* canvas );
-
-void sgui_canvas_resize( sgui_canvas_xlib* canvas, unsigned int width,
-                         unsigned int height );
-
-
-/* initialise keycode symbol lookup table */
+/* in keycode_translate.c: initialise keycode symbol lookup table */
 void init_keycodes( );
 
-/* convert KeySym to SGUI_KEY_CODE */
+/* in keycode_translate.c: convert KeySym to SGUI_KEY_CODE */
 SGUI_KEY_CODE key_entries_translate( KeySym key );
 
 #endif /* INTERNAL_H */

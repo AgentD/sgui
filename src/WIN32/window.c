@@ -167,8 +167,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
         sgui_internal_window_fire_event( wnd, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* resize canvas and redraw everything */
-        sgui_canvas_resize( (sgui_canvas_gdi*)wnd->back_buffer,
-                            wnd->w, wnd->h );
+        sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
         sgui_canvas_clear( wnd->back_buffer, NULL );
         sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
         break;
@@ -179,8 +178,7 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
     case WM_PAINT:
         hDC = BeginPaint( hWnd, &ps );
 
-        BitBlt( hDC, 0, 0, wnd->w, wnd->h,
-                ((sgui_canvas_gdi*)wnd->back_buffer)->dc, 0, 0, SRCCOPY );
+        display_canvas( hDC, wnd->back_buffer, 0, 0, wnd->w, wnd->h );
 
         EndPaint( hWnd, &ps );
         break;
@@ -242,7 +240,7 @@ void window_w32_set_size( sgui_window* wnd,
     wnd->h = height;
 
     /* resize the canvas */
-    sgui_canvas_resize( (sgui_canvas_gdi*)wnd->back_buffer, wnd->w, wnd->h );
+    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 }
 
 void window_w32_move_center( sgui_window* wnd )
@@ -394,7 +392,7 @@ void sgui_window_destroy( sgui_window* wnd )
         }
 
         if( wnd->back_buffer )
-            sgui_canvas_destroy( (sgui_canvas_gdi*)wnd->back_buffer );
+            sgui_canvas_destroy( wnd->back_buffer );
 
         remove_window( (sgui_window_w32*)wnd );
     }
