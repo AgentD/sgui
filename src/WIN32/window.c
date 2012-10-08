@@ -283,11 +283,9 @@ void window_w32_move( sgui_window* wnd, int x, int y )
 void update_window( sgui_window_w32* wnd )
 {
     unsigned int i, num;
-    MSG msg;
     RECT r;
     sgui_rect sr;
 
-    /* update the widgets, redraw window if there was any change */
     sgui_widget_manager_update( wnd->base.mgr );
 
     num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
@@ -296,19 +294,12 @@ void update_window( sgui_window_w32* wnd )
     {
         sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &sr, i );
 
-        SetRect( &r, sr.left, sr.top, sr.right, sr.bottom );
+        SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
         InvalidateRect( wnd->hWnd, &r, TRUE );
     }
 
     sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
     sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
-
-    /* message loop */
-    while( PeekMessage( &msg, wnd->hWnd, 0, 0, PM_REMOVE ) )
-    {
-        TranslateMessage( &msg );
-        DispatchMessage( &msg );
-    }
 }
 
 /****************************************************************************/

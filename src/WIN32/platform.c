@@ -130,9 +130,11 @@ void sgui_deinit( void )
 void sgui_main_loop( void )
 {
     unsigned int i, active;
+    MSG msg;
 
     do
     {
+        /* update windows */
         for( i=0, active=0; i<used_windows; ++i )
         {
             if( windows[ i ]->base.visible )
@@ -140,6 +142,13 @@ void sgui_main_loop( void )
                 update_window( windows[ i ] );
                 active = 1;
             }
+        }
+
+        /* handle messages */
+        while( PeekMessage( &msg, 0, 0, 0, PM_REMOVE ) )
+        {
+            TranslateMessage( &msg );
+            DispatchMessage( &msg );
         }
     }
     while( active );
