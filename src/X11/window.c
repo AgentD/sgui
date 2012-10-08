@@ -122,17 +122,12 @@ void window_x11_move( sgui_window* wnd, int x, int y )
 
 /****************************************************************************/
 
-void update_window( sgui_window_xlib* wnd, XEvent* e )
+void update_window( sgui_window_xlib* wnd )
 {
-    char* atom;
-    sgui_event se;
-    XExposeEvent exp;
-    Status stat;
-    KeySym sym;
     unsigned int i, num;
+    XExposeEvent exp;
     sgui_rect r;
 
-    /* update the widgets, redraw window if there was any change */
     sgui_widget_manager_update( wnd->base.mgr );
 
     num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
@@ -158,8 +153,15 @@ void update_window( sgui_window_xlib* wnd, XEvent* e )
 
     sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
     sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+}
 
-    /* message loop */
+void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
+{
+    char* atom;
+    sgui_event se;
+    Status stat;
+    KeySym sym;
+
     switch( e->type )
     {
     case KeyRelease:

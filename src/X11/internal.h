@@ -67,8 +67,11 @@ sgui_window_xlib* add_window( void );
 /* in platform.c: uninitialises a window and frees its memory */
 void remove_window( sgui_window_xlib* window );
 
+/* in window.c: update widgets, etc */
+void update_window( sgui_window_xlib* wnd );
+
 /* in window.c: process an XEvent */
-void update_window( sgui_window_xlib* wnd, XEvent* e );
+void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 
 /* in canvas.c: display a canvas on a same sized X window */
 void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
