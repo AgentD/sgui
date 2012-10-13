@@ -205,15 +205,15 @@ struct sgui_widget
 
 struct sgui_window
 {
-    sgui_widget_manager* mgr;
-    sgui_canvas* back_buffer;
+    sgui_widget_manager* mgr;   /**< \brief pointer to a widget manager */
+    sgui_canvas* back_buffer;   /**< \brief pointer to a canvas */
 
-    sgui_window_callback event_fun;
+    sgui_window_callback event_fun; /**< \brief the window event callback */
 
-    int x, y;
-    unsigned int w, h;
+    int x, y;                   /**< \brief position of the window */
+    unsigned int w, h;          /**< \brief the size of the window */
 
-    int visible;
+    int visible;                /**< \brief Window visibility */
 
     void (* get_mouse_position )( sgui_window* wnd, int* x, int* y );
     void (* set_mouse_position )( sgui_window* wnd, int x, int y );
@@ -253,8 +253,21 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
 void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                 unsigned int height );
 
+/**
+ * \brief Initialise a window structure (set values to 0 and create a widget
+ *        manager)
+ *
+ * \param wnd A pointer to a window structure
+ *
+ * \return non-zero on success, zero on error
+ */
 int sgui_internal_window_init( sgui_window* wnd );
 
+/**
+ * \brief Uninitialise a window structure
+ *
+ * \param wnd A pointer to a window structure
+ */
 void sgui_internal_window_deinit( sgui_window* wnd );
 
 /**
