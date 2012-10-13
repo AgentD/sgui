@@ -49,7 +49,6 @@ typedef struct
     sgui_window base;
 
     Window wnd;
-    Atom wmDelete;
     GC gc;
     XIC ic;
 
@@ -60,6 +59,7 @@ sgui_window_xlib;
 
 extern XIM im;
 extern Display* dpy;
+extern Atom atom_wm_delete;
 
 /* in platform.c: allocates storate for a window and initialises it */
 sgui_window_xlib* add_window( void );

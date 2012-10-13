@@ -33,9 +33,6 @@
 #define DPY_HEIGHT DisplayHeight( dpy, DefaultScreen(dpy) )
 
 
-const char* wmDeleteWindow = "WM_DELETE_WINDOW";
-
-
 #define TO_X11( window ) ((sgui_window_xlib*)window)
 #define SEND_EVENT( WND, ID, E )\
         sgui_internal_window_fire_event( (sgui_window*)WND, ID, E )
@@ -157,7 +154,6 @@ void update_window( sgui_window_xlib* wnd )
 
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 {
-    char* atom;
     sgui_event se;
     Status stat;
     KeySym sym;
@@ -238,15 +234,17 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case ConfigureNotify:
-        if( ((int)wnd->base.w)!=e->xconfigure.width ||
-            ((int)wnd->base.h)!=e->xconfigure.height )
-        {
-            se.size.new_width  = e->xconfigure.width;
-            se.size.new_height = e->xconfigure.height;
-        }
+        se.size.new_width  = e->xconfigure.width;
+        se.size.new_height = e->xconfigure.height;
 
         if( !se.size.new_width || !se.size.new_height )
             break;
+
+        if( (se.size.new_width==wnd->base.w) &&
+            (se.size.new_height==wnd->base.h) )
+        {
+            break;
+        }
 
         wnd->base.x = e->xconfigure.x;
         wnd->base.y = e->xconfigure.y;
@@ -265,16 +263,12 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         sgui_widget_manager_draw_all( wnd->base.mgr, wnd->base.back_buffer );
         break;
     case ClientMessage:
-        atom = XGetAtomName( dpy, e->xclient.message_type );
-
-        if( *atom == *wmDeleteWindow )
+        if( e->xclient.data.l[0] == (long)atom_wm_delete )
         {
             wnd->base.visible = 0;
             XUnmapWindow( dpy, wnd->wnd );
             SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
         }
-
-        XFree( atom );
         break;
     case Expose:
         display_canvas( wnd->wnd, wnd->gc, wnd->base.back_buffer,
@@ -337,8 +331,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
                                  PointerMotionMask |
                                  ButtonPressMask | ButtonReleaseMask );
 
-    wnd->wmDelete = XInternAtom( dpy, wmDeleteWindow, True );
-    XSetWMProtocols( dpy, wnd->wnd, &wnd->wmDelete, 1 );
+    XSetWMProtocols( dpy, wnd->wnd, &atom_wm_delete, 1 );
 
     XFlush( dpy );
 

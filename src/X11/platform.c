@@ -5,11 +5,17 @@
 
 Display* dpy = NULL;
 XIM im = 0;
+Atom atom_wm_delete = 0;
 
 static sgui_window_xlib** windows = NULL;
 static unsigned int num_windows = 0;
 static unsigned int used_windows = 0;
 
+
+
+static const char* wm_delete_window = "WM_DELETE_WINDOW";
+
+/****************************************************************************/
 
 sgui_window_xlib* add_window( void )
 {
@@ -61,7 +67,7 @@ void remove_window( sgui_window_xlib* wnd )
     }
 }
 
-
+/****************************************************************************/
 
 int sgui_init( void )
 {
@@ -76,6 +82,7 @@ int sgui_init( void )
     num_windows = 10;
     used_windows = 0;
 
+    /* open display connection */
     dpy = XOpenDisplay( 0 );
 
     if( !dpy )
@@ -84,6 +91,7 @@ int sgui_init( void )
         return 0;
     }
 
+    /* create input method */
     im = XOpenIM( dpy, NULL, NULL, NULL );
 
     if( !im )
@@ -91,6 +99,9 @@ int sgui_init( void )
         sgui_deinit( );
         return 0;
     }
+
+    /* get wm delete atom */
+    atom_wm_delete = XInternAtom( dpy, wm_delete_window, True );
 
     /* initialise keycode translation LUT */
     init_keycodes( );
