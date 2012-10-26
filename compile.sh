@@ -1,14 +1,14 @@
 #!/bin/sh
 
 # Flags for the C compiler
-CFLAGS="-ansi -W -Wall -Wextra -Wshadow -Wwrite-strings -I./include -ggdb"
+CFLAGS="-ansi -Werror -Wall -Wextra -Wshadow -Wwrite-strings -pedantic
+        -I./include -ggdb"
 
 # Compile a list of files. $1: compiler, $2: list of files,
 #                          $3: object directory, $4: object prefix
 #
 # Only compiles files if the coresponding object file does not exist or is
 # "older" (lower modification time stamp) than the source file
-#
 compile_files( )
 {
     for f in $2
@@ -122,8 +122,7 @@ else
 
     ########## unix/X11 ##########
     compile_files "gcc $INCLUDE_X11" "$SOURCE_COMMON" "build/obj/unix"
-
-    compile_files "gcc $INCLUDE_X11" "$SOURCE_X11" "build/obj/unix" "x11_"
+    compile_files "gcc $INCLUDE_X11" "$SOURCE_X11"    "build/obj/unix" "x11_"
 
     create_library "build/obj/unix" "libsgui.a" "ar" "ranlib"
 
@@ -131,8 +130,8 @@ else
 
     ########### win 32 ###########
     compile_files "$MINGW $INCLUDE_WIN" "$SOURCE_COMMON" "build/obj/win32"
-
-    compile_files "$MINGW $INCLUDE_WIN" "$SOURCE_WIN" "build/obj/win32" "w32_"
+    compile_files "$MINGW $INCLUDE_WIN" "$SOURCE_WIN"    "build/obj/win32"\
+                  "w32_"
 
     create_library "build/obj/win32" "libsgui.a" "$MINGW_AR" "$MINGW_RANLIB"
 
@@ -140,8 +139,7 @@ else
 
     ########### win 64 ###########
     compile_files "$MINGW64 $INCLUDE_WIN" "$SOURCE_COMMON" "build/obj/win64"
-
-    compile_files "$MINGW64 $INCLUDE_WIN" "$SOURCE_WIN" "build/obj/win64"\
+    compile_files "$MINGW64 $INCLUDE_WIN" "$SOURCE_WIN"    "build/obj/win64"\
                   "w32_"
 
     create_library "build/obj/win64" "libsgui.a" "$MINGW64_AR"\

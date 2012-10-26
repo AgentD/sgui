@@ -204,8 +204,10 @@ void window_w32_get_mouse_position( sgui_window* wnd, int* x, int* y )
 
 void window_w32_set_mouse_position( sgui_window* wnd, int x, int y )
 {
-    POINT pos = { x, y };
+    POINT pos;
 
+    pos.x = x;
+    pos.y = y;
     ClientToScreen( TO_W32(wnd)->hWnd, &pos );
     SetCursorPos( pos.x, pos.y );
 }
