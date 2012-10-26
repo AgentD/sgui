@@ -129,11 +129,15 @@ void sgui_deinit( void )
 
 void sgui_main_loop( void )
 {
-    unsigned int i, active;
+    unsigned int i, active = 1;
     MSG msg;
 
-    do
+    /* handle messages */
+    while( active && GetMessage( &msg, 0, 0, 0 ) )
     {
+        TranslateMessage( &msg );
+        DispatchMessage( &msg );
+
         /* update windows */
         for( i=0, active=0; i<used_windows; ++i )
         {
@@ -143,14 +147,6 @@ void sgui_main_loop( void )
                 active = 1;
             }
         }
-
-        /* handle messages */
-        while( PeekMessage( &msg, 0, 0, 0, PM_REMOVE ) )
-        {
-            TranslateMessage( &msg );
-            DispatchMessage( &msg );
-        }
     }
-    while( active );
 }
 

@@ -37,7 +37,6 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->visible               = 1;
     widget->mgr                   = NULL;
     widget->draw_callback         = NULL;
-    widget->update_callback       = NULL;
     widget->window_event_callback = NULL;
 }
 
@@ -118,12 +117,6 @@ int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
         return 0;
 
     return 1;
-}
-
-void sgui_widget_update( sgui_widget* widget )
-{
-    if( widget && widget->update_callback )
-        widget->update_callback( widget );
 }
 
 void sgui_widget_send_window_event( sgui_widget* widget, int type,

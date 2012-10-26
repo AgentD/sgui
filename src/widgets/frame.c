@@ -96,40 +96,34 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
                                                &e );
 
         sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
-        return;
     }
-
-    /* adjust the mouse position for mouse events */
-    if( type==SGUI_MOUSE_MOVE_EVENT && event )
+    else
     {
-        event->mouse_move.y += offset;
-        f->mouse_x = event->mouse_move.x;
-        f->mouse_y = event->mouse_move.y;
-    }
-    else if( (type==SGUI_MOUSE_PRESS_EVENT || type==SGUI_MOUSE_RELEASE_EVENT)
-             && event )
-    {
-        event->mouse_press.y += offset;
-        f->mouse_x = event->mouse_move.x;
-        f->mouse_y = event->mouse_move.y;
-    }
+        /* adjust the mouse position for mouse events */
+        if( type==SGUI_MOUSE_MOVE_EVENT && event )
+        {
+            event->mouse_move.y += offset;
+            f->mouse_x = event->mouse_move.x;
+            f->mouse_y = event->mouse_move.y;
+        }
+        else if( (type==SGUI_MOUSE_PRESS_EVENT ||
+                  type==SGUI_MOUSE_RELEASE_EVENT) && event )
+        {
+            event->mouse_press.y += offset;
+            f->mouse_x = event->mouse_press.x;
+            f->mouse_y = event->mouse_press.y;
+        }
 
-    /* send the event to the frames widgets */
-    sgui_widget_manager_send_window_event( f->mgr, type, event );
-}
-
-void frame_update( sgui_widget* widget )
-{
-    sgui_frame* f = (sgui_frame*)widget;
+        /* send the event to the frames widgets */
+        sgui_widget_manager_send_window_event( f->mgr, type, event );
+    }
 
     /* reposition scroll bar to stay at fixed location */
     f->v_bar->area.bottom -= f->v_bar->area.top;
     f->v_bar->area.top = sgui_scroll_bar_get_offset( f->v_bar );
     f->v_bar->area.bottom += f->v_bar->area.top;
 
-    /* update the widget manager and propagate changes */
-    sgui_widget_manager_update( f->mgr );
-
+    /* issue a full redraw if the widgets change */
     if( sgui_widget_manager_num_dirty_rects( f->mgr ) )
     {
         sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
@@ -202,7 +196,6 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     sgui_internal_widget_init( (sgui_widget*)f, x, y, width, height );
 
     f->widget.draw_callback         = frame_draw;
-    f->widget.update_callback       = frame_update;
     f->widget.window_event_callback = frame_on_event;
     f->border                       = sgui_skin_get_frame_border_width( );
     f->v_bar_dist                   = width - w - 2*f->border;

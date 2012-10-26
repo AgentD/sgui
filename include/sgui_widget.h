@@ -102,16 +102,6 @@ void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
 int sgui_widget_is_point_inside( sgui_widget* w, int x, int y );
 
 /**
- * \brief Update a widget (e.g. advance animations, et cetera)
- *
- * This is called inside the sgui_window_update function to update widgets
- * assigned to a window.
- *
- * \param widget The widget to update
- */
-void sgui_widget_update( sgui_widget* widget );
-
-/**
  * \brief Send a window event to a widget
  *
  * This is called inside the sgui_window_update function to make widgets

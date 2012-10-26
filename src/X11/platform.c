@@ -142,35 +142,25 @@ void sgui_main_loop( void )
 
     do
     {
-        /* update all visible windows */
-        for( i=0, active=0; i<used_windows; ++i )
+        XNextEvent( dpy, &e );
+
+        if( !XFilterEvent( &e, None ) )
         {
-            if( windows[ i ]->base.visible )
-            {
-                active = 1; /* there is at least 1 window still active */
-
-                update_window( windows[ i ] );
-            }
-        }
-
-        /* Handle all pending events */
-        while( XPending( dpy ) > 0 )
-        {
-            XNextEvent( dpy, &e );
-
-            if( XFilterEvent( &e, None ) )
-                continue;
-
             /* route the event to it's window */
             for( i=0; i<used_windows; ++i )
             {
                 if( windows[ i ]->wnd == e.xany.window )
                 {
                     handle_window_events( windows[ i ], &e );
+                    update_window( windows[ i ] );
                     break;
                 }
             }
         }
+
+        /* check if there's at least 1 window still active */
+        for( i=0, active=0; i<used_windows; ++i )
+            active |= windows[ i ]->base.visible;
     }
     while( active );
 }

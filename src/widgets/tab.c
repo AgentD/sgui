@@ -70,7 +70,9 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
-    unsigned int i;
+    sgui_widget_manager* mgr;
+    sgui_rect r;
+    unsigned int i, num;
     int x;
 
     if( type == SGUI_MOUSE_PRESS_EVENT &&
@@ -103,25 +105,10 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
     }
     else if( g->selected>=0 && g->selected<(int)g->num_tabs )
     {
-        /* send event to selected tab */
-        sgui_widget_manager_send_window_event( g->tabs[ g->selected ].mgr,
-                                               type, event );
-    }
-}
-
-void sgui_tab_update( sgui_widget* widget )
-{
-    sgui_tab_group* g = (sgui_tab_group*)widget;
-    sgui_widget_manager* mgr;
-    sgui_rect r;
-    unsigned int i, num;
-
-    if( g->selected>=0 && g->selected<(int)g->num_tabs )
-    {
-        /* update widget manager of selected tab */
         mgr = g->tabs[ g->selected ].mgr;
 
-        sgui_widget_manager_update( mgr );
+        /* send event to selected tab */
+        sgui_widget_manager_send_window_event( mgr, type, event );
 
         /* transfer dirty rects from tab manager to parent widget manager */
         num = sgui_widget_manager_num_dirty_rects( mgr );
@@ -136,7 +123,7 @@ void sgui_tab_update( sgui_widget* widget )
             sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
 
-        sgui_widget_manager_clear_dirty_rects( g->tabs[ g->selected ].mgr );
+        sgui_widget_manager_clear_dirty_rects( mgr );
     }
 }
 
@@ -206,7 +193,6 @@ sgui_widget* sgui_tab_group_create( int x, int y,
 
     g->widget.draw_callback         = sgui_tab_group_draw;
     g->widget.window_event_callback = sgui_tab_group_on_event;
-    g->widget.update_callback       = sgui_tab_update;
     g->num_tabs                     = 0;
     g->tabs_avail                   = 10;
     g->tab_cap_height               = sgui_skin_get_tab_caption_height( );

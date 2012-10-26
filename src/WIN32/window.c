@@ -288,8 +288,6 @@ void update_window( sgui_window_w32* wnd )
     RECT r;
     sgui_rect sr;
 
-    sgui_widget_manager_update( wnd->base.mgr );
-
     num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
 
     for( i=0; i<num; ++i )

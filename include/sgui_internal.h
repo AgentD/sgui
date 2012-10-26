@@ -177,19 +177,11 @@ struct sgui_widget
     /**
      * \brief Callback that is called to draw a widget
      *
-     * \param widget A pointer to the widget to update (for C++
+     * \param widget A pointer to the widget to draw (for C++
      *               people: practically a this pointer).
      * \param cv     A pointer to a canvas to draw to.
      */
     void (* draw_callback )( sgui_widget* widget, sgui_canvas* cv );
-
-    /**
-     * \brief Callback that is called to update a widget
-     *
-     * \param widget A pointer to the widget to update (for C++
-     *               people: practically a this pointer).
-     */
-    void (* update_callback )( sgui_widget* widget );
 
     /**
      * \brief Callback that is called to inject window events

@@ -58,13 +58,6 @@ void group_box_on_event( sgui_widget* widget, int type, sgui_event* event )
     sgui_group_box* b = (sgui_group_box*)widget;
 
     sgui_widget_manager_send_window_event( b->mgr, type, event );
-}
-
-void group_box_update( sgui_widget* widget )
-{
-    sgui_group_box* b = (sgui_group_box*)widget;
-
-    sgui_widget_manager_update( b->mgr );
 
     /*
         If we need a redraw, redraw eniter group box. No sane human would
@@ -91,8 +84,6 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_widget_manager_draw_all( b->mgr, cv );
     sgui_canvas_restore_offset( cv );
 }
-
-
 
 
 
@@ -132,7 +123,6 @@ sgui_widget* sgui_group_box_create( int x, int y,
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
     b->widget.draw_callback         = group_box_draw;
-    b->widget.update_callback       = group_box_update;
     b->widget.window_event_callback = group_box_on_event;
 
     return (sgui_widget*)b;

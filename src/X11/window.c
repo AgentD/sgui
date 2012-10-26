@@ -125,8 +125,6 @@ void update_window( sgui_window_xlib* wnd )
     XExposeEvent exp;
     sgui_rect r;
 
-    sgui_widget_manager_update( wnd->base.mgr );
-
     num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
 
     exp.type       = Expose;

@@ -84,13 +84,6 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
                                         sgui_widget* widget );
 
 /**
- * \brief Update all widgets managed by a widget manager
- *
- * \param mgr The widget manager
- */
-void sgui_widget_manager_update( sgui_widget_manager* mgr );
-
-/**
  * \brief Add a dirty rect (area that needs redraw) to a widget manager
  *
  * \param mgr The widget manager

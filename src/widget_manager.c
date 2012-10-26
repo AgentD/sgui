@@ -157,17 +157,6 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
     widget->mgr = NULL;
 }
 
-void sgui_widget_manager_update( sgui_widget_manager* mgr )
-{
-    unsigned int i;
-
-    if( mgr )
-    {
-        for( i=0; i<mgr->num_widgets; ++i )
-            sgui_widget_update( mgr->widgets[i] );
-    }
-}
-
 void sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
                                          sgui_rect* r )
 {
