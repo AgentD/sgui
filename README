@@ -39,18 +39,23 @@
   machine from 2005.
 
 
+  ADHD version: Things are starting to come together nicely but I wouldn't
+  exactly advice people to use the library for daily needs.
+
+
   What are your plans?
   ********************
 
   Short term:
+    - Tidy and simplify code
+    - Write OpenGL back end
     - Add more useful widgets
-    - OpenGL back end
-    - Port xlib code to xcb
+    - Write documentation
+    - Assure thread safety
 
   Mid term:
     - Loadable GUI skin
     - Built in dialog boxes like message box, file open and file safe
-    - Assure thread safety
 
   Long term:
     - Figure out why I'm doing this
@@ -66,32 +71,23 @@
   There are so many GUI libraries out there, why roll your own?
   *************************************************************
 
-  I don't really know. So far it has been educational and I enjoy working on
-  it. When I first started it, I used it as a distraction and to kill
-  boredomness. Right now I have too much time on my hands and nothing else to
-  do.
+  Because reason! (plus insanity, time and the C programming language)
 
-  The idea of piecing together a GUI library first emerged when we got a
-  different CS teacher at school who wanted us to "...do something with GUI
-  and stuff..." and demonstrated his VisualBASIC copy and paste skills.
+  The whole thing started out as an Xlib play pen I used to look busy, so our
+  teacher in engineering school would not suspect that I'm already done with
+  my project for months.
 
-  (No need to worry tough: He actually didn't care whether we used VB and
-   wasn't in class most of the time anyway. He just wanted us to have results
-   to show off at the end of his horribly overblown time frames, like e.g. 3
-   months for an application that "...does something with GUI on it...")
+  By posing that I actually need the insanely long timeframe he gave me, I
+  wouldn't get additional boring assignments and could do what I was
+  interessted in. (Coming up with a story what I did last time and showing
+  some code fragments was not that much of a problem and the hardware team was
+  so slow that I couldn't test anything for months anyway)
 
-  At that point, I realized that most GUI toolkits where either totally
-  overblown (I tried GTK and settled for QT), or have a horrible, undocumented
-  API (I tried FLTK). Also I wanted something that can be used in an OpenGL
-  application and rendered into an OpenGL texture ("...make something
-  original, see you in six months...". I actually managed to make a QT based
-  "3D browser", but QT off screen rendering was just a BIG, UGLY hack).
-
-  If I rolled my own, >I< don't have all of those problems. The GUI library
-  fits all my needs and I don't need a documentation, as I know the functions
-  that are there and how the thing works internally.
-
-  So basically it started out to fit my own needs.
+  The whole thing of writing a GUI library from scratch in plain C89 was sort
+  of a masochistic joke, but it turns out to be usefull anyway, as I'm not
+  really satisfied with the existing toolkits (QT, GTK, FLTK, etc...) as they
+  are huge, bloated, horribly complicated and don't provide the functionalliy
+  I want.
 
 
   This is shit!
