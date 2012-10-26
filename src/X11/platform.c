@@ -152,7 +152,6 @@ void sgui_main_loop( void )
                 if( windows[ i ]->wnd == e.xany.window )
                 {
                     handle_window_events( windows[ i ], &e );
-                    update_window( windows[ i ] );
                     break;
                 }
             }

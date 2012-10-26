@@ -44,7 +44,7 @@ typedef struct
 {
     sgui_canvas canvas;
 
-    void* data;
+    unsigned char* data;
     XImage* img;
 }
 sgui_canvas_xlib;
@@ -69,7 +69,7 @@ void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
     unsigned char *dst, *row;
     int i, j;
 
-    dst = (unsigned char*)cv->data + (r->top*canvas->width+r->left)*4;
+    dst = cv->data + (r->top*canvas->width + r->left)*4;
 
     /* clear */
     for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
@@ -89,7 +89,7 @@ void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
     unsigned char *drow, *srow, *src, *dst;
     unsigned int i, j, ds, dt, src_bpp = (format==SCF_RGBA8 ? 4 : 3);
 
-    dst = ((unsigned char*)cv->data) + (y*canvas->width + x)*4;
+    dst = cv->data + (y*canvas->width + x)*4;
     src = (unsigned char*)data;
 
     ds = scanline_length * (format==SCF_RGBA8 ? 4 : 3);
@@ -112,7 +112,7 @@ void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     unsigned char *dst, *src, *drow, *srow, A, iA;
     unsigned int ds, dt, i, j;
 
-    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+    dst = cv->data + (y*canvas->width + x)*4;
     src = (unsigned char*)data;
 
     ds = scanline_length * 4;
@@ -140,7 +140,7 @@ void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
 
     COLOR_COPY_INV( c, color );
 
-    dst = (unsigned char*)cv->data + (r->top*canvas->width + r->left)*4;
+    dst = cv->data + (r->top*canvas->width + r->left)*4;
 
     if( format==SCF_RGBA8 )
     {
@@ -178,7 +178,7 @@ void canvas_xlib_draw_line( sgui_canvas* canvas, int x, int y,
 
     COLOR_COPY_INV( c, color );
 
-    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+    dst = cv->data + (y*canvas->width + x)*4;
     delta = horizontal ? 4 : canvas->width*4;
 
     if( format==SCF_RGBA8 )
@@ -208,7 +208,7 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     unsigned char A, iA, *src, *dst, *row;
     unsigned int i, j;
 
-    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+    dst = cv->data + (y*canvas->width + x)*4;
 
     for( j=0; j<h; ++j, buffer+=scan, dst+=canvas->width*4 )
     {
@@ -221,9 +221,8 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
         }
     }
 }
-
-sgui_canvas* sgui_canvas_create( unsigned int width,
-                                      unsigned int height )
+/****************************************************************************/
+sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
 {
     sgui_canvas_xlib* cv = malloc( sizeof(sgui_canvas_xlib) );
 
@@ -239,7 +238,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width,
     }
 
     cv->img = XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
-                            cv->data, width, height, 32, 0 );
+                            (char*)cv->data, width, height, 32, 0 );
 
     if( !cv->img )
     {

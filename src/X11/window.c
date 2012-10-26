@@ -43,19 +43,16 @@ void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y )
     Window t1, t2;
     int t3, t4;
     unsigned int t5;
-    sgui_window_xlib* w = (sgui_window_xlib*)wnd;
 
-    XQueryPointer( dpy, w->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
+    XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
 }
 
 void window_x11_set_mouse_position( sgui_window* wnd, int x, int y )
 {
-    sgui_window_xlib* w = (sgui_window_xlib*)wnd;
-
-    XWarpPointer( dpy, None, w->wnd, 0, 0, wnd->w, wnd->h, x, y );
+    XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0, wnd->w, wnd->h, x, y );
     XFlush( dpy );
 
-    ++(w->mouse_warped);
+    ++(TO_X11(wnd)->mouse_warped);
 }
 
 void window_x11_set_visible( sgui_window* wnd, int visible )
@@ -64,14 +61,11 @@ void window_x11_set_visible( sgui_window* wnd, int visible )
         XMapWindow( dpy, TO_X11(wnd)->wnd );
     else
         XUnmapWindow( dpy, TO_X11(wnd)->wnd );
-
-    XFlush( dpy );
 }
 
 void window_x11_set_title( sgui_window* wnd, const char* title )
 {
     XStoreName( dpy, TO_X11(wnd)->wnd, title );
-    XFlush( dpy );
 }
 
 void window_x11_set_size( sgui_window* wnd,
@@ -108,51 +102,21 @@ void window_x11_move_center( sgui_window* wnd )
     wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
     wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
     XMoveWindow( dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
-    XFlush( dpy );
 }
 
 void window_x11_move( sgui_window* wnd, int x, int y )
 {
     XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
-    XFlush( dpy );
 }
 
 /****************************************************************************/
 
-void update_window( sgui_window_xlib* wnd )
+void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 {
     unsigned int i, num;
     XExposeEvent exp;
-    sgui_rect r;
-
-    num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
-
-    exp.type       = Expose;
-    exp.serial     = 0;
-    exp.send_event = 1;
-    exp.display    = dpy;
-    exp.window     = wnd->wnd;
-    exp.count      = 0;
-
-    for( i=0; i<num; ++i )
-    {
-        sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &r, i );
-
-        exp.x      = r.left;
-        exp.y      = r.top;
-        exp.width  = r.right  - r.left + 1;
-        exp.height = r.bottom - r.top  + 1;
-
-        XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
-    }
-
-    sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
-    sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
-}
-
-void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
-{
     sgui_event se;
+    sgui_rect r;
     Status stat;
     KeySym sym;
 
@@ -167,7 +131,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
     case KeyPress:
         memset( se.char_event.as_utf8_str, 0,
                 sizeof(se.char_event.as_utf8_str) );
-                
+
         Xutf8LookupString( wnd->ic, &e->xkey,
                            (char*)se.char_event.as_utf8_str,
                            sizeof(se.char_event.as_utf8_str),
@@ -238,11 +202,8 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         if( !se.size.new_width || !se.size.new_height )
             break;
 
-        if( (se.size.new_width==wnd->base.w) &&
-            (se.size.new_height==wnd->base.h) )
-        {
+        if(se.size.new_width==wnd->base.w && se.size.new_height==wnd->base.h)
             break;
-        }
 
         wnd->base.x = e->xconfigure.x;
         wnd->base.y = e->xconfigure.y;
@@ -274,6 +235,31 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
                         e->xexpose.width, e->xexpose.height );
         break;
     };
+
+    /* generate expose events for dirty rectangles */
+    num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
+
+    exp.type       = Expose;
+    exp.serial     = 0;
+    exp.send_event = 1;
+    exp.display    = dpy;
+    exp.window     = wnd->wnd;
+    exp.count      = 0;
+
+    for( i=0; i<num; ++i )
+    {
+        sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &r, i );
+
+        exp.x      = r.left;
+        exp.y      = r.top;
+        exp.width  = r.right  - r.left + 1;
+        exp.height = r.bottom - r.top  + 1;
+
+        XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+    }
+
+    sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
+    sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
 }
 
 /****************************************************************************/
