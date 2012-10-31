@@ -121,11 +121,11 @@ void sgui_deinit( void )
         free( windows );
     }
 
-    if( dpy )
-        XCloseDisplay( dpy );
-
     if( im )
         XCloseIM( im );
+
+    if( dpy )
+        XCloseDisplay( dpy );
 
     dpy = NULL;
     im = 0;
