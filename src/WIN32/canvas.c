@@ -32,6 +32,8 @@ typedef struct
 {
     sgui_canvas canvas;
 
+    sgui_rect locked;
+
     void* data;
     HDC dc;
     BITMAPINFO info;
@@ -42,17 +44,51 @@ sgui_canvas_gdi;
 /************************* public canvas functions *************************/
 void canvas_gdi_download( sgui_canvas* canvas, sgui_rect* r )
 {
+    int i, j, delta;
+    unsigned char temp, *ptr, *row;
+
     canvas->buffer = ((sgui_canvas_gdi*)canvas)->data;
     canvas->buffer_x = 0;
     canvas->buffer_y = 0;
     canvas->buffer_w = canvas->width;
     canvas->buffer_h = canvas->height;
-    (void)r;
+
+    sgui_rect_copy( &((sgui_canvas_gdi*)canvas)->locked, r );
+
+    /* switch colors of "downloaded" region from BGR to RGB */
+    ptr = canvas->buffer + (r->top * canvas->width + r->left) * 4;
+    delta = canvas->width * 4;
+
+    for( j=r->top; j<=r->bottom; ++j, ptr+=delta )
+    {
+        for( row=ptr, i=r->left; i<=r->right; ++i, row+=4 )
+        {
+            temp = row[0];
+            row[0] = row[2];
+            row[2] = temp;
+        }
+    }
 }
 
 void canvas_gdi_upload( sgui_canvas* canvas )
 {
-    (void)canvas;
+    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
+    int i, j, delta;
+    unsigned char temp, *ptr, *row;
+
+    /* switch colors of "downloaded" region from RGB to BGR */
+    ptr = canvas->buffer + (cv->locked.top*canvas->width + cv->locked.left)*4;
+    delta = canvas->width * 4;
+
+    for( j=cv->locked.top; j<=cv->locked.bottom; ++j, ptr+=delta )
+    {
+        for( row=ptr, i=cv->locked.left; i<=cv->locked.right; ++i, row+=4 )
+        {
+            temp = row[0];
+            row[0] = row[2];
+            row[2] = temp;
+        }
+    }
 }
 
 void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )

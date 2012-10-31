@@ -32,6 +32,8 @@ typedef struct
 {
     sgui_canvas canvas;
 
+    sgui_rect locked;
+
     XImage* img;
 }
 sgui_canvas_xlib;
@@ -41,17 +43,51 @@ sgui_canvas_xlib;
 /************************* public canvas functions *************************/
 void canvas_xlib_download( sgui_canvas* canvas, sgui_rect* r )
 {
+    int i, j, delta;
+    unsigned char temp, *ptr, *row;
+
     canvas->buffer = (unsigned char*)((sgui_canvas_xlib*)canvas)->img->data;
     canvas->buffer_x = 0;
     canvas->buffer_y = 0;
     canvas->buffer_w = canvas->width;
     canvas->buffer_h = canvas->height;
-    (void)r;
+
+    sgui_rect_copy( &((sgui_canvas_xlib*)canvas)->locked, r );
+
+    /* switch colors of "downloaded" region from BGR to RGB */
+    ptr = canvas->buffer + (r->top * canvas->width + r->left) * 4;
+    delta = canvas->width * 4;
+
+    for( j=r->top; j<=r->bottom; ++j, ptr+=delta )
+    {
+        for( row=ptr, i=r->left; i<=r->right; ++i, row+=4 )
+        {
+            temp = row[0];
+            row[0] = row[2];
+            row[2] = temp;
+        }
+    }
 }
 
 void canvas_xlib_upload( sgui_canvas* canvas )
 {
-    (void)canvas;
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    int i, j, delta;
+    unsigned char temp, *ptr, *row;
+
+    /* switch colors of "downloaded" region from RGB to BGR */
+    ptr = canvas->buffer + (cv->locked.top*canvas->width + cv->locked.left)*4;
+    delta = canvas->width * 4;
+
+    for( j=cv->locked.top; j<=cv->locked.bottom; ++j, ptr+=delta )
+    {
+        for( row=ptr, i=cv->locked.left; i<=cv->locked.right; ++i, row+=4 )
+        {
+            temp = row[0];
+            row[0] = row[2];
+            row[2] = temp;
+        }
+    }
 }
 
 void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )

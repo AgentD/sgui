@@ -226,7 +226,7 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
  * \brief Perform a stencil blend on a canvas (e.g. glyph rendering)
  *
  * \param buffer A monochrome buffer holding coverage values that are used to
- *               blend the given RGB color onto
+ *               blend the given RGB color onto the canvas
  * \param x      Distance from the left of the canvas to the left of the
  *               object
  * \param y      Distance from the top of the canvas to the top of the object
