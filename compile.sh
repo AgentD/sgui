@@ -75,9 +75,11 @@ SOURCE_WIDGETS="src/widgets/progress_bar.c src/widgets/static_text.c
                 src/widgets/scroll_bar.c src/widgets/group_box.c
                 src/widgets/tab.c"
 
+SOURCE_OPENGL="src/OpenGL/canvas_gl_tex.c"
+
 SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
                src/skin.c src/filesystem.c src/canvas.c src/window.c
-               $SOURCE_WIDGETS"
+               $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c
@@ -88,9 +90,9 @@ SOURCE_WIN="src/WIN32/window.c src/WIN32/canvas.c src/WIN32/platform.c"
 INCLUDE_X11="-I/usr/include -I/usr/include/freetype2"
 INCLUDE_WIN="-Ibuild/win_dep/include"
 
-LIBS_X11="-lX11 -lfreetype"
-LIBS_WIN32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32"
-LIBS_WIN64="-Lbuild/win_dep/x64 -llibfreetype -lgdi32"
+LIBS_X11="-lX11 -lfreetype -lGL"
+LIBS_WIN32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32 -lopengl32"
+LIBS_WIN64="-Lbuild/win_dep/x64 -llibfreetype -lgdi32 -lopengl32"
 
 ########################## Test application sources ##########################
 SOURCE_TEST="test/test.c"
@@ -146,5 +148,9 @@ else
                    "$MINGW64_RANLIB"
 
     compile_tests "$MINGW64" "build/obj/win64" "$LIBS_WIN64" "_w64.exe"
+
+
+
+    gcc $CFLAGS test/test_gl.c -o build/test_gl $LIBS_X11 -lglfw -Lbuild/obj/unix/ -lsgui
 fi
 
