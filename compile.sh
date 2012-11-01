@@ -79,7 +79,7 @@ SOURCE_OPENGL="src/OpenGL/canvas_gl_tex.c"
 
 SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
                src/skin.c src/filesystem.c src/canvas.c src/window.c
-               $SOURCE_WIDGETS $SOURCE_OPENGL"
+               src/screen.c $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 # Platform specific source code files
 SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c

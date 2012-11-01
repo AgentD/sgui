@@ -48,6 +48,13 @@ extern "C" {
 sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
                                         unsigned int height );
 
+/**
+ * \brief Resize an OpenGL canvas
+ *
+ * \param canvas The OpenGL canvas to resize
+ * \param width  The new width of the canvas
+ * \param height The new height of the canvas
+ */
 void sgui_opengl_canvas_resize( sgui_canvas* canvas, unsigned int width,
                                 unsigned int height );
 
