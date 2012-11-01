@@ -135,6 +135,37 @@ void sgui_deinit( void )
     used_windows = 0;
 }
 
+int sgui_main_loop_step( void )
+{
+    unsigned int i;
+    XEvent e;
+
+    if( XPending( dpy ) > 0 )
+    {
+        XNextEvent( dpy, &e );
+
+        if( !XFilterEvent( &e, None ) )
+        {
+            /* route the event to it's window */
+            for( i=0; i<used_windows; ++i )
+            {
+                if( windows[ i ]->wnd == e.xany.window )
+                {
+                    handle_window_events( windows[ i ], &e );
+                    break;
+                }
+            }
+        }
+    }
+
+    /* check if there's at least 1 window still active */
+    for( i=0; i<used_windows; ++i )
+        if( windows[ i ]->base.visible )
+            return 1;
+
+    return 0;
+}
+
 void sgui_main_loop( void )
 {
     unsigned int i, active;

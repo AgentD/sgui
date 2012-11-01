@@ -54,15 +54,44 @@
 extern "C" {
 #endif
 
-
-
+/**
+ * \brief Initialise sgui
+ *
+ * Call this before any other sgui function.
+ *
+ * \return Non-zero on success, zero on error.
+ */
 int sgui_init( void );
 
+/**
+ * \brief Uninitialise sgui
+ *
+ * Call this once you are done using sgui.
+ */
 void sgui_deinit( void );
 
+/**
+ * \brief Enter the sgui main loop
+ *
+ * This function processes window system messages, relays them to windows and
+ * asks them to update. The function does not return as long as there are
+ * windows visible.
+ */
 void sgui_main_loop( void );
 
-
+/**
+ * \brief Execute a single step of the main loop
+ *
+ * This function executes a single step of the main loop inside the
+ * sgui_main_loop function, but returns after processing a single system
+ * message.
+ * Unlike the main loop function, it does not wait for system messages and
+ * returns immediately if there are no messages left.
+ *
+ * \return Non-zero if there is at least one window visible, zero if there
+ *         are no more visible windows.
+ */
+int sgui_main_loop_step( void );
 
 #ifdef __cplusplus
 }

@@ -127,6 +127,31 @@ void sgui_deinit( void )
     used_windows = 0;
 }
 
+int sgui_main_loop_step( void )
+{
+    unsigned int i, active;
+    MSG msg;
+
+    /* handle a message if there is one */
+    if( PeekMessage( &msg, 0, 0, 0, PM_REMOVE ) )
+    {
+        TranslateMessage( &msg );
+        DispatchMessage( &msg );
+    }
+
+    /* update windows */
+    for( i=0, active=0; i<used_windows; ++i )
+    {
+        if( windows[ i ]->base.visible )
+        {
+            update_window( windows[ i ] );
+            active = 1;
+        }
+    }
+
+    return active;
+}
+
 void sgui_main_loop( void )
 {
     unsigned int i, active = 1;
