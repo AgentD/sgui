@@ -1,11 +1,11 @@
-#include <GL/glfw.h>
-
 #include "sgui.h"
 #include "sgui_opengl.h"
 #include "sgui_screen.h"
 
+#include <GL/gl.h>
 
-sgui_screen* scr;
+
+sgui_screen* scr = NULL;
 
 
 /* translates window to canvas coordinates */
@@ -18,43 +18,23 @@ void translate_pos( int* x, int* y )
     *y = (256*(*y)) / (600.0f * 0.8f);
 }
 
-void mouse_fun( int x, int y )
+void sgui_window_fun( sgui_window* wnd, int type, sgui_event* event )
 {
     sgui_event e;
+    (void)wnd;
 
-    translate_pos( &x, &y );
+    if( event )
+        e = *event;
 
-    e.mouse_move.x = x;
-    e.mouse_move.y = y;
-
-    sgui_screen_inject_event( scr, SGUI_MOUSE_MOVE_EVENT, &e );
-}
-
-void mouse_pos_fun( int button, int state )
-{
-    sgui_event e;
-    int type = SGUI_MOUSE_RELEASE_EVENT;
-
-    if( state == GLFW_PRESS )
-        type = SGUI_MOUSE_PRESS_EVENT;
-
-    switch( button )
+    if( (type == SGUI_MOUSE_RELEASE_EVENT) ||
+        (type == SGUI_MOUSE_PRESS_EVENT) )
     {
-    case GLFW_MOUSE_BUTTON_1:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-        break;
-    case GLFW_MOUSE_BUTTON_2:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-        break;
-    case GLFW_MOUSE_BUTTON_3:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-        break;
-    default:
-        return;
+        translate_pos( &e.mouse_press.x, &e.mouse_press.y );
     }
-
-    glfwGetMousePos( &e.mouse_press.x, &e.mouse_press.y );
-    translate_pos( &e.mouse_press.x, &e.mouse_press.y );
+    else if( type == SGUI_MOUSE_MOVE_EVENT )
+    {
+        translate_pos( &e.mouse_move.x, &e.mouse_move.y );
+    }
 
     sgui_screen_inject_event( scr, type, &e );
 }
@@ -62,22 +42,22 @@ void mouse_pos_fun( int button, int state )
 int main( void )
 {
     sgui_canvas* cv;
+    sgui_window* wnd;
     GLuint tex;
     unsigned char color[4];
     sgui_widget *pbar, *c0, *c1, *c2, *butt;
     sgui_font *font, *font_bold, *font_ital, *font_boit;
 
     /* create window */
-    glfwInit( );
-    glfwOpenWindow( 800, 600, 8, 8, 8, 8, 24, 8, GLFW_WINDOW );
-    glfwSetWindowTitle( "sgui OpenGL test" );
+    sgui_init( );
 
-    glfwSetMousePosCallback( mouse_fun );
-    glfwSetMouseButtonCallback( mouse_pos_fun );
+    wnd = sgui_opengl_window_create( 800, 600, 0 );
+
+    sgui_window_set_title( wnd, "sgui OpenGL test" );
+    sgui_window_on_event( wnd, sgui_window_fun );
+    sgui_window_set_visible( wnd, 1 );
 
     glViewport( 0, 0, 800, 600 );
-
-    sgui_init( );
 
     font = sgui_font_load( NULL, "font/SourceSansPro-Regular.ttf" );
     font_bold = sgui_font_load( NULL, "font/SourceSansPro-Semibold.ttf" );
@@ -116,10 +96,8 @@ int main( void )
     glBindTexture( GL_TEXTURE_2D, tex );
     glEnable( GL_TEXTURE_2D );
 
-    glfwSwapInterval( 1 );
-
     /* main loop */
-    while( glfwGetWindowParam( GLFW_OPENED ) )
+    while( sgui_main_loop_step( ) )
     {
         sgui_screen_update( scr );
 
@@ -132,19 +110,22 @@ int main( void )
         glVertex2f( -0.6f, -0.8f ); glTexCoord2f( 0.0f, 0.0f );
         glEnd( );
 
-        glfwSwapBuffers( );
+        sgui_opengl_window_swap_buffers( wnd );
     }
 
     /* cleanup */
+    sgui_opengl_canvas_destroy( cv );
+    sgui_opengl_window_destroy( wnd );
+    sgui_screen_destroy( scr );
     sgui_button_destroy( butt );
     sgui_button_destroy( c0 );
     sgui_button_destroy( c1 );
     sgui_button_destroy( c2 );
     sgui_progress_bar_destroy( pbar );
-    sgui_screen_destroy( scr );
-    sgui_opengl_canvas_destroy( cv );
-    glfwCloseWindow( );
-    glfwTerminate( );
+    sgui_font_destroy( font );
+    sgui_font_destroy( font_bold );
+    sgui_font_destroy( font_ital );
+    sgui_font_destroy( font_boit );
 
     sgui_deinit( );
 

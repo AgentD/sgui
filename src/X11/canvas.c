@@ -190,6 +190,9 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
                      unsigned int width, unsigned int height )
 {
+    if( !cv || !gc )
+        return;
+
     XPutImage( dpy, wnd, gc, ((sgui_canvas_xlib*)cv)->img,
                x, y, x, y, width, height );
 }

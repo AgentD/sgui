@@ -27,7 +27,7 @@
 
 
 #include "sgui_canvas.h"
-
+#include "sgui_window.h"
 
 
 #ifdef __cplusplus
@@ -63,6 +63,36 @@ void sgui_opengl_canvas_destroy( sgui_canvas* canvas );
 
 /** \brief Get the OpenGL texture handle from an OpenGL canvas */
 unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
+
+
+/**
+ * \brief Create a window with an OpenGL context
+ *
+ * The window is created with a double buffered context with an 8 bit per
+ * channel RGBA true color frame buffer, a 24 bit depth buffer and an 8 bit
+ * stencil buffer. The context is immediately made current.
+ *
+ * Unlike a normal window, the window does not have a widget manager or a
+ * canvas. An OpenGL canvas (see sgui_opengl_canvas_create) and a "screen"
+ * (see sgui_screen_create) have to be used for handling widgets, the canvas
+ * has to be rendered manually and the screen has to be supplied with window
+ * events.
+ *
+ * \param width      The width of the window
+ * \param height     The height of the window
+ * \param resizeable Wether the window should be resizeable
+ *                   (see sgui_window_create).
+ *
+ * \return A pointer to a window on success, NULL otherwise.
+ */
+sgui_window* sgui_opengl_window_create( unsigned int width, unsigned int height,
+                                        int resizeable );
+
+/** \brief Destroy a window created through sgui_opengl_window_create */
+void sgui_opengl_window_destroy( sgui_window* window );
+
+/** \brief Swap the back and the front buffer of an OpenGL window */
+void sgui_opengl_window_swap_buffers( sgui_window* window );
 
 #ifdef __cplusplus
 }

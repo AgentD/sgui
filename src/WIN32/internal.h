@@ -38,7 +38,22 @@
 #define VC_EXTRA_LEAN
 #define NOMINMAX
 
+#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) ||\
+    defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
+
+    #define SET_USER_PTR( hwnd, ptr )\
+            SetWindowLongPtr( hwnd, GWLP_USERDATA, (LONG_PTR)ptr )
+
+    #define GET_USER_PTR( hwnd ) GetWindowLongPtr( hwnd, GWLP_USERDATA )
+#else
+    #define SET_USER_PTR( hwnd, ptr )\
+            SetWindowLong( hwnd, GWL_USERDATA, (LONG)ptr )
+
+    #define GET_USER_PTR( hwnd ) GetWindowLong( hwnd, GWL_USERDATA )
+#endif
+
 #include <windows.h>
+#include <GL/gl.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +66,9 @@ typedef struct
     sgui_window base;
 
     HWND hWnd;
+
+    HDC hDC;
+    HGLRC hRC;
 }
 sgui_window_w32;
 
@@ -66,6 +84,15 @@ void remove_window( sgui_window_w32* wnd );
 /* in window.c: window callback */
 extern LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg,
                                        WPARAM wp, LPARAM lp );
+
+void window_w32_get_mouse_position( sgui_window* wnd, int* x, int* y );
+void window_w32_set_mouse_position( sgui_window* wnd, int x, int y );
+void window_w32_set_visible( sgui_window* wnd, int visible );
+void window_w32_set_title( sgui_window* wnd, const char* title );
+void window_w32_set_size( sgui_window* wnd,
+                          unsigned int width, unsigned int height );
+void window_w32_move_center( sgui_window* wnd );
+void window_w32_move( sgui_window* wnd, int x, int y );
 
 /* in window.c: handle window messages */
 void update_window( sgui_window_w32* wnd );

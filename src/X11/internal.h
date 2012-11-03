@@ -42,6 +42,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <GL/glx.h>
+
 
 
 typedef struct
@@ -49,11 +51,15 @@ typedef struct
     sgui_window base;
 
     Window wnd;
-    GC gc;
     XIC ic;
 
     int resizeable;
     unsigned int mouse_warped;
+
+    GC gc;
+
+    Colormap cmap;
+    GLXContext ctx;
 }
 sgui_window_xlib;
 
@@ -69,6 +75,15 @@ void remove_window( sgui_window_xlib* window );
 
 /* in window.c: process an XEvent */
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
+
+void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y );
+void window_x11_set_mouse_position( sgui_window* wnd, int x, int y );
+void window_x11_set_visible( sgui_window* wnd, int visible );
+void window_x11_set_title( sgui_window* wnd, const char* title );
+void window_x11_set_size( sgui_window* wnd,
+                          unsigned int width, unsigned int height );
+void window_x11_move_center( sgui_window* wnd );
+void window_x11_move( sgui_window* wnd, int x, int y );
 
 /* in canvas.c: display a canvas on a same sized X window */
 void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
