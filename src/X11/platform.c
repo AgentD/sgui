@@ -15,6 +15,17 @@ static unsigned int used_windows = 0;
 
 static const char* wm_delete_window = "WM_DELETE_WINDOW";
 
+
+
+static int xlib_swallow_errors( Display* display, XErrorEvent* event )
+{
+    (void)display;
+    (void)event;
+    return 0;
+}
+
+
+
 /****************************************************************************/
 
 sgui_window_xlib* add_window( void )
@@ -90,6 +101,8 @@ int sgui_init( void )
         sgui_deinit( );
         return 0;
     }
+
+    XSetErrorHandler( xlib_swallow_errors );
 
     /* create input method */
     im = XOpenIM( dpy, NULL, NULL, NULL );

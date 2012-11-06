@@ -58,14 +58,9 @@ XVisualInfo* get_visual( void )
     return vi;
 }
 
-GLXContext create_context( Window wnd, XVisualInfo* vi )
+GLXContext create_context( XVisualInfo* vi )
 {
-    GLXContext ctx;
-
-    ctx = glXCreateContext( dpy, vi, NULL, GL_TRUE );
-    glXMakeCurrent( dpy, wnd, ctx );
-
-    return ctx;
+    return glXCreateContext( dpy, vi, NULL, GL_TRUE );
 }
 
 
@@ -78,6 +73,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     XSetWindowAttributes swa;
     XWindowAttributes attr;
     XVisualInfo* vi;
+    Colormap cmap;
 
     if( !width || !height )
         return NULL;
@@ -97,16 +93,16 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
-    wnd->cmap = XCreateColormap( dpy, RootWindow(dpy, vi->screen),
-                                 vi->visual, AllocNone );
+    cmap = XCreateColormap( dpy, RootWindow(dpy, vi->screen),
+                            vi->visual, AllocNone );
 
-    if( !wnd->cmap )
+    if( !cmap )
     {
         sgui_opengl_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
 
-    swa.colormap          = wnd->cmap;
+    swa.colormap          = cmap;
     swa.background_pixmap = None;
     swa.border_pixel      = 0;
     swa.event_mask        = ExposureMask | StructureNotifyMask |
@@ -149,10 +145,10 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     wnd->base.h = (unsigned int)attr.height;
 
     /**************** Create an OpenGL context *****************/
-    wnd->ctx = create_context( wnd->wnd, vi );
+    wnd->context.gl = create_context( vi );
     XFree( vi );
 
-    if( !wnd->ctx )
+    if( !wnd->context.gl )
     {
         sgui_opengl_window_destroy( (sgui_window*)wnd );
         return NULL;
@@ -185,35 +181,34 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
 
 void sgui_opengl_window_destroy( sgui_window* window )
 {
-    sgui_window_xlib* wnd = (sgui_window_xlib*)window;
-
-    if( !wnd )
+    if( !window )
         return;
 
-    sgui_internal_window_fire_event( (sgui_window*)wnd,
-                                     SGUI_API_DESTROY_EVENT, NULL );
+    SEND_EVENT( window, SGUI_API_DESTROY_EVENT, NULL );
 
-    if( wnd->ctx )
-    {
+    if( TO_X11(window)->context.gl )
+        glXDestroyContext( dpy, TO_X11(window)->context.gl );
+
+    if( TO_X11(window)->ic )
+        XDestroyIC( TO_X11(window)->ic );
+
+    if( TO_X11(window)->wnd )
+        XDestroyWindow( dpy, TO_X11(window)->wnd );
+
+    remove_window( TO_X11(window) );
+}
+
+void sgui_opengl_window_make_current( sgui_window* window )
+{
+    if( window )
+        glXMakeCurrent( dpy, TO_X11(window)->wnd, TO_X11(window)->context.gl );
+    else
         glXMakeCurrent( dpy, 0, 0 );
-        glXDestroyContext( dpy, wnd->ctx );
-    }
-
-    if( wnd->ic )
-        XDestroyIC( wnd->ic );
-
-    if( wnd->wnd )
-        XDestroyWindow( dpy, wnd->wnd );
-
-    if( wnd->cmap )
-        XFreeColormap( dpy, wnd->cmap );
-
-    remove_window( wnd );
 }
 
 void sgui_opengl_window_swap_buffers( sgui_window* window )
 {
     if( window )
-        glXSwapBuffers( dpy, ((sgui_window_xlib*)window)->wnd );
+        glXSwapBuffers( dpy, TO_X11(window)->wnd );
 }
 

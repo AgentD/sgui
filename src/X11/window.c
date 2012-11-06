@@ -29,15 +29,6 @@
 #include <ctype.h>
 
 
-#define DPY_WIDTH DisplayWidth( dpy, DefaultScreen(dpy) )
-#define DPY_HEIGHT DisplayHeight( dpy, DefaultScreen(dpy) )
-
-
-#define TO_X11( window ) ((sgui_window_xlib*)window)
-#define SEND_EVENT( WND, ID, E )\
-        sgui_internal_window_fire_event( (sgui_window*)WND, ID, E )
-
-
 void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     Window t1, t2;
@@ -230,7 +221,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
-        display_canvas( wnd->wnd, wnd->gc, wnd->base.back_buffer,
+        display_canvas( wnd->wnd, wnd->context.xlib, wnd->base.back_buffer,
                         e->xexpose.x, e->xexpose.y,
                         e->xexpose.width, e->xexpose.height );
         break;
@@ -347,9 +338,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
-    wnd->gc = XCreateGC( dpy, wnd->wnd, 0, 0 );
+    wnd->context.xlib = XCreateGC( dpy, wnd->wnd, 0, 0 );
 
-    if( !wnd->gc )
+    if( !wnd->context.xlib )
     {
         sgui_window_destroy( (sgui_window*)wnd );
         return NULL;
@@ -386,12 +377,12 @@ void sgui_window_destroy( sgui_window* wnd )
     if( TO_X11(wnd)->ic )
         XDestroyIC( TO_X11(wnd)->ic );
 
-    if( TO_X11(wnd)->gc )
-        XFreeGC( dpy, TO_X11(wnd)->gc );
+    if( TO_X11(wnd)->context.xlib )
+        XFreeGC( dpy, TO_X11(wnd)->context.xlib );
 
     if( TO_X11(wnd)->wnd )
         XDestroyWindow( dpy, TO_X11(wnd)->wnd );
 
-    remove_window( (sgui_window_xlib*)wnd );
+    remove_window( TO_X11(wnd) );
 }
 

@@ -35,8 +35,12 @@
 #include "sgui_internal.h"
 
 #define WIN32_LEAN_AND_MEAN
-#define VC_EXTRA_LEAN
-#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) ||\
     defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
@@ -52,12 +56,11 @@
     #define GET_USER_PTR( hwnd ) GetWindowLong( hwnd, GWL_USERDATA )
 #endif
 
-#include <windows.h>
-#include <GL/gl.h>
+#ifndef MAPVK_VSC_TO_VK_EX
+    #define MAPVK_VSC_TO_VK_EX 3
+#endif
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#define TO_W32( window ) ((sgui_window_w32*)window)
 
 
 

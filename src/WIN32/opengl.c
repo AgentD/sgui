@@ -27,7 +27,7 @@
 
 
 
-void set_pixel_format( HDC hDC )
+int set_pixel_format( HDC hDC )
 {
     PIXELFORMATDESCRIPTOR pfd;
     int format;
@@ -43,7 +43,13 @@ void set_pixel_format( HDC hDC )
     pfd.iLayerType = PFD_MAIN_PLANE;
 
     format = ChoosePixelFormat( hDC, &pfd );
-    SetPixelFormat( hDC, format, &pfd );
+
+    return SetPixelFormat( hDC, format, &pfd );
+}
+
+HGLRC create_context( HDC hDC )
+{
+    return wglCreateContext( hDC );
 }
 
 
@@ -85,10 +91,20 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     wnd->base.h = height;
 
     wnd->hDC = GetDC( wnd->hWnd );
-    set_pixel_format( wnd->hDC );
 
-    wnd->hRC = wglCreateContext( wnd->hDC );
-    wglMakeCurrent( wnd->hDC, wnd->hRC );
+    if( !wnd->hDC || !set_pixel_format( wnd->hDC ) )
+    {
+        sgui_opengl_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    wnd->hRC = create_context( wnd->hDC );
+
+    if( !wnd->hRC )
+    {
+        sgui_opengl_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
 
     /****************** register implementation functions ******************/
     wnd->base.get_mouse_position = window_w32_get_mouse_position;
@@ -112,10 +128,7 @@ void sgui_opengl_window_destroy( sgui_window* window )
         sgui_internal_window_fire_event(window, SGUI_API_DESTROY_EVENT, NULL);
 
         if( wnd->hRC )
-        {
-            wglMakeCurrent( NULL, NULL );
             wglMakeCurrent( wnd->hDC, wnd->hRC );
-        }
 
         if( wnd->hDC )
             ReleaseDC( wnd->hWnd, wnd->hDC );
@@ -134,5 +147,13 @@ void sgui_opengl_window_swap_buffers( sgui_window* window )
 {
     if( window )
         SwapBuffers( ((sgui_window_w32*)window)->hDC );
+}
+
+void sgui_opengl_window_make_current( sgui_window* window )
+{
+    if( window )
+        wglMakeCurrent( TO_W32(window)->hDC, TO_W32(window)->hRC );
+    else
+        wglMakeCurrent( NULL, NULL );
 }
 

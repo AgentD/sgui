@@ -70,7 +70,8 @@ unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
  *
  * The window is created with a double buffered context with an 8 bit per
  * channel RGBA true color frame buffer, a 24 bit depth buffer and an 8 bit
- * stencil buffer. The context is immediately made current.
+ * stencil buffer. The context is NOT made current and one must explicitly
+ * call sgui_opengl_window_make_current.
  *
  * Unlike a normal window, the window does not have a widget manager or a
  * canvas. An OpenGL canvas (see sgui_opengl_canvas_create) and a "screen"
@@ -90,6 +91,19 @@ sgui_window* sgui_opengl_window_create( unsigned int width, unsigned int height,
 
 /** \brief Destroy a window created through sgui_opengl_window_create */
 void sgui_opengl_window_destroy( sgui_window* window );
+
+/**
+ * \brief Make the OpenGL context of an OpenGL window current
+ *
+ * Only one OpenGL context can be "current" (activated for rendering) per
+ * thread and it can only be current in one thread.
+ * Using this function, you can make the context of an OpenGL window current
+ * for the calling thread.
+ *
+ * \param window A pointet to the OpenGL window or NULL, to release the
+ *               current context of the thread.
+ */
+void sgui_opengl_window_make_current( sgui_window* window );
 
 /** \brief Swap the back and the front buffer of an OpenGL window */
 void sgui_opengl_window_swap_buffers( sgui_window* window );

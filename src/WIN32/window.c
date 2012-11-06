@@ -26,14 +26,6 @@
 
 
 
-#ifndef MAPVK_VSC_TO_VK_EX
-    #define MAPVK_VSC_TO_VK_EX 3
-#endif
-
-#define TO_W32( window ) ((sgui_window_w32*)window)
-
-
-
 LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 {
     sgui_window* wnd;

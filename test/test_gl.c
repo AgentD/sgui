@@ -57,6 +57,8 @@ int main( void )
     sgui_window_on_event( wnd, sgui_window_fun );
     sgui_window_set_visible( wnd, 1 );
 
+    sgui_opengl_window_make_current( wnd );
+
     glViewport( 0, 0, 800, 600 );
 
     font = sgui_font_load( NULL, "font/SourceSansPro-Regular.ttf" );
@@ -115,6 +117,7 @@ int main( void )
 
     /* cleanup */
     sgui_opengl_canvas_destroy( cv );
+    sgui_opengl_window_make_current( NULL );
     sgui_opengl_window_destroy( wnd );
     sgui_screen_destroy( scr );
     sgui_button_destroy( butt );
