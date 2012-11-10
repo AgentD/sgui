@@ -24,16 +24,46 @@
  */
 #include "internal.h"
 #include "sgui_opengl.h"
+#include <stdio.h>
 
 
+#define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
 
-XVisualInfo* get_visual( void )
+#ifndef GLX_VERSION_1_3
+    typedef struct GLXFBConfigRec* GLXFBConfig;
+
+    #define GLX_X_RENDERABLE  0x8012
+    #define GLX_X_VISUAL_TYPE 0x22
+    #define GLX_TRUE_COLOR    0x8002
+#endif
+
+#ifndef GLX_VERSION_1_4
+    #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
+    #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
+    #define GLX_CONTEXT_FLAGS_ARB                     0x2094
+    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
+
+    #define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
+    #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
+
+    #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+    #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#endif
+
+typedef GLXFBConfig* (* GLXCHOOSEFBCFGPROC )(Display*,int,const int*,int*);
+typedef XVisualInfo* (* GLXGETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
+typedef GLXContext   (* GLXCREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
+                                                       GLXContext, Bool,
+                                                       const int* );
+
+
+GLXFBConfig get_fb_config( void )
 {
-    GLXFBConfig* fbl;
-    XVisualInfo* vi;
+    GLXFBConfig fbc, *fbl;
+    GLXCHOOSEFBCFGPROC ChooseFBConfig;
     int fbcount;
 
-    static int attr[] =
+    int attr[] =
     {
         GLX_X_RENDERABLE,   True,
         GLX_X_VISUAL_TYPE,  GLX_TRUE_COLOR,
@@ -47,32 +77,143 @@ XVisualInfo* get_visual( void )
         None
     };
 
-    fbl = glXChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
+    ChooseFBConfig = (GLXCHOOSEFBCFGPROC)LOAD_GLFUN( "glXChooseFBConfig" );
+
+    if( !ChooseFBConfig )
+        return NULL;
+
+    fbl = ChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
 
     if( !fbl )
         return NULL;
 
-    vi = glXGetVisualFromFBConfig( dpy, fbl[0] );
+    fbc = fbl[0];
     XFree( fbl );
 
-    return vi;
+    return fbc;
 }
 
-GLXContext create_context( XVisualInfo* vi )
+XVisualInfo* get_visual_from_fbc( GLXFBConfig fbc )
 {
-    return glXCreateContext( dpy, vi, NULL, GL_TRUE );
+    GLXGETVISUALFROMFBCPROC GetVisualFromFBConfig;
+
+    GetVisualFromFBConfig = (GLXGETVISUALFROMFBCPROC)
+    LOAD_GLFUN( "glXGetVisualFromFBConfig" );
+
+    if( !GetVisualFromFBConfig )
+        return NULL;
+
+    return GetVisualFromFBConfig( dpy, fbc );
 }
 
+XVisualInfo* get_visual_old( void )
+{
+    int attr[] =
+    {
+        GLX_RGBA,
+        GLX_DOUBLEBUFFER,
+        GLX_RED_SIZE,     8,
+        GLX_GREEN_SIZE,   8,
+        GLX_BLUE_SIZE,    8,
+        GLX_ALPHA_SIZE,   8,
+        GLX_DEPTH_SIZE,  24,
+        GLX_STENCIL_SIZE, 8,
+        None
+    };
+
+    return glXChooseVisual( dpy, DefaultScreen(dpy), attr );
+}
+
+/****************************************************************************/
+
+GLXContext create_context( GLXFBConfig cfg, int version_major,
+                           int version_minor, int flags )
+{
+    GLXCREATECONTEXTATTRIBSPROC CreateContextAttribs;
+    GLXContext ctx = 0;
+    int attribs[10];
+
+    /********** try to load context creation function **********/
+    CreateContextAttribs = (GLXCREATECONTEXTATTRIBSPROC)
+    LOAD_GLFUN( "glXCreateContextAttribsARB" );
+
+    if( !CreateContextAttribs )
+        return NULL;
+
+    /********** fill attribute array **********/
+    attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+    attribs[1] = version_major;
+    attribs[2] = GLX_CONTEXT_MINOR_VERSION_ARB;
+    attribs[3] = version_minor;
+    attribs[4] = GLX_CONTEXT_PROFILE_MASK_ARB;
+    attribs[5] = flags & SGUI_OPENGL_COMPATIBILITY_PROFILE ?
+                           GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+                           GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+    attribs[6] = None;
+
+    if( flags & ~(SGUI_OPENGL_COMPATIBILITY_PROFILE) )
+    {
+        attribs[6] = GLX_CONTEXT_FLAGS_ARB;
+        attribs[7] = 0;
+        attribs[8] = None;
+
+        if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
+            attribs[7] |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+
+        if( flags & SGUI_OPENGL_DEBUG )
+            attribs[7] |= GLX_CONTEXT_DEBUG_BIT_ARB;
+    }
+
+    /********** try to create context **********/
+    if( !version_major )
+    {
+        /* try to create 4.x down to 3.x context */
+        for( version_major=4; !ctx && version_major>=3; --version_major )
+        {
+            for( version_minor=3; !ctx && version_minor>=0; --version_minor )
+            {
+                attribs[1] = version_major;
+                attribs[3] = version_minor;
+                ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+            }
+        }
+
+        /* try to create 2.x context */
+        for( version_minor=1; !ctx && version_minor>=0; --version_minor )
+        {
+            attribs[1] = 2;
+            attribs[3] = version_minor;
+            ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+        }
+
+        /* try to create 1.x context */
+        for( version_minor=5; !ctx && version_minor>=0; --version_minor )
+        {
+            attribs[1] = 1;
+            attribs[3] = version_minor;
+            ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+        }
+    }
+    else
+        ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+
+    return ctx;
+}
+
+/****************************************************************************/
 
 
 sgui_window* sgui_opengl_window_create( unsigned int width,
-                                        unsigned int height, int resizeable )
+                                        unsigned int height, int resizeable,
+                                        int version_major, int version_minor,
+                                        int flags )
 {
     sgui_window_xlib* wnd;
     XSizeHints hints;
     XSetWindowAttributes swa;
     XWindowAttributes attr;
-    XVisualInfo* vi;
+    XVisualInfo* vi = NULL;
+    GLXFBConfig fbc = NULL;
     Colormap cmap;
 
     if( !width || !height )
@@ -85,7 +226,13 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
 
     /******************** create the window ********************/
-    vi = get_visual( );
+    fbc = get_fb_config( );
+
+    if( fbc )
+        vi = get_visual_from_fbc( fbc );
+
+    if( !vi )
+        vi = get_visual_old( );
 
     if( !vi )
     {
@@ -145,7 +292,13 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     wnd->base.h = (unsigned int)attr.height;
 
     /**************** Create an OpenGL context *****************/
-    wnd->context.gl = create_context( vi );
+    if( fbc )
+        wnd->context.gl = create_context( fbc, version_major, version_minor,
+                                          flags );
+
+    if( !wnd->context.gl )
+        wnd->context.gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
+
     XFree( vi );
 
     if( !wnd->context.gl )

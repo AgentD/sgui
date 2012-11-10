@@ -30,6 +30,17 @@
 #include "sgui_window.h"
 
 
+
+typedef enum
+{
+    SGUI_OPENGL_COMPATIBILITY_PROFILE = 0x01,
+    SGUI_OPENGL_FORWARD_COMPATIBLE    = 0x02,
+    SGUI_OPENGL_DEBUG                 = 0x04
+}
+SGUI_OPENGL_FLAGS;
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,15 +90,21 @@ unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
  * has to be rendered manually and the screen has to be supplied with window
  * events.
  *
- * \param width      The width of the window
- * \param height     The height of the window
- * \param resizeable Wether the window should be resizeable
- *                   (see sgui_window_create).
+ * \param width          The width of the window
+ * \param height         The height of the window
+ * \param resizeable     Wether the window should be resizeable
+ *                       (see sgui_window_create).
+ * \param version_major  Major version number of desired OpenGL version (e.g.
+ *                       4 for 4.3). Set to 0 to choose the highest available.
+ * \param version_minor  Minor version number of desired OpenGL version (e.g.
+ *                       3 for 4.3). Set to 0 to choose the highest available.
+ * \param flags          A bitwise or for SGUI_OPENGL_FLAGS values.
  *
  * \return A pointer to a window on success, NULL otherwise.
  */
 sgui_window* sgui_opengl_window_create( unsigned int width, unsigned int height,
-                                        int resizeable );
+                                        int resizeable, int version_major,
+                                        int version_minor, int flags );
 
 /** \brief Destroy a window created through sgui_opengl_window_create */
 void sgui_opengl_window_destroy( sgui_window* window );

@@ -3,6 +3,7 @@
 #include "sgui_screen.h"
 
 #include <GL/gl.h>
+#include <stdio.h>
 
 
 sgui_screen* scr = NULL;
@@ -51,7 +52,7 @@ int main( void )
     /* create window */
     sgui_init( );
 
-    wnd = sgui_opengl_window_create( 800, 600, 0 );
+    wnd = sgui_opengl_window_create( 800, 600, 0, 1, 5, 0 );
 
     sgui_window_set_title( wnd, "sgui OpenGL test" );
     sgui_window_on_event( wnd, sgui_window_fun );
@@ -97,6 +98,12 @@ int main( void )
 
     glBindTexture( GL_TEXTURE_2D, tex );
     glEnable( GL_TEXTURE_2D );
+
+    /* print OpenGL info */
+    printf( "%s\n%s\nOpenGL %s\n",
+            glGetString( GL_VENDOR ),
+            glGetString( GL_RENDERER ),
+            glGetString( GL_VERSION ) );
 
     /* main loop */
     while( sgui_main_loop_step( ) )

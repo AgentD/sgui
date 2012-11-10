@@ -27,6 +27,22 @@
 
 
 
+typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
+
+#define WGL_CONTEXT_MAJOR_VERSION_ARB   0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB   0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB     0x2093
+#define WGL_CONTEXT_FLAGS_ARB           0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB    0x9126
+
+#define WGL_CONTEXT_DEBUG_BIT_ARB               0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+
+
+
 int set_pixel_format( HDC hDC )
 {
     PIXELFORMATDESCRIPTOR pfd;
@@ -47,18 +63,91 @@ int set_pixel_format( HDC hDC )
     return SetPixelFormat( hDC, format, &pfd );
 }
 
-HGLRC create_context( HDC hDC )
+HGLRC create_context( HDC hDC, int version_major,
+                      int version_minor, int flags )
 {
-    return wglCreateContext( hDC );
+    WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+    HGLRC ctx;
+    int attribs[10];
+
+    /* load the new context creation function */
+    wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
+    wglGetProcAddress( "wglCreateContextAttribsARB" );
+
+    if( !wglCreateContextAttribsARB )
+        return NULL;
+
+    /* fill attrib array */
+    attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+    attribs[1] = version_major;
+    attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+    attribs[3] = version_minor;
+    attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+    attribs[5] = flags & SGUI_OPENGL_COMPATIBILITY_PROFILE ?
+                         WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
+                         WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+    attribs[6] = 0;
+
+    if( flags & ~(SGUI_OPENGL_COMPATIBILITY_PROFILE) )
+    {
+        attribs[6] = WGL_CONTEXT_FLAGS_ARB;
+        attribs[7] = 0;
+        attribs[8] = 0;
+
+        if( flags & SGUI_OPENGL_DEBUG )
+            attribs[7] |= WGL_CONTEXT_DEBUG_BIT_ARB;
+
+        if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
+            attribs[7] |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+    }
+
+    /* try to create the context */
+    if( !version_major )
+    {
+        /* try to create 4.x down to 3.x context */
+        for( version_major=4; !ctx && version_major>=3; --version_major )
+        {
+            for( version_minor=3; !ctx && version_minor>=0; --version_minor )
+            {
+                attribs[1] = version_major;
+                attribs[3] = version_minor;
+                ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+            }
+        }
+
+        /* try to create 2.x context */
+        for( version_minor=1; !ctx && version_minor>=0; --version_minor )
+        {
+            attribs[1] = 2;
+            attribs[3] = version_minor;
+            ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+        }
+
+        /* try to create 1.x context */
+        for( version_minor=5; !ctx && version_minor>=0; --version_minor )
+        {
+            attribs[1] = 1;
+            attribs[3] = version_minor;
+            ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+        }
+    }
+    else
+        ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+
+    return ctx;
 }
 
 
 
 sgui_window* sgui_opengl_window_create( unsigned int width,
-                                        unsigned int height, int resizeable )
+                                        unsigned int height, int resizeable,
+                                        int version_major, int version_minor,
+                                        int flags )
 {
     sgui_window_w32* wnd;
     DWORD style;
+    HGLRC temp, oldctx;
+    HDC olddc;
     RECT r;
 
     if( !width || !height )
@@ -90,6 +179,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     wnd->base.w = width;
     wnd->base.h = height;
 
+    /* create OpenGL context */
     wnd->hDC = GetDC( wnd->hWnd );
 
     if( !wnd->hDC || !set_pixel_format( wnd->hDC ) )
@@ -98,13 +188,32 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
-    wnd->hRC = create_context( wnd->hDC );
+    temp = wglCreateContext( wnd->hDC );
 
-    if( !wnd->hRC )
+    if( !temp )
     {
         sgui_opengl_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
+
+    oldctx = wglGetCurrentContext( );
+    olddc = wglGetCurrentDC( );
+
+    if( !wglMakeCurrent( wnd->hDC, temp ) )
+    {
+        sgui_opengl_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
+
+    wnd->hRC = create_context(wnd->hDC, version_major, version_minor, flags);
+
+    /* restore the privous context */
+    wglMakeCurrent( olddc, oldctx );
+
+    if( wnd->hRC )
+        wglDeleteContext( temp );
+    else
+        wnd->hRC = temp;
 
     /****************** register implementation functions ******************/
     wnd->base.get_mouse_position = window_w32_get_mouse_position;
@@ -128,7 +237,7 @@ void sgui_opengl_window_destroy( sgui_window* window )
         sgui_internal_window_fire_event(window, SGUI_API_DESTROY_EVENT, NULL);
 
         if( wnd->hRC )
-            wglMakeCurrent( wnd->hDC, wnd->hRC );
+            wglDeleteContext( wnd->hRC );
 
         if( wnd->hDC )
             ReleaseDC( wnd->hWnd, wnd->hDC );
