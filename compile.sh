@@ -138,7 +138,7 @@ else
 
     create_library "build/obj/win32" "libsgui.a" "$MINGW_AR" "$MINGW_RANLIB"
 
-    compile_tests "$MINGW" "build/obj/win32" "$LIBS_WIN32" "_w32.exe"
+    compile_tests "$MINGW -mwindows" "build/obj/win32" "$LIBS_WIN32" "_w32.exe"
 
     ########### win 64 ###########
     compile_files "$MINGW64 $INCLUDE_WIN" "$SOURCE_COMMON" "build/obj/win64"
@@ -148,6 +148,7 @@ else
     create_library "build/obj/win64" "libsgui.a" "$MINGW64_AR"\
                    "$MINGW64_RANLIB"
 
-    compile_tests "$MINGW64" "build/obj/win64" "$LIBS_WIN64" "_w64.exe"
+    compile_tests "$MINGW64 -mwindows" "build/obj/win64" "$LIBS_WIN64"\
+                  "_w64.exe"
 fi
 

@@ -25,6 +25,7 @@
 #include "sgui_opengl.h"
 #include "internal.h"
 
+#include <stdio.h>
 
 
 typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
@@ -67,7 +68,7 @@ HGLRC create_context( HDC hDC, int version_major,
                       int version_minor, int flags )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-    HGLRC ctx;
+    HGLRC ctx = NULL;
     int attribs[10];
 
     /* load the new context creation function */
