@@ -119,17 +119,28 @@ compile_tests( )
 if [ ! -f ./compile.sh ]; then
     echo "Error: script must be run from it's directory!"
 else
-    mkdir -p "build/obj/unix/test"
+    mkdir -p "build/obj/unix32/test"
+    mkdir -p "build/obj/unix64/test"
     mkdir -p "build/obj/win32/test"
     mkdir -p "build/obj/win64/test"
 
-    ########## unix/X11 ##########
-    compile_files "gcc $INCLUDE_X11" "$SOURCE_COMMON" "build/obj/unix"
-    compile_files "gcc $INCLUDE_X11" "$SOURCE_X11"    "build/obj/unix" "x11_"
+    ######### unix32/X11 #########
+    compile_files "gcc -m32 $INCLUDE_X11" "$SOURCE_COMMON" "build/obj/unix32"
+    compile_files "gcc -m32 $INCLUDE_X11" "$SOURCE_X11"    "build/obj/unix32"\
+                  "x11_"
 
-    create_library "build/obj/unix" "libsgui.a" "ar" "ranlib"
+    create_library "build/obj/unix32" "libsgui.a" "ar" "ranlib"
 
-    compile_tests "gcc" "build/obj/unix" "$LIBS_X11" "_unix"
+    compile_tests "gcc -m32" "build/obj/unix32" "$LIBS_X11" "_unix32"
+
+    ######### unix64/X11 #########
+    compile_files "gcc -m64 $INCLUDE_X11" "$SOURCE_COMMON" "build/obj/unix64"
+    compile_files "gcc -m64 $INCLUDE_X11" "$SOURCE_X11"    "build/obj/unix64"\
+                  "x11_"
+
+    create_library "build/obj/unix64" "libsgui.a" "ar" "ranlib"
+
+    compile_tests "gcc -m64" "build/obj/unix64" "$LIBS_X11" "_unix64"
 
     ########### win 32 ###########
     compile_files "$MINGW $INCLUDE_WIN" "$SOURCE_COMMON" "build/obj/win32"
