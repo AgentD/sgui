@@ -264,7 +264,7 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     }
     else
     {
-        r.left = w->area.left + b->cx; r.right  = w->area.right - b->cx;
+        r.left = w->area.left + b->cx; r.right  = w->area.right;
         r.top  = w->area.top;          r.bottom = w->area.bottom;
 
         sgui_canvas_clear( cv, &r );

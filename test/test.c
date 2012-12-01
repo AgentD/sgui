@@ -52,10 +52,10 @@ int main( void )
             image[ (y*128 + x)*4 + 3 ] = 0xFF * (x/128.0f);
         }
 
-    font = sgui_font_load( NULL, "font/SourceSansPro-Regular.ttf" );
-    font_bold = sgui_font_load( NULL, "font/SourceSansPro-Semibold.ttf" );
-    font_ital = sgui_font_load( NULL, "font/SourceSansPro-It.ttf" );
-    font_boit = sgui_font_load( NULL, "font/SourceSansPro-SemiboldIt.ttf" );
+    font     =sgui_font_load(NULL, "../../font/SourceSansPro-Regular.ttf");
+    font_bold=sgui_font_load(NULL, "../../font/SourceSansPro-Semibold.ttf");
+    font_ital=sgui_font_load(NULL, "../../font/SourceSansPro-It.ttf");
+    font_boit=sgui_font_load(NULL, "../../font/SourceSansPro-SemiboldIt.ttf");
 
     sgui_skin_set_default_font( font, font_bold, font_ital,
                                 font_boit, 16 );
