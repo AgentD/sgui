@@ -32,6 +32,7 @@
 #include "sgui_filesystem.h"
 #include "sgui_font.h"
 #include "sgui_keycodes.h"
+#include "sgui_predef.h"
 #include "sgui_rect.h"
 #include "sgui_skin.h"
 #include "sgui_window.h"

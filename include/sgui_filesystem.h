@@ -5,6 +5,8 @@
 
 #include <stddef.h>
 
+#include "sgui_predef.h"
+
 
 
 #ifdef __cplusplus
@@ -13,7 +15,7 @@ extern "C" {
 
 
 
-typedef struct
+struct sgui_filesystem
 {
     /**
      * \brief Open a file for reading
@@ -48,9 +50,7 @@ typedef struct
      */
     size_t (* file_read )( void* file, void* buffer,
                            size_t itemsize, size_t items );
-}
-sgui_filesystem;
-
+};
 
 
 /** \brief Get a pointer to a default stdio filesystem implementation */

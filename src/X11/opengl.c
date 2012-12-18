@@ -24,6 +24,8 @@
  */
 #include "internal.h"
 #include "sgui_opengl.h"
+#include "sgui_event.h"
+
 #include <stdio.h>
 
 

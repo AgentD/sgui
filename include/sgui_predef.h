@@ -1,5 +1,5 @@
 /*
- * sgui_static_text.h
+ * sgui_predef.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,39 +22,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_STATIC_TEXT_H
-#define SGUI_STATIC_TEXT_H
+#ifndef SGUI_PREDEF_H
+#define SGUI_PREDEF_H
 
 
 
-#include "sgui_predef.h"
+typedef struct sgui_filesystem sgui_filesystem;
+
+typedef struct sgui_font sgui_font;
+
+typedef struct sgui_rect sgui_rect;
+
+typedef struct sgui_canvas sgui_canvas;
+
+typedef struct sgui_widget sgui_widget;
+
+typedef struct sgui_widget_manager sgui_widget_manager;
+
+typedef struct sgui_screen sgui_screen;
+
+typedef struct sgui_window sgui_window;
+
+typedef union sgui_event sgui_event;
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-/**
- * \brief Create a static text widget
- *
- * \param x    The x component of the widget position.
- * \param y    The y component of the widget position.
- * \param text The UTF8 text to print. The LF ('\n') character can be used
- *             for line wraps, the \<b\> \</b\> and \<i\> \</i\> for writing
- *             text bold or italic. A \<color="#RRGGBB"\> tag can be used to
- *             switch text color. The color value "default" switches back to
- *             the default color.
- */
-sgui_widget* sgui_static_text_create( int x, int y, const char* text );
-
-/** \brief Destroy a static text widget */
-void sgui_static_text_destroy( sgui_widget* widget );
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* SGUI_STATIC_TEXT_H */
+#endif /* SGUI_PREDEF_H */
 

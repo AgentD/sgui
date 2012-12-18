@@ -27,9 +27,7 @@
 
 
 
-#include "sgui_canvas.h"
-#include "sgui_widget.h"
-#include "sgui_font.h"
+#include "sgui_predef.h"
 
 
 

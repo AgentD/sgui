@@ -27,10 +27,7 @@
 
 
 
-#include "sgui_widget.h"
-#include "sgui_canvas.h"
-#include "sgui_event.h"
-#include "sgui_rect.h"
+#include "sgui_predef.h"
 
 
 
@@ -40,8 +37,6 @@ extern "C"
 #endif
 
 
-
-typedef struct sgui_widget_manager sgui_widget_manager;
 
 /**
  * \brief A callback for listening to widget events

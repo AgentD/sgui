@@ -24,6 +24,7 @@
  */
 #include "sgui_canvas.h"
 #include "sgui_font.h"
+#include "sgui_filesystem.h"
 
 #include <string.h>
 #include <stdlib.h>

@@ -27,20 +27,13 @@
 
 
 
-#include "sgui_canvas.h"
-#include "sgui_filesystem.h"
+#include "sgui_predef.h"
 
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-
-typedef struct sgui_font sgui_font;
-
-
 
 /**
  * \brief Load a font face from a file
@@ -135,8 +128,6 @@ void sgui_font_draw_text( sgui_canvas* canvas, int x, int y,
                           sgui_font* font_ital, sgui_font* font_boit,
                           unsigned int font_height, unsigned char* color,
                           const char* text );
-
-
 
 #ifdef __cplusplus
 }

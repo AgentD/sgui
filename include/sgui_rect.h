@@ -27,14 +27,17 @@
 
 
 
-typedef struct
+#include "sgui_predef.h"
+
+
+
+struct sgui_rect
 {
     int left;
     int top;
     int right;
     int bottom;
-}
-sgui_rect;
+};
 
 
 
@@ -49,8 +52,6 @@ sgui_rect;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
 
 /**
  * \brief Set the coordinates of a rect using position and size
@@ -149,13 +150,9 @@ int sgui_rect_clip_line( sgui_rect* r, int horizontal, int* x, int* y,
  */
 int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch );
 
-
-
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif /* SGUI_RECT_H */
 

@@ -27,7 +27,7 @@
 
 
 
-#include "sgui_widget.h"
+#include "sgui_predef.h"
 
 
 
@@ -81,8 +81,6 @@ unsigned int sgui_progress_bar_get_progress( sgui_widget* bar );
  * \param par The progress bar widget to delete
  */
 void sgui_progress_bar_destroy( sgui_widget* bar );
-
-
 
 #ifdef __cplusplus
 }

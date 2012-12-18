@@ -27,7 +27,7 @@
 
 
 
-#include "sgui_widget.h"
+#include "sgui_predef.h"
 
 
 

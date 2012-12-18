@@ -25,6 +25,8 @@
 #include "sgui_tab.h"
 #include "sgui_skin.h"
 #include "sgui_widget_manager.h"
+#include "sgui_event.h"
+#include "sgui_canvas.h"
 #include "sgui_internal.h"
 
 #include <stdlib.h>

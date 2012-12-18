@@ -1,5 +1,7 @@
 #include "sgui_internal.h"
 #include "sgui_window.h"
+#include "sgui_event.h"
+#include "sgui_canvas.h"
 
 #include <stddef.h>
 

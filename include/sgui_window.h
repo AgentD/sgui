@@ -27,9 +27,7 @@
 
 
 
-#include "sgui_event.h"
-#include "sgui_widget.h"
-#include "sgui_canvas.h"
+#include "sgui_predef.h"
 #include "sgui_widget_manager.h"
 
 
@@ -45,10 +43,6 @@ extern "C" {
 
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
-
-
-
-typedef struct sgui_window sgui_window;
 
 
 

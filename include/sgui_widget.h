@@ -27,19 +27,13 @@
 
 
 
-#include "sgui_canvas.h"
-#include "sgui_event.h"
-#include "sgui_rect.h"
+#include "sgui_predef.h"
 
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-
-typedef struct sgui_widget sgui_widget;
 
 
 

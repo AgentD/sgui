@@ -24,6 +24,9 @@
  */
 #include "sgui_button.h"
 #include "sgui_skin.h"
+#include "sgui_event.h"
+#include "sgui_canvas.h"
+#include "sgui_font.h"
 #include "sgui_internal.h"
 
 #include <stdlib.h>

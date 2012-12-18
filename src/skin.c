@@ -27,6 +27,8 @@
 #include "sgui_progress_bar.h"
 #include "sgui_window.h"
 #include "sgui_canvas.h"
+#include "sgui_font.h"
+#include "sgui_rect.h"
 
 #include <stddef.h>
 #include <stdlib.h>

@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_opengl.h"
+#include "sgui_event.h"
 #include "internal.h"
 
 #include <stdio.h>

@@ -26,8 +26,8 @@
 #define SGUI_OPENGL_H
 
 
-#include "sgui_canvas.h"
-#include "sgui_window.h"
+
+#include "sgui_predef.h"
 
 
 

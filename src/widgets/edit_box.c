@@ -24,6 +24,7 @@
  */
 #include "sgui_edit_box.h"
 #include "sgui_skin.h"
+#include "sgui_event.h"
 #include "sgui_internal.h"
 
 #include <stdlib.h>

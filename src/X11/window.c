@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "internal.h"
+#include "sgui_event.h"
 
 #include <stdlib.h>
 #include <string.h>

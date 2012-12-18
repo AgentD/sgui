@@ -27,7 +27,7 @@
 
 
 
-#include "sgui_rect.h"
+#include "sgui_predef.h"
 
 
 
@@ -44,10 +44,6 @@ typedef enum
     SCF_RGBA8
 }
 SGUI_COLOR_FORMAT;
-
-
-
-typedef struct sgui_canvas sgui_canvas;
 
 
 

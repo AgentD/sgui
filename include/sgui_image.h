@@ -27,14 +27,14 @@
 
 
 
-#include "sgui_widget.h"
+#include "sgui_predef.h"
+
+
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-
 
 /**
  * \brief Create an image widget
@@ -56,8 +56,6 @@ sgui_widget* sgui_image_create( int x, int y,
 
 /** \brief Destroy a static text widget */
 void sgui_image_destroy( sgui_widget* widget );
-
-
 
 #ifdef __cplusplus
 }
