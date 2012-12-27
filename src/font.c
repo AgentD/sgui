@@ -281,7 +281,7 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
         longest = X;
 
     if( width  ) *width  = longest;
-    if( height ) *height = lines * font_height;
+    if( height ) *height = lines * font_height + font_height/2;
 }
 
 
