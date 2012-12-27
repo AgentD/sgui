@@ -1,0 +1,142 @@
+<html>
+<head>
+    <title>SGUI - Using the SGUI library</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Using the SGUI library</h2>
+
+<h3>Creating and using widgets</h3>
+
+<img src="images/shot1.png">
+<br>
+<br>
+
+So far, we have seen how to create and manipulate windows. This is not very
+usefull as it presents no ways for a user to interact with the program yet.
+<br>
+<br>
+For this purpose, SGUI provides <i>widgets</i>. In the image above you can
+see various widgets inside a window. Again, we will expand the previous
+example to demonstrate this.<br>
+<br>
+We start off by adding some new declarations at the beginning of the main
+function:
+
+<p class="code">
+<font class="keyword">int</font> main( )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window* wnd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* text;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* button;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_font* font;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+</p>
+
+The <b>sgui_widget</b> structure represents a widget. We will create two
+simple widgets in this example, a static text widget, which only draws a
+text onto the window and a button that the user can click.<br>
+<br>
+Of course, both widgets need text rendering. For rendering text, we must
+load a font to use, represented by the <b>sgui_font</b> structure and tell
+the SGUI skinning system to use the font:
+
+<p class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="keyword">NULL</font>, <font class="string">"SourceSansPro-Regular.ttf"</font> );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_skin_set_default_font( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="number">16</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+</p>
+The first function call loads a true type font file. The first argument (NULL)
+is a pointer used for filesystem abstraction which we don't need here (NULL
+tells SGUI to use the standard filesystem functions). Of course, in this
+example, the file should be in the your working directory when you start the
+program, or it will not be found.<br>
+<br>
+The second function call tells the SGUI skinning system to use the loaded font
+for text rendering. Because we don't provide variants for bold, italic or bold
+and italic, we pass NULL as our other arguments. The last parameter of the
+function (where we pass 16) is the default font height to use
+<i>in pixels</i>.<br>
+<br>
+
+Now lets create those two widgets:
+
+<p class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;text = sgui_static_text_create( <font class="number">10</font>, <font class="number">10</font>, <font class="string">"To close the window,\npress &lt;color=\"#FF0000\"&gt;close"</font> );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;button = sgui_button_create( <font class="number">30</font>, <font class="number">60</font>, <font class="number">75</font>, <font class="number">30</font>, <font class="string">"Close"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+</p>
+
+The <b>sgui_static_text_create</b> function creates a static text widget and
+the <b>sgui_button_create</b> function creates a button widget.<br>
+Both functions take a position as their first two parameters, i.e. a distance
+from the left of the window and a distance from the top of the window, each
+<i>in pixels</i>. The static text is positioned at (10,10) and the button
+at (30,60).<br>
+<br>
+The next parameter of the <b>sgui_static_text_create</b> function is a string
+to display. As you can see from the result, we can make line breaks by using
+'\n' and change the color using a pseudo HTML &lt;color=#RRGGBB&gt; tag. We
+could also write bold and italic text using &lt;b&gt; and &lt;i&gt; tags, but
+then we would have to load bold and italic font faces.<br>
+<br>
+The next two parameters of the <b>sgui_button_create</b> function specify a
+width and a height of the button (in pixels), where the width is the
+horizontal length and the height the vertical length, starting at the given
+position. The last parameter of the function is the text to print onto the
+button.<br>
+<br>
+Now that we created those two widgets, we just need to add them to the window
+(after creating the window and before the main loop of course):
+
+<p class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_add_widget( wnd, text );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_add_widget( wnd, button );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+</p>
+
+The widgets are now visible inside the window. All we need to do
+now is to destroy the newly created objects after the main loop
+ends:
+
+<p class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_static_text_destroy( text );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_button_destroy( button );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_font_destroy( font );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+</p>
+
+When you now compile and run the program, the final result will look like
+this:
+<br>
+<img src="images/sample2.png"><br>
+
+<br>
+It is adviseable to play around with widgets in this sample program. Knowing
+that all other widgets are created, destroyed and attached to a window in the
+same way, it should be sufficient to read through the doxygen documentation or
+the header files to try out other widgets.<br>
+<br>
+In this example however, you will notice that you can press the button like
+mad and nothing will happen, so we still don't have any user interaction. How
+should the library know that the button labeled "close" is supposed to close
+the window anyway? We will take a look at this in the next section.
+
+<hr>
+<a href="using.windows.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="using.events.html">Next</a>
+
+</html>
+

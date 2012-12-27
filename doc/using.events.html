@@ -1,0 +1,112 @@
+<html>
+<head>
+    <title>SGUI - Using the SGUI library</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Using the SGUI library</h2>
+
+<h3>Event callbacks</h3>
+
+To provide user interaction with your program, SGUI provides two types of
+callbacks. A <b>window callback</b> and a <b>widget callback</b>. Both types
+of callbacks can be registerd to a window, but only <b>one of each kind per
+window</b>.<br>
+<br>
+The window callback gets called whenever something happens to the window
+(e.g. the window gets resized, closed, the mouse moves inside the window,
+etc...). The widget callback gets called whenever something happens to a
+widget (e.g. button pressed, checkbox checked, etc...).<br>
+You can read about all kinds of window and widgets events in the doxygen
+documentation or the <b>sgui_event.h</b> header.<br>
+<br>
+Lets extend our previous example by a simple widget callback:
+<p class="code">
+<font class="keyword">void</font> widget_callback( sgui_widget* widget, <font class="keyword">int</font> type, <font class="keyword">void</font>* user )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( type == SGUI_BUTTON_CLICK_EVENT )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_visible( user, SGUI_INVISIBLE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+</p>
+We can see that a widget callback receives three arguments. The first is a
+pointer to the widget that triggered the event, the second is an integer
+identifying what kind of evenet happened and the third is a user pointer that
+you can specify when registering the callback. In this example we assume that
+the user pointer is a pointer to an sgui_window struct and make it invisible
+when an <b>SGUI_BUTTON_CLICK_EVENT</b> happens. Because we only have one
+button, we ignore the widget pointer.<br>
+<br>
+Now lets also make a window callback that simply prints all characters entered
+while the window has focus:
+<p class="code">
+<font class="keyword">void</font> window_callback( sgui_window* wnd, <font class="keyword">int</font> type, sgui_event* event )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( type == SGUI_CHAR_EVENT )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf( <font class="string">"%s\n"</font>, event->char_event.as_utf8_str );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+</p>
+The window callback also receives three arguments. The first is a pointer
+to the window that triggered the event. The second is an integer identifying
+what kind of event happened and the third is a pointer to a union holding
+information about the event.<br>
+In this example we ignore the window pointer and, whenever an
+<b>SGUI_CHAR_EVENT</b> happens, i.e the keyboard keys pressed by the user
+could be composed into a printable UTF8 string, we print that string.<br>
+<br>
+All we need to do now, is to register those callbacks after we create the
+window:
+<p class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_on_widget_event( wnd, widget_callback, wnd );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_on_event( wnd, window_callback );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...
+</p>
+The first function call registers the widget callback, with the first argument
+being the window to register to, the second being the callback and the third
+the user pointer to pass to the callback, which is our window here.<br>
+<br>
+The second function call registers our window event callback.<br>
+<br>
+When you compile the program and run it from the command line you will notice
+a few things:
+<ul>
+<li>You can now close the window and terminate the program by pressing
+    the "Close" button.
+<li>When pressing keys while the window has focus, they are printed to the
+    command line.
+<li>You can also compose keys (e.g. letters like '&Acirc;' or '&agrave;' can
+    be entered, but don't worry, there is also an event type for simple
+    key-pressed, key-released events).
+</ul>
+
+<br>
+
+With the things you've read so far and the doxygen documentation, it should be
+fairly easy to compose simple GUI applications. But I would like to show you a
+few hints on how the event processing callback was originaly intended:
+<ul>
+<li>Make the widgets of a window accessible to the widget event callback
+    (e.g stuff them into a structure and register it as a user pointer).
+<li>C++ users might use a class and register a pointer to a class instance as
+    user pointer and redirect events to an appropriate method.
+<li>Decide what to do based on what event happened and which widget caused it.
+<li>The single event callback design has been choses for its simplicity. A
+    signals-and-slots like system can be easily built on top of it. (see the
+    "extras" subdirectory).
+</ul>
+
+<hr>
+<a href="using.widgets.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="using.filesystem.html">Next</a>
+
+</html>
+
+

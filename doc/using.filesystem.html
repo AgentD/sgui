@@ -1,0 +1,39 @@
+<html>
+<head>
+    <title>SGUI - Using the SGUI library</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Using the SGUI library</h2>
+
+<h3>Filesystem abstraction</h3>
+
+It has already been mentioned that SGUI supports filesystem abstraction
+(the NULL pointer passed to the <b>sgui_font_load</b> function). What this
+means is that SGUI does not access the filesystem directly, instead it uses
+a struct of type <b>sgui_filesystem</b>, holding various callbacks.<br>
+<br>
+With this meachanism you can redirect the SGUI file accesses to your own
+functions, so it accesses a compressed archive, a network source, a virtual
+filesystem like PhysicsFS or some implementation for a microcontroller where
+there is no native filesystem instead of the actual filesystem.<br>
+<br>
+All you need to do is instantiate the <b>sgui_filesystem</b> structure, fill
+it with pointers to functions that open/close/read from/get the size of opaque
+file handles. (Consult the doxygen documentation or read the
+<b>sgui_filesystem.h</b> header for more details).<br>
+<br>
+All SGUI functions that access files require a pointer to an
+<b>sgui_filesystem</b> structure. If you pass NULL, they simply call
+<b>sgui_filesystem_get_default</b> what returns a pointer to an implementation
+that uses the STDIO functions.
+
+<hr>
+<a href="using.events.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="using.filesystem.html">Next</a>
+
+</html>
+
