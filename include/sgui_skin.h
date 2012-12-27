@@ -47,18 +47,19 @@ extern "C"
  * \param bold_italic Font face for both bold and italic text.
  * \param height      Default font height in pixels.
  */
-void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
-                                 sgui_font* italic, sgui_font* bold_italic,
-                                 unsigned int height );
+void SGUI_DLL sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
+                                          sgui_font* italic,
+                                          sgui_font* bold_italic,
+                                          unsigned int height );
 
 /** \brief Get the default window background color */
-void sgui_skin_get_window_background_color( unsigned char* color );
+void SGUI_DLL sgui_skin_get_window_background_color( unsigned char* color );
 
 /** \brief Get the default font color */
-void sgui_skin_get_default_font_color( unsigned char* color );
+void SGUI_DLL sgui_skin_get_default_font_color( unsigned char* color );
 
 /** \brief Get the default font height in pixels */
-unsigned int sgui_skin_get_default_font_height( void );
+unsigned int SGUI_DLL sgui_skin_get_default_font_height( void );
 
 /**
  * \brief Get the default font face
@@ -68,7 +69,7 @@ unsigned int sgui_skin_get_default_font_height( void );
  *
  * \return The desired default font face
  */
-sgui_font* sgui_skin_get_default_font( int bold, int italic );
+sgui_font* SGUI_DLL sgui_skin_get_default_font( int bold, int italic );
 
 /**
  * \brief Get the width (in pixels) of a string rendered with the default font
@@ -80,9 +81,9 @@ sgui_font* sgui_skin_get_default_font( int bold, int italic );
  *
  * \return The width of the rendered text in pixels
  */
-unsigned int sgui_skin_default_font_extents( const char* text,
-                                             unsigned int length,
-                                             int bold, int italic );
+unsigned int SGUI_DLL sgui_skin_default_font_extents( const char* text,
+                                                      unsigned int length,
+                                                      int bold, int italic );
 
 /**
  * \brief Predict the size of a checkbox when rendered
@@ -90,8 +91,8 @@ unsigned int sgui_skin_default_font_extents( const char* text,
  * \param width  Returns the width of the checkbox.
  * \param height Returns the height of the checkbox.
  */
-void sgui_skin_get_checkbox_extents( unsigned int* width,
-                                     unsigned int* height );
+void SGUI_DLL sgui_skin_get_checkbox_extents( unsigned int* width,
+                                              unsigned int* height );
 
 /**
  * \brief Predict the size of a radio button when rendered
@@ -99,8 +100,8 @@ void sgui_skin_get_checkbox_extents( unsigned int* width,
  * \param width  Returns the width of the radio button.
  * \param height Returns the height of the radio button.
  */
-void sgui_skin_get_radio_button_extents( unsigned int* width,
-                                         unsigned int* height );
+void SGUI_DLL sgui_skin_get_radio_button_extents( unsigned int* width,
+                                                  unsigned int* height );
 
 /**
  * \brief Predict the size of a radio menu when rendered
@@ -112,12 +113,13 @@ void sgui_skin_get_radio_button_extents( unsigned int* width,
  * \param width     Returns the width of the bar.
  * \param height    Returns the height of the bar.
  */
-void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
-                                         int vertical, unsigned int* width,
-                                         unsigned int* height );
+void SGUI_DLL sgui_skin_get_progress_bar_extents( unsigned int length,
+                                                  int style, int vertical,
+                                                  unsigned int* width,
+                                                  unsigned int* height );
 
 /** \brief Get the default height of an edit box */
-unsigned int sgui_skin_get_edit_box_height( void );
+unsigned int SGUI_DLL sgui_skin_get_edit_box_height( void );
 
 /**
  * \brief Get the dimensions of a scroll bar
@@ -130,20 +132,22 @@ unsigned int sgui_skin_get_edit_box_height( void );
  * \param bw         Returns the width of the buttons attached to the bar
  * \param bh         Returns the height of the buttons attached to the bar
  */
-void sgui_skin_get_scroll_bar_extents( int horizontal, unsigned int length,
-                                       unsigned int* width,
-                                       unsigned int* height,
-                                       unsigned int* bw, unsigned int* bh );
+void SGUI_DLL sgui_skin_get_scroll_bar_extents( int horizontal,
+                                                unsigned int length,
+                                                unsigned int* width,
+                                                unsigned int* height,
+                                                unsigned int* bw,
+                                                unsigned int* bh );
 
 /** \brief Get the width of the border around a frame */
-unsigned int sgui_skin_get_frame_border_width( void );
+unsigned int SGUI_DLL sgui_skin_get_frame_border_width( void );
 
 
 /** \brief Get the width of a tab caption */
-unsigned int sgui_skin_get_tab_caption_width( const char* caption );
+unsigned int SGUI_DLL sgui_skin_get_tab_caption_width( const char* caption );
 
 /** \brief Get the default height of a tab caption */
-unsigned int sgui_skin_get_tab_caption_height( void );
+unsigned int SGUI_DLL sgui_skin_get_tab_caption_height( void );
 
 
 
@@ -160,9 +164,9 @@ unsigned int sgui_skin_get_tab_caption_height( void );
  * \param style    The style of the bar (stippled or continuous).
  * \param value    The progress value to indicate (value between 0 and 100).
  */
-void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
-                                  unsigned int length, int vertical,
-                                  int style, unsigned int value );
+void SGUI_DLL sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
+                                           unsigned int length, int vertical,
+                                           int style, unsigned int value );
 
 /**
  * \brief Draw a button widget onto a canvas
@@ -172,7 +176,8 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
  * \param state  Zero if the button is in default state, non-zero if it is
  *               pressed.
  */
-void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* r, int state );
+void SGUI_DLL sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* r,
+                                     int state );
 
 /**
  * \brief Draw a checkbox onto a canvas
@@ -182,7 +187,8 @@ void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* r, int state );
  * \param y      Distance from the top of the box to the top of the window.
  * \param state  Non-zero if the checkbox is checked.
  */
-void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state );
+void SGUI_DLL sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
+                                       int state );
 
 /**
  * \brief Draw a radio menu onto a canvas
@@ -194,8 +200,8 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state );
  *                 the canvas.
  * \param selected Whether the radio button is selected or not
  */
-void sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
-                                  int selected );
+void SGUI_DLL sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
+                                           int selected );
 
 /**
  * \brief Draw an edit box onto a canvas
@@ -208,9 +214,9 @@ void sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
  * \param cursor Character index (UTF8!!) of the cursor or -1 to not draw a
  *               cursor at all.
  */
-void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
-                              const char* text,
-                              unsigned int width, int cursor );
+void SGUI_DLL sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
+                                       const char* text,
+                                       unsigned int width, int cursor );
 
 /**
  * \brief Draw a frame onto a canvas
@@ -221,8 +227,8 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
  * \param width  The width of the frame
  * \param height The height of the frame
  */
-void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
-                           unsigned int height );
+void SGUI_DLL sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
+                                    unsigned int height );
 
 /**
  * \brief Draw a scroll bar onto a canvas
@@ -237,11 +243,12 @@ void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
  * \param inc_button_state State of the button that increments the bar value
  * \param dec_button_state State of the button that decrements the bar value
  */
-void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
-                                int horizontal, unsigned int length,
-                                unsigned int p_offset,
-                                unsigned int p_length,
-                                int inc_button_state, int dec_button_state );
+void SGUI_DLL sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
+                                         int horizontal, unsigned int length,
+                                         unsigned int p_offset,
+                                         unsigned int p_length,
+                                         int inc_button_state,
+                                         int dec_button_state );
 
 /**
  * \brief Draw a happy little group box onto a canvas
@@ -253,9 +260,10 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
  * \param height  The height of the group box
  * \param caption The caption of the group box
  */
-void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
-                               unsigned int width, unsigned int height,
-                               const char* caption );
+void SGUI_DLL sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
+                                        unsigned int width,
+                                        unsigned int height,
+                                        const char* caption );
 
 /**
  * \brief Draw the caption of a tab onto a canvas
@@ -266,8 +274,9 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
  * \param width   The width of the tab caption
  * \param caption The caption text
  */
-void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
-                                 unsigned int width, const char* caption );
+void SGUI_DLL sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
+                                          unsigned int width,
+                                          const char* caption );
 
 /**
  * \brif Draw a tab onto onto a canvas
@@ -280,9 +289,9 @@ void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
  * \param gap       The offset at witch to insert a gap for the caption
  * \param gap_width The width of the gap
  */
-void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,
-                         unsigned int height, unsigned int gap,
-                         unsigned int gap_width );
+void SGUI_DLL sgui_skin_draw_tab( sgui_canvas* cv, int x, int y,
+                                  unsigned int width, unsigned int height,
+                                  unsigned int gap, unsigned int gap_width );
 
 
 #ifdef __cplusplus

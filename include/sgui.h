@@ -28,6 +28,7 @@
 
 
 #include "sgui_canvas.h"
+#include "sgui_dll.h"
 #include "sgui_event.h"
 #include "sgui_filesystem.h"
 #include "sgui_font.h"
@@ -65,14 +66,14 @@ extern "C" {
  *
  * \return Non-zero on success, zero on error.
  */
-int sgui_init( void );
+int SGUI_DLL sgui_init( void );
 
 /**
  * \brief Uninitialise sgui
  *
  * Call this once you are done using sgui.
  */
-void sgui_deinit( void );
+void SGUI_DLL sgui_deinit( void );
 
 /**
  * \brief Enter the sgui main loop
@@ -81,7 +82,7 @@ void sgui_deinit( void );
  * asks them to update. The function does not return as long as there are
  * windows visible.
  */
-void sgui_main_loop( void );
+void SGUI_DLL sgui_main_loop( void );
 
 /**
  * \brief Execute a single step of the main loop
@@ -95,7 +96,7 @@ void sgui_main_loop( void );
  * \return Non-zero if there is at least one window visible, zero if there
  *         are no more visible windows.
  */
-int sgui_main_loop_step( void );
+int SGUI_DLL sgui_main_loop_step( void );
 
 #ifdef __cplusplus
 }

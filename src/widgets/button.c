@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define SGUI_BUILDING_DLL
 #include "sgui_button.h"
 #include "sgui_skin.h"
 #include "sgui_event.h"

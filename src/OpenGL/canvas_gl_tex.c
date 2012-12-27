@@ -1,5 +1,5 @@
 /*
- * canvas.c
+ * canvas_gl_tex.c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define SGUI_BUILDING_DLL
 #include "sgui_opengl.h"
 #include "sgui_internal.h"
 

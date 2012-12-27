@@ -44,10 +44,11 @@ extern "C" {
  *
  * \returns A font object
  */
-sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename );
+sgui_font* SGUI_DLL sgui_font_load( const sgui_filesystem* fs,
+                                    const char* filename );
 
 /** \brief Destroy a font object */
-void sgui_font_destroy( sgui_font* font );
+void SGUI_DLL sgui_font_destroy( sgui_font* font );
 
 /**
  * \brief Get the with of a single line of text, in a single font face,
@@ -58,10 +59,11 @@ void sgui_font_destroy( sgui_font* font );
  * \param text        The UTF8 text to determine the rendered width of
  * \param length      The number of bytes to read
  */
-unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
-                                               unsigned int font_height,
-                                               const char* text,
-                                               unsigned int length );
+unsigned int SGUI_DLL sgui_font_get_text_extents_plain( sgui_font* font_face,
+                                                        unsigned int
+                                                        font_height,
+                                                        const char* text,
+                                                        unsigned int length );
 
 /**
  * \brief Get the with and height of a multi line text that uses html like
@@ -78,10 +80,14 @@ unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
  * \param width       Returns the width of the rendered text
  * \param height      Returns the height of the rendererd text
  */
-void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
-                                 sgui_font* font_ital, sgui_font* font_boit,
-                                 unsigned int font_height, const char* text,
-                                 unsigned int* width, unsigned int* height );
+void SGUI_DLL sgui_font_get_text_extents( sgui_font* font_norm,
+                                          sgui_font* font_bold,
+                                          sgui_font* font_ital,
+                                          sgui_font* font_boit,
+                                          unsigned int font_height,
+                                          const char* text,
+                                          unsigned int* width,
+                                          unsigned int* height );
 
 /**
  * \brief Render one line of text in a single font face
@@ -97,10 +103,12 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
  * \param text      The text to draw.
  * \param length    The number of bytes to read from the text.
  */
-void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
-                                sgui_font* font_face, unsigned int height,
-                                unsigned char* color,
-                                const char* text, unsigned int length );
+void SGUI_DLL sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
+                                         sgui_font* font_face,
+                                         unsigned int height,
+                                         unsigned char* color,
+                                         const char* text,
+                                         unsigned int length );
 
 /**
  * \brief Render a multi line text that uses html like tags to switch color
@@ -123,11 +131,12 @@ void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
  *                    tag can be used to switch text color, where the value
  *                    "default" for color switches back to default color.
  */
-void sgui_font_draw_text( sgui_canvas* canvas, int x, int y,
-                          sgui_font* font_norm, sgui_font* font_bold,
-                          sgui_font* font_ital, sgui_font* font_boit,
-                          unsigned int font_height, unsigned char* color,
-                          const char* text );
+void SGUI_DLL sgui_font_draw_text( sgui_canvas* canvas, int x, int y,
+                                   sgui_font* font_norm, sgui_font* font_bold,
+                                   sgui_font* font_ital, sgui_font* font_boit,
+                                   unsigned int font_height,
+                                   unsigned char* color,
+                                   const char* text );
 
 #ifdef __cplusplus
 }

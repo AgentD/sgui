@@ -158,8 +158,9 @@ extern "C" {
  * \param width  The width of the widget
  * \param height The height of the widget
  */
-void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
-                                unsigned int width, unsigned int height );
+void SGUI_DLL sgui_internal_widget_init( sgui_widget* widget, int x, int y,
+                                         unsigned int width,
+                                         unsigned int height );
 
 /**
  * \brief Initialise a canvas structure
@@ -168,8 +169,8 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
  * \param width  The width of the canvas
  * \param height The height of the canvas
  */
-void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
-                                unsigned int height );
+void SGUI_DLL sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
+                                         unsigned int height );
 
 /**
  * \brief Initialise a window structure (set values to 0 and create a widget
@@ -179,14 +180,14 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
  *
  * \return non-zero on success, zero on error
  */
-int sgui_internal_window_init( sgui_window* wnd );
+int SGUI_DLL sgui_internal_window_init( sgui_window* wnd );
 
 /**
  * \brief Uninitialise a window structure
  *
  * \param wnd A pointer to a window structure
  */
-void sgui_internal_window_deinit( sgui_window* wnd );
+void SGUI_DLL sgui_internal_window_deinit( sgui_window* wnd );
 
 /**
  * \brief Propagate a window event
@@ -195,8 +196,8 @@ void sgui_internal_window_deinit( sgui_window* wnd );
  * \param event The event that got triggered
  * \param e     A pointer ot a struct with additional information for an event
  */
-void sgui_internal_window_fire_event( sgui_window* wnd, int event,
-                                      sgui_event* e );
+void SGUI_DLL sgui_internal_window_fire_event( sgui_window* wnd, int event,
+                                               sgui_event* e );
 
 #ifdef __cplusplus
 }

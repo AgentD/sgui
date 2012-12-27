@@ -27,6 +27,10 @@
 
 
 
+#include "sgui_dll.h"
+
+
+
 typedef struct sgui_filesystem sgui_filesystem;
 
 typedef struct sgui_font sgui_font;

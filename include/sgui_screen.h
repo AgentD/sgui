@@ -45,14 +45,14 @@ extern "C" {
  *
  * \param cv The canvas object to use for drawing
  */
-sgui_screen* sgui_screen_create( sgui_canvas* cv );
+sgui_screen* SGUI_DLL sgui_screen_create( sgui_canvas* cv );
 
 /**
  * \brief Destroy a screen object
  *
  * \note This does NOT destroy the screens canvas object!
  */
-void sgui_screen_destroy( sgui_screen* screen );
+void SGUI_DLL sgui_screen_destroy( sgui_screen* screen );
 
 /**
  * \brief Add a widget to a screen
@@ -60,7 +60,8 @@ void sgui_screen_destroy( sgui_screen* screen );
  * \param screen The screen to add the widget to
  * \param widget The widget to add
  */
-void sgui_screen_add_widget( sgui_screen* screen, sgui_widget* widget );
+void SGUI_DLL sgui_screen_add_widget( sgui_screen* screen,
+                                      sgui_widget* widget );
 
 /**
  * \brief Remove a widget from a screen
@@ -68,7 +69,8 @@ void sgui_screen_add_widget( sgui_screen* screen, sgui_widget* widget );
  * \param screen The screen to remove the widget from
  * \param widget The widget to remove
  */
-void sgui_screen_remove_widget( sgui_screen* screen, sgui_widget* widget );
+void SGUI_DLL sgui_screen_remove_widget( sgui_screen* screen,
+                                         sgui_widget* widget );
 
 /**
  * \brief Inject a window event to a screen
@@ -77,11 +79,11 @@ void sgui_screen_remove_widget( sgui_screen* screen, sgui_widget* widget );
  * \param type   The event type to inject
  * \param event  Addition data for the event
  */
-void sgui_screen_inject_event( sgui_screen* screen, int type,
-                               sgui_event* event );
+void SGUI_DLL sgui_screen_inject_event( sgui_screen* screen, int type,
+                                        sgui_event* event );
 
 /** \brief Redraw all dirty areas of a screen */
-void sgui_screen_update( sgui_screen* screen );
+void SGUI_DLL sgui_screen_update( sgui_screen* screen );
 
 #ifdef __cplusplus
 }

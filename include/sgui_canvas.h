@@ -55,10 +55,11 @@ SGUI_COLOR_FORMAT;
  *
  * \return A pointer to a new canvas object
  */
-sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height );
+sgui_canvas* SGUI_DLL sgui_canvas_create( unsigned int width,
+                                          unsigned int height );
 
 /** \brief Destroy a canvas object */
-void sgui_canvas_destroy( sgui_canvas* canvas );
+void SGUI_DLL sgui_canvas_destroy( sgui_canvas* canvas );
 
 /**
  * \brief Change the size of a canvas
@@ -66,8 +67,8 @@ void sgui_canvas_destroy( sgui_canvas* canvas );
  * \param width  The new width of the canvas
  * \param height The new height of the canvas
  */
-void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                         unsigned int height );
+void SGUI_DLL sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+                                  unsigned int height );
 
 
 
@@ -79,16 +80,16 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
  * \param width  Returns the width of the canvas
  * \param height Returns the height of the canvas
  */
-void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
-                           unsigned int* height );
+void SGUI_DLL sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
+                                    unsigned int* height );
 
 /**
  * \brief Set the background color of the canvas
  *
  * \param color The background color
  */
-void sgui_canvas_set_background_color( sgui_canvas* canvas,
-                                       unsigned char* color );
+void SGUI_DLL sgui_canvas_set_background_color( sgui_canvas* canvas,
+                                                unsigned char* color );
 
 
 
@@ -108,14 +109,14 @@ void sgui_canvas_set_background_color( sgui_canvas* canvas,
  *
  * \param r The rectangle to draw to
  */
-void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r );
+void SGUI_DLL sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r );
 
 /**
  * \brief Call when you are done with drawing
  *
  * \see sgui_canvas_begin
  */
-void sgui_canvas_end( sgui_canvas* canvas );
+void SGUI_DLL sgui_canvas_end( sgui_canvas* canvas );
 
 
 
@@ -124,7 +125,7 @@ void sgui_canvas_end( sgui_canvas* canvas );
  *
  * \param r The area to clear
  */
-void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
+void SGUI_DLL sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
 
 
 /**
@@ -139,13 +140,14 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
  *
  * \param r The scissor rect to apply or NULL to restore the previous one
  */
-void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r );
+void SGUI_DLL sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
+                                            sgui_rect* r );
 
 /** \brief Enable or disable background clearing */
-void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
+void SGUI_DLL sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
 
 /** \brief Returns non-zero if background clearing is enabled */
-int sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
+int SGUI_DLL sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
 
 /**
  * \brief Set an offset added to all drawing and scissor positions
@@ -157,10 +159,10 @@ int sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
  * \param x The distance from the left of the canvas.
  * \param y The distance from the top of the canvas.
  */
-void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
+void SGUI_DLL sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
 
 /** \brief Restores the previous offset of a canvas */
-void sgui_canvas_restore_offset( sgui_canvas* canvas );
+void SGUI_DLL sgui_canvas_restore_offset( sgui_canvas* canvas );
 
 /**
  * \brief Blit an image onto a canvas
@@ -172,9 +174,9 @@ void sgui_canvas_restore_offset( sgui_canvas* canvas );
  * \param format Color format of the image
  * \param data   Pointer to the image data
  */
-void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
-                       unsigned int height, SGUI_COLOR_FORMAT format,
-                       const void* data );
+void SGUI_DLL sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
+                                unsigned int width, unsigned int height,
+                                SGUI_COLOR_FORMAT format, const void* data );
 
 /**
  * \brief Blend an image onto a canvas
@@ -187,9 +189,9 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
  *               channel)
  * \param data   Pointer to the image data
  */
-void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
-                        unsigned int height, SGUI_COLOR_FORMAT format,
-                        const void* data );
+void SGUI_DLL sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
+                                 unsigned int width, unsigned int height,
+                                 SGUI_COLOR_FORMAT format, const void* data );
 
 /**
  * \brief Draw a rectangle onto a canvas
@@ -198,8 +200,9 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
  * \param color  The color to draw the box in
  * \param format The color format stored in the color array
  */
-void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                           unsigned char* color, SGUI_COLOR_FORMAT format );
+void SGUI_DLL sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                                    unsigned char* color,
+                                    SGUI_COLOR_FORMAT format );
 
 /**
  * \brief Draw a line onto a canvas
@@ -214,9 +217,10 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
  * \param color      The color to draw the line in
  * \param format     The color format stored in the color array
  */
-void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
-                            unsigned int length, int horizontal,
-                            unsigned char* color, SGUI_COLOR_FORMAT format );
+void SGUI_DLL sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
+                                     unsigned int length, int horizontal,
+                                     unsigned char* color,
+                                     SGUI_COLOR_FORMAT format );
 
 /**
  * \brief Perform a stencil blend on a canvas (e.g. glyph rendering)
@@ -234,9 +238,10 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
  *         area, a positive value if it was to the right or below and zero
  *         otherwise.
  */
-int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
-                               int x, int y, unsigned int w, unsigned int h,
-                               unsigned char* color );
+int SGUI_DLL sgui_canvas_blend_stencil( sgui_canvas* canvas,
+                                        unsigned char* buffer, int x, int y,
+                                        unsigned int w, unsigned int h,
+                                        unsigned char* color );
 
 #ifdef __cplusplus
 }

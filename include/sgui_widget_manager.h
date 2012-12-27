@@ -55,10 +55,10 @@ typedef void (* sgui_widget_callback ) ( sgui_widget* widget, int type,
  *
  * A widget manager holds and manages widgets.
  */
-sgui_widget_manager* sgui_widget_manager_create( void );
+sgui_widget_manager* SGUI_DLL sgui_widget_manager_create( void );
 
 /** \brief Destroy a widget manager */
-void sgui_widget_manager_destroy( sgui_widget_manager* mgr );
+void SGUI_DLL sgui_widget_manager_destroy( sgui_widget_manager* mgr );
 
 /**
  * \brief Add a widget to a widget manager
@@ -66,8 +66,8 @@ void sgui_widget_manager_destroy( sgui_widget_manager* mgr );
  * \param mgr    The widget manager
  * \param widget The widget to add
  */
-void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
-                                     sgui_widget* widget );
+void SGUI_DLL sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
+                                              sgui_widget* widget );
 
 /**
  * \brief Remove a widget from a widget manager
@@ -75,8 +75,8 @@ void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
  * \param mgr    The widget manager
  * \param widget The widget to remove
  */
-void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
-                                        sgui_widget* widget );
+void SGUI_DLL sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
+                                                 sgui_widget* widget );
 
 /**
  * \brief Add a dirty rect (area that needs redraw) to a widget manager
@@ -84,8 +84,8 @@ void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
  * \param mgr The widget manager
  * \param r   The dirty rectangle
  */
-void sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
-                                         sgui_rect* r );
+void SGUI_DLL sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
+                                                  sgui_rect* r );
 
 /**
  * \brief Get the number of dirty rectangles from a widget manager
@@ -94,7 +94,8 @@ void sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
  *
  * \return The number of dirty rectangles
  */
-unsigned int sgui_widget_manager_num_dirty_rects( sgui_widget_manager* mgr );
+unsigned int SGUI_DLL sgui_widget_manager_num_dirty_rects(sgui_widget_manager*
+                                                          mgr );
 
 /**
  * \brief Get a dirty rectangle from a widget manager by index
@@ -103,15 +104,17 @@ unsigned int sgui_widget_manager_num_dirty_rects( sgui_widget_manager* mgr );
  * \param rect A pointer to a rectangle to write to
  * \param i    The index of the dirty rectangle
  */
-void sgui_widget_manager_get_dirty_rect( sgui_widget_manager* mgr,
-                                         sgui_rect* rect, unsigned int i );
+void SGUI_DLL sgui_widget_manager_get_dirty_rect( sgui_widget_manager* mgr,
+                                                  sgui_rect* rect,
+                                                  unsigned int i );
 
 /**
  * \brief Clear the dirty rects of a widget manager
  *
  * \param mgr The widget manager
  */
-void sgui_widget_manager_clear_dirty_rects( sgui_widget_manager* mgr );
+void SGUI_DLL sgui_widget_manager_clear_dirty_rects( sgui_widget_manager*
+                                                     mgr );
 
 /**
  * \brief Redraw all widgets of a widget manager that are flaged visible and
@@ -120,7 +123,8 @@ void sgui_widget_manager_clear_dirty_rects( sgui_widget_manager* mgr );
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
  */
-void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv );
+void SGUI_DLL sgui_widget_manager_draw( sgui_widget_manager* mgr,
+                                        sgui_canvas* cv );
 
 /**
  * \brief Force redrawing of all widgets of a widget manager that are
@@ -129,8 +133,8 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv );
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
  */
-void sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
-                                   sgui_canvas* cv );
+void SGUI_DLL sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
+                                            sgui_canvas* cv );
 
 /**
  * \brief Send a window event to all widgets held by a widget manager
@@ -142,8 +146,9 @@ void sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
  * \param event The event type to send
  * \param e     The event data to send
  */
-void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
-                                            int event, sgui_event* e );
+void SGUI_DLL sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
+                                                     int event,
+                                                     sgui_event* e );
 
 
 /**
@@ -153,8 +158,9 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
  * \param fun  The function to call when a widget event occours
  * \param user A user data pointer that is passed to the given function
  */
-void sgui_widget_manager_on_event( sgui_widget_manager* mgr,
-                                   sgui_widget_callback fun, void* user );
+void SGUI_DLL sgui_widget_manager_on_event( sgui_widget_manager* mgr,
+                                            sgui_widget_callback fun,
+                                            void* user );
 
 /**
  * \brief Trigger a widget event
@@ -163,8 +169,9 @@ void sgui_widget_manager_on_event( sgui_widget_manager* mgr,
  * \param widget The widget that triggered the event (must not be NULL)
  * \param event  The event that got triggered
  */
-void sgui_widget_manager_fire_widget_event( sgui_widget_manager* mgr,
-                                            sgui_widget* widget, int event );
+void SGUI_DLL sgui_widget_manager_fire_widget_event( sgui_widget_manager* mgr,
+                                                     sgui_widget* widget,
+                                                     int event );
 
 
 #ifdef __cplusplus

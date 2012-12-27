@@ -2,7 +2,7 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -I./include -I/usr/include/freetype2 -lfreetype -ggdb"
+        -I./include -I/usr/include/freetype2 $1"
 
 # Compile a list of files. $1: additional compiler flags, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -35,17 +35,6 @@ compile_files( )
     done
 }
 
-# Create a static library from object files. $1: object dir, $2: library name
-#
-# Simply glues all object files (*.o) within a source directory together to a
-# single static library.
-create_library( )
-{
-    echo -e "\e[31m***** creating static library $2 *****\e[0m"
-    ar rcs build/lib/$1/$2 $(ls build/obj/$1/*.o)
-    ranlib build/lib/$1/$2
-}
-
 ############################# source code files #############################
 
 # Common source code files
@@ -65,66 +54,30 @@ SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
 SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c
             src/X11/platform.c src/X11/opengl.c"
 
-LIBS_X11="-lX11 -lGL"
-
-# Test application sources
-SOURCE_TEST="test/test.c test/test_gl.c"
+LIBS_X11="-lX11 -lGL -lfreetype"
 
 ############################# Do the compilation #############################
-
-# compile test apps. $1: additional flags, $2: obj dir, $3: app postfix
-compile_tests( )
-{
-    echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
-
-    compile_files "$1" "$SOURCE_TEST" "$2/test"
-
-    list=$(ls build/obj/$2/test/*.o)
-
-    for f in $list
-    do
-        name=$(basename $f ".o")
-
-        echo -e "\e[31m***** linking $name$3 *****\e[0m"
-        gcc $CFLAGS $1 $f -Lbuild/lib/$2 -lsgui -o build/bin/$2/$name
-
-        # On error, exit
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
-    done
-}
-
-do_build( )
-{
-    mkdir -p "build/obj/$1/test"
-    mkdir -p "build/bin/$1"
-    mkdir -p "build/lib/$1"
-
-    echo -e "\e[0m * Compiling for $3, UNIX like system"
-
-    compile_files "$2" "$SOURCE_COMMON" "$1"
-    compile_files "$2" "$SOURCE_X11"    "$1" "x11_"
-
-    create_library "$1" "libsgui.a"
-
-    compile_tests "$2 $LIBS_X11" "$1"
-}
 
 # Do it
 if [ ! -f ./compile.sh ]; then
     echo -e "\e[01;31mERROR\e[0m script must be run from it's directory!"
 else
-    if [ "$1" == "--local" ]; then
-        uname -a | grep '64' > /dev/null 2>&1   # detect system type
-        if [ "$?" == "0" ]; then                # '64' found in uname -a
-            do_build "unix64" "-m64" "x86_64"
-        else
-            do_build "unix32" "-m32" "x86"
-        fi
-    else
-        do_build "unix32" "-m32" "x86"
-        do_build "unix64" "-m64" "x86_64"
-    fi
+    mkdir -p "build/obj/unix/test"
+    mkdir -p "build/bin/unix"
+
+    echo -e "\e[0m * Compiling for UNIX like system"
+    compile_files "-fPIC" "$SOURCE_COMMON" "unix"
+    compile_files "-fPIC" "$SOURCE_X11"    "unix" "x11_"
+
+    echo -e "\e[31m***** creating shared library libsgui.so *****\e[0m"
+    gcc $LIBS_X11 $1 -shared -Wl,-soname,libsgui.so $(ls build/obj/unix/*.o) \
+        -o build/bin/unix/libsgui.so
+
+    echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
+
+    FLAGS="$CFLAGS -Wl,-rpath,. -Lbuild/bin/unix -lsgui"
+
+    gcc $FLAGS test/test.c -o build/bin/unix/test
+    gcc $FLAGS -lGL test/test_gl.c -o build/bin/unix/test_gl
 fi
 

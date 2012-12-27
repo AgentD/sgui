@@ -56,8 +56,8 @@ extern "C" {
  *
  * \return A pointer to an canvas that uses an OpenGL texture back end.
  */
-sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
-                                        unsigned int height );
+sgui_canvas* SGUI_DLL sgui_opengl_canvas_create( unsigned int width,
+                                                 unsigned int height );
 
 /**
  * \brief Resize an OpenGL canvas
@@ -66,14 +66,15 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
  * \param width  The new width of the canvas
  * \param height The new height of the canvas
  */
-void sgui_opengl_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                                unsigned int height );
+void SGUI_DLL sgui_opengl_canvas_resize( sgui_canvas* canvas,
+                                         unsigned int width,
+                                         unsigned int height );
 
 /** \brief Destroy an OpenGL canvas */
-void sgui_opengl_canvas_destroy( sgui_canvas* canvas );
+void SGUI_DLL sgui_opengl_canvas_destroy( sgui_canvas* canvas );
 
 /** \brief Get the OpenGL texture handle from an OpenGL canvas */
-unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
+unsigned int SGUI_DLL sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
 
 
 /**
@@ -102,12 +103,15 @@ unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
  *
  * \return A pointer to a window on success, NULL otherwise.
  */
-sgui_window* sgui_opengl_window_create( unsigned int width, unsigned int height,
-                                        int resizeable, int version_major,
-                                        int version_minor, int flags );
+sgui_window* SGUI_DLL sgui_opengl_window_create( unsigned int width,
+                                                 unsigned int height,
+                                                 int resizeable,
+                                                 int version_major,
+                                                 int version_minor,
+                                                 int flags );
 
 /** \brief Destroy a window created through sgui_opengl_window_create */
-void sgui_opengl_window_destroy( sgui_window* window );
+void SGUI_DLL sgui_opengl_window_destroy( sgui_window* window );
 
 /**
  * \brief Make the OpenGL context of an OpenGL window current
@@ -120,10 +124,10 @@ void sgui_opengl_window_destroy( sgui_window* window );
  * \param window A pointet to the OpenGL window or NULL, to release the
  *               current context of the thread.
  */
-void sgui_opengl_window_make_current( sgui_window* window );
+void SGUI_DLL sgui_opengl_window_make_current( sgui_window* window );
 
 /** \brief Swap the back and the front buffer of an OpenGL window */
-void sgui_opengl_window_swap_buffers( sgui_window* window );
+void SGUI_DLL sgui_opengl_window_swap_buffers( sgui_window* window );
 
 #ifdef __cplusplus
 }

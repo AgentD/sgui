@@ -49,13 +49,14 @@ extern "C"
  * \param copy   Non-zero if the widget should make an internal copy of the
  *               image. Zero means it KEEPS AND USES YOUR POINTER.
  */
-sgui_widget* sgui_image_create( int x, int y,
-                                unsigned int width, unsigned int height,
-                                const void* data, int alpha,
-                                int blend, int copy );
+sgui_widget* SGUI_DLL sgui_image_create( int x, int y,
+                                         unsigned int width,
+                                         unsigned int height,
+                                         const void* data, int alpha,
+                                         int blend, int copy );
 
 /** \brief Destroy a static text widget */
-void sgui_image_destroy( sgui_widget* widget );
+void SGUI_DLL sgui_image_destroy( sgui_widget* widget );
 
 #ifdef __cplusplus
 }

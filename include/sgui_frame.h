@@ -49,15 +49,15 @@ extern "C"
  *
  * \return A pointer to a new frame widget
  */
-sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
-                                unsigned int height );
+sgui_widget* SGUI_DLL sgui_frame_create( int x, int y, unsigned int width,
+                                         unsigned int height );
 
 /**
  * \brief Destroy a frame widget
  *
  * \param frame The frame widget to destroy
  */
-void sgui_frame_destroy( sgui_widget* frame );
+void SGUI_DLL sgui_frame_destroy( sgui_widget* frame );
 
 /**
  * \brief Add a widget to a frame
@@ -65,7 +65,7 @@ void sgui_frame_destroy( sgui_widget* frame );
  * \param frame The frame to add the widget to
  * \param w     The widget to add
  */
-void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w );
+void SGUI_DLL sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w );
 
 /**
  * \brief Remove a widget from a frame
@@ -73,7 +73,7 @@ void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w );
  * \param frame The frame to remove the widget from
  * \param w     The widget to remove
  */
-void sgui_frame_remove_widget( sgui_widget* frame, sgui_widget* w );
+void SGUI_DLL sgui_frame_remove_widget( sgui_widget* frame, sgui_widget* w );
 
 #ifdef __cplusplus
 }

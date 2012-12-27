@@ -43,15 +43,15 @@ extern "C" {
  * \param width     The width of the edit box.
  * \param max_chars The maximum number of characters that can be entered.
  */
-sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
-                                   unsigned int max_chars );
+sgui_widget* SGUI_DLL sgui_edit_box_create( int x, int y, unsigned int width,
+                                            unsigned int max_chars );
 
 /**
  * \brief Destroy an edit box widget
  *
  * \param box The edit box widget to destroy
  */
-void sgui_edit_box_destroy( sgui_widget* box );
+void SGUI_DLL sgui_edit_box_destroy( sgui_widget* box );
 
 /**
  * \brief Get a pointer to the text in an edit box
@@ -60,7 +60,7 @@ void sgui_edit_box_destroy( sgui_widget* box );
  *
  * \return A pointer to a null-terminated UTF8 string holding the text
  */
-const char* sgui_edit_box_get_text( sgui_widget* box );
+const char* SGUI_DLL sgui_edit_box_get_text( sgui_widget* box );
 
 /**
  * \brief Set the text displayed in an edit box
@@ -68,7 +68,7 @@ const char* sgui_edit_box_get_text( sgui_widget* box );
  * \param box  The edit box to set the text to
  * \param text The UTF8 text to display in the edit box
  */
-void sgui_edit_box_set_text( sgui_widget* box, const char* text );
+void SGUI_DLL sgui_edit_box_set_text( sgui_widget* box, const char* text );
 
 #ifdef __cplusplus
 }

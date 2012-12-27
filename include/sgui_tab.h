@@ -45,11 +45,12 @@ extern "C" {
  *
  * \return A pointer to a new tab group widget
  */
-sgui_widget* sgui_tab_group_create( int x, int y,
-                                    unsigned int width, unsigned int height );
+sgui_widget* SGUI_DLL sgui_tab_group_create( int x, int y,
+                                             unsigned int width,
+                                             unsigned int height );
 
 /** \brief Destroy a tab group widget */
-void sgui_tab_group_destroy( sgui_widget* tab );
+void SGUI_DLL sgui_tab_group_destroy( sgui_widget* tab );
 
 /**
  * \brief Add a tab to a tab group widget
@@ -59,7 +60,7 @@ void sgui_tab_group_destroy( sgui_widget* tab );
  *
  * \return The index of the new tab
  */
-int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption );
+int SGUI_DLL sgui_tab_group_add_tab( sgui_widget* tab, const char* caption );
 
 /**
  * \brief Add a widget to a tab in a tab group
@@ -68,7 +69,8 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption );
  * \param index The index of the tab in the tab group
  * \param w     The widget to add
  */
-void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w );
+void SGUI_DLL sgui_tab_group_add_widget( sgui_widget* tab, int index,
+                                         sgui_widget* w );
 
 /**
  * \brief Remove a widget from a tab in a tab group
@@ -77,8 +79,9 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w );
  * \param index The index of the tab in the tab group
  * \param w     The widget to remove
  */
-void sgui_tab_group_remove_widget( sgui_widget* tab, int index,
-                                   sgui_widget* w );
+void SGUI_DLL sgui_tab_group_remove_widget( sgui_widget* tab,
+                                            int index,
+                                            sgui_widget* w );
 
 #ifdef __cplusplus
 }

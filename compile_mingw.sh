@@ -2,7 +2,7 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -I./include -Ibuild/win_dep/include -mwindows -ggdb"
+        -I./include -Ibuild/win_dep/include -mwindows $1"
 
 # Compile a list of files. $1: prefix, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -35,18 +35,6 @@ compile_files( )
     done
 }
 
-# Create a static library from object files. $1: object dir, $2: library name,
-#                                            $3: prefix
-#
-# Simply glues all object files (*.o) within a source directory together to a
-# single static library.
-create_library( )
-{
-    echo -e "\e[31m***** creating static library $2 *****\e[0m"
-    "$3"ar rcs build/lib/$1/$2 $(ls build/obj/$1/*.o)
-    "$3"ranlib build/lib/$1/$2
-}
-
 ################################# find mingw #################################
 PREFIX="i586-mingw32msvc-"
 PREFIX64="amd64-mingw32msvc-"
@@ -77,37 +65,11 @@ SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
 SOURCE_PLATFORM="src/WIN32/window.c src/WIN32/canvas.c src/WIN32/platform.c
                  src/WIN32/opengl.c"
 
-# Test application sources
-SOURCE_TEST="test/test.c test/test_gl.c"
-
 # Platform specific dependencies
 LIBS32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32 -lopengl32"
 LIBS64="-Lbuild/win_dep/x64 -llibfreetype -lgdi32 -lopengl32"
 
 ############################# Do the compilation #############################
-
-# compile test apps. $1: compiler prefix, $2: obj dir, $3: dependencies,
-compile_tests( )
-{
-    echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
-
-    compile_files "$1" "$SOURCE_TEST" "$2/test"
-
-    list=$(ls build/obj/$2/test/*.o)
-
-    for f in $list
-    do
-        name=$(basename $f ".o")
-
-        echo -e "\e[31m***** linking $name$4 *****\e[0m"
-        "$1"gcc $f -Lbuild/lib/$2 -lsgui $3 -o build/bin/$2/$name".exe"
-
-        # On error, exit
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
-    done
-}
 
 do_build( )
 {
@@ -120,13 +82,20 @@ do_build( )
         mkdir -p "build/lib/$1"
 
         echo -e "\e[0m * Compiling for $2, Windows operating system"
-
         compile_files "$3" "$SOURCE_COMMON"   "$1"
         compile_files "$3" "$SOURCE_PLATFORM" "$1" "w32_"
 
-        create_library "$1" "libsgui.a" "$3"
+        echo -e "\e[31m***** creating static library libsgui.a *****\e[0m"
+        "$3"gcc $(ls build/obj/$1/*.o) $4 -shared \
+        -Wl,--out-implib,build/lib/$1/libsgui.a \
+        -o build/bin/$1/sgui.dll
 
-        compile_tests "$3" "$1" "$4"
+        echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
+
+        DEP="-Lbuild/lib/$1 -lsgui"
+
+        "$3"gcc $CFLAGS test/test.c $DEP -o build/bin/$1/test.exe
+        "$3"gcc $CFLAGS test/test_gl.c $DEP -lopengl32 -o build/bin/$1/test_gl.exe
     fi
 }
 

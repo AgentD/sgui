@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define SGUI_BUILDING_DLL
 #include "sgui_canvas.h"
 #include "sgui_font.h"
 #include "sgui_filesystem.h"
@@ -62,7 +63,7 @@ int utf8_char_length( unsigned char c )
 
 unsigned long to_utf32( const unsigned char* utf8, int* length )
 {
-    unsigned long ch;
+    unsigned long ch = 0;
     int i;
 
     *length = utf8_char_length( *utf8 );

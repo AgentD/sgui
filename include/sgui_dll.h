@@ -1,5 +1,5 @@
 /*
- * filesystem.c
+ * sgui_dll.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,60 +22,34 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#define SGUI_BUILDING_DLL
-#include "sgui_filesystem.h"
-
-#include <stdio.h>
+#ifndef SGUI_DLL_H
+#define SGUI_DLL_H
 
 
 
-static void* sgui_stdio_open_read( const char* filename )
-{
-    return fopen( filename, "rb" );
-}
-
-static int sgui_stdio_close( void* file )
-{
-    return fclose( file );
-}
-
-static size_t sgui_stdio_get_length( void* file )
-{
-    long pos, end;
-
-    pos = ftell( file );
-    fseek( file, 0, SEEK_END );
-
-    if( pos < 0 )
-        return 0;
-
-    end = ftell( file );
-    fseek( file, pos, SEEK_SET );
-
-    return end < 0 ? 0 : end;
-}
-
-static size_t sgui_stdio_read( void* file, void* buffer,
-                               size_t itemsize, size_t items )
-{
-    return fread( buffer, itemsize, items, file );
-}
+#ifndef SGUI_WINDOWS
+    #if defined(MACHINE_OS_WINDOWS)
+        #define SGUI_WINDOWS
+    #elif defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+        #define SGUI_WINDOWS
+    #elif defined(__TOS_WIN__) || defined(__WINDOWS__) || defined(__WIN32__)
+        #define SGUI_WINDOWS
+    #endif
+#endif
 
 
 
+#ifdef SGUI_WINDOWS
+    #ifdef SGUI_BUILDING_DLL
+        #define SGUI_DLL __declspec(dllexport)
+    #else
+        #define SGUI_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SGUI_DLL
+#endif
 
-static const sgui_filesystem sgui_stdio =
-{
-    sgui_stdio_open_read,
-    sgui_stdio_close,
-    sgui_stdio_get_length,
-    sgui_stdio_read
-};
 
 
-
-const sgui_filesystem* sgui_filesystem_get_default( void )
-{
-    return &sgui_stdio;
-}
+#endif /* SGUI_DLL_H */
 

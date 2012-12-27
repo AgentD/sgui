@@ -50,16 +50,17 @@ extern "C" {
  *
  * \return A pointer to a new group box widget
  */
-sgui_widget* sgui_group_box_create( int x, int y,
-                                    unsigned int width, unsigned int height,
-                                    const char* caption );
+sgui_widget* SGUI_DLL sgui_group_box_create( int x, int y,
+                                             unsigned int width,
+                                             unsigned int height,
+                                             const char* caption );
 
 /**
  * \brief Destroy a group box widget
  *
  * \param box A pointer to a group box widget
  */
-void sgui_group_box_destroy( sgui_widget* box );
+void SGUI_DLL sgui_group_box_destroy( sgui_widget* box );
 
 /**
  * \brief Add a widget to a group box
@@ -67,7 +68,7 @@ void sgui_group_box_destroy( sgui_widget* box );
  * \param box A pointer to a group box widget
  * \param w   A pointer to the widget to add
  */
-void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w );
+void SGUI_DLL sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w );
 
 /**
  * \brief Remove a widget from a group box
@@ -75,7 +76,8 @@ void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w );
  * \param box A pointer to a group box widget
  * \param w   A pointer to the widget to remove
  */
-void sgui_group_box_remove_widget( sgui_widget* box, sgui_widget* w );
+void SGUI_DLL sgui_group_box_remove_widget( sgui_widget* box,
+                                            sgui_widget* w );
 
 #ifdef __cplusplus
 }
