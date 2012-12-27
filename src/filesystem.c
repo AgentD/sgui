@@ -29,6 +29,7 @@
 
 
 
+#ifndef SGUI_NO_STDIO
 static void* sgui_stdio_open_read( const char* filename )
 {
     return fopen( filename, "rb" );
@@ -43,13 +44,19 @@ static size_t sgui_stdio_get_length( void* file )
 {
     long pos, end;
 
+    /* save current position */
     pos = ftell( file );
-    fseek( file, 0, SEEK_END );
 
     if( pos < 0 )
         return 0;
 
+    /* seek to end */
+    fseek( file, 0, SEEK_END );
+
+    /* get the position of the end */
     end = ftell( file );
+
+    /* seek back to the original position */
     fseek( file, pos, SEEK_SET );
 
     return end < 0 ? 0 : end;
@@ -78,4 +85,10 @@ const sgui_filesystem* sgui_filesystem_get_default( void )
 {
     return &sgui_stdio;
 }
+#else
+const sgui_filesystem* sgui_filesystem_get_default( void )
+{
+    return NULL;
+}
+#endif
 

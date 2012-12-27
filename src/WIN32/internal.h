@@ -36,7 +36,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+#ifndef SGUI_NO_OPENGL
 #include <GL/gl.h>
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -71,7 +74,9 @@ typedef struct
     HWND hWnd;
 
     HDC hDC;
+#ifndef SGUI_NO_OPENGL
     HGLRC hRC;
+#endif
 }
 sgui_window_w32;
 

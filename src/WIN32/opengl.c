@@ -27,6 +27,7 @@
 #include "sgui_event.h"
 #include "internal.h"
 
+#ifndef SGUI_NO_OPENGL
 #include <stdio.h>
 
 
@@ -268,4 +269,5 @@ void sgui_opengl_window_make_current( sgui_window* window )
     else
         wglMakeCurrent( NULL, NULL );
 }
+#endif
 

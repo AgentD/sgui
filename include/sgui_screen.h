@@ -31,6 +31,8 @@
 
 
 
+#ifndef SGUI_NO_SCREEN
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,6 +90,8 @@ void SGUI_DLL sgui_screen_update( sgui_screen* screen );
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* !SGUI_NO_SCREEN */
 
 #endif /* SGUI_SCREEN_H */
 

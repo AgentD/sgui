@@ -29,7 +29,7 @@
 
 #include "sgui_predef.h"
 
-
+#ifndef SGUI_NO_OPENGL
 
 typedef enum
 {
@@ -132,6 +132,8 @@ void SGUI_DLL sgui_opengl_window_swap_buffers( sgui_window* window );
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* !SGUI_NO_OPENGL */
 
 #endif /* SGUI_OPENGL_H */
 

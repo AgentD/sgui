@@ -42,8 +42,9 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#ifndef SGUI_NO_OPENGL
 #include <GL/glx.h>
-
+#endif
 
 
 #define DPY_WIDTH DisplayWidth( dpy, DefaultScreen(dpy) )
@@ -69,7 +70,9 @@ typedef struct
     union
     {
         GC xlib;
+#ifndef SGUI_NO_OPENGL
         GLXContext gl;
+#endif
     }
     context;
 }

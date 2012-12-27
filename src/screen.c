@@ -26,6 +26,7 @@
 #include "sgui_screen.h"
 #include "sgui_widget_manager.h"
 
+#ifndef SGUI_NO_SCREEN
 #include <stdlib.h>
 
 
@@ -109,4 +110,5 @@ void sgui_screen_update( sgui_screen* screen )
         sgui_widget_manager_clear_dirty_rects( screen->mgr );
     }
 }
+#endif
 

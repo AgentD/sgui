@@ -27,6 +27,7 @@
 #include "sgui_opengl.h"
 #include "sgui_event.h"
 
+#ifndef SGUI_NO_OPENGL
 #include <stdio.h>
 
 
@@ -367,4 +368,5 @@ void sgui_opengl_window_swap_buffers( sgui_window* window )
     if( window )
         glXSwapBuffers( dpy, TO_X11(window)->wnd );
 }
+#endif
 

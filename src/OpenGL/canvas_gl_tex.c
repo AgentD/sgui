@@ -26,6 +26,8 @@
 #include "sgui_opengl.h"
 #include "sgui_internal.h"
 
+#ifndef SGUI_NO_OPENGL
+
 #include <stdlib.h>
 
 
@@ -219,4 +221,5 @@ unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas )
 {
     return canvas ? ((sgui_canvas_gl*)canvas)->texture : 0;
 }
+#endif
 
