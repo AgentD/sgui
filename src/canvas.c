@@ -35,17 +35,27 @@
         dst.bottom = src->bottom + canvas->oy;
 
 #define COLOR_COPY( a, b ) (a)[0]=(b)[0]; (a)[1]=(b)[1]; (a)[2]=(b)[2]
-#define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
 
+/*
+    Perform a blend operation. Integer approximation.
+
+    result = source*(1-A) + destination*A
+
+    For 8bit integers source, destination, result and A:
+        result = source*(1  -A)     + destination*(A/255)
+        result = source*(255-A)/255 + destination*(A/255)
+        result = (source*(255-A) + destination*A)/255
+
+               ~
+        result = (source*(256-A) + destination*A)/256
+
+               ~
+        result = (source*(0xFF-A) + destination*A)>>8
+ */
 #define COLOR_BLEND( a, b, A, iA )\
         (a)[0] = ((a)[0]*iA + (b)[0]*A)>>8;\
         (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
         (a)[2] = ((a)[2]*iA + (b)[2]*A)>>8;
-
-#define COLOR_BLEND_INV( a, b, A, iA )\
-        (a)[0] = ((a)[0]*iA + (b)[2]*A)>>8;\
-        (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
-        (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
 
 
 
@@ -101,6 +111,7 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
 
             sgui_rect_copy( &r0, r );
 
+            /* clip region to canvas size */
             if( r0.left < 0 )
                 r0.left = 0;
 
@@ -113,16 +124,20 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
             if( r0.bottom >= (int)canvas->height )
                 r0.bottom = canvas->height - 1;
 
+            /* download the canvas region */
             canvas->download( canvas, &r0 );
 
+            /* set scissor rect to downloaded region */
             canvas->sc.left   = canvas->buffer_x;
             canvas->sc.top    = canvas->buffer_y;
             canvas->sc.right  = canvas->buffer_x + canvas->buffer_w - 1;
             canvas->sc.bottom = canvas->buffer_y + canvas->buffer_h - 1;
 
+            /* adjust offsets to downloaded region */
             canvas->ox = -canvas->buffer_x;
             canvas->oy = -canvas->buffer_y;
 
+            /* adjust scissor rect to downloaded region */
             sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r0 );
         }
 
@@ -151,6 +166,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
     if( !canvas || !canvas->allow_clear )
         return;
 
+    /* if no rect is given, set to the full canvas area */
     if( r )
     {
         COPY_RECT_OFFSET( r1, r );
@@ -160,6 +176,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
         sgui_rect_set_size( &r1, 0, 0, canvas->width, canvas->height );
     }
 
+    /* clear manually if we have already begun drawing */
     if( canvas->began )
     {
         if( !sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
@@ -205,10 +222,10 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
 
             ++(canvas->scissor_stack_pointer);
 
-            /* merge rectangles */
+            /* new scissor rect = intersection with given and existing */
             sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
         }
-        else if( canvas->scissor_stack_pointer )
+        else if( canvas->scissor_stack_pointer )    /* r=NULL means disable */
         {
             /* pop old scissor rect from stack */
             --(canvas->scissor_stack_pointer);
@@ -236,13 +253,15 @@ void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )
         if( canvas->offset_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
             return;
 
+        /* push existing offset */
         canvas->offset_stack_x[ canvas->offset_stack_pointer ] = canvas->ox;
         canvas->offset_stack_y[ canvas->offset_stack_pointer ] = canvas->oy;
 
+        ++(canvas->offset_stack_pointer);
+
+        /* set new offset, offset by the existing one -> add */
         canvas->ox += x;
         canvas->oy += y;
-
-        ++(canvas->offset_stack_pointer);
     }
 }
 
@@ -265,21 +284,27 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
     int i, j, ds, dt, src_bpp = (format==SCF_RGBA8 ? 4 : 3);
     sgui_rect r, r0;
 
+    /* sanity check */
     if( !canvas || !width || !height || !data || !canvas->began )
         return;
 
+    /* get actual destination rect */
     sgui_rect_set_size( &r0, x+canvas->ox, y+canvas->oy, width, height );
 
     if( !sgui_rect_get_intersection( &r, &canvas->sc, &r0 ) )
         return;
 
+    /* get destination and source pointer, taking clipping into account */
     src = (unsigned char*)data +
           ((r.top-r0.top)*width + r.left-r0.left)*src_bpp;
     dst = canvas->buffer + (r.top*canvas->buffer_w + r.left)*4;
 
+    /* numbers of bytes to skip to get to the
+       next source or destination line */
     ds = width * src_bpp;
     dt = canvas->buffer_w * 4;
 
+    /* do the blitting */
     for( j=r.top; j<=r.bottom; ++j, src+=ds, dst+=dt )
     {
         for( drow=dst, srow=src, i=r.left; i<=r.right; ++i, drow+=4,
@@ -298,21 +323,27 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
     int ds, dt, i, j;
     sgui_rect r, r0;
 
+    /* sanity check */
     if( !canvas || !width || !height || !data || format!=SCF_RGBA8 ||
         !canvas->began )
         return;
 
+    /* get actual destination rect */
     sgui_rect_set_size( &r0, x+canvas->ox, y+canvas->oy, width, height );
 
     if( !sgui_rect_get_intersection( &r, &canvas->sc, &r0 ) )
         return;
 
+    /* get destination and source pointer, taking clipping into account */
     src = (unsigned char*)data + ((r.top-r0.top)*width + r.left-r0.left)*4;
     dst = canvas->buffer + (r.top*canvas->buffer_w + r.left)*4;
 
+    /* numbers of bytes to skip to get to the
+       next source or destination line */
     ds = width * 4;
     dt = canvas->buffer_w * 4;
 
+    /* do the blending */
     for( j=r.top; j<=r.bottom; ++j, src+=ds, dst+=dt )
     {
         for( drow=dst, srow=src, i=r.left; i<=r.right; ++i, drow+=4, srow+=4 )
@@ -332,18 +363,22 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
     sgui_rect r1;
     int i, j;
 
+    /* sanity check */
     if( !canvas || !color || !canvas->began || !r )
         return;
 
+    /* offset and clip the given rectangle */
     COPY_RECT_OFFSET( r1, r );
 
     if( !sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
         return;
 
+    /* get a pointer to the first pixel to draw */
     dst = canvas->buffer + (r1.top*canvas->buffer_w + r1.left)*4;
 
     if( format==SCF_RGBA8 )
     {
+        /* blend color onto canvas */
         A = color[3], iA = 0xFF - A;
 
         for( j=r1.top; j<=r1.bottom; ++j, dst+=canvas->width*4 )
@@ -356,6 +391,7 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
     }
     else
     {
+        /* blit color onto canvas */
         for( j=r1.top; j<=r1.bottom; ++j, dst+=canvas->width*4 )
         {
             for( row=dst, i=r1.left; i<=r1.right; ++i, row+=4 )
@@ -374,20 +410,25 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
     unsigned char A, iA;
     unsigned int i, delta;
 
+    /* santiy check */
     if( !canvas || !canvas->began )
         return;
 
+    /* offset the line and clip it */
     x += canvas->ox;
     y += canvas->oy;
 
     if( !sgui_rect_clip_line( &canvas->sc, horizontal, &x, &y, &length ) )
         return;
 
+    /* get a pointer to the first pixel to draw and a
+       delta to add to get to the next pixel */
     dst = canvas->buffer + (y*canvas->buffer_w + x)*4;
     delta = horizontal ? 4 : canvas->buffer_w*4;
 
     if( format==SCF_RGBA8 )
     {
+        /* blend color onto canvas */
         for( A=color[3], iA=0xFF-A, i=0; i<length; ++i, dst+=delta )
         {
             COLOR_BLEND( dst, color, A, iA );
@@ -395,6 +436,7 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
     }
     else
     {
+        /* draw color onto canvas */
         for( i=0; i<length; ++i, dst+=delta )
         {
             COLOR_COPY( dst, color );
@@ -410,25 +452,33 @@ int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     int i, j;
     sgui_rect r;
 
+    /* sanity check */
     if( !canvas || !buffer || !color || !w || !h || !canvas->began )
         return 0;
 
+    /* offset the given region */
     x += canvas->ox;
     y += canvas->oy;
 
+    /* left or above the scissor rect */
     if( (x+(int)w-1)<canvas->sc.left || (y+(int)h-1)<canvas->sc.top )
         return -1;
 
+    /* right or below the scissor rect */
     if( x>canvas->sc.right || y>canvas->sc.bottom )
         return 1;
 
+    /* clip the region */
     sgui_rect_set_size( &r, x, y, w, h );
     sgui_rect_get_intersection( &r, &canvas->sc, &r );
 
+    /* adjust the source pointer to the previous clipping */
     buffer += (r.top - y) * w + (r.left - x);
 
+    /* get a pointer to the first pixel to drwa */
     dst = canvas->buffer + (r.top*canvas->buffer_w + r.left)*4;
 
+    /* perform the blending */
     for( j=r.top; j<=r.bottom; ++j, buffer+=w, dst+=canvas->buffer_w*4 )
     {
         for( src=buffer, row=dst, i=r.left; i<=r.right; ++i, row+=4, ++src )

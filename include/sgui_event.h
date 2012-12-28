@@ -68,7 +68,11 @@ enum
     SGUI_RADIO_BUTTON_SELECT_EVENT,
 
     SGUI_CHECKBOX_CHECK_EVENT,
-    SGUI_CHECKBOX_UNCHECK_EVENT
+    SGUI_CHECKBOX_UNCHECK_EVENT,
+
+    /* edit box events */
+    SGUI_EDIT_BOX_TEXT_CHANGED,  /* text got modified */
+    SGUI_EDIT_BOX_TEXT_ENTERED   /* text got modified, user pressed enter */
 };
 
 

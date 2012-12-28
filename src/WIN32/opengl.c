@@ -90,20 +90,15 @@ HGLRC create_context( HDC hDC, int version_major,
     attribs[5] = flags & SGUI_OPENGL_COMPATIBILITY_PROFILE ?
                          WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
                          WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-    attribs[6] = 0;
+    attribs[6] = WGL_CONTEXT_FLAGS_ARB;
+    attribs[7] = 0;
+    attribs[8] = 0;
 
-    if( flags & ~(SGUI_OPENGL_COMPATIBILITY_PROFILE) )
-    {
-        attribs[6] = WGL_CONTEXT_FLAGS_ARB;
-        attribs[7] = 0;
-        attribs[8] = 0;
+    if( flags & SGUI_OPENGL_DEBUG )
+        attribs[7] |= WGL_CONTEXT_DEBUG_BIT_ARB;
 
-        if( flags & SGUI_OPENGL_DEBUG )
-            attribs[7] |= WGL_CONTEXT_DEBUG_BIT_ARB;
-
-        if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
-            attribs[7] |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-    }
+    if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
+        attribs[7] |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 
     /* try to create the context */
     if( !version_major )
@@ -183,7 +178,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     wnd->base.w = width;
     wnd->base.h = height;
 
-    /* create OpenGL context */
+    /* get a device context and set a pixel format */
     wnd->hDC = GetDC( wnd->hWnd );
 
     if( !wnd->hDC || !set_pixel_format( wnd->hDC ) )
@@ -192,6 +187,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
+    /* create an old fashioned OpenGL temporary context */
     temp = wglCreateContext( wnd->hDC );
 
     if( !temp )
@@ -200,6 +196,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
+    /* try to make it current */
     oldctx = wglGetCurrentContext( );
     olddc = wglGetCurrentDC( );
 
@@ -209,11 +206,13 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
+    /* now try to create a new context */
     wnd->hRC = create_context(wnd->hDC, version_major, version_minor, flags);
 
     /* restore the privous context */
     wglMakeCurrent( olddc, oldctx );
 
+    /* delete the temporary context on success, keep it on error */
     if( wnd->hRC )
         wglDeleteContext( temp );
     else

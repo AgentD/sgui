@@ -42,6 +42,7 @@ static const char* wm_delete_window = "WM_DELETE_WINDOW";
 
 
 
+/* Xlib error callback to prevent xlib from crashing our program on error */
 static int xlib_swallow_errors( Display* display, XErrorEvent* event )
 {
     (void)display;
@@ -57,6 +58,7 @@ sgui_window_xlib* add_window( void )
 {
     sgui_window_xlib** new_windows;
 
+    /* reallocate list if we need more entries */
     if( used_windows == num_windows )
     {
         num_windows += 10;
@@ -69,11 +71,13 @@ sgui_window_xlib* add_window( void )
         windows = new_windows;
     }
 
+    /* allocate a new window structure */
     windows[ used_windows ] = malloc( sizeof(sgui_window_xlib) );
 
     if( !windows[ used_windows ] )
         return NULL;
 
+    /* initialise it */
     memset( windows[ used_windows ], 0, sizeof(sgui_window_xlib) );
 
     if( !sgui_internal_window_init( (sgui_window*)windows[ used_windows ] ) )
@@ -182,6 +186,8 @@ int sgui_main_loop_step( void )
     {
         XNextEvent( dpy, &e );
 
+        /* XFilterEvent filters out keyboard events needed for composing and
+           returns True if it handled the event and we should ignore it */
         if( !XFilterEvent( &e, None ) )
         {
             /* route the event to it's window */
@@ -213,6 +219,8 @@ void sgui_main_loop( void )
     {
         XNextEvent( dpy, &e );
 
+        /* XFilterEvent filters out keyboard events needed for composing and
+           returns True if it handled the event and we should ignore it */
         if( !XFilterEvent( &e, None ) )
         {
             /* route the event to it's window */

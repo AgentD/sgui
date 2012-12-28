@@ -118,6 +118,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
     if( !cv )
         return NULL;
 
+    /* create an offscreen Device Context */
     cv->dc = CreateCompatibleDC( NULL );
 
     if( !cv->dc )
@@ -126,6 +127,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
         return NULL;
     }
 
+    /*fill the bitmap header */
     cv->info.bmiHeader.biSize        = sizeof(cv->info.bmiHeader);
     cv->info.bmiHeader.biBitCount    = 32;
     cv->info.bmiHeader.biCompression = BI_RGB;
@@ -133,6 +135,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
     cv->info.bmiHeader.biWidth       = width;
     cv->info.bmiHeader.biHeight      = -((int)height);
 
+    /* create a DIB section = bitmap with accessable data pointer */
     cv->bitmap = CreateDIBSection( cv->dc, &cv->info, DIB_RGB_COLORS,
                                    &cv->data, 0, 0 );
 
@@ -143,8 +146,10 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
         return NULL;
     }
 
+    /* bind the dib section to the offscreen context */
     SelectObject( cv->dc, cv->bitmap );
 
+    /* finish base initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
     cv->canvas.upload = canvas_gdi_upload;
@@ -158,6 +163,7 @@ void sgui_canvas_destroy( sgui_canvas* canvas )
 {
     if( canvas )
     {
+        /* destroy offscreen context and dib section */
         if( ((sgui_canvas_gdi*)canvas)->dc )
         {
             SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
@@ -174,20 +180,25 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 {
     if( canvas && width && height )
     {
+        /* adjust size in the header */
         ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biWidth  = width;
         ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biHeight = -((int)height);
 
+        /* unbind the the dib section and delete it */
         SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
         DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
 
+        /* create a new dib section */
         ((sgui_canvas_gdi*)canvas)->bitmap =
         CreateDIBSection( ((sgui_canvas_gdi*)canvas)->dc,
                           &((sgui_canvas_gdi*)canvas)->info, DIB_RGB_COLORS,
                           &((sgui_canvas_gdi*)canvas)->data, 0, 0 );
 
+        /* bind it */
         SelectObject( ((sgui_canvas_gdi*)canvas)->dc,
                       ((sgui_canvas_gdi*)canvas)->bitmap );
 
+        /* store adjusted parameters */
         canvas->width  = width;
         canvas->height = height;
     }

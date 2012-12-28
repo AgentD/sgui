@@ -81,6 +81,7 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
     if( !t )
         return NULL;
 
+    /* allocate space for the text */
     t->text = malloc( strlen(text)+1 );
 
     if( !t->text )
@@ -89,11 +90,14 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
         return NULL;
     }
 
+    /* copy the text */
     strcpy( t->text, text );
 
+    /* compute width and height of the text */
     sgui_font_get_text_extents( font_norm, font_bold, font_ital, font_boit,
                                 f_h, text, &w, &h );
 
+    /* store results */
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h );
 
     t->widget.draw_callback = sgui_static_text_draw;

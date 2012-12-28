@@ -211,7 +211,7 @@ void window_w32_set_size( sgui_window* wnd,
     RECT rcClient, rcWindow;
     POINT ptDiff;
 
-    /* Resize the client rect of the window */
+    /* Determine the actual window size for the given client size */
     GetClientRect( TO_W32(wnd)->hWnd, &rcClient );
     GetWindowRect( TO_W32(wnd)->hWnd, &rcWindow );
 

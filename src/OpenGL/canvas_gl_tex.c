@@ -72,6 +72,7 @@ sgui_canvas_gl;
 
 
 
+/* binds a canvas texture and returns the previously bound texture */
 GLuint canvas_gl_bind_tex( sgui_canvas_gl* cv )
 {
     GLint current;
@@ -184,6 +185,7 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA,
                   GL_UNSIGNED_BYTE, NULL );
 
+    /* no mipmapping, we would have to recreate them all the time */
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 

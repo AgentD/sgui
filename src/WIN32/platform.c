@@ -40,6 +40,7 @@ sgui_window_w32* add_window( void )
 {
     sgui_window_w32** new_windows;
 
+    /* resize the list if we need more windows */
     if( used_windows == num_windows )
     {
         num_windows += 10;
@@ -52,11 +53,13 @@ sgui_window_w32* add_window( void )
         windows = new_windows;
     }
 
+    /* allocate space for a new window */
     windows[ used_windows ] = malloc( sizeof(sgui_window_w32) );
 
     if( !windows[ used_windows ] )
         return NULL;
 
+    /* initialise the window */
     memset( windows[ used_windows ], 0, sizeof(sgui_window_w32) );
 
     if( !sgui_internal_window_init( (sgui_window*)windows[ used_windows ] ) )
@@ -79,6 +82,7 @@ void remove_window( sgui_window_w32* wnd )
             windows[ i ] = windows[ used_windows - 1 ];
             --used_windows;
 
+            /* uninitialise the window and free its memory */
             sgui_internal_window_deinit( (sgui_window*)wnd );
             free( wnd );
             break;

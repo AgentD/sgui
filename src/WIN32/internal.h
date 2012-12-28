@@ -93,6 +93,7 @@ void remove_window( sgui_window_w32* wnd );
 extern LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg,
                                        WPARAM wp, LPARAM lp );
 
+/* in window.c: window implementation functions */
 void window_w32_get_mouse_position( sgui_window* wnd, int* x, int* y );
 void window_w32_set_mouse_position( sgui_window* wnd, int x, int y );
 void window_w32_set_visible( sgui_window* wnd, int visible );

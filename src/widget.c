@@ -49,14 +49,17 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
 
     if( w )
     {
+        /* flag the old area dirty */
         sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
 
+        /* move the widget area */
         dx = x - w->area.left;
         dy = y - w->area.top;
 
         w->area.left += dx; w->area.right  += dx;
         w->area.top  += dy; w->area.bottom += dy;
 
+        /* flag the new area dirty */
         sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
     }
 }
@@ -108,15 +111,18 @@ void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r )
 
 int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
 {
-    if( !w )
+    if( !w )        /* cannot be inside nonexisting widget */
         return 0;
 
+    /* point is to the left or above */
     if( x < w->area.left || y < w->area.top )
         return 0;
 
+    /* point is to the right or below */
     if( x > w->area.right || y > w->area.bottom )
         return 0;
 
+    /* everything else -> point is inside */
     return 1;
 }
 

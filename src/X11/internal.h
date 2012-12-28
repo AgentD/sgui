@@ -64,8 +64,8 @@ typedef struct
     Window wnd;
     XIC ic;
 
-    int resizeable;
-    unsigned int mouse_warped;
+    int resizeable;             /* remembers whether the window is resizeable */
+    unsigned int mouse_warped;  /* mouse warp counter */
 
     union
     {

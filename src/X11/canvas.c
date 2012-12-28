@@ -118,6 +118,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
     if( !cv )
         return NULL;
 
+    /* allocate a back buffer */
     buffer = malloc( width * height * 4 );
 
     if( !buffer )
@@ -126,6 +127,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
         return NULL;
     }
 
+    /* create an XImage */
     cv->img = XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
                             buffer, width, height, 32, 0 );
 
@@ -136,6 +138,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
         return NULL;
     }
 
+    /* finish base initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
     cv->canvas.download = canvas_xlib_download;
@@ -164,6 +167,7 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
     if( !canvas || !width || !height )
         return;
 
+    /* only reallocate if we need MORE memory than before */
     new_mem = width * height;
     old_mem = canvas->width * canvas->height;
 
@@ -177,12 +181,15 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
         ((sgui_canvas_xlib*)canvas)->img->data = NULL;
     }
 
+    /* destroy the image, automatically frees the current buffer */
     XDestroyImage( ((sgui_canvas_xlib*)canvas)->img );
 
+    /* create a new image */
     ((sgui_canvas_xlib*)canvas)->img =
     XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
                   buffer, width, height, 32, 0 );
 
+    /* store the new state */
     canvas->width = width;
     canvas->height = height;
 }

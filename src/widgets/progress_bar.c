@@ -63,16 +63,20 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     sgui_progress_bar* b;
     unsigned int w, h;
 
+    /* sanity check */
     if( progress > 100 )
         progress = 100;
 
+    /* allocate widget structure */
     b = malloc( sizeof(sgui_progress_bar) );
 
     if( !b )
         return NULL;
 
+    /* get the size of the progress bar */
     sgui_skin_get_progress_bar_extents( length, style, vertical, &w, &h );
 
+    /* initialise and store results */
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
 
     b->widget.draw_callback = sgui_progress_draw;

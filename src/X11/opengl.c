@@ -54,17 +54,17 @@
     #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
 
-typedef GLXFBConfig* (* GLXCHOOSEFBCFGPROC )(Display*,int,const int*,int*);
-typedef XVisualInfo* (* GLXGETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
-typedef GLXContext   (* GLXCREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
-                                                       GLXContext, Bool,
-                                                       const int* );
+typedef GLXFBConfig* (* CHOOSEFBCFGPROC )(Display*,int,const int*,int*);
+typedef XVisualInfo* (* GETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
+typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
+                                                    GLXContext, Bool,
+                                                    const int* );
 
 
 GLXFBConfig get_fb_config( void )
 {
     GLXFBConfig fbc, *fbl;
-    GLXCHOOSEFBCFGPROC ChooseFBConfig;
+    CHOOSEFBCFGPROC ChooseFBConfig;
     int fbcount;
 
     int attr[] =
@@ -81,7 +81,7 @@ GLXFBConfig get_fb_config( void )
         None
     };
 
-    ChooseFBConfig = (GLXCHOOSEFBCFGPROC)LOAD_GLFUN( "glXChooseFBConfig" );
+    ChooseFBConfig = (CHOOSEFBCFGPROC)LOAD_GLFUN( "glXChooseFBConfig" );
 
     if( !ChooseFBConfig )
         return NULL;
@@ -99,9 +99,9 @@ GLXFBConfig get_fb_config( void )
 
 XVisualInfo* get_visual_from_fbc( GLXFBConfig fbc )
 {
-    GLXGETVISUALFROMFBCPROC GetVisualFromFBConfig;
+    GETVISUALFROMFBCPROC GetVisualFromFBConfig;
 
-    GetVisualFromFBConfig = (GLXGETVISUALFROMFBCPROC)
+    GetVisualFromFBConfig = (GETVISUALFROMFBCPROC)
     LOAD_GLFUN( "glXGetVisualFromFBConfig" );
 
     if( !GetVisualFromFBConfig )
@@ -133,12 +133,12 @@ XVisualInfo* get_visual_old( void )
 GLXContext create_context( GLXFBConfig cfg, int version_major,
                            int version_minor, int flags )
 {
-    GLXCREATECONTEXTATTRIBSPROC CreateContextAttribs;
+    CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     GLXContext ctx = 0;
     int attribs[10];
 
     /********** try to load context creation function **********/
-    CreateContextAttribs = (GLXCREATECONTEXTATTRIBSPROC)
+    CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
     LOAD_GLFUN( "glXCreateContextAttribsARB" );
 
     if( !CreateContextAttribs )
@@ -153,20 +153,15 @@ GLXContext create_context( GLXFBConfig cfg, int version_major,
     attribs[5] = flags & SGUI_OPENGL_COMPATIBILITY_PROFILE ?
                            GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
                            GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-    attribs[6] = None;
+    attribs[6] = GLX_CONTEXT_FLAGS_ARB;
+    attribs[7] = 0;
+    attribs[8] = None;
 
-    if( flags & ~(SGUI_OPENGL_COMPATIBILITY_PROFILE) )
-    {
-        attribs[6] = GLX_CONTEXT_FLAGS_ARB;
-        attribs[7] = 0;
-        attribs[8] = None;
+    if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
+        attribs[7] |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 
-        if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
-            attribs[7] |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-
-        if( flags & SGUI_OPENGL_DEBUG )
-            attribs[7] |= GLX_CONTEXT_DEBUG_BIT_ARB;
-    }
+    if( flags & SGUI_OPENGL_DEBUG )
+        attribs[7] |= GLX_CONTEXT_DEBUG_BIT_ARB;
 
     /********** try to create context **********/
     if( !version_major )
@@ -230,6 +225,8 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
 
     /******************** create the window ********************/
+
+    /* try to get an XVisualInfo by any means possible */
     fbc = get_fb_config( );
 
     if( fbc )
@@ -244,6 +241,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
+    /* get a color map for the visual */
     cmap = XCreateColormap( dpy, RootWindow(dpy, vi->screen),
                             vi->visual, AllocNone );
 
@@ -253,6 +251,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
         return NULL;
     }
 
+    /* create the window */
     swa.colormap          = cmap;
     swa.background_pixmap = None;
     swa.border_pixel      = 0;
@@ -303,7 +302,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     if( !wnd->context.gl )
         wnd->context.gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
 
-    XFree( vi );
+    XFree( vi );    /* either way, we don't need the visual info anymore */
 
     if( !wnd->context.gl )
     {

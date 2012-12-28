@@ -37,25 +37,36 @@ typedef struct
 {
     sgui_widget widget;
 
+    /* maximum number of UTF8 characters the user can enter and
+       the number of UTF8 characters that have already been entered */
     unsigned int max_chars, num_entered;
+
+    /* BYTE OFFSET of the last character in the text buffer */
     unsigned int end;
 
+    /* BYTE OFFSET of the character after which to draw the cursor */
     unsigned int cursor;
+
+    /* BYTE OFFSET of the first character
+       visible at the left side of the box */
     unsigned int offset;
 
-    int draw_cursor;
+    int draw_cursor;    /* boolean: draw the cursor? */
 
-    char* buffer;
+    char* buffer;       /* text buffer */
 }
 sgui_edit_box;
 
 
 
+/* move index back to the start of the preceeding
+   UTF8 character in the buffer */
 #define ROLL_BACK_UTF8( buffer, index )\
             --(index);\
             while( (index) && (((buffer)[ index ]) & 0xC0) == 0x80 )\
                 --(index);
 
+/* move index forward to the start of the next UTF8 character in the buffer */
 #define ADVANCE_UTF8( buffer, index )\
             ++(index);\
             while( (((buffer)[ index ]) & 0xC0) == 0x80 )\
@@ -67,18 +78,19 @@ void sgui_edit_box_determine_offset( sgui_edit_box* b )
 {
     unsigned int cx, w;
 
+    /* only adjust if there are characters entered */
     if( !b->num_entered )
         return;
 
-    cx = sgui_skin_default_font_extents( b->buffer + b->offset,
-                                         b->cursor - b->offset, 0, 0 );
-
     w = SGUI_RECT_WIDTH( b->widget.area );
 
+    /* if the cursor moved out of the edit box to the left */
     if( b->offset && (b->cursor <= b->offset) )
     {
-        /* roll offset back, until render space is exceeded */
-        while( b->offset && (cx < w) )
+        b->offset = b->cursor;
+
+        /* roll offset back until the cursor moves out to the right */
+        do
         {
             ROLL_BACK_UTF8( b->buffer, b->offset );
 
@@ -86,18 +98,30 @@ void sgui_edit_box_determine_offset( sgui_edit_box* b )
                                                  b->cursor - b->offset,
                                                  0, 0 );
         }
+        while( b->offset && (cx < w) );
 
-        /* move offset forward by one, to fit exactely into the bar */
+        /* move offset forward by one, so the cursor is at the far right */
         if( b->offset )
         {
             ADVANCE_UTF8( b->buffer, b->offset );
         }
     }
-    else if( cx > w )
+    else
     {
-        b->offset = b->cursor;
+        /* get the extents of the text from the left of the
+           edit box to the cursor */
+        cx = sgui_skin_default_font_extents( b->buffer + b->offset,
+                                             b->cursor - b->offset, 0, 0 );
 
-        ROLL_BACK_UTF8( b->buffer, b->offset );
+        /* the cursor has moved outside the edit box to the right */
+        if( cx > w )
+        {
+            /* adjust the rendered region, so the cursor
+              is at the left after the first character */
+            b->offset = b->cursor;
+
+            ROLL_BACK_UTF8( b->buffer, b->offset );
+        }
     }
 }
 
@@ -106,10 +130,13 @@ unsigned int sgui_edit_box_cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 {
     unsigned int len = 0, cur = b->offset;
 
+    /* move 'cur' to the right until it the text extents from
+       the beginning to 'cur' catch up with the mouse offset */
     while( (len < (unsigned int)mouse_x) && (cur < b->end) )
     {
         ADVANCE_UTF8( b->buffer, cur );
 
+        /* get the text extents from the rendering offset to 'cur' */
         len = sgui_skin_default_font_extents( b->buffer+b->offset,
                                               cur      -b->offset, 0, 0 );
     }
@@ -137,22 +164,31 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
 
     if( type == SGUI_FOCUS_EVENT )
     {
+        /* enable cursor drawing, flag area as dirty */
         b->draw_cursor = 1;
         sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
     }
     else if( type == SGUI_FOCUS_LOSE_EVENT )
     {
+        /* disable cursor drawing, flag area as dirty */
         b->draw_cursor = 0;
         sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+
+        /* fire a text changed event */
+        sgui_widget_manager_fire_widget_event( widget->mgr, widget,
+                                               SGUI_EDIT_BOX_TEXT_CHANGED );
     }
     else if( (type == SGUI_MOUSE_RELEASE_EVENT) &&
              (event->mouse_press.button == SGUI_MOUSE_BUTTON_LEFT) &&
              b->num_entered )
     {
         unsigned int new_cur;
-    
+
+        /* get the cursor offset from the mouse position */
         new_cur = sgui_edit_box_cursor_from_mouse( b, event->mouse_press.x );
 
+        /* store new position and flag area dirty if the
+           cursor position changed */
         if( new_cur != b->cursor )
         {
             b->cursor = new_cur;
@@ -161,40 +197,47 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
     }
     else if( type == SGUI_KEY_PRESSED_EVENT )
     {
+        /* backspace pressed, characters have been entered, cursor is not 0 */
         if( (event->keyboard_event.code==SGUI_KC_BACK) && b->num_entered &&
             b->cursor )
         {
-            unsigned int old = b->cursor;
+            unsigned int old = b->cursor;   /* store old cursor position */
 
+            /* move back by one character */
             ROLL_BACK_UTF8( b->buffer, b->cursor );
 
-            /* move entire text block back by one character */
+            /* move entire text block back by the difference */
             memmove( b->buffer+b->cursor, b->buffer+old, b->end-old+1 );
 
             /* update state */
             b->num_entered -= 1;
             b->end -= (old - b->cursor);
 
+            /* flag dirty and adjust offset */
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
             sgui_edit_box_determine_offset( b );
         }
+        /* delete pressed, cursor is not at end, chars have been entered */
         else if( (event->keyboard_event.code==SGUI_KC_DELETE) &&
                  (b->cursor < b->end) && b->num_entered )
         {
-            unsigned int offset = b->cursor;
+            unsigned int offset = b->cursor;  /* store old cursor position */
 
+            /* move forward by one character */
             ADVANCE_UTF8( b->buffer, offset );
 
-            /* move entire text block back by one character */
+            /* move entire text block back by difference */
             memmove( b->buffer+b->cursor, b->buffer+offset, b->end-offset+1 );
 
             /* update state */
             b->num_entered -= 1;
             b->end -= (offset - b->cursor);
 
+            /* flag dirty and adjust offset */
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
             sgui_edit_box_determine_offset( b );
         }
+        /* move cursor left pressed and cursor is not 0 */
         else if( (event->keyboard_event.code==SGUI_KC_LEFT) && b->cursor )
         {
             ROLL_BACK_UTF8( b->buffer, b->cursor );
@@ -202,6 +245,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
             sgui_edit_box_determine_offset( b );
         }
+        /* move cursor right pressed and cursor is not at the end */
         else if( (event->keyboard_event.code==SGUI_KC_RIGHT) &&
                  (b->cursor < b->end) )
         {
@@ -210,13 +254,15 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
             sgui_edit_box_determine_offset( b );
         }
+        /* home key pressed and we have an offset OR the cursor is not */
         else if( (event->keyboard_event.code==SGUI_KC_HOME) &&
-                 (b->cursor || b->offset) )
+                 (b->offset || b->cursor) )
         {
             b->cursor = 0;
             b->offset = 0;
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
         }
+        /* end key pressed and the cursor is not at the end */
         else if( (event->keyboard_event.code==SGUI_KC_END) &&
                  (b->cursor < b->end) )
         {
@@ -225,14 +271,21 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
             sgui_edit_box_determine_offset( b );
         }
+        /* ENTER key pressed */
+        else if( event->keyboard_event.code==SGUI_KC_RETURN )
+        {
+            sgui_widget_manager_fire_widget_event(widget->mgr, widget,
+                                                  SGUI_EDIT_BOX_TEXT_ENTERED);
+        }
     }
     else if( (type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )
     {   
         unsigned int len;
 
+        /* get the length of the UTF8 string to insert */
         len = strlen( event->char_event.as_utf8_str );
 
-        /* move entire text block right by the character length */
+        /* move entire text block after curser right by that length */
         memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
                  b->end - b->cursor + 1 );
 
@@ -243,6 +296,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         b->end += len;
         b->cursor += len;
         b->num_entered += 1;
+
+        /* flag dirty and determine cursor position */
         sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
         sgui_edit_box_determine_offset( b );
     }
@@ -255,6 +310,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 {
     sgui_edit_box* b;
 
+    /* allocate structure */
     b = malloc( sizeof(sgui_edit_box) );
 
     if( !b )
@@ -262,6 +318,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 
     memset( b, 0, sizeof(sgui_edit_box) );
 
+    /* allocate storage for the text buffer */
     b->buffer = malloc( max_chars * 6 + 1 );
 
     if( !b->buffer )
@@ -270,6 +327,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
         return NULL;
     }
 
+    /* initialise and store state */
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width,
                                sgui_skin_get_edit_box_height( ) );
 
@@ -303,6 +361,7 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     if( !box )
         return;
 
+    /* text = NULL means clear */
     if( !text )
     {
         b->num_entered = 0;
@@ -310,25 +369,27 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
         b->end = 0;
         b->cursor = 0;
         b->offset = 0;
-        return;
     }
-
-    /* copy text and count entered characters (UTF8!!) */
-    for( b->num_entered=0, i=0; b->num_entered<b->max_chars && *text;
-         ++b->num_entered )
+    else
     {
-        b->buffer[ i++ ] = *(text++);
-
-        while( (*text & 0xC0) == 0x80 )
+        /* copy text and count entered characters (UTF8!!) */
+        for( b->num_entered=0, i=0; b->num_entered<b->max_chars && *text;
+             ++b->num_entered )
+        {
             b->buffer[ i++ ] = *(text++);
+
+            while( (*text & 0xC0) == 0x80 )
+                b->buffer[ i++ ] = *(text++);
+        }
+
+        b->buffer[ i ] = '\0';  /* append null-terminator */
+        b->end = i;             /* store offset of end */
+
+        b->cursor = 0;          /* set cursor to the beginning */
+        b->offset = 0;
+
+        /* flag area dirt */
+        sgui_widget_manager_add_dirty_rect( box->mgr, &box->area );
     }
-
-    b->buffer[ i ] = '\0';
-    b->end = i;
-
-    b->cursor = 0;
-    b->offset = 0;
-
-    sgui_widget_manager_add_dirty_rect( box->mgr, &box->area );
 }
 

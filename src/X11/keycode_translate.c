@@ -39,6 +39,10 @@ static unsigned int num_key_entries = 0;
 
 
 
+/*
+    add a coresponding KeySym <-> SGUI_KEY_CODE pair to the LUT, sorted by
+    KeySym. Runs in O(n) complexity, only called at initialisation anyway
+ */
 void key_entries_add( KeySym key, SGUI_KEY_CODE code )
 {
     unsigned int i, j;
@@ -64,6 +68,11 @@ void key_entries_add( KeySym key, SGUI_KEY_CODE code )
     ++num_key_entries;
 }
 
+/*
+    search for the coresponding SGUI_KEY_CODE for a given KeySym. Performs
+    hand coded binary search instead of using bsearch. Needs to be fast;
+    called every time a user presses or releases a key.
+ */
 SGUI_KEY_CODE key_entries_translate( KeySym key )
 {
     unsigned int i, l = 0, u = num_key_entries;

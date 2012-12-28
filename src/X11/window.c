@@ -33,9 +33,9 @@
 
 void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
-    Window t1, t2;
-    int t3, t4;
-    unsigned int t5;
+    Window t1, t2;   /* values we are not interested */
+    int t3, t4;      /* into but xlib does not accept */
+    unsigned int t5; /* a NULL pointer for these */
 
     XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
 }
@@ -45,7 +45,7 @@ void window_x11_set_mouse_position( sgui_window* wnd, int x, int y )
     XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0, wnd->w, wnd->h, x, y );
     XFlush( dpy );
 
-    ++(TO_X11(wnd)->mouse_warped);
+    ++(TO_X11(wnd)->mouse_warped);  /* increment warp counter */
 }
 
 void window_x11_set_visible( sgui_window* wnd, int visible )
@@ -125,11 +125,13 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         memset( se.char_event.as_utf8_str, 0,
                 sizeof(se.char_event.as_utf8_str) );
 
+        /* try to convert composed character to UTF8 string */
         Xutf8LookupString( wnd->ic, &e->xkey,
                            (char*)se.char_event.as_utf8_str,
                            sizeof(se.char_event.as_utf8_str),
                            &sym, &stat );
 
+        /* send a char event if it worked */
         if( stat==XLookupChars || stat==XLookupBoth )
         {
             if( (se.char_event.as_utf8_str[0] & 0x80) ||
@@ -139,6 +141,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
             }
         }
 
+        /* send a key pressed event if we have a key sym */
         if( stat==XLookupKeySym || stat==XLookupBoth )
         {
             se.keyboard_event.code = key_entries_translate( sym );
@@ -148,6 +151,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         break;
     case ButtonPress:
     case ButtonRelease:
+        /* Button4 and Button5 are mouse wheel up and down */
         if( (e->xbutton.button==Button4||e->xbutton.button==Button5) &&
             e->type==ButtonPress )
         {
@@ -177,9 +181,10 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case MotionNotify:
+        /* ignore mouse move event when the warp counter is positive */
         if( wnd->mouse_warped )
         {
-            --(wnd->mouse_warped);
+            --(wnd->mouse_warped);  /* decrement warp counter */
         }
         else
         {
@@ -192,14 +197,19 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         se.size.new_width  = e->xconfigure.width;
         se.size.new_height = e->xconfigure.height;
 
+        /* store the new position */
+        wnd->base.x = e->xconfigure.x;
+        wnd->base.y = e->xconfigure.y;
+
+        /* do not accept zero size window */
         if( !se.size.new_width || !se.size.new_height )
             break;
 
+        /* ignore if the size didn't change at all */
         if(se.size.new_width==wnd->base.w && se.size.new_height==wnd->base.h)
             break;
 
-        wnd->base.x = e->xconfigure.x;
-        wnd->base.y = e->xconfigure.y;
+        /* store the new size */
         wnd->base.w = (unsigned int)e->xconfigure.width;
         wnd->base.h = (unsigned int)e->xconfigure.height;
 
