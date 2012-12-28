@@ -1,0 +1,142 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>The SGUI build system</h3>
+
+The SGUI build system consits of two simple shell scripts:
+<ul>
+<li>One for UNIX&reg; systems that uses gcc, <b>"compile.sh"</b>
+<li>One for Windows&reg; that uses the mingw cross compiler,
+    <b>"compile_mingw.sh"</b>
+</ul>
+The reasons for this are simplicity on the one hand and the fact that the
+whole thing started out as an Xlib play pen that simply grew out of
+proportions on the other hand. It might be replaced with a Makefile somewhere
+in the future.<br>
+<br>
+Both shell scripts start with a variable called <b>"CFLAGS"</b> wich contains
+the C compiler flags to use. Additional flags can be specified over the
+command line (<b>$1</b>).<br>
+<br>
+What follows (in both shell scripts) is a function called
+<b>"compile_files( )"</b>. The basically takes a list of C source files and an
+output object directory. For each source file, it checks whether the
+coresponding object file is older than the source file, if it is older or does
+not exist at all, the file is recompiled to the object file. The parameters of
+the function may very between the two shell scripts. Please consult the
+comments in the script.<br>
+<br>
+
+Somewhere below (it is clerly marked by comments) follows a section with
+variables containing the source files and library dependencies.<br>
+<br>
+The source files for the widgets are stored in <b>SOURCE_WIDGETS</b>, the
+files for the common code in <b>SOURCE_COMMON</b> and the source files for
+a particular back end are in <b>SOURCE_&lt;PLATFORM&gt;</b>. The dependencies
+for a particular back end are in <b>LIBS_&lt;PLATFORM&gt;</b>. Added a source
+file to the build systems is merely a matter of adding it to the right
+variable. Test programs, however, are not in some variable, as their
+dependencies may very. They are compiled "hard coded" below in the actual
+compilation.<br>
+<br>
+The last thing that follows in the script is the actual compilation. The whole
+script is outlined by commentaries and it should not be to hard to read it.
+<br>
+<br>
+
+<h3>The output directory tree</h3>
+
+The SGUI build systems writes its output to the "build" subdirectory, which
+contains the following subdirectories:
+
+<ul>
+<table>
+<tr>
+<td><li>build/bin/&lt;PLATFORM&gt;</td>
+<td>Compiled dynamic libraries and program binaries end up here</td>
+</tr>
+<tr>
+<td><li>build/lib/&lt;PLATFORM&gt;</td>
+<td>If a platform (e.g. Windows&reg;) generates static libraries, they end up
+    here</td>
+</tr>
+<tr>
+<td><li>build/obj/&lt;PLATFORM&gt;</td>
+<td>Intermediate directory for object file</td>
+</tr>
+<tr>
+<td><li>build/win_dep/&lt;PLATFORM&gt;</td>
+<td>Headers and precompiled libraries for the Windows&reg; port</td>
+</tr>
+<tr>
+<td><li>build/font/</td>
+<td>This directory contains font files used by the demo and test programs</td>
+</tr>
+</table>
+</ul>
+
+<h3>The source directory tree</h3>
+
+In the root directory of the SGUI repository, you can find the following
+subdirectories:
+
+<ul>
+<table>
+<tr>
+<td><li>build/</td>
+<td>The output directory, see above</td>
+</tr>
+<tr>
+<td><li>doc/</td>
+<td>The documentation you are currently reading</td>
+</tr>
+<tr>
+<td><li>include/</td>
+<td>Contains all the <b>SGUI headers</b></td>
+</tr>
+<tr>
+<td><li>src/</td>
+<td>Contains the <b>SGUI source code</b></td>
+</tr>
+<tr>
+<td><li>src/widgets/</td>
+<td>Contains the <b>source code for the widgets</b></td>
+</tr>
+<tr>
+<td><li>src/&lt;BACK END&gt;/</td>
+<td>Contains source code specific to a certain back end or platform</td>
+</tr>
+<tr>
+<td><li>test/</td>
+<td>Contains the source code for the <b>SGUI test programs</b></td>
+</tr>
+</table>
+</ul>
+
+It should be noted however, that the back end directories should be named
+strictly and the source code in the directories should strictly conform to
+the naming. For instance, the code in the <b>src/X11</b> subdirectory contains
+code specific <i>only</i> to X11, the code must not assume that it is running
+on a UNIX&reg; like system (X11 can be run on other systems as well).
+Similarly, X11 specific source files <b>do not</b> belong into a directory
+called "unix" (and especially not "linux"), source code in a directory called
+"unix" should only assume that the POSIX API is available, no more and no
+less. (Linux&reg; is a <i>kernel</i> for UNIX&reg; like operating systems,
+the POSIX API also works on other UNIX&reg; like systems and is not kernel
+specific, interfaces of user land window systems like X11 are especially not
+kernel spefic).
+
+<hr>
+<a href="hacking.oop.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.build.html">Next</a>
+
+</html>
+

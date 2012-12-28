@@ -1,0 +1,73 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+This chapter is intended to provide an overview and details of the
+architecture and internal workings of SGUI for people who intend to make
+changes or additions to SGUI.
+
+<h3>Architectural overview</h3>
+
+<img src="images/classes.svg" width="500">
+<br>
+<br>
+The architecture of SGUI is rather simple. The above image gives a rough
+outline of the class hirarchy (yes, you read right, <i>class</i> hirarchy).
+<br>
+<ul>
+<li>Various widgets are derived from a common base class, the
+    <b>sgui_widget</b>.
+<li>The <b>sgui_window</b> is actually a base class, derived by an
+    implementation for your platform and also other implementations like an
+    OpenGL&reg; back end.<br>The xlib window is only drawn as an example.
+<li>The window class only handles a window, it does not touch any widgets or
+    do any rendering.
+<li>Widget management is done by using a common <b>sgui_widget_manager</b>
+    class of which the window has an instance.
+<li>Rendering is done by providing a pointer to an <b>sgui_canvas</b>.
+<li>The <b>sgui_canvas</b> is a base class that provides rendering functions
+    for drawing to a fixed size surface.
+<li>There are various canvas implementations (derived classes). The window
+    implementation must make sure to create an apropriate implementation.
+    <br>The xlib canvas is only drawn as an example.
+<li>Of course there are other classes, but those are only isolated, minor
+    helper data structures.
+</ul>
+<br>
+This is pretty much what happens inside the SGUI main loop:
+<br>
+<ul>
+<li>The platforms main loop implementation receives messages from the window
+    system and redirects them to the appropriate windows.
+<li>The windows responds to the messages, translate them to SGUI events and
+    redirect them to their widget managers.
+<li>The widget managers process the events and redirect them to the
+    appropriate widgets.
+<li>The widgets process their events and do something.
+<li>Some widgets decide that they need to be redrawn and tell it to their
+    responsible widget managers.
+<li>The windows checks their widget managers whether there are widgets to be
+    redrawn.
+<li>If there are widgets to be redrawn, the coresponding widget manager is
+    given a pointer to a canvas implementation used by the window.
+<li>The widget manager initiates drawing and gives the pointer to the widgets
+    that need rerendering.
+<li>The widgets use skinning functions to draw themselves.
+<li>The windows present their canvases to the user.
+</ul>
+
+
+
+<hr>
+<a href="using.filesystem.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.oop.html">Next</a>
+
+</html>
+

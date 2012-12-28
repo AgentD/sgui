@@ -28,6 +28,11 @@ font.string
     color: #D00000
 }
 
+font.comment
+{
+    color: #00A000
+}
+
 font.command
 {
     color: #ce5c00

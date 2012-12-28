@@ -1,0 +1,202 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>Crash course: Object orientation in C for C++ and Java people</h3>
+
+In my personal experience, people with backgrounds in languages like C++ or
+Java tend to be rather puzzled when talking to them about object oriented
+programing in the C programing language. The main reason behind this seems to
+be that said people tend to strictly think that object orientation is tied to
+the concept of a C++ or Java <i>class datatype</i> with C++ or Java like
+method declarations, inheritance and so on.<br>
+This however, is not quite correct. Object orientation is a more general term,
+which basically boils down to the fact that there are objects ("instances of
+classes") which have data fields and can receive messages and processing data
+("method calls") and send messages to other objects (call "methods" on objects
+other). Data is encapsulated in an own data type and operations on that data
+packages are strictly bound to that data type. (It is adviceable to consult a
+book on that topic or at least the
+<a href="http://en.wikipedia.org/wiki/Object_orientated">Wikipedia
+article</a>).<br>
+
+<h4>Classes, methods and objects in C</h4>
+
+C++ like classes can be implemented in C using the <a>struct</a> datatype.
+The struct holds the data fields and the methods are simply functions that
+have a pointer to the struct as their first parameter.
+(The "this" pointer in C++):
+
+<p class="code">
+<font class="keyword">typedef struct</font><br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">int</font> i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">float</font> f;<br>
+}<br>
+my_class;<br>
+<br>
+<font class="keyword">void</font> my_class_do_something( my_class* this, <font class="keyword">int</font> foo, <font class="keyword">float</font> bar );<br>
+<br>
+<font class="keyword">void</font> my_class_do_something_else( my_class* this, <font class="keyword">int</font> hugo );
+</p>
+
+An object is simply an instance of the struct.
+
+<h4>Inheritance</h4>
+
+Inheritance can be implemented by declaring another struct with the first
+field of the base class type. A pointer to that new struct can be passed to
+the new methods, but it can also be safely casted to a base pointer and passed
+to the base methods.
+
+<p class="code">
+...<br>
+<br>
+<font class="keyword">typedef struct</font><br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;my_class base;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">double</font> d;<br>
+}<br>
+another_class;<br>
+<br>
+<font class="keyword">void</font> another_class_do( another_class* this, <font class="keyword">double</font> precision );<br>
+<br>
+...<br>
+<br>
+<font class="keyword">int</font> main( <font class="keyword">void</font> )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;my_class foo; <font class="comment">/* an object = instance of my_class */</font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;another_class bar; <font class="comment">/* an object = instance of another_class */</font><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="comment">/* call a method on foo */</font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;my_class_do_something( &foo, <font class="number">42</font>, <font class="number">13.37f</font> );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="comment">/* call a method on bar */</font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;another_class_do( &bar, <font class="number">9000.01</font> );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="comment">/* call a base class method on bar */</font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;my_class_do_something( (my_class*)&bar, <font class="number">42</font>, <font class="number">13.37f</font> );<br>
+}
+</p>
+
+<h4>Virtual methods and polymorphism</h4>
+
+Implementing virtual methods can by done by simply <b>storing function
+pointers</b> in the structure. When we call a method on the base class, the
+function simply redirects the call to the function pointer in the structure.
+The function pointer itself is set by the initialisation funcion/method of the
+derived class and there we have our derived class overriding base class
+methods.<br>
+<br>
+Actually that's pretty close to how C++ classes are implemented, only we do it
+"by hand" instead of relying on the magic of the C++ compiler. (By the way,
+C++ compilers call it a vtable).
+
+<p class="code">
+<font class="keyword">typedef struct</font> classy<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">int</font> ifield;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">float</font> ffield;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">void</font> (* do_something )( <font class="keyword">struct</font> classy* this, <font class="keyword">int</font> foobar );<br>
+}<br>
+some_class;<br>
+<br>
+<br>
+<font class="keyword">void</font> some_class_do_something( some_class* this, <font class="keyword">int</font> foobar )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;this->do_something( this, foobar );<br>
+}<br>
+</p>
+
+<h4>Constructors, destructors and hiding away the data</h4>
+
+Hiding the data away is merely a matter of making the struct opaque. That
+means that structure is only declared in a header, not defined. The definition
+is in the coresponding source file.<br>
+<br>
+To create instances of the struct, the user must then call special create and
+destroy functions that deliver a pointer to a struct and free it again. Those
+are your constructors and destructors.<br>
+Here's a simple example:<br>
+<br>
+my_class.h:
+<p class="code">
+...<br>
+<br>
+<font class="keyword">typedef struct</font> my_class my_class;<br>
+<br>
+my_class* my_class_create( <font class="keyword">void</font> );<br>
+<br>
+<font class="keyword">void</font> my_class_destroy( my_class* this );<br>
+<br>
+<font class="keyword">void</font> my_class_set_hugo( my_class* this, <font class="keyword">int</font> value );<br>
+<br>
+<font class="keyword">int</font> my_class_get_hugo( my_class* this );<br>
+<br>
+...
+</p>
+
+my_class.c:
+
+<p class="code">
+<font class="cpp">#include</font> "my_class.h"<br>
+<br>
+<font class="keyword">struct</font> my_class<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">int</font> hugo;<br>
+};<br>
+<br>
+my_class* my_class_create( <font class="keyword">void</font> )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;my_class* this;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;this = malloc( <font class="keyword">sizeof</font>(my_class) );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;this->hugo = <font class="number">42</font>;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">return</font> this;<br>
+}<br>
+<br>
+<font class="keyword">void</font> my_class_destroy( my_class* this )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;free( this );<br>
+}<br>
+<br>
+<font class="keyword">void</font> my_class_set_hugo( my_class* this, <font class="keyword">int</font> value )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;this->hugo = value;<br>
+}<br>
+<br>
+<font class="keyword">int</font> my_class_get_hugo( my_class* this )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">return</font> this->hugo;<br>
+}<br>
+<br>
+...
+</p>
+
+The user of the my_class type no longer has access to the data. To access the
+data, the get and set methods have to be used. They however can also implement
+sanity checks. (Sanity and error checks have been ommited in this example)<br>
+<br>
+The only way for the user to create and destroy instances of the my_class type
+is to go through the creat/delete functions that do proper initialisation and
+shutdown, and in the case of derived classes, set the base class function
+pointers accordingly.<br>
+<br>
+And thats it. C++ without the magic.
+
+<hr>
+<a href="hacking.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.build.html">Next</a>
+
+</html>
+
