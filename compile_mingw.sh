@@ -2,7 +2,7 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -I./include -Ibuild/win_dep/include -mwindows $1"
+        -Icore/include -Ibuild/win_dep/include -mwindows $1"
 
 # Compile a list of files. $1: prefix, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -50,20 +50,21 @@ if [ "$?" == "127" ]; then
 fi
 
 ############################# source code files #############################
-SOURCE_WIDGETS="src/widgets/progress_bar.c src/widgets/static_text.c
-                src/widgets/button.c src/widgets/image.c
-                src/widgets/edit_box.c src/widgets/frame.c
-                src/widgets/scroll_bar.c src/widgets/group_box.c
-                src/widgets/tab.c"
+SOURCE_WIDGETS="core/src/widgets/progress_bar.c core/src/widgets/static_text.c
+                core/src/widgets/button.c core/src/widgets/image.c
+                core/src/widgets/edit_box.c core/src/widgets/frame.c
+                core/src/widgets/scroll_bar.c core/src/widgets/group_box.c
+                core/src/widgets/tab.c"
 
-SOURCE_OPENGL="src/OpenGL/canvas_gl_tex.c"
+SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 
-SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
-               src/skin.c src/filesystem.c src/canvas.c src/window.c
+SOURCE_COMMON="core/src/widget.c core/src/font.c core/src/rect.c
+               core/src/widget_manager.c core/src/skin.c
+               core/src/filesystem.c core/src/canvas.c core/src/window.c
                $SOURCE_WIDGETS $SOURCE_OPENGL"
 
-SOURCE_PLATFORM="src/WIN32/window.c src/WIN32/canvas.c src/WIN32/platform.c
-                 src/WIN32/opengl.c"
+SOURCE_PLATFORM="core/src/WIN32/window.c core/src/WIN32/canvas.c
+                 core/src/WIN32/platform.c core/src/WIN32/opengl.c"
 
 # Platform specific dependencies
 LIBS32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32 -lopengl32"

@@ -2,7 +2,7 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -I./include -I/usr/include/freetype2 $1"
+        -Icore/include -I/usr/include/freetype2 $1"
 
 # Compile a list of files. $1: additional compiler flags, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -38,21 +38,23 @@ compile_files( )
 ############################# source code files #############################
 
 # Common source code files
-SOURCE_WIDGETS="src/widgets/progress_bar.c src/widgets/static_text.c
-                src/widgets/button.c src/widgets/image.c
-                src/widgets/edit_box.c src/widgets/frame.c
-                src/widgets/scroll_bar.c src/widgets/group_box.c
-                src/widgets/tab.c"
+SOURCE_WIDGETS="core/src/widgets/progress_bar.c core/src/widgets/static_text.c
+                core/src/widgets/button.c core/src/widgets/image.c
+                core/src/widgets/edit_box.c core/src/widgets/frame.c
+                core/src/widgets/scroll_bar.c core/src/widgets/group_box.c
+                core/src/widgets/tab.c"
 
-SOURCE_OPENGL="src/OpenGL/canvas_gl_tex.c"
+SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 
-SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
-               src/skin.c src/filesystem.c src/canvas.c src/window.c
+SOURCE_COMMON="core/src/widget.c core/src/font.c core/src/rect.c
+               core/src/widget_manager.c core/src/skin.c core/src/filesystem.c
+               core/src/canvas.c core/src/window.c
                $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 # Platform specific stuff
-SOURCE_X11="src/X11/window.c src/X11/keycode_translate.c src/X11/canvas.c
-            src/X11/platform.c src/X11/opengl.c"
+SOURCE_X11="core/src/X11/window.c core/src/X11/keycode_translate.c
+            core/src/X11/canvas.c core/src/X11/platform.c
+            core/src/X11/opengl.c"
 
 LIBS_X11="-lX11 -lGL -lfreetype"
 
