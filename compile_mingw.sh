@@ -60,7 +60,7 @@ SOURCE_OPENGL="src/OpenGL/canvas_gl_tex.c"
 
 SOURCE_COMMON="src/widget.c src/font.c src/rect.c src/widget_manager.c
                src/skin.c src/filesystem.c src/canvas.c src/window.c
-               src/screen.c $SOURCE_WIDGETS $SOURCE_OPENGL"
+               $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 SOURCE_PLATFORM="src/WIN32/window.c src/WIN32/canvas.c src/WIN32/platform.c
                  src/WIN32/opengl.c"

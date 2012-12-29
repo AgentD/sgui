@@ -1,12 +1,12 @@
 #include "sgui.h"
 #include "sgui_opengl.h"
-#include "sgui_screen.h"
 
 #include <GL/gl.h>
 #include <stdio.h>
 
 
-sgui_screen* scr = NULL;
+sgui_canvas* cv;
+sgui_widget_manager* mgr;
 
 
 /* translates window to canvas coordinates */
@@ -37,12 +37,11 @@ void sgui_window_fun( sgui_window* wnd, int type, sgui_event* event )
         translate_pos( &e.mouse_move.x, &e.mouse_move.y );
     }
 
-    sgui_screen_inject_event( scr, type, &e );
+    sgui_widget_manager_send_window_event( mgr, type, &e );
 }
 
 int main( void )
 {
-    sgui_canvas* cv;
     sgui_window* wnd;
     GLuint tex;
     unsigned char color[4];
@@ -72,7 +71,7 @@ int main( void )
 
     /* create canvas and screen */
     cv = sgui_opengl_canvas_create( 256, 256 );
-    scr = sgui_screen_create( cv );
+    mgr = sgui_widget_manager_create( );
 
     sgui_skin_get_window_background_color( color );
     sgui_canvas_set_background_color( cv, color );
@@ -87,11 +86,11 @@ int main( void )
 
     butt = sgui_button_create( 10, 150, 100, 30, "Button" );
 
-    sgui_screen_add_widget( scr, pbar );
-    sgui_screen_add_widget( scr, butt );
-    sgui_screen_add_widget( scr, c0 );
-    sgui_screen_add_widget( scr, c1 );
-    sgui_screen_add_widget( scr, c2 );
+    sgui_widget_manager_add_widget( mgr, pbar );
+    sgui_widget_manager_add_widget( mgr, butt );
+    sgui_widget_manager_add_widget( mgr, c0 );
+    sgui_widget_manager_add_widget( mgr, c1 );
+    sgui_widget_manager_add_widget( mgr, c2 );
 
     /* bind Canvas texture */
     tex = sgui_opengl_canvas_get_texture( cv );
@@ -108,7 +107,8 @@ int main( void )
     /* main loop */
     while( sgui_main_loop_step( ) )
     {
-        sgui_screen_update( scr );
+        sgui_widget_manager_draw( mgr, cv );
+        sgui_widget_manager_clear_dirty_rects( mgr );
 
         glClear( GL_COLOR_BUFFER_BIT );
 
@@ -126,7 +126,7 @@ int main( void )
     sgui_opengl_canvas_destroy( cv );
     sgui_opengl_window_make_current( NULL );
     sgui_opengl_window_destroy( wnd );
-    sgui_screen_destroy( scr );
+    sgui_widget_manager_destroy( mgr );
     sgui_button_destroy( butt );
     sgui_button_destroy( c0 );
     sgui_button_destroy( c1 );
