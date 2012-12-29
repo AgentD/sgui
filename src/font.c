@@ -91,68 +91,85 @@ sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename )
 {
     sgui_font* font;
     void* file;
-    void* buffer;
+    void* buffer = NULL;
     size_t size;
 
+#ifdef SGUI_NO_STDIO
     /* make sure we have a valid filesystem pointer */
     if( !fs )
-        fs = sgui_filesystem_get_default( );
-
-    if( !fs )
         return NULL;
-
-    /* try to open the file */
-    file = fs->file_open_read( filename );
-
-    if( !file )
-        return NULL;
-
-    /* determine the length of the file */
-    size = fs->file_get_length( file );
-
-    if( !size )
-    {
-        fs->file_close( file );
-        return NULL;
-    }
-
-    /* allocate a buffer for the file */
-    buffer = malloc( size );
-
-    if( !buffer )
-    {
-        fs->file_close( file );
-        return NULL;
-    }
-
-    /* load the file into the buffer */
-    fs->file_read( file, buffer, 1, size );
-    fs->file_close( file );
+#endif
 
     /* allocate font structure */
     font = malloc( sizeof(sgui_font) );
 
     if( !font )
-    {
-        free( buffer );
         return NULL;
-    }
 
-    /* load font */
     if( FT_Init_FreeType( &font->freetype ) )
     {
-        free( buffer );
         free( font );
         return NULL;
     }
 
-    if( FT_New_Memory_Face( font->freetype, buffer, size, 0, &font->face ) )
+    /* read the file if we use a virtual filesystem */
+#ifndef SGUI_NO_STDIO
+    if( fs )
     {
-        FT_Done_FreeType( font->freetype );
-        free( buffer );
-        free( font );
-        return NULL;
+#endif
+        /* try to open the file */
+        file = fs->file_open_read( filename );
+
+        if( !file )
+        {
+            free( font );
+            return NULL;
+        }
+
+        /* determine the length of the file */
+        size = fs->file_get_length( file );
+
+        if( !size )
+        {
+            fs->file_close( file );
+            free( font );
+            return NULL;
+        }
+
+        /* allocate a buffer for the file */
+        buffer = malloc( size );
+
+        if( !buffer )
+        {
+            fs->file_close( file );
+            free( font );
+            return NULL;
+        }
+
+        /* load the file into the buffer */
+        fs->file_read( file, buffer, 1, size );
+        fs->file_close( file );
+
+        /* initialise the font */
+        if( FT_New_Memory_Face(font->freetype, buffer, size, 0, &font->face) )
+        {
+            FT_Done_FreeType( font->freetype );
+            free( buffer );
+            free( font );
+            return NULL;
+        }
+#ifndef SGUI_NO_STDIO
     }
+    else
+    {
+        if( FT_New_Face( font->freetype, filename, 0, &font->face ) )
+        {
+            FT_Done_FreeType( font->freetype );
+            free( font );
+            return NULL;
+        }
+    }
+#endif
 
     font->buffer = buffer;
 
