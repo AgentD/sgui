@@ -341,10 +341,25 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 #endif
 
     /*************** allocate space for the window structure ***************/
-    wnd = add_window( );
+    wnd = malloc( sizeof(sgui_window_w32) );
 
     if( !wnd )
         return NULL;
+
+    memset( wnd, 0, sizeof(sgui_window_w32) );
+
+    if( backend==SGUI_NATIVE )
+    {
+        wnd->base.mgr = sgui_widget_manager_create( );
+
+        if( !wnd->base.mgr )
+        {
+            free( wnd );
+            return NULL;
+        }
+    }
+
+    add_window( wnd );
 
     /*************************** create a window ***************************/
     style = resizeable ? WS_OVERLAPPEDWINDOW : (WS_CAPTION | WS_SYSMENU);
@@ -478,7 +493,11 @@ void sgui_window_destroy( sgui_window* wnd )
         if( wnd->back_buffer )
             sgui_canvas_destroy( wnd->back_buffer );
 
+        if( wnd->mgr )
+            sgui_widget_manager_destroy( wnd->mgr );
+
         remove_window( (sgui_window_w32*)wnd );
+        free( wnd );
     }
 }
 

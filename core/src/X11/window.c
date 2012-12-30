@@ -340,13 +340,28 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 #endif
 
     /********* allocate space for the window structure *********/
-    wnd = add_window( );
+    wnd = malloc( sizeof(sgui_window_xlib) );
 
     if( !wnd )
         return NULL;
 
+    memset( wnd, 0, sizeof(sgui_window_xlib) );
+
+    if( backend==SGUI_NATIVE )
+    {
+        wnd->base.mgr = sgui_widget_manager_create( );
+
+        if( !wnd->base.mgr )
+        {
+            free( wnd );
+            return NULL;
+        }
+    }
+
     wnd->backend = backend;
     wnd->resizeable = resizeable;
+
+    add_window( wnd );
 
     /******************** create the window ********************/
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
@@ -544,6 +559,9 @@ void sgui_window_destroy( sgui_window* wnd )
     if( wnd->back_buffer )
         sgui_canvas_destroy( wnd->back_buffer );
 
+    if( wnd->mgr )
+        sgui_widget_manager_destroy( wnd->mgr );
+
     if( TO_X11(wnd)->ic )
         XDestroyIC( TO_X11(wnd)->ic );
 
@@ -565,5 +583,6 @@ void sgui_window_destroy( sgui_window* wnd )
         XDestroyWindow( dpy, TO_X11(wnd)->wnd );
 
     remove_window( TO_X11(wnd) );
+    free( wnd );
 }
 

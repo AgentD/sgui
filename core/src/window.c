@@ -32,32 +32,16 @@
 
 
 
-int sgui_internal_window_init( sgui_window* wnd )
-{
-    wnd->mgr = sgui_widget_manager_create( );
-
-    if( !wnd->mgr )
-        return 0;
-
-    wnd->event_fun = NULL;
-    wnd->back_buffer = NULL;
-    wnd->visible = 0;
-
-    return 1;
-}
-
-void sgui_internal_window_deinit( sgui_window* wnd )
-{
-    sgui_widget_manager_destroy( wnd->mgr );
-}
-
 void sgui_internal_window_fire_event( sgui_window* wnd, int event,
                                       sgui_event* e )
 {
-    if( wnd->event_fun )
-        wnd->event_fun( wnd, event, e );
+    if( wnd )
+    {
+        if( wnd->event_fun )
+            wnd->event_fun( wnd, event, e );
 
-    sgui_widget_manager_send_window_event( wnd->mgr, event, e );
+        sgui_widget_manager_send_window_event( wnd->mgr, event, e );
+    }
 }
 
 /****************************************************************************/

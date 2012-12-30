@@ -67,7 +67,7 @@
 
 
 
-typedef struct
+typedef struct _sgui_window_w32
 {
     sgui_window base;
 
@@ -77,16 +77,18 @@ typedef struct
     HDC hDC;
     HGLRC hRC;
 #endif
+
+    struct _sgui_window_w32* next;
 }
 sgui_window_w32;
 
 extern HINSTANCE hInstance;
 extern const char* wndclass;
 
-/* in platform.c: allocates storate for a window and initialises it */
-sgui_window_w32* add_window( void );
+/* in platform.c: add a window to the list used by the main loop */
+void add_window( sgui_window_w32* wnd );
 
-/* in platform.c: uninitialises a window and frees its memory */
+/* in platform.c: remove a window */
 void remove_window( sgui_window_w32* wnd );
 
 /* in window.c: handle window messages */

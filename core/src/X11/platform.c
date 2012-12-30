@@ -32,9 +32,7 @@ Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
 
-static sgui_window_xlib** windows = NULL;
-static unsigned int num_windows = 0;
-static unsigned int used_windows = 0;
+static sgui_window_xlib* list = NULL;
 
 
 
@@ -54,54 +52,21 @@ static int xlib_swallow_errors( Display* display, XErrorEvent* event )
 
 /****************************************************************************/
 
-sgui_window_xlib* add_window( void )
+void add_window( sgui_window_xlib* wnd )
 {
-    sgui_window_xlib** new_windows;
-
-    /* reallocate list if we need more entries */
-    if( used_windows == num_windows )
-    {
-        num_windows += 10;
-        new_windows = realloc( windows,
-                               sizeof(sgui_window_xlib*) * num_windows );
-
-        if( !new_windows )
-            return NULL;
-
-        windows = new_windows;
-    }
-
-    /* allocate a new window structure */
-    windows[ used_windows ] = malloc( sizeof(sgui_window_xlib) );
-
-    if( !windows[ used_windows ] )
-        return NULL;
-
-    /* initialise it */
-    memset( windows[ used_windows ], 0, sizeof(sgui_window_xlib) );
-
-    if( !sgui_internal_window_init( (sgui_window*)windows[ used_windows ] ) )
-    {
-        free( windows[ used_windows ] );
-        return NULL;
-    }
-
-    return windows[ used_windows++ ];
+    wnd->next = list;
+    list = wnd;
 }
 
 void remove_window( sgui_window_xlib* wnd )
 {
-    unsigned int i;
+    sgui_window_xlib* i;
 
-    for( i=0; i<used_windows; ++i )
+    for( i=list; i->next; i=i->next )
     {
-        if( windows[ i ] == wnd )
+        if( i->next == wnd )
         {
-            windows[ i ] = windows[ used_windows - 1 ];
-            --used_windows;
-
-            sgui_internal_window_deinit( (sgui_window*)wnd );
-            free( wnd );
+            i->next = i->next->next;
             break;
         }
     }
@@ -111,17 +76,6 @@ void remove_window( sgui_window_xlib* wnd )
 
 int sgui_init( void )
 {
-    windows = malloc( 10 * sizeof(sgui_window_xlib*) );
-
-    if( !windows )
-    {
-        sgui_deinit( );
-        return 0;
-    }
-
-    num_windows = 10;
-    used_windows = 0;
-
     /* open display connection */
     dpy = XOpenDisplay( 0 );
 
@@ -153,16 +107,6 @@ int sgui_init( void )
 
 void sgui_deinit( void )
 {
-    unsigned int i;
-
-    if( windows )
-    {
-        for( i=0; i<used_windows; ++i )
-            free( windows[ i ] );
-
-        free( windows );
-    }
-
     if( im )
         XCloseIM( im );
 
@@ -172,14 +116,12 @@ void sgui_deinit( void )
     dpy = NULL;
     im = 0;
 
-    windows = NULL;
-    num_windows = 0;
-    used_windows = 0;
+    list = NULL;
 }
 
 int sgui_main_loop_step( void )
 {
-    unsigned int i;
+    sgui_window_xlib* i;
     XEvent e;
 
     if( XPending( dpy ) > 0 )
@@ -191,11 +133,11 @@ int sgui_main_loop_step( void )
         if( !XFilterEvent( &e, None ) )
         {
             /* route the event to it's window */
-            for( i=0; i<used_windows; ++i )
+            for( i=list; i!=NULL; i=i->next )
             {
-                if( windows[ i ]->wnd == e.xany.window )
+                if( i->wnd == e.xany.window )
                 {
-                    handle_window_events( windows[ i ], &e );
+                    handle_window_events( i, &e );
                     break;
                 }
             }
@@ -203,8 +145,8 @@ int sgui_main_loop_step( void )
     }
 
     /* check if there's at least 1 window still active */
-    for( i=0; i<used_windows; ++i )
-        if( windows[ i ]->base.visible )
+    for( i=list; i!=NULL; i=i->next )
+        if( i->base.visible )
             return 1;
 
     return 0;
@@ -212,7 +154,8 @@ int sgui_main_loop_step( void )
 
 void sgui_main_loop( void )
 {
-    unsigned int i, active;
+    sgui_window_xlib* i;
+    int active;
     XEvent e;
 
     do
@@ -224,19 +167,19 @@ void sgui_main_loop( void )
         if( !XFilterEvent( &e, None ) )
         {
             /* route the event to it's window */
-            for( i=0; i<used_windows; ++i )
+            for( i=list; i!=NULL; i=i->next )
             {
-                if( windows[ i ]->wnd == e.xany.window )
+                if( i->wnd == e.xany.window )
                 {
-                    handle_window_events( windows[ i ], &e );
+                    handle_window_events( i, &e );
                     break;
                 }
             }
         }
 
         /* check if there's at least 1 window still active */
-        for( i=0, active=0; i<used_windows && !active; ++i )
-            active |= windows[ i ]->base.visible;
+        for( i=list, active=0; i!=NULL && !active; i=i->next )
+            active |= i->base.visible;
     }
     while( active );
 }

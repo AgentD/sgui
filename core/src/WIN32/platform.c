@@ -27,9 +27,7 @@
 #include "internal.h"
 
 
-static sgui_window_w32** windows = NULL;
-static unsigned int num_windows = 0;
-static unsigned int used_windows = 0;
+static sgui_window_w32* list = NULL;
 
 HINSTANCE hInstance;
 const char* wndclass = "sgui_wnd_class";
@@ -56,55 +54,21 @@ LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
 
 
-sgui_window_w32* add_window( void )
+void add_window( sgui_window_w32* wnd )
 {
-    sgui_window_w32** new_windows;
-
-    /* resize the list if we need more windows */
-    if( used_windows == num_windows )
-    {
-        num_windows += 10;
-        new_windows = realloc( windows,
-                               sizeof(sgui_window_w32*) * num_windows );
-
-        if( !new_windows )
-            return NULL;
-
-        windows = new_windows;
-    }
-
-    /* allocate space for a new window */
-    windows[ used_windows ] = malloc( sizeof(sgui_window_w32) );
-
-    if( !windows[ used_windows ] )
-        return NULL;
-
-    /* initialise the window */
-    memset( windows[ used_windows ], 0, sizeof(sgui_window_w32) );
-
-    if( !sgui_internal_window_init( (sgui_window*)windows[ used_windows ] ) )
-    {
-        free( windows[ used_windows ] );
-        return NULL;
-    }
-
-    return windows[ used_windows++ ];
+    wnd->next = list;
+    list = wnd;
 }
 
 void remove_window( sgui_window_w32* wnd )
 {
-    unsigned int i;
+    sgui_window_w32* i;
 
-    for( i=0; i<used_windows; ++i )
+    for( i=list; i->next; i=i->next )
     {
-        if( windows[ i ] == wnd )
+        if( i->next == wnd )
         {
-            windows[ i ] = windows[ used_windows - 1 ];
-            --used_windows;
-
-            /* uninitialise the window and free its memory */
-            sgui_internal_window_deinit( (sgui_window*)wnd );
-            free( wnd );
+            i->next = i->next->next;
             break;
         }
     }
@@ -138,47 +102,22 @@ int sgui_init( void )
         return 0;
     }
 
-    /* create window list */
-    windows = malloc( 10 * sizeof(sgui_window_w32*) );
-
-    if( !windows )
-    {
-        sgui_deinit( );
-        return 0;
-    }
-
-    num_windows = 10;
-    used_windows = 0;
-
     return 1;
 }
 
 void sgui_deinit( void )
 {
-    unsigned int i;
-
-    /* free window list */
-    if( windows )
-    {
-        for( i=0; i<used_windows; ++i )
-            free( windows[ i ] );
-
-        free( windows );
-    }
-
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 
     /* reset values */
     hInstance = 0;
-    windows = NULL;
-    num_windows = 0;
-    used_windows = 0;
+    list = NULL;
 }
 
 int sgui_main_loop_step( void )
 {
-    unsigned int i;
+    sgui_window_w32* i;
     MSG msg;
 
     /* handle a message if there is one */
@@ -189,8 +128,8 @@ int sgui_main_loop_step( void )
     }
 
     /* check if there's at least 1 window still active */
-    for( i=0; i<used_windows; ++i )
-        if( windows[ i ]->base.visible )
+    for( i=list; i!=NULL; i=i->next )
+        if( i->base.visible )
             return 1;
 
     return 0;
@@ -198,7 +137,8 @@ int sgui_main_loop_step( void )
 
 void sgui_main_loop( void )
 {
-    unsigned int i, active;
+    sgui_window_w32* i;
+    int active;
     MSG msg;
 
     do
@@ -209,8 +149,8 @@ void sgui_main_loop( void )
         DispatchMessage( &msg );
 
         /* check if there's at least 1 window still active */
-        for( i=0, active=0; i<used_windows && !active; ++i )
-            active |= windows[ i ]->base.visible;
+        for( i=list, active=0; i!=NULL && !active; i=i->next )
+            active |= i->base.visible;
     }
     while( active );
 }

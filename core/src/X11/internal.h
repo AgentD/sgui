@@ -86,7 +86,7 @@ typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
 
 
 
-typedef struct
+typedef struct _sgui_window_xlib
 {
     sgui_window base;
 
@@ -105,6 +105,8 @@ typedef struct
 #endif
     }
     context;
+
+    struct _sgui_window_xlib* next;  /* linked list stuff */
 }
 sgui_window_xlib;
 
@@ -112,10 +114,10 @@ extern XIM im;
 extern Display* dpy;
 extern Atom atom_wm_delete;
 
-/* in platform.c: allocates storate for a window and initialises it */
-sgui_window_xlib* add_window( void );
+/* in platform.c: add a window to the list for the main loop */
+void add_window( sgui_window_xlib* window );
 
-/* in platform.c: uninitialises a window and frees its memory */
+/* in platform.c: remove a window from the list */
 void remove_window( sgui_window_xlib* window );
 
 /* in window.c: process an XEvent */

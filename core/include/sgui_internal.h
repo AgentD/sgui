@@ -164,23 +164,6 @@ void SGUI_DLL sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                          unsigned int height );
 
 /**
- * \brief Initialise a window structure (set values to 0 and create a widget
- *        manager)
- *
- * \param wnd A pointer to a window structure
- *
- * \return non-zero on success, zero on error
- */
-int SGUI_DLL sgui_internal_window_init( sgui_window* wnd );
-
-/**
- * \brief Uninitialise a window structure
- *
- * \param wnd A pointer to a window structure
- */
-void SGUI_DLL sgui_internal_window_deinit( sgui_window* wnd );
-
-/**
  * \brief Propagate a window event
  *
  * \param wnd   The window that trigered the event
