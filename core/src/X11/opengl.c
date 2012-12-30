@@ -130,71 +130,56 @@ XVisualInfo* get_visual_old( void )
 
 /****************************************************************************/
 
-GLXContext create_context( GLXFBConfig cfg, int version_major,
-                           int version_minor, int flags )
+GLXContext create_context( GLXFBConfig cfg )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     GLXContext ctx = 0;
-    int attribs[10];
+    int attribs[10], major, minor;
 
-    /********** try to load context creation function **********/
+    /* try to load context creation function */
     CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
     LOAD_GLFUN( "glXCreateContextAttribsARB" );
 
     if( !CreateContextAttribs )
         return NULL;
 
-    /********** fill attribute array **********/
+    /* fill attribute array */
     attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-    attribs[1] = version_major;
+    attribs[1] = 0;
     attribs[2] = GLX_CONTEXT_MINOR_VERSION_ARB;
-    attribs[3] = version_minor;
+    attribs[3] = 0;
     attribs[4] = GLX_CONTEXT_PROFILE_MASK_ARB;
-    attribs[5] = flags & SGUI_OPENGL_COMPATIBILITY_PROFILE ?
-                           GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-                           GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+    attribs[5] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
     attribs[6] = GLX_CONTEXT_FLAGS_ARB;
-    attribs[7] = 0;
+    attribs[7] = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
     attribs[8] = None;
 
-    if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
-        attribs[7] |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-
-    if( flags & SGUI_OPENGL_DEBUG )
-        attribs[7] |= GLX_CONTEXT_DEBUG_BIT_ARB;
-
-    /********** try to create context **********/
-    if( !version_major )
+    /* try to create 4.x down to 3.x context */
+    for( major=4; !ctx && major>=3; --major )
     {
-        /* try to create 4.x down to 3.x context */
-        for( version_major=4; !ctx && version_major>=3; --version_major )
+        for( minor=3; !ctx && minor>=0; --minor )
         {
-            for( version_minor=3; !ctx && version_minor>=0; --version_minor )
-            {
-                attribs[1] = version_major;
-                attribs[3] = version_minor;
-                ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
-            }
-        }
-
-        /* try to create 2.x context */
-        for( version_minor=1; !ctx && version_minor>=0; --version_minor )
-        {
-            attribs[1] = 2;
-            attribs[3] = version_minor;
-            ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
-        }
-
-        /* try to create 1.x context */
-        for( version_minor=5; !ctx && version_minor>=0; --version_minor )
-        {
-            attribs[1] = 1;
-            attribs[3] = version_minor;
+            attribs[1] = major;
+            attribs[3] = minor;
             ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
         }
     }
-    else
+
+    /* try to create 2.x context */
+    for( minor=1; !ctx && minor>=0; --minor )
+    {
+        attribs[1] = 2;
+        attribs[3] = minor;
         ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+    }
+
+    /* try to create 1.x context */
+    for( minor=5; !ctx && minor>=0; --minor )
+    {
+        attribs[1] = 1;
+        attribs[3] = minor;
+        ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+    }
 
     return ctx;
 }
@@ -204,8 +189,7 @@ GLXContext create_context( GLXFBConfig cfg, int version_major,
 
 sgui_window* sgui_opengl_window_create( unsigned int width,
                                         unsigned int height, int resizeable,
-                                        int version_major, int version_minor,
-                                        int flags )
+                                        int compatibillity )
 {
     sgui_window_xlib* wnd;
     XSizeHints hints;
@@ -295,10 +279,10 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     wnd->base.h = (unsigned int)attr.height;
 
     /**************** Create an OpenGL context *****************/
-    if( fbc )
-        wnd->context.gl = create_context( fbc, version_major, version_minor,
-                                          flags );
+    if( fbc && !compatibillity )
+        wnd->context.gl = create_context( fbc );
 
+    /* fall back to old context creation function */
     if( !wnd->context.gl )
         wnd->context.gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
 

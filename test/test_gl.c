@@ -51,7 +51,7 @@ int main( void )
     /* create window */
     sgui_init( );
 
-    wnd = sgui_opengl_window_create( 800, 600, 0, 1, 5, 0 );
+    wnd = sgui_opengl_window_create( 800, 600, 0, 1 );
 
     sgui_window_set_title( wnd, "sgui OpenGL test" );
     sgui_window_on_event( wnd, sgui_window_fun );

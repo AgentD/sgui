@@ -67,12 +67,11 @@ int set_pixel_format( HDC hDC )
     return SetPixelFormat( hDC, format, &pfd );
 }
 
-HGLRC create_context( HDC hDC, int version_major,
-                      int version_minor, int flags )
+HGLRC create_context( HDC hDC, int compatibillity )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
     HGLRC ctx = NULL;
-    int attribs[10];
+    int attribs[10], major, minor;
 
     /* load the new context creation function */
     wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
@@ -83,55 +82,50 @@ HGLRC create_context( HDC hDC, int version_major,
 
     /* fill attrib array */
     attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-    attribs[1] = version_major;
+    attribs[1] = 0;
     attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-    attribs[3] = version_minor;
+    attribs[3] = 0;
     attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-    attribs[5] = flags & SGUI_OPENGL_COMPATIBILITY_PROFILE ?
-                         WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB :
-                         WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-    attribs[6] = WGL_CONTEXT_FLAGS_ARB;
-    attribs[7] = 0;
-    attribs[8] = 0;
 
-    if( flags & SGUI_OPENGL_DEBUG )
-        attribs[7] |= WGL_CONTEXT_DEBUG_BIT_ARB;
-
-    if( flags & SGUI_OPENGL_FORWARD_COMPATIBLE )
-        attribs[7] |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-
-    /* try to create the context */
-    if( !version_major )
+    if( compatibillity )
     {
-        /* try to create 4.x down to 3.x context */
-        for( version_major=4; !ctx && version_major>=3; --version_major )
-        {
-            for( version_minor=3; !ctx && version_minor>=0; --version_minor )
-            {
-                attribs[1] = version_major;
-                attribs[3] = version_minor;
-                ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
-            }
-        }
+        attribs[5] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+        attribs[6] = 0;
+    }
+    else
+    {
+        attribs[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+        attribs[6] = WGL_CONTEXT_FLAGS_ARB;
+        attribs[7] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+        attribs[8] = 0;
+    }
 
-        /* try to create 2.x context */
-        for( version_minor=1; !ctx && version_minor>=0; --version_minor )
+    /* try to create 4.3 down to 3.0 context */
+    for( major=4; !ctx && major>=3; --major )
+    {
+        for( minor=3; !ctx && minor>=0; --minor )
         {
-            attribs[1] = 2;
-            attribs[3] = version_minor;
-            ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
-        }
-
-        /* try to create 1.x context */
-        for( version_minor=5; !ctx && version_minor>=0; --version_minor )
-        {
-            attribs[1] = 1;
-            attribs[3] = version_minor;
+            attribs[1] = major;
+            attribs[3] = minor;
             ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
         }
     }
-    else
+
+    /* try to create 2.x context */
+    for( minor=1; !ctx && minor>=0; --minor )
+    {
+        attribs[1] = 2;
+        attribs[3] = minor;
         ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+    }
+
+    /* try to create 1.x context */
+    for( minor=5; !ctx && minor>=0; --minor )
+    {
+        attribs[1] = 1;
+        attribs[3] = minor;
+        ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+    }
 
     return ctx;
 }
@@ -139,9 +133,9 @@ HGLRC create_context( HDC hDC, int version_major,
 
 
 sgui_window* sgui_opengl_window_create( unsigned int width,
-                                        unsigned int height, int resizeable,
-                                        int version_major, int version_minor,
-                                        int flags )
+                                        unsigned int height,
+                                        int resizeable,
+                                        int compatibillity )
 {
     sgui_window_w32* wnd;
     DWORD style;
@@ -207,7 +201,7 @@ sgui_window* sgui_opengl_window_create( unsigned int width,
     }
 
     /* now try to create a new context */
-    wnd->hRC = create_context(wnd->hDC, version_major, version_minor, flags);
+    wnd->hRC = create_context( wnd->hDC, compatibillity );
 
     /* restore the privous context */
     wglMakeCurrent( olddc, oldctx );
