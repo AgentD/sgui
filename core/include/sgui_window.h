@@ -44,6 +44,10 @@ extern "C" {
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
 
+#define SGUI_NATIVE        0
+#define SGUI_OPENGL_CORE   1
+#define SGUI_OPENGL_COMPAT 2
+
 
 
 /**
@@ -74,12 +78,36 @@ typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
  *                   zero if the should remain at a fixed size. The symbolic
  *                   constants SGUI_RESIZEABLE and SGUI_FIXED_SIZE can be used
  *                   to generate more readable code.
+ * \param backend    What back end to use. 0 or SGUI_NATIVE for native window
+ *                   system back end, SGUI_OPENGL_CORE to create a core
+ *                   profile OpenGL context for the window, SGUI_OPENGL_COMPAT
+ *                   for compatibillity profile. OpenGL contexts are created
+ *                   for the highest version available on the current system.
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
 sgui_window* SGUI_DLL sgui_window_create( unsigned int width,
                                           unsigned int height,
-                                          int resizeable );
+                                          int resizeable,
+                                          int backend );
+
+/**
+ * \brief Make the rendering context for the window current
+ *
+ * If the window was created with, for instance, an OpenGL rendering context
+ * (see sgui_window_create), this function makes the context current for the
+ * calling thread.
+ */
+void SGUI_DLL sgui_window_make_current( sgui_window* window );
+
+/**
+ * \brief Swap the back and the front buffer of a window
+ *
+ * If the window was created with, for instance, an OpenGL rendering context
+ * (see sgui_window_create), this function swappes the back buffer of the
+ * context with the front buffer.
+ */
+void SGUI_DLL sgui_window_swap_buffers( sgui_window* window );
 
 /**
  * \brief Destroy a previously created window

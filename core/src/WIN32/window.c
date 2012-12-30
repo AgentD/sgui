@@ -281,15 +281,24 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
 /****************************************************************************/
 
 sgui_window* sgui_window_create( unsigned int width, unsigned int height,
-                                 int resizeable )
+                                 int resizeable, int backend )
 {
     sgui_window_w32* wnd;
     DWORD style;
     RECT r;
     unsigned char rgb[3];
+#ifndef SGUI_NO_OPENGL
+    HGLRC temp, oldctx;
+    HDC olddc;
+#endif
 
     if( !width || !height )
         return NULL;
+
+#ifdef SGUI_NO_OPENGL
+    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+        return NULL;
+#endif
 
     /*************** allocate space for the window structure ***************/
     wnd = add_window( );
@@ -318,19 +327,66 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->base.h = height;
 
     /**************************** create canvas ****************************/
-    wnd->base.back_buffer =
-    (sgui_canvas*)sgui_canvas_create( wnd->base.w, wnd->base.h );
-
-    if( !wnd->base.back_buffer )
+    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
-        sgui_window_destroy( (sgui_window*)wnd );
-        return NULL;
+#ifndef SGUI_NO_OPENGL
+        /* get a device context and set a pixel format */
+        wnd->hDC = GetDC( wnd->hWnd );
+
+        if( !wnd->hDC || !set_pixel_format( wnd->hDC ) )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        /* create an old fashioned OpenGL temporary context */
+        temp = wglCreateContext( wnd->hDC );
+
+        if( !temp )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        /* try to make it current */
+        oldctx = wglGetCurrentContext( );
+        olddc = wglGetCurrentDC( );
+
+        if( !wglMakeCurrent( wnd->hDC, temp ) )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        /* now try to create a new context */
+        wnd->hRC = create_context( wnd->hDC, backend==SGUI_OPENGL_COMPAT );
+
+        /* restore the privous context */
+        wglMakeCurrent( olddc, oldctx );
+
+        /* delete the temporary context on success, keep it on error */
+        if( wnd->hRC )
+            wglDeleteContext( temp );
+        else
+            wnd->hRC = temp;
+#endif
     }
+    else
+    {
+        wnd->base.back_buffer =
+        (sgui_canvas*)sgui_canvas_create( wnd->base.w, wnd->base.h );
 
-    sgui_skin_get_window_background_color( rgb );
-    sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
+        if( !wnd->base.back_buffer )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
 
-    sgui_canvas_clear( wnd->base.back_buffer, NULL );
+        sgui_skin_get_window_background_color( rgb );
+        sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
+
+        sgui_canvas_clear( wnd->base.back_buffer, NULL );
+    }
 
     /****************** register implementation functions ******************/
     wnd->base.get_mouse_position = window_w32_get_mouse_position;
@@ -344,6 +400,28 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     return (sgui_window*)wnd;
 }
 
+void sgui_window_swap_buffers( sgui_window* wnd )
+{
+#ifdef SGUI_NO_OPENGL
+    (void)wnd;
+#else
+    if( wnd )
+        SwapBuffers( TO_W32(wnd)->hDC );
+#endif
+}
+
+void sgui_window_make_current( sgui_window* wnd )
+{
+#ifdef SGUI_NO_OPENGL
+    (void)wnd;
+#else
+    if( wnd )
+        wglMakeCurrent( TO_W32(wnd)->hDC, TO_W32(wnd)->hRC );
+    else
+        wglMakeCurrent( NULL, NULL );
+#endif
+}
+
 void sgui_window_destroy( sgui_window* wnd )
 {
     MSG msg;
@@ -351,6 +429,14 @@ void sgui_window_destroy( sgui_window* wnd )
     if( wnd )
     {
         sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
+
+#ifndef SGUI_NO_OPENGL
+        if( TO_W32(wnd)->hRC )
+            wglDeleteContext( TO_W32(wnd)->hRC );
+
+        if( TO_W32(wnd)->hDC )
+            ReleaseDC( TO_W32(wnd)->hWnd, TO_W32(wnd)->hDC );
+#endif
 
         if( TO_W32(wnd)->hWnd )
         {

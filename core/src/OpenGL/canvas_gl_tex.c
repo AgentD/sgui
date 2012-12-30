@@ -26,11 +26,9 @@
 #include "sgui_opengl.h"
 #include "sgui_internal.h"
 
-#ifndef SGUI_NO_OPENGL
-
 #include <stdlib.h>
 
-
+#ifndef SGUI_NO_OPENGL
 
 /* Operating system check */
 #ifndef MACHINE_OS_WINDOWS
@@ -222,6 +220,33 @@ void sgui_opengl_canvas_destroy( sgui_canvas* canvas )
 unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas )
 {
     return canvas ? ((sgui_canvas_gl*)canvas)->texture : 0;
+}
+#else
+sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
+                                        unsigned int height )
+{
+    (void)width;
+    (void)height;
+    return NULL;
+}
+
+void sgui_opengl_canvas_resize( sgui_canvas* canvas, unsigned int width,
+                                unsigned int height )
+{
+    (void)canvas;
+    (void)width;
+    (void)height;
+}
+
+void sgui_opengl_canvas_destroy( sgui_canvas* canvas )
+{
+    (void)canvas;
+}
+
+unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas )
+{
+    (void)canvas;
+    return 0;
 }
 #endif
 

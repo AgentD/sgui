@@ -27,8 +27,8 @@ int main( void )
 
     sgui_init( );
 
-    a = sgui_window_create( 400, 300, SGUI_RESIZEABLE );
-    b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE );
+    a = sgui_window_create( 400, 300, SGUI_RESIZEABLE, 0 );
+    b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE, 0 );
 
     sgui_window_set_visible( a, SGUI_VISIBLE );
     sgui_window_set_visible( b, SGUI_VISIBLE );

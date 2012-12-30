@@ -17,7 +17,8 @@ parameters:
 <p class="code">
 sgui_window* sgui_window_create( <font class="keyword">unsigned int</font> width,
                                  <font class="keyword">unsigned int</font> height,
-                                 <font class="keyword">int</font> resizeable );
+                                 <font class="keyword">int</font> resizeable,
+                                 <font class="keyword">int</font> backend );
 </p>
 
 <ul>
@@ -29,6 +30,10 @@ sgui_window* sgui_window_create( <font class="keyword">unsigned int</font> width
 <li>The constants <b>SGUI_FIXED_SIZE</b> and <b>SGUI_RESIZEABLE</b> are
     provided so you don't have to pass the magic values <b>0</b> and
     <b>1 (nonzero)</b> to the function.
+<li>The last parameter, <b>backend</b> specifies what rendering back end to
+    use. The constant <b>SGUI_NATIVE</b> (or <b>0</b>) specifies that the
+    native window system is to be used. (Other options are OpenGL&reg;,
+    etc...)
 </ul>
 
 The functions returns a <b>pointer to an sgui_window struct</b> on success, or
@@ -82,7 +87,7 @@ window functions:<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_init( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE, SGUI_NATIVE );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_title( wnd, <font class="string">"Simple Sample"</font> );<br>
 <br>

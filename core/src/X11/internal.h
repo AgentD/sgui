@@ -44,6 +44,35 @@
 
 #ifndef SGUI_NO_OPENGL
 #include <GL/glx.h>
+
+#define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
+
+#ifndef GLX_VERSION_1_3
+    typedef struct GLXFBConfigRec* GLXFBConfig;
+
+    #define GLX_X_RENDERABLE  0x8012
+    #define GLX_X_VISUAL_TYPE 0x22
+    #define GLX_TRUE_COLOR    0x8002
+#endif
+
+#ifndef GLX_VERSION_1_4
+    #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
+    #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
+    #define GLX_CONTEXT_FLAGS_ARB                     0x2094
+    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
+
+    #define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
+    #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
+
+    #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+    #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#endif
+
+typedef GLXFBConfig* (* CHOOSEFBCFGPROC )(Display*,int,const int*,int*);
+typedef XVisualInfo* (* GETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
+typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
+                                                    GLXContext, Bool,
+                                                    const int* );
 #endif
 
 
@@ -64,8 +93,9 @@ typedef struct
     Window wnd;
     XIC ic;
 
-    int resizeable;             /* remembers whether the window is resizeable */
-    unsigned int mouse_warped;  /* mouse warp counter */
+    int resizeable;           /* remembers whether the window is resizeable */
+    unsigned int mouse_warped;/* mouse warp counter */
+    int backend;              /* holds the back end from the create function*/
 
     union
     {
@@ -117,6 +147,19 @@ void window_x11_move( sgui_window* wnd, int x, int y );
 void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
                      unsigned int width, unsigned int height );
 
+#ifndef SGUI_NO_OPENGL
+/* in OpenGL.c: get a framebuffer configuration */
+GLXFBConfig get_fb_config( void );
+
+/* in OpenGL.c: get a visual from a framebuffer configuration */
+XVisualInfo* get_visual_from_fbc( GLXFBConfig fbc );
+
+/* in OpenGL.c: get a visual without a framebuffer configuration */
+XVisualInfo* get_visual_old( void );
+
+/* in OpenGL.c: try to create an OpenGL context with the maximum version */
+GLXContext create_context( GLXFBConfig cfg );
+#endif
 
 /* in keycode_translate.c: initialise keycode symbol lookup table */
 void init_keycodes( );

@@ -51,13 +51,13 @@ int main( void )
     /* create window */
     sgui_init( );
 
-    wnd = sgui_opengl_window_create( 800, 600, 0, 1 );
+    wnd = sgui_window_create( 800, 600, 0, SGUI_OPENGL_COMPAT );
 
     sgui_window_set_title( wnd, "sgui OpenGL test" );
     sgui_window_on_event( wnd, sgui_window_fun );
     sgui_window_set_visible( wnd, 1 );
 
-    sgui_opengl_window_make_current( wnd );
+    sgui_window_make_current( wnd );
 
     glViewport( 0, 0, 800, 600 );
 
@@ -119,13 +119,13 @@ int main( void )
         glVertex2f( -0.6f, -0.8f ); glTexCoord2f( 0.0f, 0.0f );
         glEnd( );
 
-        sgui_opengl_window_swap_buffers( wnd );
+        sgui_window_swap_buffers( wnd );
     }
 
     /* cleanup */
     sgui_opengl_canvas_destroy( cv );
-    sgui_opengl_window_make_current( NULL );
-    sgui_opengl_window_destroy( wnd );
+    sgui_window_make_current( NULL );
+    sgui_window_destroy( wnd );
     sgui_widget_manager_destroy( mgr );
     sgui_button_destroy( butt );
     sgui_button_destroy( c0 );

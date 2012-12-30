@@ -268,16 +268,27 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 /****************************************************************************/
 
 sgui_window* sgui_window_create( unsigned int width, unsigned int height,
-                                 int resizeable )
+                                 int resizeable, int backend )
 {
     sgui_window_xlib* wnd;
     XSizeHints hints;
     XWindowAttributes attr;
+#ifndef SGUI_NO_OPENGL
+    XSetWindowAttributes swa;
+    XVisualInfo* vi = NULL;
+    GLXFBConfig fbc = NULL;
+    Colormap cmap;
+#endif
     unsigned long color = 0;
     unsigned char rgb[3];
 
     if( !width || !height )
         return NULL;
+
+#ifdef SGUI_NO_OPENGL
+    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+        return NULL;
+#endif
 
     /********* allocate space for the window structure *********/
     wnd = add_window( );
@@ -285,20 +296,77 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     if( !wnd )
         return NULL;
 
+    wnd->backend = backend;
+
     /******************** create the window ********************/
-    sgui_skin_get_window_background_color( rgb );
-
-    color |= ((unsigned long)rgb[0]) << 16;
-    color |= ((unsigned long)rgb[1]) << 8;
-    color |= ((unsigned long)rgb[2]);
-
-    wnd->wnd = XCreateSimpleWindow( dpy, DefaultRootWindow(dpy),
-                                    0, 0, width, height, 0, 0, color );
-
-    if( !wnd->wnd )
+    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
-        sgui_window_destroy( (sgui_window*)wnd );
-        return NULL;
+#ifndef SGUI_NO_OPENGL
+        /* try to get an XVisualInfo by any means possible */
+        fbc = get_fb_config( );
+
+        if( fbc )
+            vi = get_visual_from_fbc( fbc );
+
+        if( !vi )
+            vi = get_visual_old( );
+
+        if( !vi )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        /* get a color map for the visual */
+        cmap = XCreateColormap( dpy, RootWindow(dpy, vi->screen),
+                                vi->visual, AllocNone );
+
+        if( !cmap )
+        {
+            XFree( vi );
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        /* create the window */
+        swa.colormap          = cmap;
+        swa.background_pixmap = None;
+        swa.border_pixel      = 0;
+        swa.event_mask        = ExposureMask | StructureNotifyMask |
+                                SubstructureNotifyMask |
+                                KeyPressMask | KeyReleaseMask |
+                                PointerMotionMask |
+                                ButtonPressMask | ButtonReleaseMask;
+
+        wnd->wnd = XCreateWindow( dpy, RootWindow(dpy, vi->screen), 0, 0,
+                                  width, height, 0, vi->depth, InputOutput,
+                                  vi->visual,CWBorderPixel|CWColormap|CWEventMask,
+                                  &swa );
+
+        if( !wnd->wnd )
+        {
+            XFree( vi );
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+#endif
+    }
+    else
+    {
+        sgui_skin_get_window_background_color( rgb );
+
+        color |= ((unsigned long)rgb[0]) << 16;
+        color |= ((unsigned long)rgb[1]) << 8;
+        color |= ((unsigned long)rgb[2]);
+
+        wnd->wnd = XCreateSimpleWindow( dpy, DefaultRootWindow(dpy),
+                                        0, 0, width, height, 0, 0, color );
+
+        if( !wnd->wnd )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
     }
 
     /* make the window non resizeable if required */
@@ -330,6 +398,48 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     wnd->base.w = (unsigned int)attr.width;
     wnd->base.h = (unsigned int)attr.height;
 
+    /********************** create canvas **********************/
+    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    {
+#ifndef SGUI_NO_OPENGL
+        if( backend!=SGUI_OPENGL_COMPAT )
+            wnd->context.gl = create_context( fbc );
+
+        if( !wnd->context.gl )
+            wnd->context.gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
+
+        XFree( vi );    /* we don't need the visual info anymore */
+
+        if( !wnd->context.gl )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+#endif
+    }
+    else
+    {
+        wnd->base.back_buffer = sgui_canvas_create(wnd->base.w, wnd->base.h);
+
+        if( !wnd->base.back_buffer )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        wnd->context.xlib = XCreateGC( dpy, wnd->wnd, 0, 0 );
+
+        if( !wnd->context.xlib )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
+
+        sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
+
+        sgui_canvas_clear( wnd->base.back_buffer, NULL );
+    }
+
     /*********** Create an input method and context ************/
     wnd->ic = XCreateIC( im, XNInputStyle,
                          XIMPreeditNothing | XIMStatusNothing, XNClientWindow,
@@ -340,27 +450,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         sgui_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
-
-    /********************** create canvas **********************/
-    wnd->base.back_buffer = sgui_canvas_create( wnd->base.w, wnd->base.h );
-
-    if( !wnd->base.back_buffer )
-    {
-        sgui_window_destroy( (sgui_window*)wnd );
-        return NULL;
-    }
-
-    wnd->context.xlib = XCreateGC( dpy, wnd->wnd, 0, 0 );
-
-    if( !wnd->context.xlib )
-    {
-        sgui_window_destroy( (sgui_window*)wnd );
-        return NULL;
-    }
-
-    sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
-
-    sgui_canvas_clear( wnd->base.back_buffer, NULL );
 
     /************* store the remaining information *************/
     wnd->resizeable = resizeable;
@@ -376,6 +465,36 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     return (sgui_window*)wnd;
 }
 
+void sgui_window_make_current( sgui_window* wnd )
+{
+#ifdef SGUI_NO_OPENGL
+    (void)wnd;
+#else
+    if( wnd && (TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
+                TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT) )
+    {
+        glXMakeCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->context.gl );
+    }
+    else
+    {
+        glXMakeCurrent( dpy, 0, 0 );
+    }
+#endif
+}
+
+void sgui_window_swap_buffers( sgui_window* wnd )
+{
+#ifdef SGUI_NO_OPENGL
+    (void)wnd;
+#else
+    if( wnd && (TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
+                TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT) )
+    {
+        glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
+    }
+#endif
+}
+
 void sgui_window_destroy( sgui_window* wnd )
 {
     if( !wnd )
@@ -389,8 +508,19 @@ void sgui_window_destroy( sgui_window* wnd )
     if( TO_X11(wnd)->ic )
         XDestroyIC( TO_X11(wnd)->ic );
 
-    if( TO_X11(wnd)->context.xlib )
-        XFreeGC( dpy, TO_X11(wnd)->context.xlib );
+    if( TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
+        TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT )
+    {
+#ifndef SGUI_NO_OPENGL
+        if( TO_X11(wnd)->context.gl )
+            glXDestroyContext( dpy, TO_X11(wnd)->context.gl );
+#endif
+    }
+    else
+    {
+        if( TO_X11(wnd)->context.xlib )
+            XFreeGC( dpy, TO_X11(wnd)->context.xlib );
+    }
 
     if( TO_X11(wnd)->wnd )
         XDestroyWindow( dpy, TO_X11(wnd)->wnd );

@@ -73,8 +73,8 @@ typedef struct
 
     HWND hWnd;
 
-    HDC hDC;
 #ifndef SGUI_NO_OPENGL
+    HDC hDC;
     HGLRC hRC;
 #endif
 }
@@ -102,6 +102,14 @@ void window_w32_move( sgui_window* wnd, int x, int y );
 /* in window.c: handle window messages */
 int handle_window_events( sgui_window_w32* wnd, UINT msg,
                           WPARAM wp, LPARAM lp );
+
+#ifndef SGUI_NO_OPENGL
+/* in opengl.c: set the pixel format for a device context */
+int set_pixel_format( HDC hDC );
+
+/* in opengl.c: create OpenGL context with maximum version */
+HGLRC create_context( HDC hDC, int compatibillity );
+#endif
 
 /* in canvas.c: display the canvas on a same sized window */
 void display_canvas( HDC dc, sgui_canvas* cv, int x, int y,
