@@ -36,6 +36,26 @@ const char* wndclass = "sgui_wnd_class";
 
 
 
+
+
+LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
+{
+    sgui_window_w32* wnd;
+    int result = -1;
+
+    /* get window pointer and redirect */
+    wnd = (sgui_window_w32*)GET_USER_PTR( hWnd );
+
+    if( wnd )
+        result = handle_window_events( wnd, msg, wp, lp );
+
+    /* return result, call default window proc if result < 0 */
+    return result < 0 ? DefWindowProc( hWnd, msg, wp, lp ) : result;
+}
+
+
+
+
 sgui_window_w32* add_window( void )
 {
     sgui_window_w32** new_windows;
@@ -158,7 +178,7 @@ void sgui_deinit( void )
 
 int sgui_main_loop_step( void )
 {
-    unsigned int i, active;
+    unsigned int i;
     MSG msg;
 
     /* handle a message if there is one */
@@ -168,39 +188,30 @@ int sgui_main_loop_step( void )
         DispatchMessage( &msg );
     }
 
-    /* update windows */
-    for( i=0, active=0; i<used_windows; ++i )
-    {
+    /* check if there's at least 1 window still active */
+    for( i=0; i<used_windows; ++i )
         if( windows[ i ]->base.visible )
-        {
-            update_window( windows[ i ] );
-            active = 1;
-        }
-    }
+            return 1;
 
-    return active;
+    return 0;
 }
 
 void sgui_main_loop( void )
 {
-    unsigned int i, active = 1;
+    unsigned int i, active;
     MSG msg;
 
-    /* handle messages */
-    while( active && GetMessage( &msg, 0, 0, 0 ) )
+    do
     {
+        /* handle message */
+        GetMessage( &msg, 0, 0, 0 );
         TranslateMessage( &msg );
         DispatchMessage( &msg );
 
-        /* update windows */
-        for( i=0, active=0; i<used_windows; ++i )
-        {
-            if( windows[ i ]->base.visible )
-            {
-                update_window( windows[ i ] );
-                active = 1;
-            }
-        }
+        /* check if there's at least 1 window still active */
+        for( i=0, active=0; i<used_windows && !active; ++i )
+            active |= windows[ i ]->base.visible;
     }
+    while( active );
 }
 

@@ -235,7 +235,7 @@ void sgui_main_loop( void )
         }
 
         /* check if there's at least 1 window still active */
-        for( i=0, active=0; i<used_windows; ++i )
+        for( i=0, active=0; i<used_windows && !active; ++i )
             active |= windows[ i ]->base.visible;
     }
     while( active );

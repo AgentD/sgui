@@ -89,10 +89,6 @@ sgui_window_w32* add_window( void );
 /* in platform.c: uninitialises a window and frees its memory */
 void remove_window( sgui_window_w32* wnd );
 
-/* in window.c: window callback */
-extern LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg,
-                                       WPARAM wp, LPARAM lp );
-
 /* in window.c: window implementation functions */
 void window_w32_get_mouse_position( sgui_window* wnd, int* x, int* y );
 void window_w32_set_mouse_position( sgui_window* wnd, int x, int y );
@@ -104,7 +100,8 @@ void window_w32_move_center( sgui_window* wnd );
 void window_w32_move( sgui_window* wnd, int x, int y );
 
 /* in window.c: handle window messages */
-void update_window( sgui_window_w32* wnd );
+int handle_window_events( sgui_window_w32* wnd, UINT msg,
+                          WPARAM wp, LPARAM lp );
 
 /* in canvas.c: display the canvas on a same sized window */
 void display_canvas( HDC dc, sgui_canvas* cv, int x, int y,
