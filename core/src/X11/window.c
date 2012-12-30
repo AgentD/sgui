@@ -31,41 +31,80 @@
 #include <ctype.h>
 
 
-void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y )
+void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     Window t1, t2;   /* values we are not interested */
     int t3, t4;      /* into but xlib does not accept */
     unsigned int t5; /* a NULL pointer for these */
+    int X=0, Y=0;
 
-    XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
+    if( wnd )
+    {
+        XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3,
+                       &t4, &X, &Y, &t5 );
+    }
+
+    if( x ) *x = X<0 ? 0 : (X>=(int)wnd->w ? ((int)wnd->w-1) : X);
+    if( y ) *y = Y<0 ? 0 : (Y>=(int)wnd->h ? ((int)wnd->h-1) : Y);
 }
 
-void window_x11_set_mouse_position( sgui_window* wnd, int x, int y )
+void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+                                     int send_event )
 {
-    XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0, wnd->w, wnd->h, x, y );
-    XFlush( dpy );
+    sgui_event e;
 
-    ++(TO_X11(wnd)->mouse_warped);  /* increment warp counter */
+    if( wnd && wnd->visible )
+    {
+        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
+        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
+
+        XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0,
+                      wnd->w, wnd->h, x, y );
+
+        XFlush( dpy );
+
+        ++(TO_X11(wnd)->mouse_warped);  /* increment warp counter */
+
+        if( send_event )
+        {
+            e.mouse_move.x = x;
+            e.mouse_move.y = y;
+            sgui_internal_window_fire_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+        }
+    }
 }
 
-void window_x11_set_visible( sgui_window* wnd, int visible )
+void sgui_window_set_visible( sgui_window* wnd, int visible )
 {
-    if( visible )
-        XMapWindow( dpy, TO_X11(wnd)->wnd );
-    else
-        XUnmapWindow( dpy, TO_X11(wnd)->wnd );
+    if( wnd && (wnd->visible!=visible) )
+    {
+        if( visible )
+            XMapWindow( dpy, TO_X11(wnd)->wnd );
+        else
+            XUnmapWindow( dpy, TO_X11(wnd)->wnd );
+
+        wnd->visible = visible;
+
+        if( !visible )
+            sgui_internal_window_fire_event( wnd, SGUI_API_INVISIBLE_EVENT,
+                                             NULL );
+    }
 }
 
-void window_x11_set_title( sgui_window* wnd, const char* title )
+void sgui_window_set_title( sgui_window* wnd, const char* title )
 {
-    XStoreName( dpy, TO_X11(wnd)->wnd, title );
+    if( wnd && title )
+        XStoreName( dpy, TO_X11(wnd)->wnd, title );
 }
 
-void window_x11_set_size( sgui_window* wnd,
-                          unsigned int width, unsigned int height )
+void sgui_window_set_size( sgui_window* wnd,
+                           unsigned int width, unsigned int height )
 {
     XSizeHints hints;
     XWindowAttributes attr;
+
+    if( !wnd || !width || !height )
+        return;
 
     /* adjust the fixed size for nonresizeable windows */
     if( !TO_X11(wnd)->resizeable )
@@ -88,18 +127,28 @@ void window_x11_set_size( sgui_window* wnd,
 
     /* resize the back buffer image */
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+    sgui_canvas_clear( wnd->back_buffer, NULL );
+    sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
 }
 
-void window_x11_move_center( sgui_window* wnd )
+void sgui_window_move_center( sgui_window* wnd )
 {
-    wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
-    wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
-    XMoveWindow( dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
+    if( wnd )
+    {
+        wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
+        wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
+        XMoveWindow( dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
+    }
 }
 
-void window_x11_move( sgui_window* wnd, int x, int y )
+void sgui_window_move( sgui_window* wnd, int x, int y )
 {
-    XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
+    if( wnd )
+    {
+        XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
+        wnd->x = x;
+        wnd->y = y;
+    }
 }
 
 /****************************************************************************/
@@ -170,9 +219,9 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
             else
                 break;
 
-            window_x11_get_mouse_position( (sgui_window*)wnd,
-                                           &se.mouse_press.x,
-                                           &se.mouse_press.y );
+            sgui_window_get_mouse_position( (sgui_window*)wnd,
+                                            &se.mouse_press.x,
+                                            &se.mouse_press.y );
 
             if( e->type==ButtonPress )
                 SEND_EVENT( wnd, SGUI_MOUSE_PRESS_EVENT, &se );
@@ -297,6 +346,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         return NULL;
 
     wnd->backend = backend;
+    wnd->resizeable = resizeable;
 
     /******************** create the window ********************/
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
@@ -440,7 +490,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         sgui_canvas_clear( wnd->base.back_buffer, NULL );
     }
 
-    /*********** Create an input method and context ************/
+    /*********** Create an input context ************/
     wnd->ic = XCreateIC( im, XNInputStyle,
                          XIMPreeditNothing | XIMStatusNothing, XNClientWindow,
                          wnd->wnd, XNFocusWindow, wnd->wnd, NULL );
@@ -450,17 +500,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         sgui_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
-
-    /************* store the remaining information *************/
-    wnd->resizeable = resizeable;
-
-    wnd->base.get_mouse_position = window_x11_get_mouse_position;
-    wnd->base.set_mouse_position = window_x11_set_mouse_position;
-    wnd->base.set_visible        = window_x11_set_visible;
-    wnd->base.set_title          = window_x11_set_title;
-    wnd->base.set_size           = window_x11_set_size;
-    wnd->base.move_center        = window_x11_move_center;
-    wnd->base.move               = window_x11_move;
 
     return (sgui_window*)wnd;
 }

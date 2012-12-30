@@ -132,15 +132,6 @@ struct sgui_window
     unsigned int w, h;          /**< \brief the size of the window */
 
     int visible;                /**< \brief Window visibility */
-
-    void (* get_mouse_position )( sgui_window* wnd, int* x, int* y );
-    void (* set_mouse_position )( sgui_window* wnd, int x, int y );
-    void (* set_visible )( sgui_window* wnd, int visible );
-    void (* set_title )( sgui_window* wnd, const char* title );
-    void (* set_size )( sgui_window* wnd,
-                        unsigned int width, unsigned int height );
-    void (* move_center )( sgui_window* wnd );
-    void (* move )( sgui_window* wnd, int x, int y );
 };
 
 

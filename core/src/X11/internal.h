@@ -121,28 +121,6 @@ void remove_window( sgui_window_xlib* window );
 /* in window.c: process an XEvent */
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 
-/* in window.c: implementation for Xlib window */
-void window_x11_get_mouse_position( sgui_window* wnd, int* x, int* y );
-
-/* in window.c: implementation for Xlib window */
-void window_x11_set_mouse_position( sgui_window* wnd, int x, int y );
-
-/* in window.c: implementation for Xlib window */
-void window_x11_set_visible( sgui_window* wnd, int visible );
-
-/* in window.c: implementation for Xlib window */
-void window_x11_set_title( sgui_window* wnd, const char* title );
-
-/* in window.c: implementation for Xlib window */
-void window_x11_set_size( sgui_window* wnd,
-                          unsigned int width, unsigned int height );
-
-/* in window.c: implementation for Xlib window */
-void window_x11_move_center( sgui_window* wnd );
-
-/* in window.c: implementation for Xlib window */
-void window_x11_move( sgui_window* wnd, int x, int y );
-
 /* in canvas.c: display a canvas on a same sized X window */
 void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
                      unsigned int width, unsigned int height );

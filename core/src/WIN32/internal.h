@@ -89,16 +89,6 @@ sgui_window_w32* add_window( void );
 /* in platform.c: uninitialises a window and frees its memory */
 void remove_window( sgui_window_w32* wnd );
 
-/* in window.c: window implementation functions */
-void window_w32_get_mouse_position( sgui_window* wnd, int* x, int* y );
-void window_w32_set_mouse_position( sgui_window* wnd, int x, int y );
-void window_w32_set_visible( sgui_window* wnd, int visible );
-void window_w32_set_title( sgui_window* wnd, const char* title );
-void window_w32_set_size( sgui_window* wnd,
-                          unsigned int width, unsigned int height );
-void window_w32_move_center( sgui_window* wnd );
-void window_w32_move( sgui_window* wnd, int x, int y );
-
 /* in window.c: handle window messages */
 int handle_window_events( sgui_window_w32* wnd, UINT msg,
                           WPARAM wp, LPARAM lp );

@@ -28,44 +28,73 @@
 
 
 
-/****************************************************************************/
+void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+{
+    POINT pos = { 0, 0 };
 
-void window_w32_get_mouse_position( sgui_window* wnd, int* x, int* y )
+    if( wnd )
+    {
+        GetCursorPos( &pos );
+        ScreenToClient( TO_W32(wnd)->hWnd, &pos );
+    }
+
+    if( x ) *x = pos.x<0 ? 0 : (pos.x>=(int)wnd->w ? ((int)wnd->w-1) : pos.x);
+    if( y ) *y = pos.y<0 ? 0 : (pos.y>=(int)wnd->h ? ((int)wnd->h-1) : pos.y);
+}
+
+void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+                                     int send_event )
 {
     POINT pos;
+    sgui_event e;
 
-    GetCursorPos( &pos );
-    ScreenToClient( TO_W32(wnd)->hWnd, &pos );
+    if( wnd && wnd->visible )
+    {
+        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
+        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
 
-    *x = pos.x;
-    *y = pos.y;
+        pos.x = x;
+        pos.y = y;
+        ClientToScreen( TO_W32(wnd)->hWnd, &pos );
+        SetCursorPos( pos.x, pos.y );
+
+        if( send_event )
+        {
+            e.mouse_move.x = x;
+            e.mouse_move.y = y;
+            sgui_internal_window_fire_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+        }
+    }
 }
 
-void window_w32_set_mouse_position( sgui_window* wnd, int x, int y )
+void sgui_window_set_visible( sgui_window* wnd, int visible )
 {
-    POINT pos;
+    if( wnd && (wnd->visible!=visible) )
+    {
+        ShowWindow( TO_W32(wnd)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
 
-    pos.x = x;
-    pos.y = y;
-    ClientToScreen( TO_W32(wnd)->hWnd, &pos );
-    SetCursorPos( pos.x, pos.y );
+        wnd->visible = visible;
+
+        if( !visible )
+            sgui_internal_window_fire_event( wnd, SGUI_API_INVISIBLE_EVENT,
+                                             NULL );
+    }
 }
 
-void window_w32_set_visible( sgui_window* wnd, int visible )
+void sgui_window_set_title( sgui_window* wnd, const char* title )
 {
-    ShowWindow( TO_W32(wnd)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
+    if( wnd && title )
+        SetWindowTextA( TO_W32(wnd)->hWnd, title );
 }
 
-void window_w32_set_title( sgui_window* wnd, const char* title )
-{
-    SetWindowTextA( TO_W32(wnd)->hWnd, title );
-}
-
-void window_w32_set_size( sgui_window* wnd,
-                          unsigned int width, unsigned int height )
+void sgui_window_set_size( sgui_window* wnd,
+                           unsigned int width, unsigned int height )
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
+
+    if( !wnd || !width || !height )
+        return;
 
     /* Determine the actual window size for the given client size */
     GetClientRect( TO_W32(wnd)->hWnd, &rcClient );
@@ -82,41 +111,52 @@ void window_w32_set_size( sgui_window* wnd,
 
     /* resize the canvas */
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+    sgui_canvas_clear( wnd->back_buffer, NULL );
+    sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
 }
 
-void window_w32_move_center( sgui_window* wnd )
+void sgui_window_move_center( sgui_window* wnd )
 {
     RECT desktop, window;
     int w, h, dw, dh;
 
-    GetClientRect( GetDesktopWindow( ), &desktop );
-    GetWindowRect( TO_W32(wnd)->hWnd,   &window  );
+    if( wnd )
+    {
+        GetClientRect( GetDesktopWindow( ), &desktop );
+        GetWindowRect( TO_W32(wnd)->hWnd,   &window  );
 
-    w = window.right  - window.left;
-    h = window.bottom - window.top;
+        w = window.right  - window.left;
+        h = window.bottom - window.top;
 
-    dw = desktop.right  - desktop.left;
-    dh = desktop.bottom - desktop.top;
+        dw = desktop.right  - desktop.left;
+        dh = desktop.bottom - desktop.top;
 
-    MoveWindow( TO_W32(wnd)->hWnd,
-                (dw>>1)-(w>>1), (dh>>1)-(h>>1), w, h, TRUE );
+        MoveWindow( TO_W32(wnd)->hWnd,
+                    (dw>>1)-(w>>1), (dh>>1)-(h>>1), w, h, TRUE );
+    }
 }
 
-void window_w32_move( sgui_window* wnd, int x, int y )
+void sgui_window_move( sgui_window* wnd, int x, int y )
 {
     RECT outer, inner;
     int w, h, dx, dy;
 
-    GetClientRect( TO_W32(wnd)->hWnd, &inner );
-    GetWindowRect( TO_W32(wnd)->hWnd, &outer );
+    if( wnd )
+    {
+        GetClientRect( TO_W32(wnd)->hWnd, &inner );
+        GetWindowRect( TO_W32(wnd)->hWnd, &outer );
 
-    w = outer.right  - outer.left;
-    h = outer.bottom - outer.top;
+        w = outer.right  - outer.left;
+        h = outer.bottom - outer.top;
 
-    dx = inner.left - outer.left;
-    dy = inner.top  - outer.top;
+        dx = inner.left - outer.left;
+        dy = inner.top  - outer.top;
 
-    MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
+        MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
+
+        wnd->x = x;
+        wnd->y = y;
+    }
 }
 
 /****************************************************************************/
@@ -387,15 +427,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
         sgui_canvas_clear( wnd->base.back_buffer, NULL );
     }
-
-    /****************** register implementation functions ******************/
-    wnd->base.get_mouse_position = window_w32_get_mouse_position;
-    wnd->base.set_mouse_position = window_w32_set_mouse_position;
-    wnd->base.set_visible        = window_w32_set_visible;
-    wnd->base.set_title          = window_w32_set_title;
-    wnd->base.set_size           = window_w32_set_size;
-    wnd->base.move_center        = window_w32_move_center;
-    wnd->base.move               = window_w32_move;
 
     return (sgui_window*)wnd;
 }
