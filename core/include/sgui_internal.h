@@ -101,6 +101,13 @@ struct sgui_widget
     sgui_widget_manager* mgr;
 
     /**
+     * \brief The next widget on the same level (linked list)
+     *
+     * Used by widget manager. Do not alter in widget code!
+     */
+    sgui_widget* next;
+
+    /**
      * \brief Callback that is called to draw a widget
      *
      * \param widget A pointer to the widget to draw (for C++
