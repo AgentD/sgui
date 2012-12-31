@@ -66,16 +66,18 @@ sgui_button* sgui_button_create_common( const char* text, int type );
 
 
 /**************************** radio button code ****************************/
-void sgui_radio_button_select( sgui_button* b, int fire_event )
+void sgui_radio_button_select( sgui_button* b )
 {
     sgui_button* i;
 
     b->state = 1;
+    sgui_widget_manager_add_dirty_rect( b->widget.mgr,
+                                        &b->widget.area );
 
     /* deselect all preceeding radio buttons */
     for( i=b->prev; i!=NULL; i=i->prev )
     {
-        if( i->state && fire_event )
+        if( i->state )
             sgui_widget_manager_add_dirty_rect( i->widget.mgr,
                                                 &i->widget.area );
         i->state = 0;
@@ -84,7 +86,7 @@ void sgui_radio_button_select( sgui_button* b, int fire_event )
     /* deselect all following radio buttons */
     for( i=b->next; i!=NULL; i=i->next )
     {
-        if( i->state && fire_event )
+        if( i->state )
             sgui_widget_manager_add_dirty_rect( i->widget.mgr,
                                                 &i->widget.area );
         i->state = 0;
@@ -99,11 +101,8 @@ void sgui_radio_on_event( sgui_widget* widget, int type, sgui_event* event )
     /* the radio button got clicked and is not selected */
     if( type == SGUI_MOUSE_RELEASE_EVENT && !b->state )
     {
-        /* flag as dirty */
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
-
         /* select the current radio button */
-        sgui_radio_button_select( b, 1 );
+        sgui_radio_button_select( b );
 
         /* fire an appropriate event */
         sgui_widget_manager_fire_widget_event(widget->mgr, widget,
@@ -400,7 +399,7 @@ void sgui_button_set_state( sgui_widget* button, int state )
 
     /* perform appropriate action */
     if( b->type==BUTTON_RADIO )
-        sgui_radio_button_select( b, 1 );
+        sgui_radio_button_select( b );
     else
         sgui_widget_manager_add_dirty_rect( button->mgr, &button->area );
 

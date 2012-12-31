@@ -75,12 +75,10 @@ void SGUI_DLL sgui_tab_group_add_widget( sgui_widget* tab, int index,
 /**
  * \brief Remove a widget from a tab in a tab group
  *
- * \param tab   The tab group widget
- * \param index The index of the tab in the tab group
- * \param w     The widget to remove
+ * \param tab The tab group widget
+ * \param w   The widget to remove
  */
 void SGUI_DLL sgui_tab_group_remove_widget( sgui_widget* tab,
-                                            int index,
                                             sgui_widget* w );
 
 #ifdef __cplusplus

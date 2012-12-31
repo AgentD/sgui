@@ -36,8 +36,10 @@
 
 
 
-typedef struct
+typedef struct _sgui_tab
 {
+    struct _sgui_tab* next; /* linked list */
+
     sgui_widget_manager* mgr;
     char* caption;
     unsigned int caption_width;
@@ -49,11 +51,8 @@ typedef struct
     sgui_widget widget;
 
     sgui_tab* tabs;
-    unsigned int num_tabs;
-    unsigned int tabs_avail;
+    sgui_tab* selected;
     unsigned int tab_cap_height;
-
-    int selected;
 }
 sgui_tab_group;
 
@@ -73,52 +72,45 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
-    sgui_widget_manager* mgr;
     sgui_rect r;
-    unsigned int i, num;
-    int x;
+    sgui_tab* i;
+    int x, num;
 
     if( type == SGUI_MOUSE_PRESS_EVENT &&
         event->mouse_press.y < (int)g->tab_cap_height )
     {
         /* determine which tab caption was clicked */
-        for( x=0, i=0; i<g->num_tabs; ++i )
+        for( x=0, i=g->tabs; i!=NULL; i=i->next )
         {
             if( event->mouse_press.x>x &&
-                event->mouse_press.x < (x + (int)g->tabs[i].caption_width) )
+                event->mouse_press.x < (x + (int)i->caption_width) )
             {
                 break;
             }
 
-            x += g->tabs[i].caption_width;
+            x += i->caption_width;
         }
 
         /* select coresponding tab and mark widget area dirty */
-        if( g->selected>=0 )
-            sgui_widget_manager_on_event( g->tabs[ g->selected ].mgr,
-                                          NULL, NULL );
-
-        if( i<g->num_tabs && (int)i!=g->selected )
+        if( i!=g->selected )
         {
-            g->selected = i;
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
-            sgui_widget_manager_on_event( g->tabs[ g->selected ].mgr,
-                                          tab_pass_event, widget );
+            sgui_widget_manager_on_event( g->selected->mgr, NULL, NULL );
+            sgui_widget_manager_on_event( i->mgr, tab_pass_event, widget );
+            g->selected = i;
         }
     }
-    else if( g->selected>=0 && g->selected<(int)g->num_tabs )
+    else if( g->selected )
     {
-        mgr = g->tabs[ g->selected ].mgr;
-
         /* send event to selected tab */
-        sgui_widget_manager_send_window_event( mgr, type, event );
+        sgui_widget_manager_send_window_event(g->selected->mgr, type, event);
 
         /* transfer dirty rects from tab manager to parent widget manager */
-        num = sgui_widget_manager_num_dirty_rects( mgr );
+        num = sgui_widget_manager_num_dirty_rects( g->selected->mgr );
 
-        for( i=0; i<num; ++i )
+        for( x=0; x<num; ++x )
         {
-            sgui_widget_manager_get_dirty_rect( mgr, &r, i );
+            sgui_widget_manager_get_dirty_rect( g->selected->mgr, &r, x );
 
             r.left += widget->area.left; r.right  += widget->area.left;
             r.top  += widget->area.top;  r.bottom += widget->area.top;
@@ -126,34 +118,32 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
             sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
 
-        sgui_widget_manager_clear_dirty_rects( mgr );
+        sgui_widget_manager_clear_dirty_rects( g->selected->mgr );
     }
 }
 
 void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
-    unsigned int i, gap, gap_w;
+    unsigned int gap, gap_w;
     int x = widget->area.left, y = widget->area.top;
     sgui_rect r;
+    sgui_tab* i;
 
     /* draw tab captions */
-    for( i=0; i<g->num_tabs; ++i )
+    for( i=g->tabs; i!=NULL; x += i->caption_width, i=i->next )
     {
-        sgui_skin_draw_tab_caption( cv, x, y, g->tabs[i].caption_width,
-                                    g->tabs[i].caption );
-
-        x += g->tabs[i].caption_width;
+        sgui_skin_draw_tab_caption( cv, x, y, i->caption_width, i->caption );
     }
 
     /* draw selected tab */
-    if( g->selected >= 0 && (unsigned int)g->selected < g->num_tabs )
+    if( g->selected )
     {
         /* draw tab frame */
-        gap_w = g->tabs[ g->selected ].caption_width;
+        gap_w = g->selected->caption_width;
 
-        for( i=0, gap=0; i<(unsigned int)g->selected; ++i )
-            gap += g->tabs[i].caption_width;
+        for( i=g->tabs, gap=0; i && i!=g->selected; i=i->next )
+            gap += i->caption_width;
 
         r = widget->area;
         r.top += g->tab_cap_height;
@@ -169,7 +159,7 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
 
         /* adjust offset and draw the tab area */
         sgui_canvas_set_offset( cv, widget->area.left, widget->area.top );
-        sgui_widget_manager_draw_all( g->tabs[g->selected].mgr, cv );
+        sgui_widget_manager_draw_all( g->selected->mgr, cv );
         sgui_canvas_restore_offset( cv );
     }
 }
@@ -184,22 +174,13 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     if( !g )
         return NULL;
 
-    g->tabs = malloc( sizeof(sgui_tab)*10 );
-
-    if( !g->tabs )
-    {
-        free( g );
-        return NULL;
-    }
-
     sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
 
     g->widget.draw_callback         = sgui_tab_group_draw;
     g->widget.window_event_callback = sgui_tab_group_on_event;
-    g->num_tabs                     = 0;
-    g->tabs_avail                   = 10;
+    g->tabs                         = NULL;
+    g->selected                     = NULL;
     g->tab_cap_height               = sgui_skin_get_tab_caption_height( );
-    g->selected                     = -1;
 
     return (sgui_widget*)g;
 }
@@ -207,17 +188,21 @@ sgui_widget* sgui_tab_group_create( int x, int y,
 void sgui_tab_group_destroy( sgui_widget* tab )
 {
     sgui_tab_group* t = (sgui_tab_group*)tab;
-    unsigned int i;
+    sgui_tab *i, *old;
 
     if( t )
     {
-        for( i=0; i<t->num_tabs; ++i )
+        i = t->tabs;
+
+        while( i!=NULL )
         {
-            sgui_widget_manager_destroy( t->tabs[ i ].mgr );
-            free( t->tabs[ i ].caption );
+            old = i;
+            i = i->next;
+            sgui_widget_manager_destroy( old->mgr );
+            free( old->caption );
+            free( old );
         }
 
-        free( t->tabs );
         free( t );
     }
 }
@@ -225,85 +210,76 @@ void sgui_tab_group_destroy( sgui_widget* tab )
 int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
 {
     sgui_tab_group* g = (sgui_tab_group*)tab;
-    sgui_tab* new_tabs = NULL;
+    sgui_tab* i;
+    sgui_tab* t;
     int index = -1;
 
-    if( g && caption )
+    if( !g || !caption )
+        return -1;
+
+    /* allocate a new tab */
+    t = malloc( sizeof(sgui_tab) );
+
+    if( !t )
+        return -1;
+
+    /* initialise the tab */
+    t->next = NULL;
+    t->caption = malloc( strlen(caption) + 1 );
+
+    if( !t->caption )
     {
-        /* resize tab aray if required and acquire a new tab */
-        if( g->num_tabs < g->tabs_avail )
-        {
-            index = g->num_tabs;
-            g->num_tabs += 1;
-        }
-        else
-        {
-            new_tabs = realloc( g->tabs, sizeof(sgui_tab)*(g->tabs_avail*2) );
-
-            if( new_tabs )
-            {
-                index = g->num_tabs;
-
-                g->tabs = new_tabs;
-                g->num_tabs += 1;
-                g->tabs_avail *= 2;
-            }
-        }
-
-        /* initialise new tab */
-        if( index>=0 )
-        {
-            /* try to create a widget manager for the tab */
-            g->tabs[ index ].mgr = sgui_widget_manager_create( );
-
-            if( !g->tabs[ index ].mgr )
-            {
-                g->num_tabs -= 1;
-                return -1;
-            }
-
-            /* if it's the first tab added, select it */
-            if( g->selected < 0 )
-            {
-                g->selected = 0;
-                sgui_widget_manager_on_event( g->tabs[ g->selected ].mgr,
-                                              tab_pass_event, tab );
-            }
-
-            /* try to store the caption string */
-            g->tabs[ index ].caption = malloc( strlen(caption) + 1 );
-
-            if( !g->tabs[ index ].caption )
-            {
-                sgui_widget_manager_destroy( g->tabs[ index ].mgr );
-                g->num_tabs -= 1;
-                return -1;
-            }
-
-            strcpy( g->tabs[ index ].caption, caption );
-
-            g->tabs[ index ].caption_width =
-            sgui_skin_get_tab_caption_width( caption );
-        }
+        free( t );
+        return -1;
     }
 
-    return index;
+    strcpy( t->caption, caption );
+    t->caption_width = sgui_skin_get_tab_caption_width( caption );
+
+    t->mgr = sgui_widget_manager_create( );
+
+    if( !t->mgr )
+    {
+        free( t->caption );
+        free( t );
+        return -1;
+    }
+
+    /* add the tab */
+    if( g->tabs )
+    {
+        for( index=0, i=g->tabs; i->next; i=i->next, ++index );
+
+        i->next = t;
+        return index + 1;
+    }
+
+    g->tabs = t;
+    g->selected = t;
+    sgui_widget_manager_on_event( t->mgr, tab_pass_event, tab );
+
+    return 0;
 }
 
 void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
 {
-    sgui_tab_group* g = (sgui_tab_group*)tab;
+    sgui_tab* i;
+    int count;
 
-    if( g && index>=0 && index<(int)g->num_tabs )
-        sgui_widget_manager_add_widget( g->tabs[ index ].mgr, w );
+    if( tab && index>=0 && w )
+    {
+        i = ((sgui_tab_group*)tab)->tabs;
+
+        for( count=0; count<index && i; i=i->next, ++count );
+
+        if( count==index && i )
+            sgui_widget_manager_add_widget( i->mgr, w );
+    }
 }
 
-void sgui_tab_group_remove_widget( sgui_widget* tab, int index,
-                                   sgui_widget* w )
+void sgui_tab_group_remove_widget( sgui_widget* tab, sgui_widget* w )
 {
-    sgui_tab_group* g = (sgui_tab_group*)tab;
-
-    if( g && index>=0 && index<(int)g->num_tabs )
-        sgui_widget_manager_remove_widget( g->tabs[ index ].mgr, w );
+    if( tab && w )
+        sgui_widget_manager_remove_widget( w->mgr, w );
 }
 
