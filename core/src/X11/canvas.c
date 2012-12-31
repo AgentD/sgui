@@ -109,8 +109,8 @@ void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
     }
 }
 
-/****************************************************************************/
-sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
+/************************ internal canvas functions ************************/
+sgui_canvas* canvas_xlib_create( unsigned int width, unsigned int height )
 {
     sgui_canvas_xlib* cv = malloc( sizeof(sgui_canvas_xlib) );
     char* buffer;
@@ -148,7 +148,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
     return (sgui_canvas*)cv;
 }
 
-void sgui_canvas_destroy( sgui_canvas* canvas )
+void canvas_xlib_destroy( sgui_canvas* canvas )
 {
     if( ((sgui_canvas_xlib*)canvas)->img )
     {
@@ -158,7 +158,7 @@ void sgui_canvas_destroy( sgui_canvas* canvas )
     free( canvas );
 }
 
-void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
                          unsigned int height )
 {
     unsigned int new_mem, old_mem;
@@ -194,9 +194,8 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
     canvas->height = height;
 }
 
-/************************ internal canvas functions ************************/
-void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
-                     unsigned int width, unsigned int height )
+void canvas_xlib_display( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
+                          unsigned int width, unsigned int height )
 {
     if( !cv || !gc )
         return;

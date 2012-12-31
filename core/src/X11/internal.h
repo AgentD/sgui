@@ -123,9 +123,20 @@ void remove_window( sgui_window_xlib* window );
 /* in window.c: process an XEvent */
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 
+/* in canvas.c: create an xlib canvas */
+sgui_canvas* canvas_xlib_create( unsigned int width,
+                                 unsigned int height );
+
+/* in canvas.c: destroy an xlib canvas */
+void canvas_xlib_destroy( sgui_canvas* canvas );
+
+/* in canvas.c: resize an xlib canvas */
+void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
+                         unsigned int height );
+
 /* in canvas.c: display a canvas on a same sized X window */
-void display_canvas( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
-                     unsigned int width, unsigned int height );
+void canvas_xlib_display( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
+                          unsigned int width, unsigned int height );
 
 #ifndef SGUI_NO_OPENGL
 /* in OpenGL.c: get a framebuffer configuration */

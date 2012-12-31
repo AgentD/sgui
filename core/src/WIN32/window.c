@@ -110,7 +110,7 @@ void sgui_window_set_size( sgui_window* wnd,
     wnd->h = height;
 
     /* resize the canvas */
-    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+    canvas_gdi_resize( wnd->back_buffer, wnd->w, wnd->h );
     sgui_canvas_clear( wnd->back_buffer, NULL );
     sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
 }
@@ -278,7 +278,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         sgui_internal_window_fire_event( base, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* resize canvas and redraw everything */
-        sgui_canvas_resize( base->back_buffer, base->w, base->h );
+        canvas_gdi_resize( base->back_buffer, base->w, base->h );
         sgui_canvas_clear( base->back_buffer, NULL );
         sgui_widget_manager_draw_all( base->mgr, base->back_buffer );
         break;
@@ -291,7 +291,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         {
             hDC = BeginPaint( wnd->hWnd, &ps );
 
-            display_canvas( hDC, base->back_buffer, 0, 0, base->w, base->h );
+            canvas_gdi_display( hDC, base->back_buffer, 0, 0, base->w, base->h );
 
             EndPaint( wnd->hWnd, &ps );
             break;
@@ -428,8 +428,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
     else
     {
-        wnd->base.back_buffer =
-        (sgui_canvas*)sgui_canvas_create( wnd->base.w, wnd->base.h );
+        wnd->base.back_buffer = canvas_gdi_create( wnd->base.w, wnd->base.h );
 
         if( !wnd->base.back_buffer )
         {
@@ -491,7 +490,7 @@ void sgui_window_destroy( sgui_window* wnd )
         }
 
         if( wnd->back_buffer )
-            sgui_canvas_destroy( wnd->back_buffer );
+            canvas_gdi_destroy( wnd->back_buffer );
 
         if( wnd->mgr )
             sgui_widget_manager_destroy( wnd->mgr );

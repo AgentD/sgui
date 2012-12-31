@@ -110,8 +110,8 @@ void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
     }
 }
 
-/****************************************************************************/
-sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
+/************************ internal canvas functions ************************/
+sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
 {
     sgui_canvas_gdi* cv = malloc( sizeof(sgui_canvas_gdi) );
 
@@ -159,7 +159,7 @@ sgui_canvas* sgui_canvas_create( unsigned int width, unsigned int height )
     return (sgui_canvas*)cv;
 }
 
-void sgui_canvas_destroy( sgui_canvas* canvas )
+void canvas_gdi_destroy( sgui_canvas* canvas )
 {
     if( canvas )
     {
@@ -175,8 +175,8 @@ void sgui_canvas_destroy( sgui_canvas* canvas )
     }
 }
 
-void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                         unsigned int height )
+void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
+                        unsigned int height )
 {
     if( canvas && width && height )
     {
@@ -204,9 +204,8 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
     }
 }
 
-/************************ internal canvas functions ************************/
-void display_canvas( HDC dc, sgui_canvas* cv, int x, int y,
-                     unsigned int width, unsigned int height )
+void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,
+                         unsigned int width, unsigned int height )
 {
     BitBlt( dc, x, y, width, height, ((sgui_canvas_gdi*)cv)->dc,
             x, y, SRCCOPY );

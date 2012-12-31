@@ -48,32 +48,6 @@ SGUI_COLOR_FORMAT;
 
 
 /**
- * \brief Create a canvas object
- *
- * \param width  The width of the canvas
- * \param height The height of the canvas
- *
- * \return A pointer to a new canvas object
- */
-sgui_canvas* SGUI_DLL sgui_canvas_create( unsigned int width,
-                                          unsigned int height );
-
-/** \brief Destroy a canvas object */
-void SGUI_DLL sgui_canvas_destroy( sgui_canvas* canvas );
-
-/**
- * \brief Change the size of a canvas
- *
- * \param width  The new width of the canvas
- * \param height The new height of the canvas
- */
-void SGUI_DLL sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                                  unsigned int height );
-
-
-
-
-/**
  * \brief Get the size of a canvas
  *
  * \param canvas The canvas to report the size of
