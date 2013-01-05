@@ -2,7 +2,7 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -Icore/include -I/usr/include/freetype2 $1"
+        -Icore/include -Iwidgets/include -I/usr/include/freetype2 $1"
 
 # Compile a list of files. $1: additional compiler flags, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -38,11 +38,11 @@ compile_files( )
 ############################# source code files #############################
 
 # Common source code files
-SOURCE_WIDGETS="core/src/widgets/progress_bar.c core/src/widgets/static_text.c
-                core/src/widgets/button.c core/src/widgets/image.c
-                core/src/widgets/edit_box.c core/src/widgets/frame.c
-                core/src/widgets/scroll_bar.c core/src/widgets/group_box.c
-                core/src/widgets/tab.c"
+SOURCE_WIDGETS="widgets/src/progress_bar.c widgets/src/static_text.c
+                widgets/src/button.c widgets/src/image.c
+                widgets/src/edit_box.c widgets/src/frame.c
+                widgets/src/scroll_bar.c widgets/src/group_box.c
+                widgets/src/tab.c"
 
 SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 
@@ -66,6 +66,10 @@ if [ ! -f ./compile.sh ]; then
 else
     mkdir -p "build/obj/unix/test"
     mkdir -p "build/bin/unix"
+    mkdir -p "build/include"
+
+    cp -u core/include/*.h build/include/
+    cp -u widgets/include/*.h build/include/
 
     echo -e "\e[0m * Compiling for UNIX like system"
     compile_files "-fPIC" "$SOURCE_COMMON" "unix"
@@ -77,7 +81,8 @@ else
 
     echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
 
-    FLAGS="$CFLAGS -Wl,-rpath,. -Lbuild/bin/unix -lsgui"
+    FLAGS="-ansi -pedantic -Wall -Wextra $1 -Wl,-rpath,. -Lbuild/bin/unix
+           -Ibuild/include -lsgui"
 
     gcc $FLAGS test/test.c -o build/bin/unix/test
     gcc $FLAGS -lGL test/test_gl.c -o build/bin/unix/test_gl

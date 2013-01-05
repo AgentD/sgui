@@ -54,6 +54,7 @@ script is outlined by commentaries and it should not be to hard to read it.
 <h3>The output directory tree</h3>
 
 The SGUI build systems writes its output to the "build" subdirectory, which
+contains the contents that end up in the downloadable binary package. It
 contains the following subdirectories:
 
 <ul>
@@ -61,6 +62,11 @@ contains the following subdirectories:
 <tr>
 <td><li>build/bin/&lt;PLATFORM&gt;</td>
 <td>Compiled dynamic libraries and program binaries end up here</td>
+</tr>
+<tr>
+<td><li>build/include/</td>
+<td>The header files of the different source sub directories (see below) are
+    merged into this directory</td>
 </tr>
 <tr>
 <td><li>build/lib/&lt;PLATFORM&gt;</td>
@@ -91,27 +97,20 @@ subdirectories:
 <table>
 <tr>
 <td><li>build/</td>
-<td>The output directory, see above</td>
+<td>The output directory; see above</td>
 </tr>
 <tr>
 <td><li>doc/</td>
 <td>The documentation you are currently reading</td>
 </tr>
 <tr>
-<td><li>core/include/</td>
-<td>Contains all the <b>SGUI headers</b></td>
+<td><li>core/</td>
+<td>Contains the <b>core source code</b>, i.e. core components and backend
+    rendering code</td>
 </tr>
 <tr>
-<td><li>core/src/</td>
-<td>Contains the <b>SGUI source code</b></td>
-</tr>
-<tr>
-<td><li>core/src/widgets/</td>
+<td><li>widgets/</td>
 <td>Contains the <b>source code for the widgets</b></td>
-</tr>
-<tr>
-<td><li>core/src/&lt;BACK END&gt;/</td>
-<td>Contains source code specific to a certain back end or platform</td>
 </tr>
 <tr>
 <td><li>test/</td>
@@ -120,18 +119,17 @@ subdirectories:
 </table>
 </ul>
 
-It should be noted however, that the back end directories should be named
-strictly and the source code in the directories should strictly conform to
-the naming. For instance, the code in the <b>src/X11</b> subdirectory contains
-code specific <i>only</i> to X11, the code must not assume that it is running
-on a UNIX&reg; like system (X11 can be run on other systems as well).
-Similarly, X11 specific source files <b>do not</b> belong into a directory
-called "unix" (and especially not "linux"), source code in a directory called
-"unix" should only assume that the POSIX API is available, no more and no
-less. (Linux&reg; is a <i>kernel</i> for UNIX&reg; like operating systems,
-the POSIX API also works on other UNIX&reg; like systems and is not kernel
-specific, interfaces of user land window systems like X11 are especially not
-kernel spefic).
+Platform or backend specific code in the core source is placed inside a
+propperly named subdirectory (in core/src). For instance, the code in the
+<b>core/src/X11</b> subdirectory contains code specific <i>only</i> to X11,
+the code must not assume that it is running on a UNIX&reg; like system (X11
+can be run on other systems as well). Similarly, X11 specific source files
+<b>do not</b> belong into a directory called "unix" (and especially not
+"linux"), source code in a directory called "unix" should only assume that the
+POSIX API is available, no more and no less. (Linux&reg; is a <i>kernel</i>
+for UNIX&reg; like operating systems, the POSIX API also works on other
+UNIX&reg; like systems and is not kernel specific, interfaces of user land
+window systems like X11 are especially not kernel spefic).
 
 <hr>
 <a href="hacking.oop.html">Previous</a>

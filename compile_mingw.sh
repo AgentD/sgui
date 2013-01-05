@@ -2,7 +2,7 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -Icore/include -Ibuild/win_dep/include -mwindows $1"
+        -Icore/include -Iwidgets/include -Ibuild/win_dep/include -mwindows $1"
 
 # Compile a list of files. $1: prefix, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -50,11 +50,11 @@ if [ "$?" == "127" ]; then
 fi
 
 ############################# source code files #############################
-SOURCE_WIDGETS="core/src/widgets/progress_bar.c core/src/widgets/static_text.c
-                core/src/widgets/button.c core/src/widgets/image.c
-                core/src/widgets/edit_box.c core/src/widgets/frame.c
-                core/src/widgets/scroll_bar.c core/src/widgets/group_box.c
-                core/src/widgets/tab.c"
+SOURCE_WIDGETS="widgets/src/progress_bar.c widgets/src/static_text.c
+                widgets/src/button.c widgets/src/image.c
+                widgets/src/edit_box.c widgets/src/frame.c
+                widgets/src/scroll_bar.c widgets/src/group_box.c
+                widgets/src/tab.c"
 
 SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 
@@ -81,6 +81,7 @@ do_build( )
         mkdir -p "build/obj/$1/test"
         mkdir -p "build/bin/$1"
         mkdir -p "build/lib/$1"
+        mkdir -p "build/include"
 
         echo -e "\e[0m * Compiling for $2, Windows operating system"
         compile_files "$3" "$SOURCE_COMMON"   "$1"
@@ -109,5 +110,8 @@ else
 
     cp -u build/win_dep/x86/libfreetype-6.dll build/bin/win32
     cp -u build/win_dep/x64/libfreetype-6.dll build/bin/win64
+
+    cp -u core/include/*.h build/include/
+    cp -u widgets/include/*.h build/include/
 fi
 
