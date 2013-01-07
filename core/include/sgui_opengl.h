@@ -46,7 +46,7 @@ extern "C" {
  *
  * \return A pointer to an canvas that uses an OpenGL texture back end.
  */
-sgui_canvas* SGUI_DLL sgui_opengl_canvas_create( unsigned int width,
+SGUI_DLL sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
                                                  unsigned int height );
 
 /**
@@ -56,15 +56,15 @@ sgui_canvas* SGUI_DLL sgui_opengl_canvas_create( unsigned int width,
  * \param width  The new width of the canvas
  * \param height The new height of the canvas
  */
-void SGUI_DLL sgui_opengl_canvas_resize( sgui_canvas* canvas,
+SGUI_DLL void sgui_opengl_canvas_resize( sgui_canvas* canvas,
                                          unsigned int width,
                                          unsigned int height );
 
 /** \brief Destroy an OpenGL canvas */
-void SGUI_DLL sgui_opengl_canvas_destroy( sgui_canvas* canvas );
+SGUI_DLL void sgui_opengl_canvas_destroy( sgui_canvas* canvas );
 
 /** \brief Get the OpenGL texture handle from an OpenGL canvas */
-unsigned int SGUI_DLL sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
+SGUI_DLL unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
 
 #ifdef __cplusplus
 }

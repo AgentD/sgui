@@ -47,7 +47,7 @@ extern "C"
  *
  * \return A button widget
  */
-sgui_widget* SGUI_DLL sgui_button_create( int x, int y,
+SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
                                           unsigned int width,
                                           unsigned int height,
                                           const char* text );
@@ -61,7 +61,7 @@ sgui_widget* SGUI_DLL sgui_button_create( int x, int y,
  *
  * \return A checkbox button widget
  */
-sgui_widget* SGUI_DLL sgui_checkbox_create( int x, int y, const char* text );
+SGUI_DLL sgui_widget* sgui_checkbox_create( int x, int y, const char* text );
 
 /**
  * \brief Create a radio button widget
@@ -72,7 +72,7 @@ sgui_widget* SGUI_DLL sgui_checkbox_create( int x, int y, const char* text );
  *
  * \return A radio button widget
  */
-sgui_widget* SGUI_DLL sgui_radio_button_create( int x, int y,
+SGUI_DLL sgui_widget* sgui_radio_button_create( int x, int y,
                                                 const char* text );
 
 /**
@@ -85,7 +85,7 @@ sgui_widget* SGUI_DLL sgui_radio_button_create( int x, int y,
  * \param previous The precceding radio button in the radio button menu
  * \param next     The next radio button in the radio button menu
  */
-void SGUI_DLL sgui_radio_button_connect( sgui_widget* radio,
+SGUI_DLL void sgui_radio_button_connect( sgui_widget* radio,
                                          sgui_widget* previous,
                                          sgui_widget* next );
 
@@ -94,7 +94,7 @@ void SGUI_DLL sgui_radio_button_connect( sgui_widget* radio,
  *
  * \param button The button widget
  */
-void SGUI_DLL sgui_button_destroy( sgui_widget* button );
+SGUI_DLL void sgui_button_destroy( sgui_widget* button );
 
 /**
  * \brief Set the text to be printed onto a button
@@ -102,7 +102,7 @@ void SGUI_DLL sgui_button_destroy( sgui_widget* button );
  * \param button The button to alter.
  * \param text   The text printed on the button.
  */
-void SGUI_DLL sgui_button_set_text( sgui_widget* button, const char* text );
+SGUI_DLL void sgui_button_set_text( sgui_widget* button, const char* text );
 
 /**
  * \brief Set the state of a checkbox or radio button
@@ -110,7 +110,7 @@ void SGUI_DLL sgui_button_set_text( sgui_widget* button, const char* text );
  * \param button The button to alter.
  * \param state  Non-zero for checked, zero for unchecked
  */
-void SGUI_DLL sgui_button_set_state( sgui_widget* button, int state );
+SGUI_DLL void sgui_button_set_state( sgui_widget* button, int state );
 
 /**
  * \brief Returns the state of a button
@@ -120,7 +120,7 @@ void SGUI_DLL sgui_button_set_state( sgui_widget* button, int state );
  * \return For checkboxes, non-zero means checked, for normal buttons,
  *         non-zero means pressed down.
  */
-int SGUI_DLL sgui_button_get_state( sgui_widget* button );
+SGUI_DLL int sgui_button_get_state( sgui_widget* button );
 
 #ifdef __cplusplus
 }

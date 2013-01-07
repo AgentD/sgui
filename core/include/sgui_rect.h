@@ -67,7 +67,7 @@ extern "C" {
  * \param width  The width of the rectangle
  * \param height The height of the rectangle
  */
-void SGUI_DLL sgui_rect_set_size( sgui_rect* r, int left, int top,
+SGUI_DLL void sgui_rect_set_size( sgui_rect* r, int left, int top,
                                   unsigned int width, unsigned int height );
 
 /**
@@ -84,7 +84,7 @@ void SGUI_DLL sgui_rect_set_size( sgui_rect* r, int left, int top,
  * \param right  The horizontal distance of the right edge from the origin
  * \param bottom The vertical distance of the bottom edge from the origin
  */
-void SGUI_DLL sgui_rect_set( sgui_rect* r, int left, int top, int right,
+SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
                              int bottom );
 
 /**
@@ -93,13 +93,13 @@ void SGUI_DLL sgui_rect_set( sgui_rect* r, int left, int top, int right,
  * \param dst The rectangle to copy to
  * \param src The rectangle to copy from
  */
-void SGUI_DLL sgui_rect_copy( sgui_rect* dst, sgui_rect* src );
+SGUI_DLL void sgui_rect_copy( sgui_rect* dst, sgui_rect* src );
 
 /**
  * \brief "Normalize" a rectangle, i.e. make sure the top coordinate is
  *        smaller than the bottom and the left smaller than the right
  */
-void SGUI_DLL sgui_rect_normalize( sgui_rect* r );
+SGUI_DLL void sgui_rect_normalize( sgui_rect* r );
 
 /**
  * \brief Get the intersection between to rectangles
@@ -116,7 +116,7 @@ void SGUI_DLL sgui_rect_normalize( sgui_rect* r );
  *
  * \return Non-zero if the rectangles intersect, zero if they don't
  */
-int SGUI_DLL sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
+SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
                                          sgui_rect* b );
 
 /**
@@ -137,7 +137,7 @@ int SGUI_DLL sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
  *
  * \return Non-zero if the line segment intersects the rectangle, zero if not
  */
-int SGUI_DLL sgui_rect_clip_line( sgui_rect* r, int horizontal,
+SGUI_DLL int sgui_rect_clip_line( sgui_rect* r, int horizontal,
                                   int* x, int* y, unsigned int* length );
 
 /**
@@ -150,7 +150,7 @@ int SGUI_DLL sgui_rect_clip_line( sgui_rect* r, int horizontal,
  *
  * \return Non-zero on success, zero otherwise.
  */
-int SGUI_DLL sgui_rect_join( sgui_rect* acc, sgui_rect* r,
+SGUI_DLL int sgui_rect_join( sgui_rect* acc, sgui_rect* r,
                              int only_if_touch );
 
 #ifdef __cplusplus

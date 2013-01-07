@@ -66,6 +66,7 @@ if [ ! -f ./compile.sh ]; then
 else
     mkdir -p "build/obj/unix/test"
     mkdir -p "build/bin/unix"
+    mkdir -p "build/lib/unix"
     mkdir -p "build/include"
 
     cp -u core/include/*.h build/include/
@@ -78,6 +79,10 @@ else
     echo -e "\e[31m***** creating shared library libsgui.so *****\e[0m"
     gcc $LIBS_X11 $1 -shared -Wl,-soname,libsgui.so $(ls build/obj/unix/*.o) \
         -o build/bin/unix/libsgui.so
+
+    echo -e "\e[31m***** creating static library libsgui_static.a *****\e[0m"
+    ar rcs build/lib/unix/libsgui_static.a $(ls build/obj/unix/*.o)
+    ranlib build/lib/unix/libsgui_static.a
 
     echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
 

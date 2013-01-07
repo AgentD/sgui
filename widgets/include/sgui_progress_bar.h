@@ -53,7 +53,7 @@ extern "C" {
  * \param progress Initial progress for the bar (value between 0 and 100)
  * \param length   The length of the bar in pixels.
  */
-sgui_widget* SGUI_DLL sgui_progress_bar_create( int x, int y, int style,
+SGUI_DLL sgui_widget* sgui_progress_bar_create( int x, int y, int style,
                                                 int vertical,
                                                 unsigned int progress,
                                                 unsigned int length );
@@ -64,7 +64,7 @@ sgui_widget* SGUI_DLL sgui_progress_bar_create( int x, int y, int style,
  * \param bar      The progress bar to alter.
  * \param progress Value between 0 and 100 for the bar to display.
  */
-void SGUI_DLL sgui_progress_bar_set_progress( sgui_widget* bar,
+SGUI_DLL void sgui_progress_bar_set_progress( sgui_widget* bar,
                                               unsigned int progress );
 
 /**
@@ -74,14 +74,14 @@ void SGUI_DLL sgui_progress_bar_set_progress( sgui_widget* bar,
  *
  + \return Progress value (percentage, value between 0 and 100)
  */
-unsigned int SGUI_DLL sgui_progress_bar_get_progress( sgui_widget* bar );
+SGUI_DLL unsigned int sgui_progress_bar_get_progress( sgui_widget* bar );
 
 /**
  * \brief Destroy a progress bar widget
  *
  * \param par The progress bar widget to delete
  */
-void SGUI_DLL sgui_progress_bar_destroy( sgui_widget* bar );
+SGUI_DLL void sgui_progress_bar_destroy( sgui_widget* bar );
 
 #ifdef __cplusplus
 }

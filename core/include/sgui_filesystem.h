@@ -54,7 +54,7 @@ struct sgui_filesystem
 
 
 /** \brief Get a pointer to a default stdio filesystem implementation */
-const sgui_filesystem* SGUI_DLL sgui_filesystem_get_default( void );
+SGUI_DLL const sgui_filesystem* sgui_filesystem_get_default( void );
 
 
 

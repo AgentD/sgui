@@ -52,13 +52,13 @@ extern "C"
  * \param scroll_area_length The length of the scrolled area in pixels.
  * \param disp_area_length   The length of the displayable area in pixels.
  */
-sgui_widget* SGUI_DLL sgui_scroll_bar_create( int x, int y, int horizontal,
+SGUI_DLL sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
                                               unsigned int length,
                                               unsigned int scroll_area_length,
                                               unsigned int disp_area_length );
 
 /** \brief Destroy a scroll bar widget */
-void SGUI_DLL sgui_scroll_bar_destroy( sgui_widget* bar );
+SGUI_DLL void sgui_scroll_bar_destroy( sgui_widget* bar );
 
 /**
  * \brief Set the scroll area offset in pixels of a scroll bar
@@ -66,11 +66,11 @@ void SGUI_DLL sgui_scroll_bar_destroy( sgui_widget* bar );
  * \param bar    The scroll bar
  * \param offset The offset of the scroll area in pixels
  */
-void SGUI_DLL sgui_scroll_bar_set_offset( sgui_widget* bar,
+SGUI_DLL void sgui_scroll_bar_set_offset( sgui_widget* bar,
                                           unsigned int offset );
 
 /** \brief Get the scroll area offset in pixels from a scroll bar */
-unsigned int SGUI_DLL sgui_scroll_bar_get_offset( sgui_widget* bar );
+SGUI_DLL unsigned int sgui_scroll_bar_get_offset( sgui_widget* bar );
 
 /**
  * \brief Inform the scrollbar of a change in the scroll area size
@@ -79,7 +79,7 @@ unsigned int SGUI_DLL sgui_scroll_bar_get_offset( sgui_widget* bar );
  * \param scroll_area_length The length of the scrolled area in pixels.
  * \param disp_area_length   The length of the displayable area in pixels.
  */
-void SGUI_DLL sgui_scroll_bar_set_area( sgui_widget* bar,
+SGUI_DLL void sgui_scroll_bar_set_area( sgui_widget* bar,
                                         unsigned int scroll_area_length,
                                         unsigned int disp_area_length );
 

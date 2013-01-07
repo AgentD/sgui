@@ -65,14 +65,14 @@ extern "C" {
  *
  * \return Non-zero on success, zero on error.
  */
-int SGUI_DLL sgui_init( void );
+SGUI_DLL int sgui_init( void );
 
 /**
  * \brief Uninitialise sgui
  *
  * Call this once you are done using sgui.
  */
-void SGUI_DLL sgui_deinit( void );
+SGUI_DLL void sgui_deinit( void );
 
 /**
  * \brief Enter the sgui main loop
@@ -81,7 +81,7 @@ void SGUI_DLL sgui_deinit( void );
  * asks them to update. The function does not return as long as there are
  * windows visible.
  */
-void SGUI_DLL sgui_main_loop( void );
+SGUI_DLL void sgui_main_loop( void );
 
 /**
  * \brief Execute a single step of the main loop
@@ -95,7 +95,7 @@ void SGUI_DLL sgui_main_loop( void );
  * \return Non-zero if there is at least one window visible, zero if there
  *         are no more visible windows.
  */
-int SGUI_DLL sgui_main_loop_step( void );
+SGUI_DLL int sgui_main_loop_step( void );
 
 #ifdef __cplusplus
 }

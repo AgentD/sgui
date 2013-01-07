@@ -90,6 +90,12 @@ operating system requires the following command:
 This command should produce a working "a.out" that does nothing. To run the
 program, the "libsgui.so" has to be in the same directory as "a.out".<br>
 <br>
+Or alternatively, you can link SGUI statically:
+<p class="code">
+<font class="command">gcc</font> -I&lt;sgui_include_path&gt; -L&lt;lib_path&gt; -lsgui_static test.c
+</p>
+<br>
+
 For Windows&reg;, the command line for mingw would look like this (where "gcc"
 is of course the proper name of your "mingw" binary):
 <p class="code">

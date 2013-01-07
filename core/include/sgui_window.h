@@ -86,7 +86,7 @@ typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
-sgui_window* SGUI_DLL sgui_window_create( unsigned int width,
+SGUI_DLL sgui_window* sgui_window_create( unsigned int width,
                                           unsigned int height,
                                           int resizeable,
                                           int backend );
@@ -98,7 +98,7 @@ sgui_window* SGUI_DLL sgui_window_create( unsigned int width,
  * (see sgui_window_create), this function makes the context current for the
  * calling thread.
  */
-void SGUI_DLL sgui_window_make_current( sgui_window* window );
+SGUI_DLL void sgui_window_make_current( sgui_window* window );
 
 /**
  * \brief Swap the back and the front buffer of a window
@@ -107,7 +107,7 @@ void SGUI_DLL sgui_window_make_current( sgui_window* window );
  * (see sgui_window_create), this function swappes the back buffer of the
  * context with the front buffer.
  */
-void SGUI_DLL sgui_window_swap_buffers( sgui_window* window );
+SGUI_DLL void sgui_window_swap_buffers( sgui_window* window );
 
 /**
  * \brief Destroy a previously created window
@@ -118,7 +118,7 @@ void SGUI_DLL sgui_window_swap_buffers( sgui_window* window );
  * This function triggers the window close event with SGUI_API_DESTROYED as
  * how paramter, no matter whether the window is visible or not.
  */
-void SGUI_DLL sgui_window_destroy( sgui_window* wnd );
+SGUI_DLL void sgui_window_destroy( sgui_window* wnd );
 
 
 
@@ -128,7 +128,7 @@ void SGUI_DLL sgui_window_destroy( sgui_window* wnd );
  * \param x Returns the distance of the pointer from the left of the window
  * \param y Returns the distance of the pointer from the top of the window
  */
-void SGUI_DLL sgui_window_get_mouse_position( sgui_window* wnd,
+SGUI_DLL void sgui_window_get_mouse_position( sgui_window* wnd,
                                               int* x, int* y );
 
 /**
@@ -139,7 +139,7 @@ void SGUI_DLL sgui_window_get_mouse_position( sgui_window* wnd,
  * \param send_event Non-zero if the function should generate a mouse movement
  *                   event, zero if it shouldn't.
  */
-void SGUI_DLL sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
                                               int send_event );
 
 
@@ -158,10 +158,10 @@ void SGUI_DLL sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
  *                invisible. The symbolic constants SGUI_VISIBLE and
  *                SGUI_INVISIBLE can be used to generat more readable code.
  */
-void SGUI_DLL sgui_window_set_visible( sgui_window* wnd, int visible );
+SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
 
 /** \brief Returns non-zero if a given window is visible, zero otherwise */
-int SGUI_DLL sgui_window_is_visible( sgui_window* wnd );
+SGUI_DLL int sgui_window_is_visible( sgui_window* wnd );
 
 /**
  * \brief Change the title of a window
@@ -173,7 +173,7 @@ int SGUI_DLL sgui_window_is_visible( sgui_window* wnd );
  * \param wnd   A pointer to a window
  * \param title The new title as a NULL terminated ASCII string
  */
-void SGUI_DLL sgui_window_set_title( sgui_window* wnd, const char* title );
+SGUI_DLL void sgui_window_set_title( sgui_window* wnd, const char* title );
 
 /**
  * \brief Change the size of a window
@@ -186,7 +186,7 @@ void SGUI_DLL sgui_window_set_title( sgui_window* wnd, const char* title );
  * \param height  The height of the window(without borders and decoration)
  *                If zero, the entire screen height is used.
  */
-void SGUI_DLL sgui_window_set_size( sgui_window* wnd,
+SGUI_DLL void sgui_window_set_size( sgui_window* wnd,
                                     unsigned int width, unsigned int height );
 
 /**
@@ -197,12 +197,12 @@ void SGUI_DLL sgui_window_set_size( sgui_window* wnd,
  * \param height Returns height of the window. Pass NULL if you're not
  *               iteressted in it.
  */
-void SGUI_DLL sgui_window_get_size( sgui_window* wnd,
+SGUI_DLL void sgui_window_get_size( sgui_window* wnd,
                                     unsigned int* width,
                                     unsigned int* height );
 
 /** \brief Relocate a window to the center of the screen */
-void SGUI_DLL sgui_window_move_center( sgui_window* wnd );
+SGUI_DLL void sgui_window_move_center( sgui_window* wnd );
 
 /**
  * \brief Move a window to a specified position
@@ -211,7 +211,7 @@ void SGUI_DLL sgui_window_move_center( sgui_window* wnd );
  * \param x   The distance of the left of the window to the left of the screen
  * \param y   The distance to the top of the window to the top of the screen
  */
-void SGUI_DLL sgui_window_move( sgui_window* wnd, int x, int y );
+SGUI_DLL void sgui_window_move( sgui_window* wnd, int x, int y );
 
 /**
  * \brief Get the position of a window
@@ -222,7 +222,7 @@ void SGUI_DLL sgui_window_move( sgui_window* wnd, int x, int y );
  * \param y   The distance to the top of the window to the top of the screen.
  *            Pass NULL if you're not interessted in it.
  */
-void SGUI_DLL sgui_window_get_position( sgui_window* wnd, int* x, int* y );
+SGUI_DLL void sgui_window_get_position( sgui_window* wnd, int* x, int* y );
 
 /**
  * \brief Set a window's event callback
@@ -235,7 +235,7 @@ void SGUI_DLL sgui_window_get_position( sgui_window* wnd, int* x, int* y );
  * \param wnd A pointer to a window
  * \param fun The callback function, or NULL to unset
  */
-void SGUI_DLL sgui_window_on_event( sgui_window* wnd,
+SGUI_DLL void sgui_window_on_event( sgui_window* wnd,
                                     sgui_window_callback fun );
 
 
@@ -247,7 +247,7 @@ void SGUI_DLL sgui_window_on_event( sgui_window* wnd,
  * \param wnd    The window to add the widget to
  * \param widget The widget to add
  */
-void SGUI_DLL sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
+SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
 
 /**
  * \brief Remove a widget from a window
@@ -255,7 +255,7 @@ void SGUI_DLL sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
  * \param wnd    The window to remove the widget from
  * \param widget The widget to remove
  */
-void SGUI_DLL sgui_window_remove_widget( sgui_window* wnd,
+SGUI_DLL void sgui_window_remove_widget( sgui_window* wnd,
                                          sgui_widget* widget );
 
 /**
@@ -265,14 +265,14 @@ void SGUI_DLL sgui_window_remove_widget( sgui_window* wnd,
  * \param fun  The function to call when a widget event occours
  * \param user A user data pointer that is passed to the given function
  */
-void SGUI_DLL sgui_window_on_widget_event( sgui_window* wnd,
+SGUI_DLL void sgui_window_on_widget_event( sgui_window* wnd,
                                            sgui_widget_callback fun,
                                            void* user );
 
 
 
 /** \brief Get a pointer to the back buffer canvas object of the window */
-sgui_canvas* SGUI_DLL sgui_window_get_canvas( sgui_window* wnd );
+SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 
 
 

@@ -87,17 +87,20 @@ do_build( )
         compile_files "$3" "$SOURCE_COMMON"   "$1"
         compile_files "$3" "$SOURCE_PLATFORM" "$1" "w32_"
 
-        echo -e "\e[31m***** creating static library libsgui.a *****\e[0m"
+        echo -e "\e[31m***** creating dynamic library sgui.dll *****\e[0m"
         "$3"gcc $(ls build/obj/$1/*.o) $4 -shared \
         -Wl,--out-implib,build/lib/$1/libsgui.a \
         -o build/bin/$1/sgui.dll
 
+        cp build/lib/$1/libsgui.a build/lib/$1/sgui.lib
+
         echo -e "\e[31m***** compiling test and demo programs *****\e[0m"
 
-        DEP="-Lbuild/lib/$1 -lsgui"
+        FLAGS="-ansi -pedantic -Wall -Wextra -mwindows
+               -Ibuild/include -Lbuild/lib/$1 -lsgui"
 
-        "$3"gcc $CFLAGS test/test.c $DEP -o build/bin/$1/test.exe
-        "$3"gcc $CFLAGS test/test_gl.c $DEP -lopengl32 -o build/bin/$1/test_gl.exe
+        "$3"gcc test/test.c $FLAGS -o build/bin/$1/test.exe
+        "$3"gcc test/test_gl.c $FLAGS -lopengl32 -o build/bin/$1/test_gl.exe
     fi
 }
 

@@ -44,7 +44,7 @@ extern "C" {
  * \param x The x component of the position
  * \param y The y component of the position
  */
-void SGUI_DLL sgui_widget_set_position( sgui_widget* w, int x, int y );
+SGUI_DLL void sgui_widget_set_position( sgui_widget* w, int x, int y );
 
 /**
  * \brief Get the position of a widget
@@ -53,7 +53,7 @@ void SGUI_DLL sgui_widget_set_position( sgui_widget* w, int x, int y );
  * \param x Returns the x component of the position
  * \param y Returns the y component of the position
  */
-void SGUI_DLL sgui_widget_get_position( sgui_widget* w, int* x, int* y );
+SGUI_DLL void sgui_widget_get_position( sgui_widget* w, int* x, int* y );
 
 /**
  * \brief Get the size of a widget
@@ -62,14 +62,14 @@ void SGUI_DLL sgui_widget_get_position( sgui_widget* w, int* x, int* y );
  * \param width  Returns the width of the widget
  * \param height Returns the height of the widget
  */
-void SGUI_DLL sgui_widget_get_size( sgui_widget* w,
+SGUI_DLL void sgui_widget_get_size( sgui_widget* w,
                                     unsigned int* width,
                                     unsigned int* height );
 
 /**
  * \brief Returns non-zero if the given widget is configured to be rendered
  */
-int SGUI_DLL sgui_widget_is_visible( sgui_widget* w );
+SGUI_DLL int sgui_widget_is_visible( sgui_widget* w );
 
 /**
  * \brief Set whether a given widget should be rendered or not
@@ -77,7 +77,7 @@ int SGUI_DLL sgui_widget_is_visible( sgui_widget* w );
  * \param w       The widget
  * \param visible Non-zero to allow rendering of the widget, zero to prohibit.
  */
-void SGUI_DLL sgui_widget_set_visible( sgui_widget* w, int visible );
+SGUI_DLL void sgui_widget_set_visible( sgui_widget* w, int visible );
 
 /**
  * \brief Get the bounding rectangle of a widget
@@ -85,7 +85,7 @@ void SGUI_DLL sgui_widget_set_visible( sgui_widget* w, int visible );
  * \param w The widget
  * \param r Returns the rectangle
  */
-void SGUI_DLL sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
+SGUI_DLL void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
 
 /**
  * \brief Returns non-zero if a point is inside the bounding box of a widget
@@ -94,7 +94,7 @@ void SGUI_DLL sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
  * \param x The x component of the position to test
  * \param y The y component of the position to test
  */
-int SGUI_DLL sgui_widget_is_point_inside( sgui_widget* w, int x, int y );
+SGUI_DLL int sgui_widget_is_point_inside( sgui_widget* w, int x, int y );
 
 /**
  * \brief Send a window event to a widget
@@ -106,7 +106,7 @@ int SGUI_DLL sgui_widget_is_point_inside( sgui_widget* w, int x, int y );
  * \param type   The event type
  * \param event  The event to send
  */
-void SGUI_DLL sgui_widget_send_window_event( sgui_widget* widget, int type,
+SGUI_DLL void sgui_widget_send_window_event( sgui_widget* widget, int type,
                                              sgui_event* event );
 
 /**
@@ -117,7 +117,7 @@ void SGUI_DLL sgui_widget_send_window_event( sgui_widget* widget, int type,
  * \param widget The widget to update.
  * \param cv     The canvas to draw to.
  */
-void SGUI_DLL sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv );
+SGUI_DLL void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv );
 
 
 
