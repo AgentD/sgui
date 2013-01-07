@@ -6,19 +6,33 @@
   started out as an overgrown Xlib play pen.
 
   The whole library is written in plain ANSI C (C89) with a simple build
-  system consisting of a single shell script that keeps track of changes and
-  executes gcc for the *nix version and mingw for the WinDOS cross
+  system consisting of a single shell script per platform that keeps track of
+  changes and executes gcc for the *nix version and mingw for the WinDOS cross
   compilation.
 
   The 's' in "sgui" really was intended to mean "small" or "simple", but over
   time, lots of other possible meanings for the letter 's' came to my mind, so
   the s stands for whatever you want it to.
 
+  The main motivation was to write a simple, small GUI systems for small
+  aplications that need a simple, "just works" GUI, after being unsatisfied
+  with existing GUI solutions that are incredibly huge, bloated, resource
+  hogging monsters that tend to be hard to use, if not even forcing a specific
+  structure to your code and requiring a custom pre-preprocessor (you know the
+  one I mean^^). It should be simple, small, easy to use and preferably in C.
+
+  Also, I was in the need for a something that had "just works" support for
+  modern OpenGL (3.x/4.x core), including easy off-screen rendering to
+  textures.
+
+  Apperently something like that is rather hard to come by, so I rolled my
+  own, starting with an Xlib play pen to kill boredomeness.
+
 
   What's the status?
   ******************
 
-  There are working Xlib and WinDOS back ends that basically mange a window,
+  There are working Xlib and WinDOS backends that basically mange a window,
   handle input and provide an implementation of an abstract canvas type for
   rendering. Widgets are managed by a widget manager.
 
@@ -30,17 +44,26 @@
 
   Widget events (e.g. button pressed, checkbox checked, ...) and window
   events (e.g. left clicked, 's' key pressed, window closed, ...) can be
-  received over callbacks, registered at a centralized location.
+  received over callbacks.
 
-  On my system, the library compiles without warnings with all gcc warning
-  flags set and has, according to valgrind, no memory leaks (except for a
-  leak inside Xlib, or is it a valgrind bug?) and the WinDOS port has been
-  confirmed to work under Wine, WinDOS 7 (32 & 64 Bit) and WinDOS 98 on a
-  machine from 2005.
+  OpenGL context creation works and the OpenGL back end is work in progress.
+
+  Currently, the code is being reviewed, cleaned and simplified. Documentation
+  writing has begun and is in progress.
+
+  The library has been compiled and tested on multiple GNU/Linux systems
+  without warnings with all gcc warning flags set and has, according to
+  valgrind, no memory leaks (except for a leak inside Xlib, or is it a
+  valgrind bug?) and the WinDOS port has been confirmed to work under Wine,
+  WinDOS 7 (32 & 64 Bit) and WinDOS 98 on a machine from 2005. A test
+  application has been successuflly compiled with MSVC 2010 Express under
+  WinDOS 7. The whole thing compiles and runs on the Raspberry PI under Arch
+  ARM, but does not work properly yet.
 
 
-  ADHD version: Things are starting to come together nicely but I wouldn't
-  exactly advice people to use the library for daily needs.
+  ADHD version: Things are starting to come together nicely and It'd be nice
+  if you gave it a try and sent me some feedback, but I wouldn't exactly 
+  advice people to use the library for production use.
 
 
   What are your plans?
@@ -48,46 +71,34 @@
 
   Short term:
     - Tidy and simplify code
-    - Write OpenGL back end
+        - Mainly backend cleans
+        - Utilize backend API for drawing
+        - Reduce memory hogging
+    - Complete OpenGL backend
+        - Complete method stubs
+        - OpenGL sub windows (no difference to normal windows for users)
+        - OpenGL widget (OpenGL rendering area inside normal window)
+        - Anti aliasing
+        - Keep abstract and reusable (think of possible OpenGL ES and
+          Direct3D expansions)
+    - Complete documentation
+        - Internal structure in hacking chapter once settled
     - Add more useful widgets
-    - Write documentation
-    - Assure thread safety
+    - Outline thread safety
+        - How can the library be used/benefit in a multithreaded program?
+        - Single GUI thread only?
+        - What functions can be used in seperate threads?
+        - Add mutices where needed (e.g. backend code)?
 
   Mid term:
     - Loadable GUI skin
     - Built in dialog boxes like message box, file open and file safe
-
-  Long term:
-    - Figure out why I'm doing this
-    - Write small, real world applications that actually use the library
 
 
   At all times:
     - Keep at least the Xlib port stable, safe and leak free
     - Don't produce compiler warnings
     - Pass through valgrind flawlessly
-
-
-  There are so many GUI libraries out there, why roll your own?
-  *************************************************************
-
-  Because reason! (plus insanity, time and the C programming language)
-
-  The whole thing started out as an Xlib play pen I used to look busy, so our
-  teacher in engineering school would not suspect that I'm already done with
-  my project for months.
-
-  By posing that I actually need the insanely long timeframe he gave me, I
-  wouldn't get additional boring assignments and could do what I was
-  interessted in. (Coming up with a story what I did last time and showing
-  some code fragments was not that much of a problem and the hardware team was
-  so slow that I couldn't test anything for months anyway)
-
-  The whole thing of writing a GUI library from scratch in plain C89 was sort
-  of a masochistic joke, but it turns out to be usefull anyway, as I'm not
-  really satisfied with the existing toolkits (QT, GTK, FLTK, etc...) as they
-  are huge, bloated, horribly complicated and don't provide the functionalliy
-  I want.
 
 
   This is shit!
