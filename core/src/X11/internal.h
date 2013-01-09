@@ -55,15 +55,17 @@
     #define GLX_TRUE_COLOR    0x8002
 #endif
 
-#ifndef GLX_VERSION_1_4
+#ifndef GLX_ARB_create_context
     #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
     #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
     #define GLX_CONTEXT_FLAGS_ARB                     0x2094
-    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
 
     #define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
     #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
+#endif
 
+#ifndef GLX_ARB_create_context_profile
+    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
     #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
     #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
@@ -73,7 +75,7 @@ typedef XVisualInfo* (* GETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
 typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
                                                     GLXContext, Bool,
                                                     const int* );
-#endif
+#endif /* !SGUI_NO_OPENGL */
 
 
 #define DPY_WIDTH DisplayWidth( dpy, DefaultScreen(dpy) )
