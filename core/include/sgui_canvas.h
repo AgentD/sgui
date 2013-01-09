@@ -62,7 +62,7 @@ SGUI_DLL void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
  *
  * \param color The background color
  */
-void SGUI_DLL sgui_canvas_set_background_color( sgui_canvas* canvas,
+SGUI_DLL void sgui_canvas_set_background_color( sgui_canvas* canvas,
                                                 unsigned char* color );
 
 
