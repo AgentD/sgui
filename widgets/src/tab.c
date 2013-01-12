@@ -95,8 +95,13 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
         if( i!=g->selected )
         {
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
-            sgui_widget_manager_on_event( g->selected->mgr, NULL, NULL );
-            sgui_widget_manager_on_event( i->mgr, tab_pass_event, widget );
+
+            if( g->selected )
+                sgui_widget_manager_on_event( g->selected->mgr, NULL, NULL );
+
+            if( i )
+                sgui_widget_manager_on_event( i->mgr, tab_pass_event, widget );
+
             g->selected = i;
         }
     }
