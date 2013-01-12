@@ -42,6 +42,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <X11/extensions/Xrender.h>
+
 #ifndef SGUI_NO_OPENGL
 #include <GL/glx.h>
 

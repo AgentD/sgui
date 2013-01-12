@@ -56,7 +56,7 @@ SOURCE_X11="core/src/X11/window.c core/src/X11/keycode_translate.c
             core/src/X11/canvas.c core/src/X11/platform.c
             core/src/X11/opengl.c"
 
-LIBS_X11="-lX11 -lGL -lfreetype"
+LIBS_X11="-lXrender -lX11 -lGL -lfreetype"
 
 ############################# Do the compilation #############################
 
