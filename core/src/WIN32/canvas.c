@@ -43,53 +43,15 @@ typedef struct
 sgui_canvas_gdi;
 
 /************************* public canvas functions *************************/
-void canvas_gdi_download( sgui_canvas* canvas, sgui_rect* r )
+void canvas_gdi_begin( sgui_canvas* canvas, sgui_rect* r )
 {
-    int i, j, delta;
-    unsigned char temp, *ptr, *row;
-
-    canvas->buffer = ((sgui_canvas_gdi*)canvas)->data;
-    canvas->buffer_x = 0;
-    canvas->buffer_y = 0;
-    canvas->buffer_w = canvas->width;
-    canvas->buffer_h = canvas->height;
-
-    sgui_rect_copy( &((sgui_canvas_gdi*)canvas)->locked, r );
-
-    /* switch colors of "downloaded" region from BGR to RGB */
-    ptr = canvas->buffer + (r->top * canvas->width + r->left) * 4;
-    delta = canvas->width * 4;
-
-    for( j=r->top; j<=r->bottom; ++j, ptr+=delta )
-    {
-        for( row=ptr, i=r->left; i<=r->right; ++i, row+=4 )
-        {
-            temp = row[0];
-            row[0] = row[2];
-            row[2] = temp;
-        }
-    }
+    (void)canvas;
+    (void)r;
 }
 
-void canvas_gdi_upload( sgui_canvas* canvas )
+void canvas_gdi_end( sgui_canvas* canvas )
 {
-    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    int i, j, delta;
-    unsigned char temp, *ptr, *row;
-
-    /* switch colors of "downloaded" region from RGB to BGR */
-    ptr = canvas->buffer + (cv->locked.top*canvas->width + cv->locked.left)*4;
-    delta = canvas->width * 4;
-
-    for( j=cv->locked.top; j<=cv->locked.bottom; ++j, ptr+=delta )
-    {
-        for( row=ptr, i=cv->locked.left; i<=cv->locked.right; ++i, row+=4 )
-        {
-            temp = row[0];
-            row[0] = row[2];
-            row[2] = temp;
-        }
-    }
+    (void)canvas;
 }
 
 void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
@@ -106,6 +68,155 @@ void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
         for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
         {
             COLOR_COPY_INV( row, canvas->bg_color );
+        }
+    }
+}
+
+void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
+                      unsigned int height, unsigned int scanline_length,
+                      SGUI_COLOR_FORMAT format, const void* data )
+{
+    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
+    unsigned char *drow, *srow, *src, *dst;
+    unsigned int i, j, ds, dt, src_bpp = (format==SCF_RGBA8 ? 4 : 3);
+
+    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+    src = (unsigned char*)data;
+
+    ds = scanline_length * (format==SCF_RGBA8 ? 4 : 3);
+    dt = canvas->width * 4;
+
+    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    {
+        for( drow=dst, srow=src, i=0; i<width; ++i, srow+=src_bpp, drow+=4 )
+        {
+            COLOR_COPY_INV( drow, srow );
+        }
+    }
+}
+
+void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
+                       unsigned int height, unsigned int scanline_length,
+                       const void* data )
+{
+    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
+    unsigned char *dst, *src, *drow, *srow, A, iA;
+    unsigned int ds, dt, i, j;
+
+    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+    src = (unsigned char*)data;
+
+    ds = scanline_length * 4;
+    dt = canvas->width*4;
+
+    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    {
+        for( drow=dst, srow=src, i=0; i<width; ++i, srow+=4, drow+=4 )
+        {
+            A = srow[3];
+            iA = 0xFF-A;
+
+            drow[0] = (drow[0] * iA + srow[2] * A)>>8;
+            drow[1] = (drow[1] * iA + srow[1] * A)>>8;
+            drow[2] = (drow[2] * iA + srow[0] * A)>>8;
+        }
+    }
+}
+
+void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                          unsigned char* color, SGUI_COLOR_FORMAT format )
+{
+    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
+    unsigned char A, iA;
+    unsigned char *dst, *row;
+    int i, j;
+
+    dst = (unsigned char*)cv->data + (r->top*canvas->width + r->left)*4;
+
+    if( format==SCF_RGBA8 )
+    {
+        A = color[3];
+        iA = 0xFF - A;
+
+        for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
+        {
+            for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
+            {
+                row[0] = (row[0] * iA + color[2] * A)>>8;
+                row[1] = (row[1] * iA + color[1] * A)>>8;
+                row[2] = (row[2] * iA + color[0] * A)>>8;
+            }
+        }
+    }
+    else
+    {
+        for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
+        {
+            for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
+            {
+                row[0] = color[2];
+                row[1] = color[1];
+                row[2] = color[0];
+            }
+        }
+    }
+}
+
+void canvas_gdi_draw_line( sgui_canvas* canvas, int x, int y,
+                           unsigned int length, int horizontal,
+                           unsigned char* color, SGUI_COLOR_FORMAT format )
+{
+    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
+    unsigned char* dst;
+    unsigned char A, iA;
+    unsigned int i, delta;
+
+    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+    delta = horizontal ? 4 : canvas->width*4;
+
+    if( format==SCF_RGBA8 )
+    {
+        A = color[3];
+        iA = 0xFF - A;
+
+        for( i=0; i<length; ++i, dst+=delta )
+        {
+            dst[0] = (dst[0] * iA + color[2] * A)>>8;
+            dst[1] = (dst[1] * iA + color[1] * A)>>8;
+            dst[2] = (dst[2] * iA + color[0] * A)>>8;
+        }
+    }
+    else
+    {
+        for( i=0; i<length; ++i, dst+=delta )
+        {
+            dst[0] = color[2];
+            dst[1] = color[1];
+            dst[2] = color[0];
+        }
+    }
+}
+
+void canvas_gdi_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
+                               int x, int y, unsigned int w, unsigned int h,
+                               unsigned int scan, unsigned char* color )
+{
+    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
+    unsigned char A, iA, *src, *dst, *row;
+    unsigned int i, j;
+
+    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
+
+    for( j=0; j<h; ++j, buffer+=scan, dst+=canvas->width*4 )
+    {
+        for( src=buffer, row=dst, i=0; i<w; ++i, row+=4, ++src )
+        {
+            A = *src;
+            iA = 0xFF-A;
+
+            row[0] = (row[0] * iA + color[2] * A)>>8;
+            row[1] = (row[1] * iA + color[1] * A)>>8;
+            row[2] = (row[2] * iA + color[0] * A)>>8;
         }
     }
 }
@@ -152,9 +263,14 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     /* finish base initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
-    cv->canvas.upload = canvas_gdi_upload;
-    cv->canvas.download = canvas_gdi_download;
+    cv->canvas.begin = canvas_gdi_begin;
+    cv->canvas.end = canvas_gdi_end;
     cv->canvas.clear = canvas_gdi_clear;
+    cv->canvas.blit = canvas_gdi_blit;
+    cv->canvas.blend = canvas_gdi_blend;
+    cv->canvas.draw_box = canvas_gdi_draw_box;
+    cv->canvas.draw_line = canvas_gdi_draw_line;
+    cv->canvas.blend_stencil = canvas_gdi_blend_stencil;
 
     return (sgui_canvas*)cv;
 }

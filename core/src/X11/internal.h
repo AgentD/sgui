@@ -99,14 +99,9 @@ typedef struct _sgui_window_xlib
     unsigned int mouse_warped;/* mouse warp counter */
     int backend;              /* holds the back end from the create function*/
 
-    union
-    {
-        GC xlib;
 #ifndef SGUI_NO_OPENGL
-        GLXContext gl;
+    GLXContext gl;
 #endif
-    }
-    context;
 
     struct _sgui_window_xlib* next;  /* linked list stuff */
 }
@@ -126,7 +121,7 @@ void remove_window( sgui_window_xlib* window );
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 
 /* in canvas.c: create an xlib canvas */
-sgui_canvas* canvas_xlib_create( unsigned int width,
+sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height );
 
 /* in canvas.c: destroy an xlib canvas */
@@ -137,7 +132,7 @@ void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
                          unsigned int height );
 
 /* in canvas.c: display a canvas on a same sized X window */
-void canvas_xlib_display( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
+void canvas_xlib_display( sgui_canvas* cv, int x, int y,
                           unsigned int width, unsigned int height );
 
 #ifndef SGUI_NO_OPENGL

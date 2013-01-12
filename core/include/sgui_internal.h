@@ -30,6 +30,7 @@
 #include "sgui_predef.h"
 #include "sgui_rect.h"
 #include "sgui_window.h"
+#include "sgui_canvas.h"
 
 
 
@@ -56,28 +57,22 @@ struct sgui_canvas
     unsigned char bg_color[3];      /**< \brief RGB8 background color */
 
 
-    unsigned char* buffer;
-    unsigned int buffer_x, buffer_y, buffer_w, buffer_h;
-
-
     /**
-     * \brief Gets called by sgui_canvas_begin to load a the region to redraw
-     *        from the display servers memory into the scratch_buffer
+     * \brief Gets called by sgui_canvas_begin
      *
      * \param canvas A pointer to the canvas (for C++ people: practically a
      *               this pointer).
-     * \param r      The rectangle to load (already clamped to the canvas)
+     * \param r      The rectangle to redraw (already clamped to the canvas)
      */
-    void(* download )( sgui_canvas* canvas, sgui_rect* r );
+    void(* begin )( sgui_canvas* canvas, sgui_rect* r );
 
     /**
-     * \brief Gets called by sgui_canvas_end to upload the modified region
-     *        to the display server.
+     * \brief Gets called by sgui_canvas_end
      *
      * \param canvas A pointer to the canvas (for C++ people: practically a
      *               this pointer).
      */
-    void(* upload )( sgui_canvas* canvas );
+    void(* end )( sgui_canvas* canvas );
 
     /**
      * \brief Clear a portion of a canvas to the background color
@@ -88,6 +83,86 @@ struct sgui_canvas
      *               the scissor rect
      */
     void(* clear )( sgui_canvas* canvas, sgui_rect* r );
+
+    /**
+     * \brief Blit onto a canvas
+     *
+     * \param canvas          A pointer to the canvas (for C++
+     *                        people: practically a this pointer).
+     * \param x               Distance from the left of the canvas
+     * \param y               Distance from the top of the canvas
+     * \param width           The number of pixels per scanline after clipping
+     * \param height          The number of scanlines to blit after clipping
+     * \param scanline_length The actual length of one scanline of the image
+     * \param format          The color format of the pixels
+     * \param data            The data to blit. Already advanced to the actual
+     *                        first pixel after clipping.
+     */
+    void(* blit )( sgui_canvas* canvas, int x, int y, unsigned int width,
+                   unsigned int height, unsigned int scanline_length,
+                   SGUI_COLOR_FORMAT format, const void* data );
+
+    /**
+     * \brief Blend onto a canvas
+     *
+     * \param canvas          A pointer to the canvas (for C++
+     *                        people: practically a this pointer).
+     * \param x               Distance from the left of the canvas
+     * \param y               Distance from the top of the canvas
+     * \param width           The number of pixels per scanline after clipping
+     * \param height          The number of scanlines to blit after clipping
+     * \param scanline_length The actual length of one scanline of the image
+     * \param data            The data to blit. Already advanced to the actual
+     *                        first pixel after clipping.
+     */
+    void(* blend )( sgui_canvas* canvas, int x, int y,
+                    unsigned int width, unsigned int height,
+                    unsigned int scanline_length, const void* data );
+
+    /**
+     * \brief Draw a box onto a canvas
+     *
+     * \param canvas  A pointer to the canvas (for C++ people: practically a
+     *                this pointer).
+     * \param r       The rect to draw (offset applied and clipped)
+     * \param color   The color to draw the rect in
+     * \param format  The format of the color
+     */
+    void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
+                       unsigned char* color, SGUI_COLOR_FORMAT format );
+
+    /**
+     * \brief Draw a line onto a canvas
+     *
+     * \param canvas     A pointer to the canvas (for C++ people: practically a
+     *                   this pointer).
+     * \param x          Horizontal component of the start position
+     * \param y          Vertical component of the start position
+     * \param length     Length of the line after clipping
+     * \param horizontal Non-zero for horizontal, zero for vertical
+     * \param color      The color to draw the line in
+     * \param format     The format of the color
+     */
+    void(* draw_line )( sgui_canvas* canvas, int x, int y,
+                        unsigned int length, int horizontal,
+                        unsigned char* color, SGUI_COLOR_FORMAT format );
+
+    /**
+     * \brief Perfrom stencil blending
+     *
+     * \param canvas A pointer to the canvas (for C++ people: practically a
+     *               this pointer).
+     * \param buffer The source buffer with the stencil values
+     * \param x      The distance from the left of the canvas
+     * \param y      The distance from the top of the canvas
+     * \param w      The number of stencil values per scanline
+     * \param h      The number of scanlines
+     * \param scan   The actual length of a scanline
+     * \param color  The RGB color to draw
+     */
+    void(* blend_stencil )( sgui_canvas* canvas, unsigned char* buffer,
+                            int x, int y, unsigned int w, unsigned int h,
+                            unsigned int scan, unsigned char* color );
 };
 
 struct sgui_widget

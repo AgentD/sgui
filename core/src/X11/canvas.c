@@ -28,179 +28,274 @@
 
 #define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
 
+#define COLOR_BLEND_INV( a, b, A, iA )\
+        (a)[0] = ((a)[0]*iA + (b)[2]*A)>>8;\
+        (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
+        (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
+
 
 typedef struct
 {
     sgui_canvas canvas;
 
-    sgui_rect locked;
+    Pixmap pixmap;
+    GC gc;
 
-    XImage* img;
+    Window wnd;
+
+    long stencil_map[ 256 ];
+    unsigned char stencil_base[3];
 }
 sgui_canvas_xlib;
 
 
 
 /************************* public canvas functions *************************/
-void canvas_xlib_download( sgui_canvas* canvas, sgui_rect* r )
+void canvas_xlib_begin( sgui_canvas* canvas, sgui_rect* r )
 {
-    int i, j, delta;
-    unsigned char temp, *ptr, *row;
-
-    canvas->buffer = (unsigned char*)((sgui_canvas_xlib*)canvas)->img->data;
-    canvas->buffer_x = 0;
-    canvas->buffer_y = 0;
-    canvas->buffer_w = canvas->width;
-    canvas->buffer_h = canvas->height;
-
-    sgui_rect_copy( &((sgui_canvas_xlib*)canvas)->locked, r );
-
-    /* switch colors of "downloaded" region from BGR to RGB */
-    ptr = canvas->buffer + (r->top * canvas->width + r->left) * 4;
-    delta = canvas->width * 4;
-
-    for( j=r->top; j<=r->bottom; ++j, ptr+=delta )
-    {
-        for( row=ptr, i=r->left; i<=r->right; ++i, row+=4 )
-        {
-            temp = row[0];
-            row[0] = row[2];
-            row[2] = temp;
-        }
-    }
+    (void)canvas;
+    (void)r;
 }
 
-void canvas_xlib_upload( sgui_canvas* canvas )
+void canvas_xlib_end( sgui_canvas* canvas )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    int i, j, delta;
-    unsigned char temp, *ptr, *row;
-
-    /* switch colors of "downloaded" region from RGB to BGR */
-    ptr = canvas->buffer + (cv->locked.top*canvas->width + cv->locked.left)*4;
-    delta = canvas->width * 4;
-
-    for( j=cv->locked.top; j<=cv->locked.bottom; ++j, ptr+=delta )
-    {
-        for( row=ptr, i=cv->locked.left; i<=cv->locked.right; ++i, row+=4 )
-        {
-            temp = row[0];
-            row[0] = row[2];
-            row[2] = temp;
-        }
-    }
+    (void)canvas;
 }
 
 void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    unsigned char *dst, *row;
-    int i, j;
 
-    dst = (unsigned char*)cv->img->data + (r->top*canvas->width + r->left)*4;
+    XSetForeground( dpy, cv->gc, (canvas->bg_color[0] << 16) |
+                                 (canvas->bg_color[1] <<  8) |
+                                  canvas->bg_color[2]           );
 
-    /* clear */
-    for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
+    XFillRectangle( dpy, cv->pixmap, cv->gc, r->left, r->top,
+                    SGUI_RECT_WIDTH_V( r ),
+                    SGUI_RECT_HEIGHT_V( r ) );
+}
+
+void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
+                       unsigned int height, unsigned int scanline_length,
+                       SGUI_COLOR_FORMAT format, const void* data )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    unsigned int i, endy, bpp = format==SCF_RGBA8 ? 4 : 3;
+    unsigned char *src = (unsigned char*)data, *srow;
+
+    for( endy=y+height; y<(int)endy; ++y, src+=scanline_length*bpp )
     {
-        for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
+        for( srow=src, i=0; i<width; ++i, srow+=bpp )
         {
-            COLOR_COPY_INV( row, canvas->bg_color );
+            XSetForeground( dpy, cv->gc, srow[0]<<16 | srow[1]<<8 | srow[2] );
+            XDrawPoint( dpy, cv->pixmap, cv->gc, x+i, y );
+        }
+    }
+}
+
+void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
+                        unsigned int height, unsigned int scanline_length,
+                        const void* data )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    unsigned int i, endy;
+    unsigned char *src = (unsigned char*)data, *srow, A, iA;
+    long c;
+
+    for( endy=y+height; y<(int)endy; ++y, src+=scanline_length*4 )
+    {
+        for( srow=src, i=0; i<width; ++i, srow+=4 )
+        {
+            A = srow[3];
+            iA = 0xFF - A;
+
+            c  = (srow[0] * A + canvas->bg_color[0] * iA)>>8; c <<= 8;
+            c |= (srow[1] * A + canvas->bg_color[1] * iA)>>8; c <<= 8;
+            c |= (srow[2] * A + canvas->bg_color[2] * iA)>>8;
+
+            XSetForeground( dpy, cv->gc, c );
+            XDrawPoint( dpy, cv->pixmap, cv->gc, x+i, y );
+        }
+    }
+}
+
+void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                           unsigned char* color, SGUI_COLOR_FORMAT format )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    long c;
+
+    if( format==SCF_RGBA8 )
+    {
+        unsigned char A = color[3], iA = 0xFF - A;
+
+        c  = (color[0] * A + canvas->bg_color[0] * iA)>>8; c <<= 8;
+        c |= (color[1] * A + canvas->bg_color[1] * iA)>>8; c <<= 8;
+        c |= (color[2] * A + canvas->bg_color[2] * iA)>>8;
+    }
+    else
+    {
+        c = (color[0]<<16) | (color[1]<<8) | color[2];
+    }
+
+    XSetForeground( dpy, cv->gc, c );
+
+    XFillRectangle( dpy, cv->pixmap, cv->gc, r->left, r->top,
+                    SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
+}
+
+void canvas_xlib_draw_line( sgui_canvas* canvas, int x, int y,
+                            unsigned int length, int horizontal,
+                            unsigned char* color, SGUI_COLOR_FORMAT format )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    long c;
+
+    if( format==SCF_RGBA8 )
+    {
+        unsigned char A = color[3], iA = 0xFF - A;
+
+        c  = (color[0] * A + canvas->bg_color[0] * iA)>>8; c <<= 8;
+        c |= (color[1] * A + canvas->bg_color[1] * iA)>>8; c <<= 8;
+        c |= (color[2] * A + canvas->bg_color[2] * iA)>>8;
+    }
+    else
+    {
+        c = (color[0]<<16) | (color[1]<<8) | color[2];
+    }
+
+    XSetForeground( dpy, cv->gc, c );
+
+    if( horizontal )
+        XDrawLine( dpy, cv->pixmap, cv->gc, x, y, x+length-1, y );
+    else
+        XDrawLine( dpy, cv->pixmap, cv->gc, x, y, x, y+length-1 );
+}
+
+void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
+                                int x, int y, unsigned int w, unsigned int h,
+                                unsigned int scan, unsigned char* color )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    unsigned char iA, *src;
+    unsigned int i, j;
+
+    /* rebuild color map if required */
+    if( cv->stencil_base[0]!=color[0] || cv->stencil_base[1]!=color[1] ||
+        cv->stencil_base[2]!=color[2] )
+    {
+        for( i=0; i<256; ++i )
+        {
+            iA = 0xFF-i;
+
+            cv->stencil_map[i]  = (color[0]*i + canvas->bg_color[0]*iA)>>8;
+            cv->stencil_map[i] <<= 8;
+
+            cv->stencil_map[i] |= (color[1]*i + canvas->bg_color[1]*iA)>>8;
+            cv->stencil_map[i] <<= 8;
+
+            cv->stencil_map[i] |= (color[2]*i + canvas->bg_color[2]*iA)>>8;
+        }
+    }
+
+    /* perform the stencil blending */
+    for( j=0; j<h; ++j, buffer+=scan )
+    {
+        for( src=buffer, i=0; i<w; ++i, ++src )
+        {
+            if( *src )
+            {
+                XSetForeground( dpy, cv->gc, cv->stencil_map[ *src ] );
+                XDrawPoint( dpy, cv->pixmap, cv->gc, x+i, y+j );
+            }
         }
     }
 }
 
 /************************ internal canvas functions ************************/
-sgui_canvas* canvas_xlib_create( unsigned int width, unsigned int height )
+sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
+                                 unsigned int height )
 {
     sgui_canvas_xlib* cv = malloc( sizeof(sgui_canvas_xlib) );
-    char* buffer;
 
     if( !cv )
         return NULL;
 
-    /* allocate a back buffer */
-    buffer = malloc( width * height * 4 );
+    /* */
+    cv->pixmap = XCreatePixmap( dpy, wnd, width, height, 24 );
 
-    if( !buffer )
+    if( !cv->pixmap )
     {
-        free( cv );
+        canvas_xlib_destroy( (sgui_canvas*)cv );
         return NULL;
     }
 
-    /* create an XImage */
-    cv->img = XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
-                            buffer, width, height, 32, 0 );
+    cv->gc = XCreateGC( dpy, cv->pixmap, 0, NULL );
 
-    if( !cv->img )
+    if( !cv->gc )
     {
-        free( buffer );
-        free( cv );
+        canvas_xlib_destroy( (sgui_canvas*)cv );
         return NULL;
     }
 
     /* finish base initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
-    cv->canvas.download = canvas_xlib_download;
-    cv->canvas.upload = canvas_xlib_upload;
+    cv->wnd = wnd;
+    cv->stencil_base[0] = cv->stencil_base[1] = cv->stencil_base[2] = 0;
+
+    cv->canvas.begin = canvas_xlib_begin;
+    cv->canvas.end = canvas_xlib_end;
     cv->canvas.clear = canvas_xlib_clear;
+    cv->canvas.blit = canvas_xlib_blit;
+    cv->canvas.blend = canvas_xlib_blend;
+    cv->canvas.draw_box = canvas_xlib_draw_box;
+    cv->canvas.draw_line = canvas_xlib_draw_line;
+    cv->canvas.blend_stencil = canvas_xlib_blend_stencil;
 
     return (sgui_canvas*)cv;
 }
 
 void canvas_xlib_destroy( sgui_canvas* canvas )
 {
-    if( ((sgui_canvas_xlib*)canvas)->img )
-    {
-        XDestroyImage( ((sgui_canvas_xlib*)canvas)->img );
-    }
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
 
-    free( canvas );
+    if( cv->pixmap )
+        XFreePixmap( dpy, cv->pixmap );
+
+    if( cv->gc )
+        XFreeGC( dpy, cv->gc );
+
+    free( cv );
 }
 
 void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
                          unsigned int height )
 {
-    unsigned int new_mem, old_mem;
-    char* buffer;
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
 
     if( !canvas || !width || !height )
         return;
 
-    /* only reallocate if we need MORE memory than before */
-    new_mem = width * height;
-    old_mem = canvas->width * canvas->height;
-
-    if( new_mem > old_mem )
-    {
-        buffer = malloc( new_mem * 4 );
-    }
-    else
-    {
-        buffer = ((sgui_canvas_xlib*)canvas)->img->data;
-        ((sgui_canvas_xlib*)canvas)->img->data = NULL;
-    }
-
     /* destroy the image, automatically frees the current buffer */
-    XDestroyImage( ((sgui_canvas_xlib*)canvas)->img );
+    XFreeGC( dpy, cv->gc );
+    XFreePixmap( dpy, cv->pixmap );
 
     /* create a new image */
-    ((sgui_canvas_xlib*)canvas)->img =
-    XCreateImage( dpy, CopyFromParent, 24, ZPixmap, 0,
-                  buffer, width, height, 32, 0 );
+    cv->pixmap = XCreatePixmap( dpy, cv->wnd, width, height, 24 );
+    cv->gc = XCreateGC( dpy, cv->pixmap, 0, NULL );
 
     /* store the new state */
     canvas->width = width;
     canvas->height = height;
 }
 
-void canvas_xlib_display( Window wnd, GC gc, sgui_canvas* cv, int x, int y,
+void canvas_xlib_display( sgui_canvas* cv, int x, int y,
                           unsigned int width, unsigned int height )
 {
-    if( !cv || !gc )
-        return;
+    sgui_canvas_xlib* canvas = (sgui_canvas_xlib*)cv;
 
-    XPutImage( dpy, wnd, gc, ((sgui_canvas_xlib*)cv)->img,
-               x, y, x, y, width, height );
+    XCopyArea( dpy, canvas->pixmap, canvas->wnd, canvas->gc,
+               x, y, width, height, x, y );
 }
 

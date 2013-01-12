@@ -282,8 +282,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
-        canvas_xlib_display( wnd->wnd, wnd->context.xlib,
-                             wnd->base.back_buffer,
+        canvas_xlib_display( wnd->base.back_buffer,
                              e->xexpose.x, e->xexpose.y,
                              e->xexpose.width, e->xexpose.height );
         break;
@@ -469,14 +468,14 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     {
 #ifndef SGUI_NO_OPENGL
         if( backend!=SGUI_OPENGL_COMPAT )
-            wnd->context.gl = create_context( fbc );
+            wnd->gl = create_context( fbc );
 
-        if( !wnd->context.gl )
-            wnd->context.gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
+        if( !wnd->gl )
+            wnd->gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
 
         XFree( vi );    /* we don't need the visual info anymore */
 
-        if( !wnd->context.gl )
+        if( !wnd->gl )
         {
             sgui_window_destroy( (sgui_window*)wnd );
             return NULL;
@@ -485,17 +484,10 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     }
     else
     {
-        wnd->base.back_buffer = canvas_xlib_create(wnd->base.w, wnd->base.h);
+        wnd->base.back_buffer = canvas_xlib_create( wnd->wnd, wnd->base.w,
+                                                    wnd->base.h );
 
         if( !wnd->base.back_buffer )
-        {
-            sgui_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
-
-        wnd->context.xlib = XCreateGC( dpy, wnd->wnd, 0, 0 );
-
-        if( !wnd->context.xlib )
         {
             sgui_window_destroy( (sgui_window*)wnd );
             return NULL;
@@ -528,7 +520,7 @@ void sgui_window_make_current( sgui_window* wnd )
     if( wnd && (TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
                 TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT) )
     {
-        glXMakeCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->context.gl );
+        glXMakeCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->gl );
     }
     else
     {
@@ -570,14 +562,9 @@ void sgui_window_destroy( sgui_window* wnd )
         TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
-        if( TO_X11(wnd)->context.gl )
-            glXDestroyContext( dpy, TO_X11(wnd)->context.gl );
+        if( TO_X11(wnd)->gl )
+            glXDestroyContext( dpy, TO_X11(wnd)->gl );
 #endif
-    }
-    else
-    {
-        if( TO_X11(wnd)->context.xlib )
-            XFreeGC( dpy, TO_X11(wnd)->context.xlib );
     }
 
     if( TO_X11(wnd)->wnd )
