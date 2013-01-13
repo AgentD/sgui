@@ -53,6 +53,46 @@ sgui_canvas_xlib;
 
 
 /************************* public canvas functions *************************/
+void canvas_xlib_destroy( sgui_canvas* canvas )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+
+    if( cv->pixmap )
+        XFreePixmap( dpy, cv->pixmap );
+
+    if( cv->gc )
+        XFreeGC( dpy, cv->gc );
+
+    if( cv->pic )
+        XRenderFreePicture( dpy, cv->pic );
+
+    free( cv );
+}
+
+void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
+                         unsigned int height )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    XRenderPictFormat* fmt;
+
+    /* destroy the pixmap */
+    if( cv->pic )
+        XRenderFreePicture( dpy, cv->pic );
+
+    XFreeGC( dpy, cv->gc );
+    XFreePixmap( dpy, cv->pixmap );
+
+    /* create a new pixmap */
+    cv->pixmap = XCreatePixmap( dpy, cv->wnd, width, height, 24 );
+    cv->gc = XCreateGC( dpy, cv->pixmap, 0, NULL );
+
+    if( cv->pic )
+    {
+        fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
+        cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
+    }
+}
+
 void canvas_xlib_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     (void)canvas;
@@ -303,11 +343,15 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
     cv->wnd = wnd;
 
-    cv->canvas.begin = canvas_xlib_begin;
-    cv->canvas.end   = canvas_xlib_end;
-    cv->canvas.blit  = canvas_xlib_blit;
-    cv->canvas.blend = canvas_xlib_blend;
+    cv->canvas.destroy = canvas_xlib_destroy;
+    cv->canvas.resize  = canvas_xlib_resize;
+    cv->canvas.begin   = canvas_xlib_begin;
+    cv->canvas.end     = canvas_xlib_end;
+    cv->canvas.blit    = canvas_xlib_blit;
+    cv->canvas.blend   = canvas_xlib_blend;
     cv->canvas.blend_stencil = canvas_xlib_blend_stencil;
+
+    cv->stencil_base[0] = cv->stencil_base[1] = cv->stencil_base[2] = 0;
 
     if( XRenderQueryExtension( dpy, &base, &error ) )
     {
@@ -320,7 +364,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     }
     else
     {
-        cv->stencil_base[0] = cv->stencil_base[1] = cv->stencil_base[2] = 0;
         cv->pic = 0;
 
         cv->canvas.clear     = canvas_xlib_clear;
@@ -331,59 +374,15 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     return (sgui_canvas*)cv;
 }
 
-void canvas_xlib_destroy( sgui_canvas* canvas )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-
-    if( cv->pixmap )
-        XFreePixmap( dpy, cv->pixmap );
-
-    if( cv->gc )
-        XFreeGC( dpy, cv->gc );
-
-    if( cv->pic )
-        XRenderFreePicture( dpy, cv->pic );
-
-    free( cv );
-}
-
-void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
-                         unsigned int height )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderPictFormat* fmt;
-
-    if( !canvas || !width || !height )
-        return;
-
-    /* destroy the pixmap */
-    if( cv->pic )
-        XRenderFreePicture( dpy, cv->pic );
-
-    XFreeGC( dpy, cv->gc );
-    XFreePixmap( dpy, cv->pixmap );
-
-    /* create a new pixmap */
-    cv->pixmap = XCreatePixmap( dpy, cv->wnd, width, height, 24 );
-    cv->gc = XCreateGC( dpy, cv->pixmap, 0, NULL );
-
-    if( cv->pic )
-    {
-        fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-        cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
-    }
-
-    /* store the new state */
-    canvas->width = width;
-    canvas->height = height;
-}
-
 void canvas_xlib_display( sgui_canvas* cv, int x, int y,
                           unsigned int width, unsigned int height )
 {
     sgui_canvas_xlib* canvas = (sgui_canvas_xlib*)cv;
 
-    XCopyArea( dpy, canvas->pixmap, canvas->wnd, canvas->gc,
-               x, y, width, height, x, y );
+    if( canvas )
+    {
+        XCopyArea( dpy, canvas->pixmap, canvas->wnd, canvas->gc,
+                   x, y, width, height, x, y );
+    }    
 }
 

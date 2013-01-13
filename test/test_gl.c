@@ -123,7 +123,7 @@ int main( void )
     }
 
     /* cleanup */
-    sgui_opengl_canvas_destroy( cv );
+    sgui_canvas_destroy( cv );
     sgui_window_make_current( NULL );
     sgui_window_destroy( wnd );
     sgui_widget_manager_destroy( mgr );

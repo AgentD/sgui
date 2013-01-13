@@ -47,6 +47,22 @@ SGUI_COLOR_FORMAT;
 
 
 
+
+/** \brief Destroy a canvas */
+SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
+
+/**
+ * \brief Change the size of a canvas
+ *
+ * \param canvas The canvas to resize
+ * \param width  The width of the canvas
+ * \param height The height of the canvas
+ */
+SGUI_DLL void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+                                  unsigned int height );
+
+
+
 /**
  * \brief Get the size of a canvas
  *

@@ -43,6 +43,43 @@ typedef struct
 sgui_canvas_gdi;
 
 /************************* public canvas functions *************************/
+void canvas_gdi_destroy( sgui_canvas* canvas )
+{
+    /* destroy offscreen context and dib section */
+    if( ((sgui_canvas_gdi*)canvas)->dc )
+    {
+        SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
+        DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
+        DeleteDC( ((sgui_canvas_gdi*)canvas)->dc );
+    }
+
+    free( canvas );
+}
+
+void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
+                        unsigned int height )
+{
+    /* adjust size in the header */
+    ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biWidth  = width;
+    ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biHeight = -((int)height);
+
+    /* unbind the the dib section and delete it */
+    SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
+    DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
+
+    /* create a new dib section */
+    ((sgui_canvas_gdi*)canvas)->bitmap =
+    CreateDIBSection( ((sgui_canvas_gdi*)canvas)->dc,
+                      &((sgui_canvas_gdi*)canvas)->info, DIB_RGB_COLORS,
+                      &((sgui_canvas_gdi*)canvas)->data, 0, 0 );
+
+    /* bind it */
+    SelectObject( ((sgui_canvas_gdi*)canvas)->dc,
+                  ((sgui_canvas_gdi*)canvas)->bitmap );
+}
+
+
+
 void canvas_gdi_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     (void)canvas;
@@ -263,6 +300,8 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     /* finish base initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
+    cv->canvas.destroy = canvas_gdi_destroy;
+    cv->canvas.resize = canvas_gdi_resize;
     cv->canvas.begin = canvas_gdi_begin;
     cv->canvas.end = canvas_gdi_end;
     cv->canvas.clear = canvas_gdi_clear;
@@ -273,51 +312,6 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     cv->canvas.blend_stencil = canvas_gdi_blend_stencil;
 
     return (sgui_canvas*)cv;
-}
-
-void canvas_gdi_destroy( sgui_canvas* canvas )
-{
-    if( canvas )
-    {
-        /* destroy offscreen context and dib section */
-        if( ((sgui_canvas_gdi*)canvas)->dc )
-        {
-            SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
-            DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
-            DeleteDC( ((sgui_canvas_gdi*)canvas)->dc );
-        }
-
-        free( canvas );
-    }
-}
-
-void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
-                        unsigned int height )
-{
-    if( canvas && width && height )
-    {
-        /* adjust size in the header */
-        ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biWidth  = width;
-        ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biHeight = -((int)height);
-
-        /* unbind the the dib section and delete it */
-        SelectObject( ((sgui_canvas_gdi*)canvas)->dc, 0 );
-        DeleteObject( ((sgui_canvas_gdi*)canvas)->bitmap );
-
-        /* create a new dib section */
-        ((sgui_canvas_gdi*)canvas)->bitmap =
-        CreateDIBSection( ((sgui_canvas_gdi*)canvas)->dc,
-                          &((sgui_canvas_gdi*)canvas)->info, DIB_RGB_COLORS,
-                          &((sgui_canvas_gdi*)canvas)->data, 0, 0 );
-
-        /* bind it */
-        SelectObject( ((sgui_canvas_gdi*)canvas)->dc,
-                      ((sgui_canvas_gdi*)canvas)->bitmap );
-
-        /* store adjusted parameters */
-        canvas->width  = width;
-        canvas->height = height;
-    }
 }
 
 void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,

@@ -49,20 +49,6 @@ extern "C" {
 SGUI_DLL sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
                                                  unsigned int height );
 
-/**
- * \brief Resize an OpenGL canvas
- *
- * \param canvas The OpenGL canvas to resize
- * \param width  The new width of the canvas
- * \param height The new height of the canvas
- */
-SGUI_DLL void sgui_opengl_canvas_resize( sgui_canvas* canvas,
-                                         unsigned int width,
-                                         unsigned int height );
-
-/** \brief Destroy an OpenGL canvas */
-SGUI_DLL void sgui_opengl_canvas_destroy( sgui_canvas* canvas );
-
 /** \brief Get the OpenGL texture handle from an OpenGL canvas */
 SGUI_DLL unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
 

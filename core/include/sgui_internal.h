@@ -58,6 +58,28 @@ struct sgui_canvas
 
 
     /**
+     * \brief Gets called by sgui_canvas_destroy
+     *
+     * For C++ people: This is the destructur (but it also has to free up the
+     * memory used).
+     *
+     * \param canvas A pointer to the canvas (for C++ people: practically a
+     *               this pointer).
+     */
+    void(* destroy )( sgui_canvas* canvas );
+
+    /**
+     * \brief Gets called by sgui_canvas_resize
+     *
+     * \param canvas A pointer to the canvas (for C++ people: practically a
+     *               this pointer).
+     * \param width  The new width of the canvas
+     * \param height The new height of the canvas
+     */
+    void(* resize )( sgui_canvas* canvas, unsigned int width,
+                     unsigned int height );
+
+    /**
      * \brief Gets called by sgui_canvas_begin
      *
      * \param canvas A pointer to the canvas (for C++ people: practically a

@@ -110,7 +110,7 @@ void sgui_window_set_size( sgui_window* wnd,
     wnd->h = height;
 
     /* resize the canvas */
-    canvas_gdi_resize( wnd->back_buffer, wnd->w, wnd->h );
+    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
     sgui_canvas_clear( wnd->back_buffer, NULL );
     sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
 }
@@ -278,7 +278,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         sgui_internal_window_fire_event( base, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* resize canvas and redraw everything */
-        canvas_gdi_resize( base->back_buffer, base->w, base->h );
+        sgui_canvas_resize( base->back_buffer, base->w, base->h );
         sgui_canvas_clear( base->back_buffer, NULL );
         sgui_widget_manager_draw_all( base->mgr, base->back_buffer );
         break;
@@ -490,7 +490,7 @@ void sgui_window_destroy( sgui_window* wnd )
         }
 
         if( wnd->back_buffer )
-            canvas_gdi_destroy( wnd->back_buffer );
+            sgui_canvas_destroy( wnd->back_buffer );
 
         if( wnd->mgr )
             sgui_widget_manager_destroy( wnd->mgr );

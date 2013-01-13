@@ -126,13 +126,6 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height );
 
-/* in canvas.c: destroy an xlib canvas */
-void canvas_xlib_destroy( sgui_canvas* canvas );
-
-/* in canvas.c: resize an xlib canvas */
-void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
-                         unsigned int height );
-
 /* in canvas.c: display a canvas on a same sized X window */
 void canvas_xlib_display( sgui_canvas* cv, int x, int y,
                           unsigned int width, unsigned int height );

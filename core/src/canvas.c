@@ -56,6 +56,28 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 
 
 
+
+void sgui_canvas_destroy( sgui_canvas* canvas )
+{
+    if( canvas )
+        canvas->destroy( canvas );
+}
+
+void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
+                         unsigned int height )
+{
+    if( canvas && (canvas->width!=width || canvas->height!=height) )
+    {
+        canvas->resize( canvas, width, height );
+
+        canvas->width = width;
+        canvas->height = height;
+    }
+}
+
+
+
+
 void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
                            unsigned int* height )
 {

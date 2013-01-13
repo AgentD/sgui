@@ -83,6 +83,21 @@ GLuint canvas_gl_bind_tex( sgui_canvas_gl* cv )
 
 
 
+void canvas_gl_destroy( sgui_canvas* canvas )
+{
+    glDeleteTextures( 1, &((sgui_canvas_gl*)canvas)->texture );
+    free( ((sgui_canvas_gl*)canvas)->data );
+    free( canvas );
+}
+
+void canvas_gl_resize( sgui_canvas* canvas, unsigned int width,
+                       unsigned int height )
+{
+    (void)canvas;
+    (void)width;
+    (void)height;
+}
+
 
 void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 {
@@ -344,6 +359,8 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     /* finish initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
+    cv->canvas.destroy = canvas_gl_destroy;
+    cv->canvas.resize = canvas_gl_resize;
     cv->canvas.begin = canvas_gl_begin;
     cv->canvas.end = canvas_gl_end;
     cv->canvas.clear = canvas_gl_clear;
@@ -357,24 +374,6 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     return (sgui_canvas*)cv;
 }
 
-void sgui_opengl_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                                unsigned int height )
-{
-    (void)canvas;
-    (void)width;
-    (void)height;
-}
-
-void sgui_opengl_canvas_destroy( sgui_canvas* canvas )
-{
-    if( canvas )
-    {
-        glDeleteTextures( 1, &((sgui_canvas_gl*)canvas)->texture );
-        free( ((sgui_canvas_gl*)canvas)->data );
-        free( canvas );
-    }
-}
-
 unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas )
 {
     return canvas ? ((sgui_canvas_gl*)canvas)->texture : 0;
@@ -386,19 +385,6 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     (void)width;
     (void)height;
     return NULL;
-}
-
-void sgui_opengl_canvas_resize( sgui_canvas* canvas, unsigned int width,
-                                unsigned int height )
-{
-    (void)canvas;
-    (void)width;
-    (void)height;
-}
-
-void sgui_opengl_canvas_destroy( sgui_canvas* canvas )
-{
-    (void)canvas;
 }
 
 unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas )

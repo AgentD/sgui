@@ -107,13 +107,6 @@ HGLRC create_context( HDC hDC, int compatibillity );
 /* in canvas.c: create a gdi canvas */
 sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
 
-/* in canvas.c: destroy a gdi canvas */
-void canvas_gdi_destroy( sgui_canvas* canvas );
-
-/* in canvas.c: resize a gdi canvas */
-void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
-                        unsigned int height );
-
 /* in canvas.c: display the canvas on a same sized window */
 void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,
                          unsigned int width, unsigned int height );
