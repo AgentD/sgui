@@ -199,41 +199,6 @@ void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
     }
 }
 
-void canvas_gdi_draw_line( sgui_canvas* canvas, int x, int y,
-                           unsigned int length, int horizontal,
-                           unsigned char* color, SGUI_COLOR_FORMAT format )
-{
-    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned char* dst;
-    unsigned char A, iA;
-    unsigned int i, delta;
-
-    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
-    delta = horizontal ? 4 : canvas->width*4;
-
-    if( format==SCF_RGBA8 )
-    {
-        A = color[3];
-        iA = 0xFF - A;
-
-        for( i=0; i<length; ++i, dst+=delta )
-        {
-            dst[0] = (dst[0] * iA + color[2] * A)>>8;
-            dst[1] = (dst[1] * iA + color[1] * A)>>8;
-            dst[2] = (dst[2] * iA + color[0] * A)>>8;
-        }
-    }
-    else
-    {
-        for( i=0; i<length; ++i, dst+=delta )
-        {
-            dst[0] = color[2];
-            dst[1] = color[1];
-            dst[2] = color[0];
-        }
-    }
-}
-
 void canvas_gdi_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
                                int x, int y, unsigned int w, unsigned int h,
                                unsigned int scan, unsigned char* color )
@@ -308,7 +273,6 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     cv->canvas.blit = canvas_gdi_blit;
     cv->canvas.blend = canvas_gdi_blend;
     cv->canvas.draw_box = canvas_gdi_draw_box;
-    cv->canvas.draw_line = canvas_gdi_draw_line;
     cv->canvas.blend_stencil = canvas_gdi_blend_stencil;
 
     return (sgui_canvas*)cv;

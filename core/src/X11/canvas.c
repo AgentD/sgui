@@ -76,21 +76,14 @@ void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
     XRenderPictFormat* fmt;
 
     /* destroy the pixmap */
-    if( cv->pic )
-        XRenderFreePicture( dpy, cv->pic );
-
-    XFreeGC( dpy, cv->gc );
+    XRenderFreePicture( dpy, cv->pic );
     XFreePixmap( dpy, cv->pixmap );
 
     /* create a new pixmap */
     cv->pixmap = XCreatePixmap( dpy, cv->wnd, width, height, 24 );
-    cv->gc = XCreateGC( dpy, cv->pixmap, 0, NULL );
 
-    if( cv->pic )
-    {
-        fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-        cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
-    }
+    fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
+    cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
 }
 
 void canvas_xlib_begin( sgui_canvas* canvas, sgui_rect* r )
@@ -175,24 +168,6 @@ void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
 
     XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, r->left, r->top,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
-}
-
-void canvas_xlib_draw_line( sgui_canvas* canvas, int x, int y,
-                            unsigned int length, int horizontal,
-                            unsigned char* color, SGUI_COLOR_FORMAT format )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderColor c;
-
-    c.red   = color[0]<<8;
-    c.green = color[1]<<8;
-    c.blue  = color[2]<<8;
-    c.alpha = format==SCF_RGBA8 ? (color[3]<<8) : 0xFFFF;
-
-    if( horizontal )
-        XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, x, y, length, 1 );
-    else
-        XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, x, y, 1, length );
 }
 
 void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
@@ -296,7 +271,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.blend_stencil = canvas_xlib_blend_stencil;
     cv->canvas.clear         = canvas_xlib_clear;
     cv->canvas.draw_box      = canvas_xlib_draw_box;
-    cv->canvas.draw_line     = canvas_xlib_draw_line;
 
     cv->stencil_base[0] = cv->stencil_base[1] = cv->stencil_base[2] = 0;
 

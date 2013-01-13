@@ -255,43 +255,6 @@ void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
     }
 }
 
-void canvas_gl_draw_line( sgui_canvas* canvas, int x, int y,
-                          unsigned int length, int horizontal,
-                          unsigned char* color, SGUI_COLOR_FORMAT format )
-{
-    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-    unsigned char* dst;
-    unsigned char A, iA;
-    unsigned int i, delta;
-
-    dst = cv->data + (y*canvas->width + x)*4;
-    delta = horizontal ? 4 : canvas->width*4;
-
-    if( format==SCF_RGBA8 )
-    {
-        A = color[3];
-        iA = 0xFF - A;
-
-        for( i=0; i<length; ++i, dst+=delta )
-        {
-            dst[0] = (dst[0] * iA + color[0] * A)>>8;
-            dst[1] = (dst[1] * iA + color[1] * A)>>8;
-            dst[2] = (dst[2] * iA + color[2] * A)>>8;
-            dst[3] = 0x00;
-        }
-    }
-    else
-    {
-        for( i=0; i<length; ++i, dst+=delta )
-        {
-            dst[0] = color[0];
-            dst[1] = color[1];
-            dst[2] = color[2];
-            dst[3] = 0x00;
-        }
-    }
-}
-
 void canvas_gl_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
                               int x, int y, unsigned int w, unsigned int h,
                               unsigned int scan, unsigned char* color )
@@ -367,9 +330,7 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     cv->canvas.blit = canvas_gl_blit;
     cv->canvas.blend = canvas_gl_blend;
     cv->canvas.draw_box = canvas_gl_draw_box;
-    cv->canvas.draw_line = canvas_gl_draw_line;
     cv->canvas.blend_stencil = canvas_gl_blend_stencil;
-
 
     return (sgui_canvas*)cv;
 }

@@ -154,22 +154,6 @@ struct sgui_canvas
                        unsigned char* color, SGUI_COLOR_FORMAT format );
 
     /**
-     * \brief Draw a line onto a canvas
-     *
-     * \param canvas     A pointer to the canvas (for C++ people: practically a
-     *                   this pointer).
-     * \param x          Horizontal component of the start position
-     * \param y          Vertical component of the start position
-     * \param length     Length of the line after clipping
-     * \param horizontal Non-zero for horizontal, zero for vertical
-     * \param color      The color to draw the line in
-     * \param format     The format of the color
-     */
-    void(* draw_line )( sgui_canvas* canvas, int x, int y,
-                        unsigned int length, int horizontal,
-                        unsigned char* color, SGUI_COLOR_FORMAT format );
-
-    /**
      * \brief Perfrom stencil blending
      *
      * \param canvas A pointer to the canvas (for C++ people: practically a

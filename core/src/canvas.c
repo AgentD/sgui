@@ -326,21 +326,18 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                             unsigned int length, int horizontal,
                             unsigned char* color, SGUI_COLOR_FORMAT format )
 {
+    sgui_rect r;
+
     /* santiy check */
     if( !canvas || !canvas->began )
         return;
 
-    if( format==SCF_RGBA8 && color[3]==0xFF )
-        format = SCF_RGB8;
+    if( horizontal )
+        sgui_rect_set_size( &r, x, y, length, 1 );
+    else
+        sgui_rect_set_size( &r, x, y, 1, length );
 
-    /* offset the line and clip it */
-    x += canvas->ox;
-    y += canvas->oy;
-
-    if( !sgui_rect_clip_line( &canvas->sc, horizontal, &x, &y, &length ) )
-        return;
-
-    canvas->draw_line( canvas, x, y, length, horizontal, color, format );
+    sgui_canvas_draw_box( canvas, &r, color, format );
 }
 
 int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
