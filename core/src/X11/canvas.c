@@ -107,14 +107,15 @@ void canvas_xlib_end( sgui_canvas* canvas )
 void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    XRenderColor c;
 
-    XSetForeground( dpy, cv->gc, (canvas->bg_color[0] << 16) |
-                                 (canvas->bg_color[1] <<  8) |
-                                  canvas->bg_color[2]           );
+    c.red   = canvas->bg_color[0]<<8;
+    c.green = canvas->bg_color[1]<<8;
+    c.blue  = canvas->bg_color[2]<<8;
+    c.alpha = 0xFFFF;
 
-    XFillRectangle( dpy, cv->pixmap, cv->gc, r->left, r->top,
-                    SGUI_RECT_WIDTH_V( r ),
-                    SGUI_RECT_HEIGHT_V( r ) );
+    XRenderFillRectangle( dpy, PictOpSrc, cv->pic, &c, r->left, r->top,
+                          SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
 void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
@@ -165,25 +166,15 @@ void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
                            unsigned char* color, SGUI_COLOR_FORMAT format )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    long c;
+    XRenderColor c;
 
-    if( format==SCF_RGBA8 )
-    {
-        unsigned char A = color[3], iA = 0xFF - A;
+    c.red   = color[0]<<8;
+    c.green = color[1]<<8;
+    c.blue  = color[2]<<8;
+    c.alpha = format==SCF_RGBA8 ? (color[3]<<8) : 0xFFFF;
 
-        c  = (color[0] * A + canvas->bg_color[0] * iA)>>8; c <<= 8;
-        c |= (color[1] * A + canvas->bg_color[1] * iA)>>8; c <<= 8;
-        c |= (color[2] * A + canvas->bg_color[2] * iA)>>8;
-    }
-    else
-    {
-        c = (color[0]<<16) | (color[1]<<8) | color[2];
-    }
-
-    XSetForeground( dpy, cv->gc, c );
-
-    XFillRectangle( dpy, cv->pixmap, cv->gc, r->left, r->top,
-                    SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
+    XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, r->left, r->top,
+                          SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
 void canvas_xlib_draw_line( sgui_canvas* canvas, int x, int y,
@@ -191,27 +182,17 @@ void canvas_xlib_draw_line( sgui_canvas* canvas, int x, int y,
                             unsigned char* color, SGUI_COLOR_FORMAT format )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    long c;
+    XRenderColor c;
 
-    if( format==SCF_RGBA8 )
-    {
-        unsigned char A = color[3], iA = 0xFF - A;
-
-        c  = (color[0] * A + canvas->bg_color[0] * iA)>>8; c <<= 8;
-        c |= (color[1] * A + canvas->bg_color[1] * iA)>>8; c <<= 8;
-        c |= (color[2] * A + canvas->bg_color[2] * iA)>>8;
-    }
-    else
-    {
-        c = (color[0]<<16) | (color[1]<<8) | color[2];
-    }
-
-    XSetForeground( dpy, cv->gc, c );
+    c.red   = color[0]<<8;
+    c.green = color[1]<<8;
+    c.blue  = color[2]<<8;
+    c.alpha = format==SCF_RGBA8 ? (color[3]<<8) : 0xFFFF;
 
     if( horizontal )
-        XDrawLine( dpy, cv->pixmap, cv->gc, x, y, x+length-1, y );
+        XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, x, y, length, 1 );
     else
-        XDrawLine( dpy, cv->pixmap, cv->gc, x, y, x, y+length-1 );
+        XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, x, y, 1, length );
 }
 
 void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
@@ -254,59 +235,6 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
-/************************* XRender canvas functions *************************/
-
-void canvas_xrender_clear( sgui_canvas* canvas, sgui_rect* r )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderColor c;
-
-    c.red   = canvas->bg_color[0]<<8;
-    c.green = canvas->bg_color[1]<<8;
-    c.blue  = canvas->bg_color[2]<<8;
-    c.alpha = 0xFFFF;
-
-    XRenderFillRectangle( dpy, PictOpSrc, cv->pic, &c, r->left, r->top,
-                          SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
-}
-
-void canvas_xrender_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                              unsigned char* color, SGUI_COLOR_FORMAT format )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderColor c;
-
-    c.red   = color[0]<<8;
-    c.green = color[1]<<8;
-    c.blue  = color[2]<<8;
-    c.alpha = format==SCF_RGBA8 ? (color[3]<<8) : 0xFFFF;
-
-    XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, r->left, r->top,
-                          SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
-}
-
-void canvas_xrender_draw_line( sgui_canvas* canvas, int x, int y,
-                               unsigned int length, int horizontal,
-                               unsigned char* color, SGUI_COLOR_FORMAT format )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderColor c;
-
-    c.red   = color[0]<<8;
-    c.green = color[1]<<8;
-    c.blue  = color[2]<<8;
-    c.alpha = format==SCF_RGBA8 ? (color[3]<<8) : 0xFFFF;
-
-    if( horizontal )
-    {
-        XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, x, y, length, 1 );
-    }
-    else
-    {
-        XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, x, y, 1, length );
-    }
-}
-
 /************************ internal canvas functions ************************/
 sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height )
@@ -314,6 +242,12 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     sgui_canvas_xlib* cv;
     XRenderPictFormat* fmt;
     int base, error;
+
+    /* make sure that the XRender extension is present */
+    if( !XRenderQueryExtension( dpy, &base, &error ) )
+    {
+        return NULL;
+    }
 
     /* allocate xlib canvas */
     cv = malloc( sizeof(sgui_canvas_xlib) );
@@ -339,37 +273,32 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
         return NULL;
     }
 
+    /* crate an Xrender picture */
+    fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
+    cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
+
+    if( !cv->pic )
+    {
+        canvas_xlib_destroy( (sgui_canvas*)cv );
+        return NULL;        
+    }
+
     /* finish initialisation */
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
     cv->wnd = wnd;
 
-    cv->canvas.destroy = canvas_xlib_destroy;
-    cv->canvas.resize  = canvas_xlib_resize;
-    cv->canvas.begin   = canvas_xlib_begin;
-    cv->canvas.end     = canvas_xlib_end;
-    cv->canvas.blit    = canvas_xlib_blit;
-    cv->canvas.blend   = canvas_xlib_blend;
+    cv->canvas.destroy       = canvas_xlib_destroy;
+    cv->canvas.resize        = canvas_xlib_resize;
+    cv->canvas.begin         = canvas_xlib_begin;
+    cv->canvas.end           = canvas_xlib_end;
+    cv->canvas.blit          = canvas_xlib_blit;
+    cv->canvas.blend         = canvas_xlib_blend;
     cv->canvas.blend_stencil = canvas_xlib_blend_stencil;
+    cv->canvas.clear         = canvas_xlib_clear;
+    cv->canvas.draw_box      = canvas_xlib_draw_box;
+    cv->canvas.draw_line     = canvas_xlib_draw_line;
 
     cv->stencil_base[0] = cv->stencil_base[1] = cv->stencil_base[2] = 0;
-
-    if( XRenderQueryExtension( dpy, &base, &error ) )
-    {
-        fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-        cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
-
-        cv->canvas.clear     = canvas_xrender_clear;
-        cv->canvas.draw_box  = canvas_xrender_draw_box;
-        cv->canvas.draw_line = canvas_xrender_draw_line;
-    }
-    else
-    {
-        cv->pic = 0;
-
-        cv->canvas.clear     = canvas_xlib_clear;
-        cv->canvas.draw_box  = canvas_xlib_draw_box;
-        cv->canvas.draw_line = canvas_xlib_draw_line;
-    }
 
     return (sgui_canvas*)cv;
 }
