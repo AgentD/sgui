@@ -283,7 +283,7 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
                                 b->text_width+2, h+2 );
         sgui_canvas_clear( cv, &r );
         sgui_font_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
-                                   f, h, color, b->text, (unsigned int)-1 );
+                                   f, color, b->text, (unsigned int)-1 );
     }
     else
     {
@@ -291,7 +291,7 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
         r.top  = w->area.top;          r.bottom = w->area.bottom;
 
         sgui_canvas_clear( cv, &r );
-        sgui_font_draw_text_plain( cv, x+b->cx, y, f, h, color,
+        sgui_font_draw_text_plain( cv, x+b->cx, y, f, color,
                                    b->text, (unsigned int)-1 );
     }
 }

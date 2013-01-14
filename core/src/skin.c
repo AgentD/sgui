@@ -54,6 +54,11 @@ void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
     font_ital = italic;
     font_boit = bold_italic;
     font_height = height;
+
+    sgui_font_set_height( font_norm, height );
+    sgui_font_set_height( font_bold, height );
+    sgui_font_set_height( font_ital, height );
+    sgui_font_set_height( font_boit, height );
 }
 
 void sgui_skin_get_window_background_color( unsigned char* color )
@@ -90,7 +95,7 @@ unsigned int sgui_skin_default_font_extents( const char* text,
 {
     sgui_font* f = sgui_skin_get_default_font( bold, italic );
 
-    return sgui_font_get_text_extents_plain( f, font_height, text, length );
+    return sgui_font_get_text_extents_plain( f, text, length );
 }
 
 void sgui_skin_get_checkbox_extents( unsigned int* width,
@@ -396,7 +401,7 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
     r.bottom -= 2;
     sgui_canvas_set_scissor_rect( cv, &r );
 
-    sgui_font_draw_text_plain( cv, x+2, y+2, font_norm, font_height,
+    sgui_font_draw_text_plain( cv, x+2, y+2, font_norm,
                                color, text, (unsigned int)-1 );
 
     sgui_canvas_set_scissor_rect( cv, NULL );
@@ -415,8 +420,7 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
     /* draw cursor */
     if( cursor >= 0 )
     {
-        cx = sgui_font_get_text_extents_plain( font_norm, font_height,
-                                               text, cursor );
+        cx = sgui_font_get_text_extents_plain( font_norm, text, cursor );
 
         if( cx == 0 )
             cx = 3;
@@ -539,14 +543,12 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
     unsigned int len;
     sgui_rect r;
 
-    len = sgui_font_get_text_extents_plain( font_norm, font_height,
-                                            caption, (unsigned int)-1 );
+    len = sgui_font_get_text_extents_plain( font_norm, caption, -1 );
 
     sgui_rect_set_size( &r, x+10, y, len+6, font_height );
     sgui_canvas_clear( cv, &r );
 
-    sgui_font_draw_text_plain( cv, x+13, y, font_norm, font_height,
-                               color, caption, (unsigned int)-1 );
+    sgui_font_draw_text_plain( cv, x+13, y, font_norm,  color, caption, -1 );
 
     y += font_height/2;
     height -= font_height/2;
@@ -589,8 +591,7 @@ void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
     sgui_canvas_draw_line( cv, x+width-1, y, h, 0, color, SCF_RGB8 );
 
     color[0] = color[1] = color[2] = 0xFF;
-    sgui_font_draw_text_plain( cv, x+10, y, font_norm, font_height,
-                               color, caption, (unsigned int)-1 );
+    sgui_font_draw_text_plain( cv, x+10, y, font_norm, color, caption, -1 );
 }
 
 void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,

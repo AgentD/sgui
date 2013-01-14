@@ -51,17 +51,23 @@ SGUI_DLL sgui_font* sgui_font_load( const sgui_filesystem* fs,
 SGUI_DLL void sgui_font_destroy( sgui_font* font );
 
 /**
+ * \brief Set the rendering height of a font in pixels
+ *
+ * \param font         The font to apply the size to
+ * \param pixel_height The height of the font in pixels
+ */
+SGUI_DLL void sgui_font_set_height( sgui_font* font,
+                                    unsigned int pixel_height );
+
+/**
  * \brief Get the with of a single line of text, in a single font face,
  *        in pixels
  *
  * \param font_face   The font face to use
- * \param font_height The height of the font in pixels
  * \param text        The UTF8 text to determine the rendered width of
  * \param length      The number of bytes to read
  */
 SGUI_DLL unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
-                                                        unsigned int
-                                                        font_height,
                                                         const char* text,
                                                         unsigned int length );
 
@@ -69,23 +75,15 @@ SGUI_DLL unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
  * \brief Get the with and height of a multi line text that uses html like
  *        tags to determine color and font face
  *
+ * The functions uses  the default fonts from the skinning system.
+ *
  * \see sgui_canvas_draw_text
  *
- * \param font_norm   The font face to use for normal text
- * \param font_bold   The font face to use for bold text
- * \param font_ital   The font face to use for italic text
- * \param font_boit   The font face to use for bold and italic text
- * \param font_height The height of the font in pixels
  * \param text        The UTF8 text to determine the rendered size of
  * \param width       Returns the width of the rendered text
  * \param height      Returns the height of the rendererd text
  */
-SGUI_DLL void sgui_font_get_text_extents( sgui_font* font_norm,
-                                          sgui_font* font_bold,
-                                          sgui_font* font_ital,
-                                          sgui_font* font_boit,
-                                          unsigned int font_height,
-                                          const char* text,
+SGUI_DLL void sgui_font_get_text_extents( const char* text,
                                           unsigned int* width,
                                           unsigned int* height );
 
@@ -105,26 +103,19 @@ SGUI_DLL void sgui_font_get_text_extents( sgui_font* font_norm,
  */
 SGUI_DLL void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                          sgui_font* font_face,
-                                         unsigned int height,
                                          unsigned char* color,
                                          const char* text,
                                          unsigned int length );
 
 /**
  * \brief Render a multi line text that uses html like tags to switch color
- *        or font_face
+ *        or font face, using the default fonts from the skinning system.
  *
  * \param canvas      The canvas to draw to.
  * \param x           Distance from the left of the text to the left of the
  *                    canvas.
  * \param y           Distance from the top of the text to the top of the
  *                    canvas.
- * \param font_norm   The font face to use for normal text.
- * \param font_bold   The font face to use for bold text.
- * \param font_ital   The font face to use for italic text.
- * \param font_boit   The font face to use for bold and italic text.
- * \param font_height The height of the font faces in pixels.
- * \param color       The default RGB color to use.
  * \param text        The UTF8 text to print. The LF ('\n') character can be
  *                    used for line wraps, the \<b\> \</b\> and \<i\> \</i\>
  *                    for writing text bold or italic. A \<color="#RRGGBB"\>
@@ -132,10 +123,6 @@ SGUI_DLL void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
  *                    "default" for color switches back to default color.
  */
 SGUI_DLL void sgui_font_draw_text( sgui_canvas* canvas, int x, int y,
-                                   sgui_font* font_norm, sgui_font* font_bold,
-                                   sgui_font* font_ital, sgui_font* font_boit,
-                                   unsigned int font_height,
-                                   unsigned char* color,
                                    const char* text );
 
 #ifdef __cplusplus

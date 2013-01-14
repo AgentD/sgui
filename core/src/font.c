@@ -26,6 +26,7 @@
 #include "sgui_canvas.h"
 #include "sgui_font.h"
 #include "sgui_filesystem.h"
+#include "sgui_skin.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -40,6 +41,7 @@ struct sgui_font
     FT_Library freetype;
     FT_Face face;
     void* buffer;
+    unsigned int height;
 };
 
 
@@ -172,6 +174,7 @@ sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename )
 #endif
 
     font->buffer = buffer;
+    font->height = 0;
 
     return font;
 }
@@ -188,12 +191,20 @@ void sgui_font_destroy( sgui_font* font )
     }
 }
 
+void sgui_font_set_height( sgui_font* font, unsigned int pixel_height )
+{
+    if( font )
+    {
+        font->height = pixel_height;
+        FT_Set_Pixel_Sizes( font->face, 0, pixel_height );
+    }
+}
+
 unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
-                                               unsigned int font_height,
                                                const char* text,
                                                unsigned int length )
 {
-    unsigned int x = 0;
+    unsigned int x = 0, font_height;
     unsigned long character;
     int len = 0;
     FT_UInt glyph_index = 0;
@@ -202,12 +213,10 @@ unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
     unsigned int i;
 
     /* sanity check */
-    if( !text || !font_face || !font_height || !length )
+    if( !text || !font_face || !length )
         return 0;
 
-    /* set rendering pixel size */
-    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
-
+    font_height = font_face->height;
     useKerning = FT_HAS_KERNING( font_face->face );
 
     /* for each character */
@@ -248,26 +257,31 @@ unsigned int sgui_font_get_text_extents_plain( sgui_font* font_face,
     return x;
 }
 
-void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
-                                 sgui_font* font_ital, sgui_font* font_boit,
-                                 unsigned int font_height, const char* text,
+void sgui_font_get_text_extents( const char* text,
                                  unsigned int* width, unsigned int* height )
 {
     int i = 0, font_stack_index = 0;
     unsigned int X = 0, longest = 0, lines = 1;
-    sgui_font* f = font_norm;
+    sgui_font *f, *font_norm, *font_bold, *font_ital, *font_boit;
     sgui_font* font_stack[10];
 
     /* sanity check */
-    if( !font_norm || !font_height || !text || (!width && !height) )
+    if( !text || (!width && !height) )
         return;
+
+    font_norm = sgui_skin_get_default_font( 0, 0 );
+    font_bold = sgui_skin_get_default_font( 1, 0 );
+    font_ital = sgui_skin_get_default_font( 0, 1 );
+    font_boit = sgui_skin_get_default_font( 1, 1 );
+
+    f = font_norm;
 
     for( ; text && text[ i ]; ++i )
     {
         if( text[ i ] == '<' )  /* we found a tag */
         {
             /* get extends for what we found so far */
-            X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+            X += sgui_font_get_text_extents_plain( f, text, i );
 
             /* change fonts accordingly */
             if( text[ i+1 ] == 'b' )
@@ -297,7 +311,7 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
         else if( text[ i ] == '\n' )
         {
             /* get extends for what we found so far */
-            X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+            X += sgui_font_get_text_extents_plain( f, text, i );
 
             /* store the length of the longest line */
             if( X > longest )
@@ -311,20 +325,20 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
     }
 
     /* get the extents of what we didn't get so far */
-    X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+    X += sgui_font_get_text_extents_plain( f, text, i );
 
     if( X > longest )
         longest = X;
 
     /* store width and height */
     if( width  ) *width  = longest;
-    if( height ) *height = lines * font_height;
+    if( height ) *height = lines * font_norm->height;
 
-    /* Add font_height/2 as fudge factor to the height, because our crude
+    /* Add font height/2 as fudge factor to the height, because our crude
        computation here does not take into account that characters can peek
        out below the line */
     if( height && *height )
-        *height += font_height/2;
+        *height += font_norm->height/2;
 }
 
 
@@ -332,7 +346,6 @@ void sgui_font_get_text_extents( sgui_font* font_norm, sgui_font* font_bold,
 
 void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                 sgui_font* font_face,
-                                unsigned int font_height,
                                 unsigned char* color,
                                 const char* text, unsigned int length )
 {
@@ -341,16 +354,14 @@ void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
     FT_GlyphSlot glyph;
     FT_Bool useKerning;
     int len = 0, bearing;
-    unsigned int i;
+    unsigned int i, font_height;
     unsigned long character;
 
     /* sanity check */
-    if( !canvas || !font_face || !font_height )
+    if( !canvas || !font_face || !color || !text )
         return;
 
-    /* set rendering parameters */
-    FT_Set_Pixel_Sizes( font_face->face, 0, font_height );
-
+    font_height = font_face->height;
     useKerning = FT_HAS_KERNING( font_face->face );
 
     /* for each character */
@@ -403,44 +414,42 @@ void sgui_font_draw_text_plain( sgui_canvas* canvas, int x, int y,
     }
 }
 
-void sgui_font_draw_text( sgui_canvas* canvas, int x, int y,
-                          sgui_font* font_norm, sgui_font* font_bold,
-                          sgui_font* font_ital, sgui_font* font_boit,
-                          unsigned int font_height, unsigned char* color,
-                          const char* text )
+void sgui_font_draw_text(sgui_canvas* canvas, int x, int y, const char* text)
 {
     int i = 0, X = 0, font_stack_index = 0;
-    sgui_font* f = font_norm;
+    sgui_font *f, *font_norm, *font_bold, *font_ital, *font_boit;
     sgui_font* font_stack[10];
     unsigned char col[3];
     long c;
 
     /* sanity check */
-    if( !canvas || !font_norm || !font_height || !color || !text )
+    if( !canvas || !text )
         return;
 
-    col[0] = color[0];
-    col[1] = color[1];
-    col[2] = color[2];
+    sgui_skin_get_default_font_color( col );
+
+    font_norm = sgui_skin_get_default_font( 0, 0 );
+    font_bold = sgui_skin_get_default_font( 1, 0 );
+    font_ital = sgui_skin_get_default_font( 0, 1 );
+    font_boit = sgui_skin_get_default_font( 1, 1 );
+
+    f = font_norm;
 
     for( ; text && text[ i ]; ++i )
     {
         if( text[ i ] == '<' )  /* we encountered a tag */
         {
             /* draw what we got so far with the current settings */
-            sgui_font_draw_text_plain( canvas, x+X, y, f, font_height, col,
-                                       text, i );
+            sgui_font_draw_text_plain( canvas, x+X, y, f, col, text, i );
 
             /* advance cursor */
-            X += sgui_font_get_text_extents_plain( f, font_height, text, i );
+            X += sgui_font_get_text_extents_plain( f, text, i );
 
             if( !strncmp( text+i+1, "color=", 6 ) ) /* it's a color tag */
             {
                 if( !strncmp( text+i+9, "default", 7 ) )
                 {
-                    col[0] = color[0];
-                    col[1] = color[1];
-                    col[2] = color[2];
+                    sgui_skin_get_default_font_color( col );
                 }
                 else
                 {
@@ -475,17 +484,16 @@ void sgui_font_draw_text( sgui_canvas* canvas, int x, int y,
         else if( text[ i ] == '\n' )
         {
             /* draw what we got so far */
-            sgui_font_draw_text_plain( canvas, x+X, y, f, font_height, col,
-                                       text, i );
+            sgui_font_draw_text_plain( canvas, x+X, y, f, col, text, i );
 
             text += i + 1;    /* skip to next line */
             i = -1;           /* reset i to 0 at next iteration */
             X = 0;            /* adjust move cursor */
-            y += font_height;
+            y += font_norm->height;
         }
     }
 
     /* draw what is still left */
-    sgui_font_draw_text_plain( canvas, x+X, y, f, font_height, col, text, i );
+    sgui_font_draw_text_plain( canvas, x+X, y, f, col, text, i );
 }
 
