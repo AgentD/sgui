@@ -53,11 +53,58 @@ SGUI_DLL void sgui_font_destroy( sgui_font* font );
 /**
  * \brief Set the rendering height of a font in pixels
  *
- * \param font         The font to apply the size to
  * \param pixel_height The height of the font in pixels
  */
 SGUI_DLL void sgui_font_set_height( sgui_font* font,
                                     unsigned int pixel_height );
+
+/**
+ * \brief Get the kerning distance between to characters
+ *
+ * \param first  The unicode code point of the first character.
+ * \param second The unicode code point of the second character
+ *               (following the first character).
+ *
+ * \return A negative value, giving the amount of pixels the cursor has to
+ *         move to render the second glyph with kerning applied.
+ */
+SGUI_DLL int sgui_font_get_kerning_distance( sgui_font* font,
+                                             unsigned int first,
+                                             unsigned int second );
+
+/**
+ * \brief Load a specific glyph for a font
+ *
+ * \param codepoint The unicode code point for wich to load the coresponding
+ *                  glyph.
+ */
+SGUI_DLL void sgui_font_load_glyph( sgui_font* font,
+                                    unsigned int codepoint );
+
+/**
+ * \brief Get the dimensions of the currently loaded glyph of a font
+ *
+ * \param width   If used, returns the horizontal extents of the glyph.
+ * \param width   If used, returns the vertical extents of the glyph.
+ * \param bearing If used, returns the distance from the top of the line
+ *                to the top of the rendered glyph bitmap.
+ */
+SGUI_DLL void sgui_font_get_glyph_metrics( sgui_font* font,
+                                           unsigned int* width,
+                                           unsigned int* height,
+                                           int* bearing );
+
+/**
+ * \brief Get a buffer holding a rendering of the currently loaded
+ *        glyph of a font
+ *
+ * \return A buffer holding grayscale values.
+ */
+SGUI_DLL unsigned char* sgui_font_get_glyph( sgui_font* font );
+
+
+
+
 
 /**
  * \brief Get the with of a single line of text, in a single font face,

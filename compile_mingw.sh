@@ -61,6 +61,7 @@ SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 SOURCE_COMMON="core/src/widget.c core/src/font.c core/src/rect.c
                core/src/widget_manager.c core/src/skin.c
                core/src/filesystem.c core/src/canvas.c core/src/window.c
+               core/src/utf8.c
                $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 SOURCE_PLATFORM="core/src/WIN32/window.c core/src/WIN32/canvas.c

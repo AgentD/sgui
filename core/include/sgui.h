@@ -36,6 +36,7 @@
 #include "sgui_predef.h"
 #include "sgui_rect.h"
 #include "sgui_skin.h"
+#include "sgui_utf8.h"
 #include "sgui_window.h"
 
 #include "sgui_widget.h"
