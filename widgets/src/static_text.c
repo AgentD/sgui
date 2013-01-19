@@ -50,7 +50,7 @@ void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
     sgui_static_text* t = (sgui_static_text*)w;
 
     sgui_canvas_clear( cv, &w->area );
-    sgui_font_draw_text( cv, w->area.left, w->area.top, t->text );
+    sgui_canvas_draw_text( cv, w->area.left, w->area.top, t->text );
 }
 
 
@@ -79,7 +79,7 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
     strcpy( t->text, text );
 
     /* compute width and height of the text */
-    sgui_font_get_text_extents( text, &w, &h );
+    sgui_skin_get_text_extents( text, &w, &h );
 
     /* store results */
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h );

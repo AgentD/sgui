@@ -213,25 +213,40 @@ SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                                      SGUI_COLOR_FORMAT format );
 
 /**
- * \brief Perform a stencil blend on a canvas (e.g. glyph rendering)
+ * \brief Render one line of text in a single font face
  *
- * \param buffer A monochrome buffer holding coverage values that are used to
- *               blend the given RGB color onto the canvas
- * \param x      Distance from the left of the canvas to the left of the
- *               object
- * \param y      Distance from the top of the canvas to the top of the object
- * \param w      The width of the buffer
- * \param h      The height of the buffer
- * \param color  The color to draw
- *
- * \return A negative value if the target was to the left or above the drawing
- *         area, a positive value if it was to the right or below and zero
- *         otherwise.
+ * \param x         Distance from the left of the canvas to the left of the
+ *                  text.
+ * \param y         Distance from the top of the canvas to the top of the
+ *                  text.
+ * \param font_face The font face to use.
+ * \param height    The height of the text in pixels.
+ * \param color     The RGB color to draw the text in.
+ * \param text      The text to draw.
+ * \param length    The number of bytes to read from the text.
  */
-SGUI_DLL int sgui_canvas_blend_stencil( sgui_canvas* canvas,
-                                        unsigned char* buffer, int x, int y,
-                                        unsigned int w, unsigned int h,
-                                        unsigned char* color );
+SGUI_DLL void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
+                                           sgui_font* font_face,
+                                           unsigned char* color,
+                                           const char* text,
+                                           unsigned int length );
+
+/**
+ * \brief Render a multi line text that uses html like tags to switch color
+ *        or font face, using the default fonts from the skinning system.
+ *
+ * \param x           Distance from the left of the text to the left of the
+ *                    canvas.
+ * \param y           Distance from the top of the text to the top of the
+ *                    canvas.
+ * \param text        The UTF8 text to print. The LF ('\n') character can be
+ *                    used for line wraps, the \<b\> \</b\> and \<i\> \</i\>
+ *                    for writing text bold or italic. A \<color="#RRGGBB"\>
+ *                    tag can be used to switch text color, where the value
+ *                    "default" for color switches back to default color.
+ */
+SGUI_DLL void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
+                                     const char* text );
 
 #ifdef __cplusplus
 }

@@ -149,6 +149,33 @@ SGUI_DLL unsigned int sgui_skin_get_tab_caption_width( const char* caption );
 /** \brief Get the default height of a tab caption */
 SGUI_DLL unsigned int sgui_skin_get_tab_caption_height( void );
 
+/**
+ * \brief Get the with of a single line of text, in a single font face,
+ *        in pixels
+ *
+ * \param font_face   The font face to use
+ * \param text        The UTF8 text to determine the rendered width of
+ * \param length      The number of bytes to read
+ */
+SGUI_DLL unsigned int sgui_skin_get_text_extents_plain( sgui_font* font_face,
+                                                        const char* text,
+                                                        unsigned int length );
+
+/**
+ * \brief Get the with and height of a multi line text that uses html like
+ *        tags to determine color and font face
+ *
+ * The functions uses  the default fonts from the skinning system.
+ *
+ * \see sgui_canvas_draw_text
+ *
+ * \param text        The UTF8 text to determine the rendered size of
+ * \param width       Returns the width of the rendered text
+ * \param height      Returns the height of the rendererd text
+ */
+SGUI_DLL void sgui_skin_get_text_extents( const char* text,
+                                          unsigned int* width,
+                                          unsigned int* height );
 
 
 /**
