@@ -258,15 +258,11 @@ sgui_widget* sgui_button_create( int x, int y,
 /******************************* common code *******************************/
 void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
 {
-    unsigned char color[3];
     sgui_button* b = (sgui_button*)w;
-    sgui_font* f = sgui_skin_get_default_font( 0, 0 );
     unsigned int h = sgui_skin_get_default_font_height( );
     int oy = h > b->cy ? (h/2-b->cy/4) : 0;
     int x = w->area.left, y = w->area.top;
     sgui_rect r;
-
-    sgui_skin_get_default_font_color( color );
 
     /* draw widget */
     if( b->type == BUTTON_RADIO )
@@ -282,8 +278,7 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
         sgui_rect_set_size( &r, b->cx - b->state-1, b->cy - b->state-1,
                                 b->text_width+2, h+2 );
         sgui_canvas_clear( cv, &r );
-        sgui_canvas_draw_text_plain( cv, b->cx - b->state, b->cy - b->state,
-                                     f, color, b->text, -1 );
+        sgui_canvas_draw_text( cv, b->cx-b->state, b->cy-b->state, b->text );
     }
     else
     {
@@ -291,7 +286,7 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
         r.top  = w->area.top;          r.bottom = w->area.bottom;
 
         sgui_canvas_clear( cv, &r );
-        sgui_canvas_draw_text_plain( cv, x+b->cx, y, f, color, b->text, -1 );
+        sgui_canvas_draw_text( cv, x+b->cx, y, b->text );
     }
 }
 
@@ -312,9 +307,10 @@ sgui_button* sgui_button_create_common( const char* text, int type )
             /* copy the text and set internal state stub */
             memcpy( b->text, text, len + 1 );
 
-            b->state      = 0;
-            b->type       = type;
-            b->text_width = sgui_skin_default_font_extents( text, len, 0, 0 );
+            b->state = 0;
+            b->type  = type;
+
+            sgui_skin_get_text_extents( text, &b->text_width, NULL );
         }
         else
         {
@@ -356,8 +352,7 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
 
     len = strlen( text );
 
-    b->text_width = sgui_skin_default_font_extents( text, len, 0, 0 );
-    h = sgui_skin_get_default_font_height( );
+    sgui_skin_get_text_extents( text, &b->text_width, &h );
 
     /* determine text position */
     if( b->type == BUTTON_NORMAL )

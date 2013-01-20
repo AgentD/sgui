@@ -94,9 +94,32 @@ unsigned int sgui_skin_default_font_extents( const char* text,
                                              unsigned int length,
                                              int bold, int italic )
 {
-    sgui_font* f = sgui_skin_get_default_font( bold, italic );
+    sgui_font* font_face = sgui_skin_get_default_font( bold, italic );
+    unsigned int x = 0, w, len = 0, i;
+    unsigned long character, previous = 0;
 
-    return sgui_skin_get_text_extents_plain( f, text, length );
+    /* sanity check */
+    if( !text || !font_face || !length )
+        return 0;
+
+    /* for each character */
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        /* load the next glyph */
+        character = sgui_utf8_decode( text, &len );
+        sgui_font_load_glyph( font_face, character );
+
+        /* advance cursor */
+        x += sgui_font_get_kerning_distance( font_face, previous, character );
+        sgui_font_get_glyph_metrics( font_face, &w, NULL, NULL );
+
+        x += w + 1;
+
+        /* store previous glyph character for kerning */
+        previous = character;
+    }
+
+    return x;
 }
 
 void sgui_skin_get_checkbox_extents( unsigned int* width,
@@ -162,9 +185,7 @@ unsigned int sgui_skin_get_frame_border_width( void )
 
 unsigned int sgui_skin_get_tab_caption_width( const char* caption )
 {
-    unsigned int w;
-
-    w = sgui_skin_default_font_extents( caption, (unsigned int)-1, 0, 0 );
+    unsigned int w = sgui_skin_default_font_extents( caption, -1, 0, 0 );
 
     return w + 20;
 }
@@ -174,68 +195,33 @@ unsigned int sgui_skin_get_tab_caption_height( void )
     return font_height + font_height / 2;
 }
 
-unsigned int sgui_skin_get_text_extents_plain( sgui_font* font_face,
-                                               const char* text,
-                                               unsigned int length )
-{
-    unsigned int x = 0, w, len = 0, i;
-    unsigned long character, previous = 0;
-
-    /* sanity check */
-    if( !text || !font_face || !length )
-        return 0;
-
-    /* for each character */
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
-    {
-        /* load the next glyph */
-        character = sgui_utf8_decode( text, &len );
-        sgui_font_load_glyph( font_face, character );
-
-        /* advance cursor */
-        x += sgui_font_get_kerning_distance( font_face, previous, character );
-        sgui_font_get_glyph_metrics( font_face, &w, NULL, NULL );
-
-        x += w + 1;
-
-        /* store previous glyph character for kerning */
-        previous = character;
-    }
-
-    return x;
-}
-
 void sgui_skin_get_text_extents( const char* text,
                                  unsigned int* width, unsigned int* height )
 {
-    int i = 0, font_stack_index = 0;
-    unsigned int X = 0, longest = 0, lines = 1;
-    sgui_font* f;
-    sgui_font* font_stack[10];
+    unsigned int X = 0, longest = 0, lines = 1, i = 0, font_stack_index = 0;
+    char font_stack[10], f = 0;
 
     /* sanity check */
     if( !text || (!width && !height) )
         return;
-
-    f = font_norm;
 
     for( ; text && text[ i ]; ++i )
     {
         if( text[ i ] == '<' )  /* we found a tag */
         {
             /* get extends for what we found so far */
-            X += sgui_skin_get_text_extents_plain( f, text, i );
+            X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
 
             /* change fonts accordingly */
             if( text[ i+1 ] == 'b' )
             {
                 font_stack[ font_stack_index++ ] = f;
-                f = f==font_ital ? font_boit : font_bold;
+                f |= 0x02;
             }
             else if( text[ i+1 ] == 'i' )
             {
                 font_stack[ font_stack_index++ ] = f;
-                f = f==font_bold ? font_boit : font_ital;
+                f |= 0x01;
             }
             else if( text[ i+1 ] == '/' && font_stack_index )
             {
@@ -254,7 +240,7 @@ void sgui_skin_get_text_extents( const char* text,
         else if( text[ i ] == '\n' )
         {
             /* get extends for what we found so far */
-            X += sgui_skin_get_text_extents_plain( f, text, i );
+            X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
 
             /* store the length of the longest line */
             if( X > longest )
@@ -268,7 +254,7 @@ void sgui_skin_get_text_extents( const char* text,
     }
 
     /* get the extents of what we didn't get so far */
-    X += sgui_skin_get_text_extents_plain( f, text, i );
+    X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
 
     if( X > longest )
         longest = X;
@@ -281,7 +267,7 @@ void sgui_skin_get_text_extents( const char* text,
        computation here does not take into account that characters can peek
        out below the line */
     if( height && *height )
-        *height += font_height;
+        *height += font_height/2;
 }
 
 /***************************************************************************/
@@ -512,7 +498,7 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
     r.bottom -= 2;
     sgui_canvas_set_scissor_rect( cv, &r );
 
-    sgui_canvas_draw_text_plain( cv, x+2, y+2, font_norm, color, text, -1 );
+    sgui_canvas_draw_text_plain( cv, x+2, y+2, 0, 0, color, text, -1 );
 
     sgui_canvas_set_scissor_rect( cv, NULL );
 
@@ -530,7 +516,7 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
     /* draw cursor */
     if( cursor >= 0 )
     {
-        cx = sgui_skin_get_text_extents_plain( font_norm, text, cursor );
+        cx = sgui_skin_default_font_extents( text, cursor, 0, 0 );
 
         if( cx == 0 )
             cx = 3;
@@ -653,12 +639,12 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
     unsigned int len;
     sgui_rect r;
 
-    len = sgui_skin_get_text_extents_plain( font_norm, caption, -1 );
+    len = sgui_skin_default_font_extents( caption, -1, 0, 0 );
 
     sgui_rect_set_size( &r, x+10, y, len+6, font_height );
     sgui_canvas_clear( cv, &r );
 
-    sgui_canvas_draw_text_plain( cv, x+13, y, font_norm, color, caption, -1 );
+    sgui_canvas_draw_text_plain( cv, x+13, y, 0, 0, color, caption, -1 );
 
     y += font_height/2;
     height -= font_height/2;
@@ -701,7 +687,7 @@ void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
     sgui_canvas_draw_line( cv, x+width-1, y, h, 0, color, SCF_RGB8 );
 
     color[0] = color[1] = color[2] = 0xFF;
-    sgui_canvas_draw_text_plain( cv, x+10, y, font_norm, color, caption, -1 );
+    sgui_canvas_draw_text_plain( cv, x+10, y, 0, 0, color, caption, -1 );
 }
 
 void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,

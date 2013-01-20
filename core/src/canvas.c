@@ -346,48 +346,25 @@ void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
     sgui_canvas_draw_box( canvas, &r, color, format );
 }
 
-int sgui_canvas_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
-                               int x, int y, unsigned int w, unsigned int h,
-                               unsigned char* color )
+int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
+                                 int bold, int italic,
+                                 unsigned char* color,
+                                 const char* text, unsigned int length )
 {
-    sgui_rect r;
-
-    if( !canvas || !buffer || !color || !w || !h || !canvas->began )
-        return 0;
-
-    x += canvas->ox;
-    y += canvas->oy;
-
-    if( (x+(int)w-1)<canvas->sc.left || (y+(int)h-1)<canvas->sc.top )
-        return -1;
-
-    if( x>canvas->sc.right || y>canvas->sc.bottom )
-        return 1;
-
-    sgui_rect_set_size( &r, x, y, w, h );
-    sgui_rect_get_intersection( &r, &canvas->sc, &r );
-
-    buffer += (r.top - y) * w + (r.left - x);
-
-    canvas->blend_stencil( canvas, buffer, r.left, r.top,
-                           r.right-r.left+1, r.bottom-r.top+1, w, color );
-
-    return 0;
-}
-
-void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
-                                  sgui_font* font_face,
-                                  unsigned char* color,
-                                  const char* text, unsigned int length )
-{
-    int bearing;
+    int bearing, oldx;
     unsigned int i, w, h, len = 0;
     unsigned long character, previous=0;
     unsigned char* buffer;
+    sgui_rect r;
+    sgui_font* font_face = sgui_skin_get_default_font( bold, italic );
+
+    x += canvas->ox;
+    y += canvas->oy;
+    oldx = x;
 
     /* sanity check */
-    if( !canvas || !font_face || !color || !text )
-        return;
+    if( !canvas || !font_face || !color || !text || !canvas->began )
+        return 0;
 
     /* for each character */
     for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
@@ -403,10 +380,16 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
         sgui_font_get_glyph_metrics( font_face, &w, &h, &bearing );
         buffer = sgui_font_get_glyph( font_face );
 
-        if( sgui_canvas_blend_stencil( canvas, buffer,
-                                       x, y+bearing, w, h, color ) > 0 )
+        sgui_rect_set_size( &r, x, y + bearing, w, h );
+
+        if( buffer && sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
         {
-            break;
+            buffer += (r.top - (y + bearing)) * w + (r.left - x);
+
+            canvas->blend_stencil( canvas, buffer, r.left, r.top,
+                                   SGUI_RECT_WIDTH( r ),
+                                   SGUI_RECT_HEIGHT( r ),
+                                   w, color );
         }
 
         /* advance cursor */
@@ -415,15 +398,15 @@ void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
         /* store previous glyph index for kerning */
         previous = character;
     }
+
+    return x - oldx;
 }
 
 void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                             const char* text )
 {
     int i = 0, X = 0, font_stack_index = 0, font_height;
-    sgui_font *f, *font_norm, *font_bold, *font_ital, *font_boit;
-    sgui_font* font_stack[10];
-    unsigned char col[3];
+    unsigned char col[3], font_stack[10], f = 0;
     long c;
 
     /* sanity check */
@@ -432,23 +415,15 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
 
     sgui_skin_get_default_font_color( col );
 
-    font_norm = sgui_skin_get_default_font( 0, 0 );
-    font_bold = sgui_skin_get_default_font( 1, 0 );
-    font_ital = sgui_skin_get_default_font( 0, 1 );
-    font_boit = sgui_skin_get_default_font( 1, 1 );
     font_height = sgui_skin_get_default_font_height( );
-
-    f = font_norm;
 
     for( ; text && text[ i ]; ++i )
     {
         if( text[ i ] == '<' )  /* we encountered a tag */
         {
             /* draw what we got so far with the current settings */
-            sgui_canvas_draw_text_plain( canvas, x+X, y, f, col, text, i );
-
-            /* advance cursor */
-            X += sgui_skin_get_text_extents_plain( f, text, i );
+            X += sgui_canvas_draw_text_plain( canvas, x+X, y, f & 0x02, f & 0x01,
+                                              col, text, i );
 
             if( !strncmp( text+i+1, "color=", 6 ) ) /* it's a color tag */
             {
@@ -468,12 +443,12 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
             else if( text[ i+1 ] == 'b' )   /* it's a <b> tag */
             {
                 font_stack[ font_stack_index++ ] = f;
-                f = f==font_ital ? font_boit : font_bold;
+                f |= 0x02;
             }
             else if( text[ i+1 ] == 'i' )   /* it's an <i> tag */
             {
                 font_stack[ font_stack_index++ ] = f;
-                f = f==font_bold ? font_boit : font_ital;
+                f |= 0x01;
             }
             else if( text[ i+1 ] == '/' && font_stack_index )   /* end tag */
             {
@@ -489,7 +464,8 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
         else if( text[ i ] == '\n' )
         {
             /* draw what we got so far */
-            sgui_canvas_draw_text_plain( canvas, x+X, y, f, col, text, i );
+            sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
+                                         col, text, i );
 
             text += i + 1;    /* skip to next line */
             i = -1;           /* reset i to 0 at next iteration */
@@ -499,6 +475,6 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
     }
 
     /* draw what is still left */
-    sgui_canvas_draw_text_plain( canvas, x+X, y, f, col, text, i );
+    sgui_canvas_draw_text_plain(canvas, x+X, y, f&0x02, f&0x01, col, text, i);
 }
 

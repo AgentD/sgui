@@ -219,17 +219,19 @@ SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
  *                  text.
  * \param y         Distance from the top of the canvas to the top of the
  *                  text.
- * \param font_face The font face to use.
- * \param height    The height of the text in pixels.
+ * \param bold      Whether to draw the text bold.
+ * \param italic    Whether to draw the text italic.
  * \param color     The RGB color to draw the text in.
  * \param text      The text to draw.
  * \param length    The number of bytes to read from the text.
+ *
+ * \return The horizontal extents of the rendered text in pixels
  */
-SGUI_DLL void sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
-                                           sgui_font* font_face,
-                                           unsigned char* color,
-                                           const char* text,
-                                           unsigned int length );
+SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
+                                          int bold, int italic,
+                                          unsigned char* color,
+                                          const char* text,
+                                          unsigned int length );
 
 /**
  * \brief Render a multi line text that uses html like tags to switch color

@@ -26,13 +26,6 @@
 #include "internal.h"
 
 
-#define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
-
-#define COLOR_BLEND_INV( a, b, A, iA )\
-        (a)[0] = ((a)[0]*iA + (b)[2]*A)>>8;\
-        (a)[1] = ((a)[1]*iA + (b)[1]*A)>>8;\
-        (a)[2] = ((a)[2]*iA + (b)[0]*A)>>8;
-
 
 typedef struct
 {
