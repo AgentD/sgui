@@ -47,6 +47,21 @@ extern "C" {
 SGUI_DLL unsigned int sgui_utf8_decode( const char* utf8,
                                         unsigned int* length );
 
+/**
+ * \brief Get the number of characters in an UTF8 encoded string
+ *
+ * In a string using UTF8 encoding, the number of bytes does not have to match
+ * the number of characters, as characters can be up to 6 bytes long (unless
+ * you use plain ASCII which is part of UTF8). Using the regular strlen
+ * function on such a string yields the number of bytes, excluding the null
+ * terminator, but not the number of actual characters.
+ *
+ * \param utf8 A string using UTF8 encoding
+ *
+ * \return The number of actual characters in the string
+ */
+SGUI_DLL unsigned int sgui_utf8_strlen( const char* utf8 );
+
 #ifdef __cplusplus
 }
 #endif

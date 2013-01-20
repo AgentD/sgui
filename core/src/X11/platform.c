@@ -31,6 +31,7 @@
 Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
+FT_Library freetype = 0;
 
 static sgui_window_xlib* list = NULL;
 
@@ -76,6 +77,13 @@ void remove_window( sgui_window_xlib* wnd )
 
 int sgui_init( void )
 {
+    /* initialise freetype library */
+    if( FT_Init_FreeType( &freetype ) )
+    {
+        sgui_deinit( );
+        return 0;
+    }
+
     /* open display connection */
     dpy = XOpenDisplay( 0 );
 
@@ -113,8 +121,12 @@ void sgui_deinit( void )
     if( dpy )
         XCloseDisplay( dpy );
 
+    if( freetype )
+        FT_Done_FreeType( freetype );
+
     dpy = NULL;
     im = 0;
+    freetype = 0;
 
     list = NULL;
 }

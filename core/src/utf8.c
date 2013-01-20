@@ -76,3 +76,15 @@ unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
     return ch;
 }
 
+unsigned int sgui_utf8_strlen( const char* utf8 )
+{
+    unsigned int len;
+
+    for( len=0; *utf8; ++utf8 )
+    {
+        len += ((*utf8) & 0xC0)!=0x80;
+    }
+
+    return len;
+}
+

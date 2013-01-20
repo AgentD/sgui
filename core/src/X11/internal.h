@@ -34,6 +34,8 @@
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
 #include "sgui_internal.h"
+#include "sgui_font.h"
+#include "sgui_filesystem.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +45,9 @@
 #include <X11/Xutil.h>
 
 #include <X11/extensions/Xrender.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #ifndef SGUI_NO_OPENGL
 #include <GL/glx.h>
@@ -112,6 +117,7 @@ sgui_window_xlib;
 extern XIM im;
 extern Display* dpy;
 extern Atom atom_wm_delete;
+extern FT_Library freetype;
 
 /* in platform.c: add a window to the list for the main loop */
 void add_window( sgui_window_xlib* window );
