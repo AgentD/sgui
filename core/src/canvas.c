@@ -50,9 +50,6 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 
     cv->width = width;
     cv->height = height;
-
-    cv->scissor_stack_pointer = 0;
-    cv->offset_stack_pointer = 0;
     cv->began = 0;
 
     cv->bg_color[0] = 0;
@@ -110,9 +107,6 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
     {
         if( !canvas->began )
         {
-            canvas->scissor_stack_pointer = 0;
-            canvas->offset_stack_pointer = 0;
-
             sgui_rect_copy( &r0, r );
 
             /* clip region to canvas size */
@@ -185,32 +179,28 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
 
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
 {
+    if( canvas && r )
+    {
+        sgui_rect_copy( &canvas->sc, r );
+    }
+}
+
+void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
+{
+    if( canvas && r )
+    {
+        sgui_rect_copy( r, &canvas->sc );
+    }
+}
+
+void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
+{
     sgui_rect r1;
 
-    if( canvas && canvas->began )
+    if( canvas && canvas->began && r )
     {
-        if( r )
-        {
-            COPY_RECT_OFFSET( r1, r );
-
-            if( canvas->scissor_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
-                return;
-
-            /* push current scissor rect */
-            canvas->sc_stack[ canvas->scissor_stack_pointer ] = canvas->sc;
-
-            ++(canvas->scissor_stack_pointer);
-
-            /* new scissor rect = intersection with given and existing */
-            sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
-        }
-        else if( canvas->scissor_stack_pointer )    /* r=NULL means disable */
-        {
-            /* pop old scissor rect from stack */
-            --(canvas->scissor_stack_pointer);
-
-            canvas->sc = canvas->sc_stack[ canvas->scissor_stack_pointer ];
-        }
+        COPY_RECT_OFFSET( r1, r );
+        sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
     }
 }
 
@@ -229,29 +219,31 @@ void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )
 {
     if( canvas && canvas->began )
     {
-        if( canvas->offset_stack_pointer == SGUI_CANVAS_STACK_DEPTH )
-            return;
+        canvas->ox = x;
+        canvas->oy = y;
+    }
+}
 
-        /* push existing offset */
-        canvas->offset_stack_x[ canvas->offset_stack_pointer ] = canvas->ox;
-        canvas->offset_stack_y[ canvas->offset_stack_pointer ] = canvas->oy;
-
-        ++(canvas->offset_stack_pointer);
-
-        /* set new offset, offset by the existing one -> add */
+void sgui_canvas_add_offset( sgui_canvas* canvas, int x, int y )
+{
+    if( canvas && canvas->began )
+    {
         canvas->ox += x;
         canvas->oy += y;
     }
 }
 
-void sgui_canvas_restore_offset( sgui_canvas* canvas )
+void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y )
 {
-    if( canvas && canvas->began && canvas->offset_stack_pointer )
+    if( canvas && canvas->began )
     {
-        --(canvas->offset_stack_pointer);
-
-        canvas->ox = canvas->offset_stack_x[ canvas->offset_stack_pointer ];
-        canvas->oy = canvas->offset_stack_y[ canvas->offset_stack_pointer ];
+        if( x ) *x = canvas->ox;
+        if( y ) *y = canvas->oy;
+    }
+    else
+    {
+        if( x ) *x = 0;
+        if( y ) *y = 0;
     }
 }
 

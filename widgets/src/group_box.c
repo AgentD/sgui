@@ -75,6 +75,7 @@ void group_box_on_event( sgui_widget* widget, int type, sgui_event* event )
 void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_group_box* b = (sgui_group_box*)widget;
+    int old_ox, old_oy;
 
     /* draw background */
     sgui_skin_draw_group_box( cv, widget->area.left, widget->area.top,
@@ -82,9 +83,10 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
                               SGUI_RECT_HEIGHT(widget->area), b->caption );
 
     /* adjust offset and draw */
-    sgui_canvas_set_offset( cv, widget->area.left, widget->area.top );
+    sgui_canvas_get_offset( cv, &old_ox, &old_oy );
+    sgui_canvas_add_offset( cv, widget->area.left, widget->area.top );
     sgui_widget_manager_draw_all( b->mgr, cv );
-    sgui_canvas_restore_offset( cv );
+    sgui_canvas_set_offset( cv, old_ox, old_oy );
 }
 
 

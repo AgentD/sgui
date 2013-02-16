@@ -34,8 +34,6 @@
 
 
 
-#define SGUI_CANVAS_STACK_DEPTH 10
-
 struct sgui_canvas
 {
     int allow_clear;
@@ -44,13 +42,6 @@ struct sgui_canvas
     unsigned int width, height;     /**< \brief Size of the canvas */
 
     sgui_rect sc;                   /**< \brief current scissor rect */
-
-    sgui_rect sc_stack[ SGUI_CANVAS_STACK_DEPTH ];
-    unsigned int scissor_stack_pointer;
-
-    int offset_stack_x[ SGUI_CANVAS_STACK_DEPTH ];
-    int offset_stack_y[ SGUI_CANVAS_STACK_DEPTH ];
-    unsigned int offset_stack_pointer;
 
     int began;
 

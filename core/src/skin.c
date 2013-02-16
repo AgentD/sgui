@@ -477,7 +477,7 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
 {
     unsigned char color[4];
     unsigned int height, cx;
-    sgui_rect r;
+    sgui_rect r, old_sc;
 
     height = font_height + (font_height / 2) + 4;
 
@@ -496,11 +496,12 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
     r.top += 2;
     r.right -= 2;
     r.bottom -= 2;
-    sgui_canvas_set_scissor_rect( cv, &r );
+    sgui_canvas_get_scissor_rect( cv, &old_sc );
+    sgui_canvas_merge_scissor_rect( cv, &r );
 
     sgui_canvas_draw_text_plain( cv, x+2, y+2, 0, 0, color, text, -1 );
 
-    sgui_canvas_set_scissor_rect( cv, NULL );
+    sgui_canvas_set_scissor_rect( cv, &old_sc );
 
     /* draw borders */
     color[0] = color[1] = color[2] = 0x00;

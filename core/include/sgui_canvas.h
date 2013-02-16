@@ -119,19 +119,47 @@ SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
 
 
 /**
- * \brief Set the scissor rect of a canvas
+ * \brief Set the current scissor rect of a canvas in absolute coordinates
  *
  * Rendering to a canvas is only allowed inside the scissor rect, everything
  * outside will be clipped.
  *
- * Scissor rects are stackable, a new rect will be merged with the current set
- * and the current stored on a stack, to restore the current one, simply set
- * all parameters to zero.
+ * This function sets the current scissor rect in absolute coordinates
+ * (i.e. relative to the upper left corner, no offset).
  *
- * \param r The scissor rect to apply or NULL to restore the previous one
+ * \param r A pointer to the rect to set as new scissor rect
  */
 SGUI_DLL void sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
                                             sgui_rect* r );
+
+/**
+ * \brief Get the current scissor rect of a canvas in absolute coordinates
+ *
+ * Rendering to a canvas is only allowed inside the scissor rect, everything
+ * outside will be clipped.
+ *
+ * This function returns the current scissor rect in absolute coordinates
+ * (i.e. relative to the upper left corner, no offset).
+ *
+ * \param r A pointer to the rect that returns the current scissor rect
+ */
+SGUI_DLL void sgui_canvas_get_scissor_rect( sgui_canvas* canvas,
+                                            sgui_rect* r );
+
+/**
+ * \brief Merge the current scissor rect of a canvas with a given rect
+ *
+ * Rendering to a canvas is only allowed inside the scissor rect, everything
+ * outside will be clipped.
+ *
+ * This function takes a rectangle, shifts it by the current offset of the
+ * canvas and then sets the scissor rect of the canvas to the intersection
+ * of the rect with the current scissor rect.
+ *
+ * \param r A pointer to the rect that returns the current scissor rect
+ */
+SGUI_DLL void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas,
+                                              sgui_rect* r );
 
 /** \brief Enable or disable background clearing */
 SGUI_DLL void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
@@ -142,17 +170,27 @@ SGUI_DLL int sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
 /**
  * \brief Set an offset added to all drawing and scissor positions
  *
- * Offsets are stackable, a new offset will be added to the current one
- * and the current stored on a stack, to restore the current one, simply call
- * sgui_canvas_restore_offset.
- *
  * \param x The distance from the left of the canvas.
  * \param y The distance from the top of the canvas.
  */
 SGUI_DLL void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
 
-/** \brief Restores the previous offset of a canvas */
-SGUI_DLL void sgui_canvas_restore_offset( sgui_canvas* canvas );
+/**
+ * \brief Add an offset to the current offset added to all drawing and
+ *        scissor positions
+ *
+ * \param x A horizontal offset to add
+ * \param y A vertical offset to add
+ */
+SGUI_DLL void sgui_canvas_add_offset( sgui_canvas* canvas, int x, int y );
+
+/**
+ * \brief Get the current offset added to all drawing and scissor positions
+ *
+ * \param x Returns the distance from the left of the canvas.
+ * \param y Returns the distance from the top of the canvas.
+ */
+SGUI_DLL void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y );
 
 /**
  * \brief Blit an image onto a canvas
