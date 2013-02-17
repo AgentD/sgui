@@ -113,7 +113,7 @@ struct sgui_canvas
      */
     void(* blit )( sgui_canvas* canvas, int x, int y, unsigned int width,
                    unsigned int height, unsigned int scanline_length,
-                   SGUI_COLOR_FORMAT format, const void* data );
+                   int format, const void* data );
 
     /**
      * \brief Blend onto a canvas
@@ -142,7 +142,7 @@ struct sgui_canvas
      * \param format  The format of the color
      */
     void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
-                       unsigned char* color, SGUI_COLOR_FORMAT format );
+                       unsigned char* color, int format );
 
     /**
      * \brief Perfrom stencil blending

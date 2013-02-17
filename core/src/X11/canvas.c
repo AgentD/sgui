@@ -106,10 +106,10 @@ void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
 
 void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
                        unsigned int height, unsigned int scanline_length,
-                       SGUI_COLOR_FORMAT format, const void* data )
+                       int format, const void* data )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    unsigned int i, endy, bpp = format==SCF_RGBA8 ? 4 : 3;
+    unsigned int i, endy, bpp = format==SGUI_RGBA8 ? 4 : 3;
     unsigned char *src = (unsigned char*)data, *srow;
 
     for( endy=y+height; y<(int)endy; ++y, src+=scanline_length*bpp )
@@ -149,7 +149,7 @@ void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
 }
 
 void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                           unsigned char* color, SGUI_COLOR_FORMAT format )
+                           unsigned char* color, int format )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     XRenderColor c;
@@ -157,7 +157,7 @@ void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
     c.red   = color[0]<<8;
     c.green = color[1]<<8;
     c.blue  = color[2]<<8;
-    c.alpha = format==SCF_RGBA8 ? (color[3]<<8) : 0xFFFF;
+    c.alpha = format==SGUI_RGBA8 ? (color[3]<<8) : 0xFFFF;
 
     XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, r->left, r->top,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );

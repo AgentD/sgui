@@ -111,16 +111,16 @@ void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
 
 void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
                       unsigned int height, unsigned int scanline_length,
-                      SGUI_COLOR_FORMAT format, const void* data )
+                      int format, const void* data )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned char *drow, *srow, *src, *dst;
-    unsigned int i, j, ds, dt, src_bpp = (format==SCF_RGBA8 ? 4 : 3);
+    unsigned int i, j, ds, dt, src_bpp = (format==SGUI_RGBA8 ? 4 : 3);
 
     dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
     src = (unsigned char*)data;
 
-    ds = scanline_length * (format==SCF_RGBA8 ? 4 : 3);
+    ds = scanline_length * (format==SGUI_RGBA8 ? 4 : 3);
     dt = canvas->width * 4;
 
     for( j=0; j<height; ++j, src+=ds, dst+=dt )
@@ -161,7 +161,7 @@ void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
 }
 
 void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                          unsigned char* color, SGUI_COLOR_FORMAT format )
+                          unsigned char* color, int format )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned char A, iA;
@@ -170,7 +170,7 @@ void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
 
     dst = (unsigned char*)cv->data + (r->top*canvas->width + r->left)*4;
 
-    if( format==SCF_RGBA8 )
+    if( format==SGUI_RGBA8 )
     {
         A = color[3];
         iA = 0xFF - A;

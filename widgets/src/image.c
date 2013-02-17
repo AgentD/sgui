@@ -53,7 +53,7 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
 
         sgui_canvas_blend( cv, widget->area.left, widget->area.top,
                            SGUI_RECT_WIDTH(widget->area),
-                           SGUI_RECT_HEIGHT(widget->area), SCF_RGBA8,
+                           SGUI_RECT_HEIGHT(widget->area), SGUI_RGBA8,
                            img->data );
     }
     else
@@ -61,7 +61,7 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
         sgui_canvas_blit( cv, widget->area.left, widget->area.top,
                           SGUI_RECT_WIDTH(widget->area),
                           SGUI_RECT_HEIGHT(widget->area),
-                          img->alpha ? SCF_RGBA8 : SCF_RGB8, img->data );
+                          img->alpha ? SGUI_RGBA8 : SGUI_RGB8, img->data );
     }
 }
 

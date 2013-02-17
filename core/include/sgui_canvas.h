@@ -38,13 +38,8 @@ extern "C"
 
 
 
-typedef enum
-{
-    SCF_RGB8 = 0,
-    SCF_RGBA8
-}
-SGUI_COLOR_FORMAT;
-
+#define SGUI_RGB8  0
+#define SGUI_RGBA8 1
 
 
 
@@ -199,12 +194,12 @@ SGUI_DLL void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y );
  * \param y      Distance from the top of the canvas to the top of the image
  * \param width  Width of the image
  * \param height Width of the image
- * \param format Color format of the image
+ * \param format Color format of the image (SGUI_RGB8, ...)
  * \param data   Pointer to the image data
  */
 SGUI_DLL void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
                                 unsigned int width, unsigned int height,
-                                SGUI_COLOR_FORMAT format, const void* data );
+                                int format, const void* data );
 
 /**
  * \brief Blend an image onto a canvas
@@ -213,24 +208,24 @@ SGUI_DLL void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
  * \param y      Distance from the top of the canvas to the top of the image
  * \param width  Width of the image
  * \param height Width of the image
- * \param format Color format of the image (must be a format with an alpha
- *               channel)
+ * \param format Color format of the image (SGUI_RGBA8, ... must be a format
+ *               with an alpha channel)
  * \param data   Pointer to the image data
  */
 SGUI_DLL void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
                                  unsigned int width, unsigned int height,
-                                 SGUI_COLOR_FORMAT format, const void* data );
+                                 int format, const void* data );
 
 /**
  * \brief Draw a rectangle onto a canvas
  *
  * \param r      The geometry of the box to draw
  * \param color  The color to draw the box in
- * \param format The color format stored in the color array
+ * \param format The color format stored in the color array (SGUI_RGB8, ...)
  */
 SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
                                     unsigned char* color,
-                                    SGUI_COLOR_FORMAT format );
+                                    int format );
 
 /**
  * \brief Draw a line onto a canvas
@@ -243,12 +238,11 @@ SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
  * \param horizontal Non-zero to draw a horizontal line, zero to draw a
  *                   vertical line.
  * \param color      The color to draw the line in
- * \param format     The color format stored in the color array
+ * \param format     The color format stored in the color array(SGUI_RGB8, ...)
  */
 SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                                      unsigned int length, int horizontal,
-                                     unsigned char* color,
-                                     SGUI_COLOR_FORMAT format );
+                                     unsigned char* color, int format );
 
 /**
  * \brief Render one line of text in a single font face

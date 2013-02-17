@@ -247,8 +247,10 @@ void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y )
     }
 }
 
+/**************************** drawing functions ****************************/
+
 void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
-                       unsigned int height, SGUI_COLOR_FORMAT format,
+                       unsigned int height, int format,
                        const void* data )
 {
     unsigned char* src;
@@ -266,7 +268,7 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
 
     /* get a pointer to the first pixel, taking clipping into account */
     src = (unsigned char*)data +
-          ((r.top-r0.top)*width + r.left-r0.left)*(format==SCF_RGBA8 ? 4 : 3);
+          ((r.top-r0.top)*width + r.left-r0.left)*(format==SGUI_RGBA8 ? 4 : 3);
 
     /* do the blitting */
     canvas->blit( canvas, r.left, r.top, r.right-r.left, r.bottom-r.top,
@@ -274,14 +276,13 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
 }
 
 void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
-                        unsigned int height, SGUI_COLOR_FORMAT format,
-                        const void* data )
+                        unsigned int height, int format, const void* data )
 {
     unsigned char* src;
     sgui_rect r, r0;
 
     /* sanity check */
-    if( !canvas || !width || !height || !data || format!=SCF_RGBA8 ||
+    if( !canvas || !width || !height || !data || format!=SGUI_RGBA8 ||
         !canvas->began )
         return;
 
@@ -300,7 +301,7 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
 }
 
 void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                           unsigned char* color, SGUI_COLOR_FORMAT format )
+                           unsigned char* color, int format )
 {
     sgui_rect r1;
 
@@ -308,8 +309,8 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
     if( !canvas || !color || !canvas->began || !r )
         return;
 
-    if( format==SCF_RGBA8 && color[3]==0xFF )
-        format = SCF_RGB8;
+    if( format==SGUI_RGBA8 && color[3]==0xFF )
+        format = SGUI_RGB8;
 
     /* offset and clip the given rectangle */
     COPY_RECT_OFFSET( r1, r );
@@ -322,7 +323,7 @@ void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
 
 void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                             unsigned int length, int horizontal,
-                            unsigned char* color, SGUI_COLOR_FORMAT format )
+                            unsigned char* color, int format )
 {
     sgui_rect r;
 
