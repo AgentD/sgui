@@ -33,9 +33,13 @@
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
 #include "sgui_internal.h"
+#include "sgui_font.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #ifndef SGUI_NO_OPENGL
 #include <GL/gl.h>
@@ -84,6 +88,7 @@ sgui_window_w32;
 
 extern HINSTANCE hInstance;
 extern const char* wndclass;
+extern FT_Library freetype;
 
 /* in platform.c: add a window to the list used by the main loop */
 void add_window( sgui_window_w32* wnd );

@@ -96,12 +96,6 @@ SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
 SGUI_DLL void sgui_rect_copy( sgui_rect* dst, sgui_rect* src );
 
 /**
- * \brief "Normalize" a rectangle, i.e. make sure the top coordinate is
- *        smaller than the bottom and the left smaller than the right
- */
-SGUI_DLL void sgui_rect_normalize( sgui_rect* r );
-
-/**
  * \brief Get the intersection between to rectangles
  *
  * This performs an intersection test between two rectangles and returns the
@@ -118,27 +112,6 @@ SGUI_DLL void sgui_rect_normalize( sgui_rect* r );
  */
 SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
                                          sgui_rect* b );
-
-/**
- * \brief Clip a line segment using a rectangle
- *
- * The line segment, given as a point, direction and length in the same
- * coordinate system as the rectangle (see sgui_rect_set), is tested for
- * intersection with the rectangle. If the line segment and the rectangle
- * intersect, the given data of the line segment is set to the subsegment
- * that is inside the rectangle.
- *
- * \param r          The clipping rectangle
- * \param horizontal Non-zero if the line is horizontal, zero if it is
- *                   vertical.
- * \param x          The x coordinate of the starting point.
- * \param y          The y coordinate of the starting point.
- * \param length     The length of the line.
- *
- * \return Non-zero if the line segment intersects the rectangle, zero if not
- */
-SGUI_DLL int sgui_rect_clip_line( sgui_rect* r, int horizontal,
-                                  int* x, int* y, unsigned int* length );
 
 /**
  * \brief Join two rectangles

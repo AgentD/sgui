@@ -29,6 +29,7 @@
 
 static sgui_window_w32* list = NULL;
 
+FT_Library freetype;
 HINSTANCE hInstance;
 const char* wndclass = "sgui_wnd_class";
 
@@ -80,6 +81,13 @@ int sgui_init( void )
 {
     WNDCLASSEX wc;
 
+    /* initialise freetype library */
+    if( FT_Init_FreeType( &freetype ) )
+    {
+        sgui_deinit( );
+        return 0;
+    }
+
     /* get hInstance */
     hInstance = GetModuleHandle( NULL );
 
@@ -110,7 +118,11 @@ void sgui_deinit( void )
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 
+    if( freetype )
+        FT_Done_FreeType( freetype );
+
     /* reset values */
+    freetype = 0;
     hInstance = 0;
     list = NULL;
 }

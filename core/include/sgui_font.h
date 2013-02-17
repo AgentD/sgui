@@ -38,14 +38,25 @@ extern "C" {
 /**
  * \brief Load a font face from a file
  *
- * \param fs       The filesystem driver to use for accessing the font file.
- *                 Pass NULL to use the default stdio filesystem driver.
  * \param filename The path to the font file
  *
  * \returns A font object
  */
-SGUI_DLL sgui_font* sgui_font_load( const sgui_filesystem* fs,
-                                    const char* filename );
+SGUI_DLL sgui_font* sgui_font_load( const char* filename );
+
+/**
+ * \brief Load a font face from an array in memory
+ *
+ * The given data is copied internally, so the pointer can be freed
+ * immediately after calling the function.
+ *
+ * \param data A pointer to a block of data, containing the font file
+ * \param size The number of bytes to read from the data block
+ *
+ * \returns A font object
+ */
+SGUI_DLL sgui_font* sgui_font_load_memory( const void* data,
+                                           unsigned long size );
 
 /** \brief Destroy a font object */
 SGUI_DLL void sgui_font_destroy( sgui_font* font );

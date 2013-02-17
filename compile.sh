@@ -47,9 +47,8 @@ SOURCE_WIDGETS="widgets/src/progress_bar.c widgets/src/static_text.c
 SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 
 SOURCE_COMMON="core/src/widget.c core/src/rect.c core/src/widget_manager.c
-               core/src/skin.c core/src/filesystem.c core/src/canvas.c
-               core/src/window.c core/src/utf8.c
-               $SOURCE_WIDGETS $SOURCE_OPENGL"
+               core/src/skin.c core/src/canvas.c core/src/window.c
+               core/src/utf8.c $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 # Platform specific stuff
 SOURCE_X11="core/src/X11/window.c core/src/X11/keycode_translate.c

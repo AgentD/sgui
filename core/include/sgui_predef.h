@@ -43,8 +43,6 @@ typedef struct sgui_widget sgui_widget;
 
 typedef struct sgui_widget_manager sgui_widget_manager;
 
-typedef struct sgui_screen sgui_screen;
-
 typedef struct sgui_window sgui_window;
 
 typedef union sgui_event sgui_event;

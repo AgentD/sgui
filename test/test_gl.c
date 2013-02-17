@@ -61,10 +61,10 @@ int main( void )
 
     glViewport( 0, 0, 800, 600 );
 
-    font     =sgui_font_load(NULL, "../../font/SourceSansPro-Regular.ttf");
-    font_bold=sgui_font_load(NULL, "../../font/SourceSansPro-Semibold.ttf");
-    font_ital=sgui_font_load(NULL, "../../font/SourceSansPro-It.ttf");
-    font_boit=sgui_font_load(NULL, "../../font/SourceSansPro-SemiboldIt.ttf");
+    font     =sgui_font_load("../../font/SourceSansPro-Regular.ttf");
+    font_bold=sgui_font_load("../../font/SourceSansPro-Semibold.ttf");
+    font_ital=sgui_font_load("../../font/SourceSansPro-It.ttf");
+    font_boit=sgui_font_load("../../font/SourceSansPro-SemiboldIt.ttf");
 
     sgui_skin_set_default_font( font, font_bold, font_ital,
                                 font_boit, 16 );

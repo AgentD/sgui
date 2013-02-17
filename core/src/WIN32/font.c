@@ -23,19 +23,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "sgui_font.h"
-#include "sgui_filesystem.h"
+#include "internal.h"
 
-#include <stdlib.h>
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 
 
 struct sgui_font
 {
-    FT_Library freetype;
     FT_Face face;
     void* buffer;
     unsigned int height;
@@ -44,18 +38,13 @@ struct sgui_font
 
 
 
-sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename )
+sgui_font* sgui_font_load( const char* filename )
 {
     sgui_font* font;
-    void* file;
-    void* buffer = NULL;
-    size_t size;
 
-#ifdef SGUI_NO_STDIO
-    /* make sure we have a valid filesystem pointer */
-    if( !fs )
+    /* sanity check */
+    if( !filename )
         return NULL;
-#endif
 
     /* allocate font structure */
     font = malloc( sizeof(sgui_font) );
@@ -63,73 +52,55 @@ sgui_font* sgui_font_load( const sgui_filesystem* fs, const char* filename )
     if( !font )
         return NULL;
 
-    if( FT_Init_FreeType( &font->freetype ) )
+    /* load the font file */
+    if( FT_New_Face( freetype, filename, 0, &font->face ) )
     {
         free( font );
         return NULL;
     }
 
-    /* read the file if we use a virtual filesystem */
-#ifndef SGUI_NO_STDIO
-    if( fs )
+    /* initialise the remaining fields */
+    font->buffer        = NULL;
+    font->height        = 0;
+    font->current_glyph = 0;
+
+    return font;
+}
+
+sgui_font* sgui_font_load_memory( const void* data, unsigned long size )
+{
+    sgui_font* font;
+
+    /* sanity check */
+    if( !data || !size )
+        return NULL;
+
+    /* allocate font structure */
+    font = malloc( sizeof(sgui_font) );
+
+    if( !font )
+        return NULL;
+
+    /* allocate a buffer for the file */
+    font->buffer = malloc( size );
+
+    if( !font->buffer )
     {
-#endif
-        /* try to open the file */
-        file = fs->file_open_read( filename );
-
-        if( !file )
-        {
-            free( font );
-            return NULL;
-        }
-
-        /* determine the length of the file */
-        size = fs->file_get_length( file );
-
-        if( !size )
-        {
-            fs->file_close( file );
-            free( font );
-            return NULL;
-        }
-
-        /* allocate a buffer for the file */
-        buffer = malloc( size );
-
-        if( !buffer )
-        {
-            fs->file_close( file );
-            free( font );
-            return NULL;
-        }
-
-        /* load the file into the buffer */
-        fs->file_read( file, buffer, 1, size );
-        fs->file_close( file );
-
-        /* initialise the font */
-        if( FT_New_Memory_Face(font->freetype, buffer, size, 0, &font->face) )
-        {
-            FT_Done_FreeType( font->freetype );
-            free( buffer );
-            free( font );
-            return NULL;
-        }
-#ifndef SGUI_NO_STDIO
+        free( font );
+        return NULL;
     }
-    else
+
+    /* initialise the font */
+    if( FT_New_Memory_Face( freetype, font->buffer, size, 0, &font->face ) )
     {
-        if( FT_New_Face( font->freetype, filename, 0, &font->face ) )
-        {
-            FT_Done_FreeType( font->freetype );
-            free( font );
-            return NULL;
-        }
+        free( font->buffer );
+        free( font );
+        return NULL;
     }
-#endif
 
-    font->buffer = buffer;
-    font->height = 0;
+    /* initialise the remaining fields */
+    font->height        = 0;
+    font->current_glyph = 0;
 
     return font;
 }
@@ -139,7 +110,6 @@ void sgui_font_destroy( sgui_font* font )
     if( font )
     {
         FT_Done_Face( font->face );
-        FT_Done_FreeType( font->freetype );
 
         free( font->buffer );
         free( font );

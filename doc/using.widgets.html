@@ -45,16 +45,14 @@ the SGUI skinning system to use the font:
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="keyword">NULL</font>, <font class="string">"SourceSansPro-Regular.ttf"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="string">"SourceSansPro-Regular.ttf"</font> );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_skin_set_default_font( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="number">16</font> );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
 </p>
-The first function call loads a true type font file. The first argument (NULL)
-is a pointer used for filesystem abstraction which we don't need here (NULL
-tells SGUI to use the standard filesystem functions). Of course, in this
-example, the file should be in the your working directory when you start the
-program, or it will not be found.<br>
+The first function call loads a true type font file. The argument should be
+pretty obvious. Of course, in this example, the file should be in the your
+working directory when you start the program, or it will not be found.<br>
 <br>
 The second function call tells the SGUI skinning system to use the loaded font
 for text rendering. Because we don't provide variants for bold, italic or bold

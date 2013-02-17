@@ -69,28 +69,6 @@ void sgui_rect_copy( sgui_rect* dst, sgui_rect* src )
     }
 }
 
-void sgui_rect_normalize( sgui_rect* r )
-{
-    int temp;
-
-    if( r )
-    {
-        if( r->left > r->right )
-        {
-            temp = r->left;
-            r->left = r->right;
-            r->right = temp;
-        }
-
-        if( r->top > r->bottom )
-        {
-            temp = r->top;
-            r->top = r->bottom;
-            r->bottom = temp;
-        }
-    }
-}
-
 int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a, sgui_rect*b )
 {
     do
@@ -126,69 +104,6 @@ int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a, sgui_rect*b )
     }
 
     return 0;
-}
-
-int sgui_rect_clip_line( sgui_rect* r, int horizontal, int* x, int* y,
-                         unsigned int* length )
-{
-    int X, Y, L, rL, rR, rB, rT;
-
-    /* all paramters must exist */
-    if( !r || !x || !y || !length )
-        return 0;
-
-    /* probalby more readable than loads of dereferentiations? */
-    X = *x;
-    Y = *y;
-    L = (int)*length;
-    rL= r->left;
-    rT= r->top;
-    rR= r->right;
-    rB= r->bottom;
-
-    if( horizontal )
-    {
-        /* line starts above, below, to the right,
-           or doesn't reach into the rect */
-        if( Y < rT || Y > rB || X > rR || (X+L) < rL )
-            return 0;
-
-        /* starts left of the rect, but reaches into the rect */
-        if( X < rL )
-        {
-            L -= rL - X;    /* adjust length */
-            X  = rL;        /* clip X */
-        }
-
-        /* reaches outside the rect */
-        if( (X+L) > rR )
-            L = rR - X;     /* adjust length */
-    }
-    else
-    {
-        /* line is left, right or below the rect or it starts
-           above and doesn't reach into the rect */
-        if( X < rL || X > rR || Y > rB || (Y+L) < rT )
-            return 0;
-
-        /* starts above the rect, but reaches into the rect */
-        if( Y < rT )
-        {
-            L -= rT - Y;    /* adjust length */
-            Y  = rT;        /* clip Y */
-        }
-
-        /* reaches outside the rect */
-        if( (Y+L) > rB )
-            L = rB - Y;     /* adjust the length */
-    }
-
-    /* write back adjusted parameters */
-    *x      = X;
-    *y      = Y;
-    *length = L;
-
-    return 1;
 }
 
 int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch )

@@ -30,7 +30,6 @@
 #include "sgui_canvas.h"
 #include "sgui_dll.h"
 #include "sgui_event.h"
-#include "sgui_filesystem.h"
 #include "sgui_font.h"
 #include "sgui_keycodes.h"
 #include "sgui_predef.h"

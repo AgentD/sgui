@@ -49,7 +49,7 @@ unsigned int utf8_char_length( unsigned char c )
 
 unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
 {
-    unsigned int ch, i, len = 0;
+    unsigned int ch = 0, i, len = 0;
 
     if( utf8 )
     {
