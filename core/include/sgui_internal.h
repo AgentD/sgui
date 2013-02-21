@@ -145,21 +145,22 @@ struct sgui_canvas
                        unsigned char* color, int format );
 
     /**
-     * \brief Perfrom stencil blending
+     * \brief Draw a string of text onto a canvas
      *
      * \param canvas A pointer to the canvas (for C++ people: practically a
      *               this pointer).
-     * \param buffer The source buffer with the stencil values
      * \param x      The distance from the left of the canvas
      * \param y      The distance from the top of the canvas
-     * \param w      The number of stencil values per scanline
-     * \param h      The number of scanlines
-     * \param scan   The actual length of a scanline
-     * \param color  The RGB color to draw
+     * \param font   The font face to use for rendering
+     * \param color  The RGB color to use for rendering
+     * \param text   The UTF8 string to render
+     * \param length The number of bytes to read from the string
+     *
+     * \return The length of the rendered string in pixels.
      */
-    void(* blend_stencil )( sgui_canvas* canvas, unsigned char* buffer,
-                            int x, int y, unsigned int w, unsigned int h,
-                            unsigned int scan, unsigned char* color );
+    int(* draw_string )( sgui_canvas* canvas, int x, int y, sgui_font* font,
+                         unsigned char* color, const char* text,
+                         unsigned int length );
 };
 
 struct sgui_widget

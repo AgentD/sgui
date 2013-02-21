@@ -24,6 +24,7 @@
  */
 #define SGUI_BUILDING_DLL
 #include "internal.h"
+#include "sgui_utf8.h"
 
 
 
@@ -203,6 +204,53 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
+
+int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
+                             sgui_font* font, unsigned char* color,
+                             const char* text, unsigned int length )
+{
+    int bearing, oldx = x;
+    unsigned int i, w, h, len = 0;
+    unsigned long character, previous=0;
+    unsigned char* buffer;
+    sgui_rect r;
+
+    /* for each character */
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        /* load the next glyph */
+        character = sgui_utf8_decode( text, &len );
+        sgui_font_load_glyph( font, character );
+
+        /* apply kerning */
+        x += sgui_font_get_kerning_distance( font, previous, character );
+
+        /* blend onto destination buffer */
+        sgui_font_get_glyph_metrics( font, &w, &h, &bearing );
+        buffer = sgui_font_get_glyph( font );
+
+        sgui_rect_set_size( &r, x, y + bearing, w, h );
+
+        if( buffer && sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
+        {
+            buffer += (r.top - (y + bearing)) * w + (r.left - x);
+
+            canvas_xlib_blend_stencil( canvas, buffer, r.left, r.top,
+                                       SGUI_RECT_WIDTH( r ),
+                                       SGUI_RECT_HEIGHT( r ),
+                                       w, color );
+        }
+
+        /* advance cursor */
+        x += w + 1;
+
+        /* store previous glyph index for kerning */
+        previous = character;
+    }
+
+    return x - oldx;
+}
+
 /************************ internal canvas functions ************************/
 sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height )
@@ -261,9 +309,9 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.end           = canvas_xlib_end;
     cv->canvas.blit          = canvas_xlib_blit;
     cv->canvas.blend         = canvas_xlib_blend;
-    cv->canvas.blend_stencil = canvas_xlib_blend_stencil;
     cv->canvas.clear         = canvas_xlib_clear;
     cv->canvas.draw_box      = canvas_xlib_draw_box;
+    cv->canvas.draw_string   = canvas_xlib_draw_string;
 
     cv->stencil_base[0] = cv->stencil_base[1] = cv->stencil_base[2] = 0;
 

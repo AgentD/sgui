@@ -344,55 +344,19 @@ int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                  unsigned char* color,
                                  const char* text, unsigned int length )
 {
-    int bearing, oldx;
-    unsigned int i, w, h, len = 0;
-    unsigned long character, previous=0;
-    unsigned char* buffer;
-    sgui_rect r;
-    sgui_font* font_face = sgui_skin_get_default_font( bold, italic );
+    sgui_font* font = sgui_skin_get_default_font( bold, italic );
+
+    /* sanity check */
+    if( !canvas || !font || !color || !text || !canvas->began || !length )
+        return 0;
 
     x += canvas->ox;
     y += canvas->oy;
-    oldx = x;
 
-    /* sanity check */
-    if( !canvas || !font_face || !color || !text || !canvas->began )
+    if( x>=canvas->sc.right || y>= canvas->sc.bottom )
         return 0;
 
-    /* for each character */
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
-    {
-        /* load the next glyph */
-        character = sgui_utf8_decode( text, &len );
-        sgui_font_load_glyph( font_face, character );
-
-        /* apply kerning */
-        x += sgui_font_get_kerning_distance( font_face, previous, character );
-
-        /* blend onto destination buffer */
-        sgui_font_get_glyph_metrics( font_face, &w, &h, &bearing );
-        buffer = sgui_font_get_glyph( font_face );
-
-        sgui_rect_set_size( &r, x, y + bearing, w, h );
-
-        if( buffer && sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
-        {
-            buffer += (r.top - (y + bearing)) * w + (r.left - x);
-
-            canvas->blend_stencil( canvas, buffer, r.left, r.top,
-                                   SGUI_RECT_WIDTH( r ),
-                                   SGUI_RECT_HEIGHT( r ),
-                                   w, color );
-        }
-
-        /* advance cursor */
-        x += w + 1;
-
-        /* store previous glyph index for kerning */
-        previous = character;
-    }
-
-    return x - oldx;
+    return canvas->draw_string( canvas, x, y, font, color, text, length );
 }
 
 void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,

@@ -25,6 +25,8 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_opengl.h"
 #include "sgui_internal.h"
+#include "sgui_font.h"
+#include "sgui_utf8.h"
 
 #include <stdlib.h>
 
@@ -280,6 +282,54 @@ void canvas_gl_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
+
+
+int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
+                           sgui_font* font, unsigned char* color,
+                           const char* text, unsigned int length )
+{
+    int bearing, oldx = x;
+    unsigned int i, w, h, len = 0;
+    unsigned long character, previous=0;
+    unsigned char* buffer;
+    sgui_rect r;
+
+    /* for each character */
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        /* load the next glyph */
+        character = sgui_utf8_decode( text, &len );
+        sgui_font_load_glyph( font, character );
+
+        /* apply kerning */
+        x += sgui_font_get_kerning_distance( font, previous, character );
+
+        /* blend onto destination buffer */
+        sgui_font_get_glyph_metrics( font, &w, &h, &bearing );
+        buffer = sgui_font_get_glyph( font );
+
+        sgui_rect_set_size( &r, x, y + bearing, w, h );
+
+        if( buffer && sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
+        {
+            buffer += (r.top - (y + bearing)) * w + (r.left - x);
+
+            canvas_gl_blend_stencil( canvas, buffer, r.left, r.top,
+                                     SGUI_RECT_WIDTH( r ),
+                                     SGUI_RECT_HEIGHT( r ),
+                                     w, color );
+        }
+
+        /* advance cursor */
+        x += w + 1;
+
+        /* store previous glyph index for kerning */
+        previous = character;
+    }
+
+    return x - oldx;
+}
+
 /****************************************************************************/
 sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
                                         unsigned int height )
@@ -330,7 +380,7 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     cv->canvas.blit = canvas_gl_blit;
     cv->canvas.blend = canvas_gl_blend;
     cv->canvas.draw_box = canvas_gl_draw_box;
-    cv->canvas.blend_stencil = canvas_gl_blend_stencil;
+    cv->canvas.draw_string = canvas_gl_draw_string;
 
     return (sgui_canvas*)cv;
 }
