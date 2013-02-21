@@ -47,19 +47,13 @@ static unsigned int font_height = 0;
 
 
 void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
-                                 sgui_font* italic, sgui_font* bold_italic,
-                                 unsigned int height )
+                                 sgui_font* italic, sgui_font* bold_italic )
 {
     font_norm = normal;
     font_bold = bold;
     font_ital = italic;
     font_boit = bold_italic;
-    font_height = height;
-
-    sgui_font_set_height( font_norm, height );
-    sgui_font_set_height( font_bold, height );
-    sgui_font_set_height( font_ital, height );
-    sgui_font_set_height( font_boit, height );
+    font_height = sgui_font_get_height( font_norm );
 }
 
 void sgui_skin_get_window_background_color( unsigned char* color )

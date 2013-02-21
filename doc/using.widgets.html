@@ -45,9 +45,9 @@ the SGUI skinning system to use the font:
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="string">"SourceSansPro-Regular.ttf"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="string">"SourceSansPro-Regular.ttf"</font>, <font class="number">16</font> );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_skin_set_default_font( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="number">16</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_skin_set_default_font( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font> );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
 </p>
 The first function call loads a true type font file. The argument should be

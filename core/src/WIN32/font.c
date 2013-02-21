@@ -38,7 +38,7 @@ struct sgui_font
 
 
 
-sgui_font* sgui_font_load( const char* filename )
+sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 {
     sgui_font* font;
 
@@ -61,13 +61,16 @@ sgui_font* sgui_font_load( const char* filename )
 
     /* initialise the remaining fields */
     font->buffer        = NULL;
-    font->height        = 0;
+    font->height        = pixel_height;
     font->current_glyph = 0;
+
+    FT_Set_Pixel_Sizes( font->face, 0, pixel_height );
 
     return font;
 }
 
-sgui_font* sgui_font_load_memory( const void* data, unsigned long size )
+sgui_font* sgui_font_load_memory( const void* data, unsigned long size,
+                                  unsigned int pixel_height )
 {
     sgui_font* font;
 
@@ -99,8 +102,10 @@ sgui_font* sgui_font_load_memory( const void* data, unsigned long size )
     }
 
     /* initialise the remaining fields */
-    font->height        = 0;
+    font->height        = pixel_height;
     font->current_glyph = 0;
+
+    FT_Set_Pixel_Sizes( font->face, 0, pixel_height );
 
     return font;
 }
@@ -116,13 +121,9 @@ void sgui_font_destroy( sgui_font* font )
     }
 }
 
-void sgui_font_set_height( sgui_font* font, unsigned int pixel_height )
+unsigned int sgui_font_get_height( sgui_font* font )
 {
-    if( font )
-    {
-        font->height = pixel_height;
-        FT_Set_Pixel_Sizes( font->face, 0, pixel_height );
-    }
+    return font ? font->height : 0;
 }
 
 void sgui_font_load_glyph( sgui_font* font, unsigned int codepoint )

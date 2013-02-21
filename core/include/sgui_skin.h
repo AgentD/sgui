@@ -45,12 +45,10 @@ extern "C"
  * \param bold        Font face for bold text.
  * \param italic      Font face for italic text.
  * \param bold_italic Font face for both bold and italic text.
- * \param height      Default font height in pixels.
  */
 SGUI_DLL void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                           sgui_font* italic,
-                                          sgui_font* bold_italic,
-                                          unsigned int height );
+                                          sgui_font* bold_italic );
 
 /** \brief Get the default window background color */
 SGUI_DLL void sgui_skin_get_window_background_color( unsigned char* color );

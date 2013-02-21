@@ -38,11 +38,13 @@ extern "C" {
 /**
  * \brief Load a font face from a file
  *
- * \param filename The path to the font file
+ * \param filename     The path to the font file
+ * \param pixel_height The rendering height of the font face in pixels
  *
  * \returns A font object
  */
-SGUI_DLL sgui_font* sgui_font_load( const char* filename );
+SGUI_DLL sgui_font* sgui_font_load( const char* filename,
+                                    unsigned int pixel_height );
 
 /**
  * \brief Load a font face from an array in memory
@@ -50,24 +52,21 @@ SGUI_DLL sgui_font* sgui_font_load( const char* filename );
  * The given data is copied internally, so the pointer can be freed
  * immediately after calling the function.
  *
- * \param data A pointer to a block of data, containing the font file
- * \param size The number of bytes to read from the data block
+ * \param data         A pointer to a block of data, containing the font file
+ * \param size         The number of bytes to read from the data block
+ * \param pixel_height The rendering height of the font face in pixels
  *
  * \returns A font object
  */
 SGUI_DLL sgui_font* sgui_font_load_memory( const void* data,
-                                           unsigned long size );
+                                           unsigned long size,
+                                           unsigned int pixel_height );
 
 /** \brief Destroy a font object */
 SGUI_DLL void sgui_font_destroy( sgui_font* font );
 
-/**
- * \brief Set the rendering height of a font in pixels
- *
- * \param pixel_height The height of the font in pixels
- */
-SGUI_DLL void sgui_font_set_height( sgui_font* font,
-                                    unsigned int pixel_height );
+/** \brief Get the rendering height of a font in pixels */
+SGUI_DLL unsigned int sgui_font_get_height( sgui_font* font );
 
 /**
  * \brief Get the kerning distance between to characters
