@@ -287,6 +287,9 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         base->y = HIWORD( lp );
         break;
     case WM_PAINT:
+        sgui_rect_set_size( &e.expose_event, 0, 0, base->w, base->h );
+        sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
+
         if( base->back_buffer )
         {
             hDC = BeginPaint( wnd->hWnd, &ps );

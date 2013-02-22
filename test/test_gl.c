@@ -38,6 +38,20 @@ void sgui_window_fun( sgui_window* wnd, int type, sgui_event* event )
     }
 
     sgui_widget_manager_send_window_event( mgr, type, &e );
+
+    sgui_widget_manager_draw( mgr, cv );
+    sgui_widget_manager_clear_dirty_rects( mgr );
+
+    glClear( GL_COLOR_BUFFER_BIT );
+
+    glBegin( GL_QUADS );
+    glVertex2f( -0.6f,  0.8f ); glTexCoord2f( 1.0f, 0.0f );
+    glVertex2f(  0.6f,  0.8f ); glTexCoord2f( 1.0f, 1.0f );
+    glVertex2f(  0.6f, -0.8f ); glTexCoord2f( 0.0f, 1.0f );
+    glVertex2f( -0.6f, -0.8f ); glTexCoord2f( 0.0f, 0.0f );
+    glEnd( );
+
+    sgui_window_swap_buffers( wnd );
 }
 
 int main( void )
@@ -54,10 +68,10 @@ int main( void )
     wnd = sgui_window_create( 800, 600, 0, SGUI_OPENGL_COMPAT );
 
     sgui_window_set_title( wnd, "sgui OpenGL test" );
-    sgui_window_on_event( wnd, sgui_window_fun );
     sgui_window_set_visible( wnd, 1 );
 
     sgui_window_make_current( wnd );
+    sgui_window_on_event( wnd, sgui_window_fun );
 
     glViewport( 0, 0, 800, 600 );
 
@@ -104,22 +118,7 @@ int main( void )
             glGetString( GL_VERSION ) );
 
     /* main loop */
-    while( sgui_main_loop_step( ) )
-    {
-        sgui_widget_manager_draw( mgr, cv );
-        sgui_widget_manager_clear_dirty_rects( mgr );
-
-        glClear( GL_COLOR_BUFFER_BIT );
-
-        glBegin( GL_QUADS );
-        glVertex2f( -0.6f,  0.8f ); glTexCoord2f( 1.0f, 0.0f );
-        glVertex2f(  0.6f,  0.8f ); glTexCoord2f( 1.0f, 1.0f );
-        glVertex2f(  0.6f, -0.8f ); glTexCoord2f( 0.0f, 1.0f );
-        glVertex2f( -0.6f, -0.8f ); glTexCoord2f( 0.0f, 0.0f );
-        glEnd( );
-
-        sgui_window_swap_buffers( wnd );
-    }
+    sgui_main_loop( );
 
     /* cleanup */
     sgui_canvas_destroy( cv );

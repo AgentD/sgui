@@ -29,6 +29,7 @@
 
 #include "sgui_keycodes.h"
 #include "sgui_predef.h"
+#include "sgui_rect.h"
 
 
 
@@ -57,6 +58,8 @@ enum
     SGUI_KEY_PRESSED_EVENT,
     SGUI_KEY_RELEASED_EVENT,
     SGUI_CHAR_EVENT,
+
+    SGUI_EXPOSE_EVENT,
 
     /* widget manager events */
     SGUI_FOCUS_EVENT,
@@ -90,6 +93,8 @@ union sgui_event
     struct { SGUI_KEY_CODE code; } keyboard_event;
 
     struct { char as_utf8_str[8]; } char_event;
+
+    sgui_rect expose_event;
 };
 
 #endif /* SGUI_EVENT_H */

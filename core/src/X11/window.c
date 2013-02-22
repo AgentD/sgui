@@ -282,6 +282,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
+        sgui_rect_set_size( &se.expose_event, e->xexpose.x, e->xexpose.y,
+                            e->xexpose.width, e->xexpose.height );
+
+        SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+
         canvas_xlib_display( wnd->base.back_buffer,
                              e->xexpose.x, e->xexpose.y,
                              e->xexpose.width, e->xexpose.height );
@@ -397,15 +402,10 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         swa.colormap          = cmap;
         swa.background_pixmap = None;
         swa.border_pixel      = 0;
-        swa.event_mask        = ExposureMask | StructureNotifyMask |
-                                SubstructureNotifyMask |
-                                KeyPressMask | KeyReleaseMask |
-                                PointerMotionMask |
-                                ButtonPressMask | ButtonReleaseMask;
 
         wnd->wnd = XCreateWindow( dpy, RootWindow(dpy, vi->screen), 0, 0,
                                   width, height, 0, vi->depth, InputOutput,
-                                  vi->visual,CWBorderPixel|CWColormap|CWEventMask,
+                                  vi->visual, CWBorderPixel|CWColormap,
                                   &swa );
 
         if( !wnd->wnd )
