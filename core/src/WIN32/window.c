@@ -253,7 +253,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
             key = VK_RMENU;
 
         /* Send event */
-        e.keyboard_event.code = (SGUI_KEY_CODE)key;
+        e.keyboard_event.code = key;
 
         if( msg==WM_KEYDOWN || msg==WM_SYSKEYDOWN )
             sgui_internal_window_fire_event(base, SGUI_KEY_PRESSED_EVENT, &e);

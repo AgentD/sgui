@@ -33,50 +33,48 @@
 
 
 
-enum
-{
-    SGUI_MOUSE_BUTTON_LEFT = 0,
-    SGUI_MOUSE_BUTTON_MIDDLE,
-    SGUI_MOUSE_BUTTON_RIGHT
-};
+#define SGUI_MOUSE_BUTTON_LEFT   0
+#define SGUI_MOUSE_BUTTON_MIDDLE 1
+#define SGUI_MOUSE_BUTTON_RIGHT  2
 
-enum
-{
-    /* window events */
-    SGUI_USER_CLOSED_EVENT = 0,
-    SGUI_API_INVISIBLE_EVENT,
-    SGUI_API_DESTROY_EVENT,
-    SGUI_SIZE_CHANGE_EVENT,
 
-    SGUI_MOUSE_MOVE_EVENT,
-    SGUI_MOUSE_PRESS_EVENT,
-    SGUI_MOUSE_RELEASE_EVENT,
-    SGUI_MOUSE_WHEEL_EVENT,
-    SGUI_MOUSE_ENTER_EVENT,
-    SGUI_MOUSE_LEAVE_EVENT,
+/**************** window events ****************/
+#define SGUI_USER_CLOSED_EVENT          0x0000
+#define SGUI_API_INVISIBLE_EVENT        0x0001
+#define SGUI_API_DESTROY_EVENT          0x0002
+#define SGUI_SIZE_CHANGE_EVENT          0x0003
 
-    SGUI_KEY_PRESSED_EVENT,
-    SGUI_KEY_RELEASED_EVENT,
-    SGUI_CHAR_EVENT,
+#define SGUI_MOUSE_MOVE_EVENT           0x0004
+#define SGUI_MOUSE_PRESS_EVENT          0x0005
+#define SGUI_MOUSE_RELEASE_EVENT        0x0006
+#define SGUI_MOUSE_WHEEL_EVENT          0x0007
+#define SGUI_MOUSE_ENTER_EVENT          0x0008
+#define SGUI_MOUSE_LEAVE_EVENT          0x0009
 
-    SGUI_EXPOSE_EVENT,
+#define SGUI_KEY_PRESSED_EVENT          0x000A
+#define SGUI_KEY_RELEASED_EVENT         0x000B
+#define SGUI_CHAR_EVENT                 0x000C
 
-    /* widget manager events */
-    SGUI_FOCUS_EVENT,
-    SGUI_FOCUS_LOSE_EVENT,
+#define SGUI_EXPOSE_EVENT               0x000D
 
-    /* button events */
-    SGUI_BUTTON_CLICK_EVENT,
+/************ widget manager events ************/
+#define SGUI_FOCUS_EVENT                0x0010
+#define SGUI_FOCUS_LOSE_EVENT           0x0011
 
-    SGUI_RADIO_BUTTON_SELECT_EVENT,
+/* button events */
+#define SGUI_BUTTON_CLICK_EVENT         0x0020
 
-    SGUI_CHECKBOX_CHECK_EVENT,
-    SGUI_CHECKBOX_UNCHECK_EVENT,
+#define SGUI_RADIO_BUTTON_SELECT_EVENT  0x0021
 
-    /* edit box events */
-    SGUI_EDIT_BOX_TEXT_CHANGED,  /* text got modified */
-    SGUI_EDIT_BOX_TEXT_ENTERED   /* text got modified, user pressed enter */
-};
+#define SGUI_CHECKBOX_CHECK_EVENT       0x0022
+#define SGUI_CHECKBOX_UNCHECK_EVENT     0x0023
+
+/*************** edit box events ***************/
+/* text got modified */
+#define SGUI_EDIT_BOX_TEXT_CHANGED      0x0030
+
+/* text got modified, user pressed enter */
+#define SGUI_EDIT_BOX_TEXT_ENTERED      0x0031
 
 
 
@@ -90,7 +88,7 @@ union sgui_event
 
     struct { int direction; } mouse_wheel;
 
-    struct { SGUI_KEY_CODE code; } keyboard_event;
+    struct { int code; } keyboard_event;
 
     struct { char as_utf8_str[8]; } char_event;
 

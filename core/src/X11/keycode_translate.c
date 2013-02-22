@@ -31,7 +31,7 @@
 static struct
 {
     KeySym key;
-    SGUI_KEY_CODE code;
+    int code;
 }
 key_entries[ 200 ];
 
@@ -40,10 +40,10 @@ static unsigned int num_key_entries = 0;
 
 
 /*
-    add a coresponding KeySym <-> SGUI_KEY_CODE pair to the LUT, sorted by
+    add a coresponding KeySym <-> sgui key code pair to the LUT, sorted by
     KeySym. Runs in O(n) complexity, only called at initialisation anyway
  */
-void key_entries_add( KeySym key, SGUI_KEY_CODE code )
+void key_entries_add( KeySym key, int code )
 {
     unsigned int i, j;
 
@@ -69,11 +69,11 @@ void key_entries_add( KeySym key, SGUI_KEY_CODE code )
 }
 
 /*
-    search for the coresponding SGUI_KEY_CODE for a given KeySym. Performs
+    search for the coresponding sgui key code for a given KeySym. Performs
     hand coded binary search instead of using bsearch. Needs to be fast;
     called every time a user presses or releases a key.
  */
-SGUI_KEY_CODE key_entries_translate( KeySym key )
+int key_entries_translate( KeySym key )
 {
     unsigned int i, l = 0, u = num_key_entries;
 

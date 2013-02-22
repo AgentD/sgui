@@ -152,8 +152,8 @@ GLXContext create_context( GLXFBConfig cfg );
 /* in keycode_translate.c: initialise keycode symbol lookup table */
 void init_keycodes( );
 
-/* in keycode_translate.c: convert KeySym to SGUI_KEY_CODE */
-SGUI_KEY_CODE key_entries_translate( KeySym key );
+/* in keycode_translate.c: convert KeySym to an sgui key code */
+int key_entries_translate( KeySym key );
 
 #endif /* INTERNAL_H */
 
