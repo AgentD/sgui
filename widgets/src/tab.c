@@ -97,10 +97,20 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
             if( g->selected )
+            {
                 sgui_widget_manager_on_event( g->selected->mgr, NULL, NULL );
+                sgui_widget_manager_send_window_event( g->selected->mgr,
+                                                       SGUI_TAB_DESELECTED,
+                                                       NULL );
+            }
 
             if( i )
+            {
                 sgui_widget_manager_on_event( i->mgr, tab_pass_event, widget );
+                sgui_widget_manager_send_window_event( i->mgr,
+                                                       SGUI_TAB_SELECTED,
+                                                       NULL );
+            }
 
             g->selected = i;
         }
@@ -263,6 +273,10 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     g->tabs = t;
     g->selected = t;
     sgui_widget_manager_on_event( t->mgr, tab_pass_event, tab );
+
+    if( g->selected )
+        sgui_widget_manager_send_window_event( g->selected->mgr,
+                                               SGUI_TAB_DESELECTED, NULL );
 
     return 0;
 }

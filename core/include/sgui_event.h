@@ -61,7 +61,7 @@
 #define SGUI_FOCUS_EVENT                0x0010
 #define SGUI_FOCUS_LOSE_EVENT           0x0011
 
-/* button events */
+/**************** button events ****************/
 #define SGUI_BUTTON_CLICK_EVENT         0x0020
 
 #define SGUI_RADIO_BUTTON_SELECT_EVENT  0x0021
@@ -75,6 +75,13 @@
 
 /* text got modified, user pressed enter */
 #define SGUI_EDIT_BOX_TEXT_ENTERED      0x0031
+
+/***************** tab events ******************/
+/* the parent tab of a widget got deselected */
+#define SGUI_TAB_DESELECTED             0x0040
+
+/* the parent tab of a widget got selected */
+#define SGUI_TAB_SELECTED               0x0041
 
 
 
