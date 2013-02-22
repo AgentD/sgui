@@ -1,5 +1,9 @@
 #include "sgui.h"
 
+#ifndef SGUI_NO_OPENGL
+    #include <GL/gl.h>
+#endif
+
 #include <stdio.h>
 
 
@@ -9,11 +13,44 @@ sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *f, *gb, *ra, *rb, *rc, *tab;
 unsigned char image[128*128*4];
 
+sgui_window* gl_sub;
+
 const char* text =
     "Lorem <b>ipsum</b> dolor <i>sit</i> amet,\n"
     "<color=\"#FF0000\"><i>consectetuer</i> <b>adipiscing</b> elit.\n"
     "<color=\"#00FF00\"><b>Aenean <i>commodo</i> ligula <i>eget</i></b>\n"
     "<color=\"#0000FF\"><i>dolor. <b>Aenean</b> massa.</i>";
+
+
+
+void gl_sub_cb( sgui_window* wnd, int type, sgui_event* event )
+{
+    unsigned int w, h;
+    (void)event;
+    (void)wnd;
+
+    if( type == SGUI_EXPOSE_EVENT )
+    {
+        sgui_window_get_size( wnd, &w, &h );
+
+#ifndef SGUI_NO_OPENGL
+        glViewport( 0, 0, w, h );
+
+        glClear( GL_COLOR_BUFFER_BIT );
+
+        glBegin( GL_TRIANGLES );
+        glColor3f( 1.0f, 0.0f, 0.0f );
+        glVertex2f( -0.5f, -0.5f );
+        glColor3f( 0.0f, 1.0f, 0.0f );
+        glVertex2f(  0.5f, -0.5f );
+        glColor3f( 0.0f, 0.0f, 1.0f );
+        glVertex2f(  0.0f,  0.5f );
+        glEnd( );
+#endif
+
+        sgui_window_swap_buffers( wnd );
+    }
+}
 
 
 
@@ -27,8 +64,8 @@ int main( void )
 
     sgui_init( );
 
-    a = sgui_window_create( 400, 300, SGUI_RESIZEABLE, 0 );
-    b = sgui_window_create( 100, 100, SGUI_FIXED_SIZE, 0 );
+    a = sgui_window_create( NULL, 400, 300, SGUI_RESIZEABLE, 0 );
+    b = sgui_window_create( NULL, 100, 100, SGUI_FIXED_SIZE, 0 );
 
     sgui_window_set_visible( a, SGUI_VISIBLE );
     sgui_window_set_visible( b, SGUI_VISIBLE );
@@ -133,12 +170,27 @@ int main( void )
     sgui_tab_group_add_widget( tab, 2, p2 );
     sgui_tab_group_add_widget( tab, 2, p3 );
 
+    /* OpenGL widget tab */
+    sgui_tab_group_add_tab( tab, "OpenGL" );
+
+    gl_sub = sgui_window_create( a, 200, 150, 0, SGUI_OPENGL_COMPAT );
+
+    sgui_window_move( gl_sub, 200, 200 );
+    sgui_window_set_visible( gl_sub, SGUI_VISIBLE );
+    sgui_window_make_current( gl_sub );
+
+    sgui_window_on_event( gl_sub, gl_sub_cb );
+
+    /* */
     sgui_window_add_widget( a, tab );
 
     sgui_main_loop( );
 
+    sgui_window_make_current( NULL );
+
     sgui_window_destroy( a );
     sgui_window_destroy( b );
+    sgui_window_destroy( gl_sub );
 
     sgui_group_box_destroy( gb );
     sgui_frame_destroy( f );

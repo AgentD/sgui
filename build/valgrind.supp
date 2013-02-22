@@ -18,3 +18,23 @@
    ...
 }
 
+#
+# OpenGL related leaks
+#
+
+{
+   Ignore XextCreateExtension/dlopen leak in DRI.
+   Memcheck:Leak
+   ...
+   fun:glXGetFBConfigs
+   ...
+}
+
+{
+   Ignore dlopen leaks.
+   Memcheck:Leak
+   ...
+   fun:_dl_open
+   ...
+}
+

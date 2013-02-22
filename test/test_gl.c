@@ -65,7 +65,7 @@ int main( void )
     /* create window */
     sgui_init( );
 
-    wnd = sgui_window_create( 800, 600, 0, SGUI_OPENGL_COMPAT );
+    wnd = sgui_window_create( NULL, 800, 600, 0, SGUI_OPENGL_COMPAT );
 
     sgui_window_set_title( wnd, "sgui OpenGL test" );
     sgui_window_set_visible( wnd, 1 );

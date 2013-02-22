@@ -273,11 +273,23 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
         sgui_widget_manager_draw_all( wnd->base.mgr, wnd->base.back_buffer );
         break;
+    case DestroyNotify:
+        wnd->base.visible = 0;
+        wnd->wnd = 0;
+        break;
+    case UnmapNotify:
+        if( e->xunmap.window == wnd->wnd )  /* window got unmaped */
+        {
+            wnd->base.visible = 0;
+            SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
+        }
+        break;
     case ClientMessage:
         if( e->xclient.data.l[0] == (long)atom_wm_delete )
         {
             wnd->base.visible = 0;
             XUnmapWindow( dpy, wnd->wnd );
+            XUnmapSubwindows( dpy, wnd->wnd );
             SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
         }
         break;
@@ -321,8 +333,9 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
 /****************************************************************************/
 
-sgui_window* sgui_window_create( unsigned int width, unsigned int height,
-                                 int resizeable, int backend )
+sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
+                                 unsigned int height, int resizeable,
+                                 int backend )
 {
     sgui_window_xlib* wnd;
     XSizeHints hints;
@@ -335,6 +348,7 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 #endif
     unsigned long color = 0;
     unsigned char rgb[3];
+    Window x_parent;
 
     if( !width || !height )
         return NULL;
@@ -369,6 +383,8 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     add_window( wnd );
 
     /******************** create the window ********************/
+    x_parent = parent ? TO_X11(parent)->wnd : DefaultRootWindow(dpy);
+
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
@@ -403,10 +419,9 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         swa.background_pixmap = None;
         swa.border_pixel      = 0;
 
-        wnd->wnd = XCreateWindow( dpy, RootWindow(dpy, vi->screen), 0, 0,
-                                  width, height, 0, vi->depth, InputOutput,
-                                  vi->visual, CWBorderPixel|CWColormap,
-                                  &swa );
+        wnd->wnd = XCreateWindow( dpy, x_parent, 0, 0, width, height, 0,
+                                  vi->depth, InputOutput, vi->visual,
+                                  CWBorderPixel|CWColormap, &swa );
 
         if( !wnd->wnd )
         {
@@ -424,8 +439,8 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
         color |= ((unsigned long)rgb[1]) << 8;
         color |= ((unsigned long)rgb[2]);
 
-        wnd->wnd = XCreateSimpleWindow( dpy, DefaultRootWindow(dpy),
-                                        0, 0, width, height, 0, 0, color );
+        wnd->wnd = XCreateSimpleWindow( dpy, x_parent, 0, 0, width, height,
+                                        0, 0, color );
 
         if( !wnd->wnd )
         {
@@ -446,7 +461,6 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
 
     /* tell X11 what events we will handle */
     XSelectInput( dpy, wnd->wnd, ExposureMask | StructureNotifyMask |
-                                 SubstructureNotifyMask |
                                  KeyPressMask | KeyReleaseMask |
                                  PointerMotionMask |
                                  ButtonPressMask | ButtonReleaseMask );

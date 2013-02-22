@@ -72,6 +72,10 @@ typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
  * \note The window is created invisible and has to be made visible by calling
  *       sgui_window_set_visible( ).
  *
+ * \param parent     A pointer to the parent window, or NULL for root window.
+ *                   If a window has a parent, it is not decorted by the
+ *                   systems window manager, positioned relative to its parent
+ *                   and only visible within its parent.
  * \param width      The width of the window(without borders and decoration).
  * \param height     The height of the window(without borders and decoration)
  * \param resizeable Non-zero if the window should be resizeable by the user,
@@ -86,7 +90,8 @@ typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
-SGUI_DLL sgui_window* sgui_window_create( unsigned int width,
+SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
+                                          unsigned int width,
                                           unsigned int height,
                                           int resizeable,
                                           int backend );

@@ -15,17 +15,23 @@ a window, simply call the <b>sgui_window_create</b> function which takes three
 parameters:
 
 <p class="code">
-sgui_window* sgui_window_create( <font class="keyword">unsigned int</font> width,
+sgui_window* sgui_window_create( <font class="keyword">sgui_window*</font> parent,
+                                 <font class="keyword">unsigned int</font> width,
                                  <font class="keyword">unsigned int</font> height,
                                  <font class="keyword">int</font> resizeable,
                                  <font class="keyword">int</font> backend );
 </p>
 
 <ul>
-<li>The first two parameters, <b>width</b> and <b>height</b>, specify the
+<li>The first parameter specifies the parent window. <b>NULL</b> means to
+    create the window on the root/desktop window, a pointer to an existing
+    window makes the the new window to a child window of the existing one.
+    Child windows are only visible inside their parent and are not managed by
+    the systems window manager.
+<li>The next two parameters, <b>width</b> and <b>height</b>, specify the
     size of the windows drawing area in pixels (i.e. the area inside the window,
     not taking the window borders into account).
-<li>The third paramter, <b>resizeable</b> specifies whether the user should be
+<li>The next paramter, <b>resizeable</b> specifies whether the user should be
     able to resize the window with the mouse or not.
 <li>The constants <b>SGUI_FIXED_SIZE</b> and <b>SGUI_RESIZEABLE</b> are
     provided so you don't have to pass the magic values <b>0</b> and
@@ -87,7 +93,7 @@ window functions:<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_init( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE, SGUI_NATIVE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="keyword">NULL</font>, <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE, SGUI_NATIVE );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_title( wnd, <font class="string">"Simple Sample"</font> );<br>
 <br>
