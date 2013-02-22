@@ -27,46 +27,25 @@
 
 
 
-unsigned int utf8_char_length( unsigned char c )
-{
-    c >>= 3;
-
-    if( c == 0x1E )
-        return 4;
-
-    c >>= 1;
-
-    if( c == 0x0E )
-        return 3;
-
-    c >>= 1;
-
-    return (c==0x06) ? 2 : 1;
-}
-
-
-
-
 unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
 {
-    unsigned int ch = 0, i, len = 0;
+    unsigned int ch = 0, i = 0, len = 0;
 
     if( utf8 )
     {
-        len = utf8_char_length( *utf8 );
+        len = 1;
         ch = *(utf8++);
 
-        switch( len )
-        {
-        case 4: ch ^= 0xf0; break;
-        case 3: ch ^= 0xe0; break;
-        case 2: ch ^= 0xc0; break;
-        }
+             if( (ch & 0xFE) == 0xFC ) { len = 6; ch &= 0x01; }
+        else if( (ch & 0xFC) == 0xF8 ) { len = 5; ch &= 0x03; }
+        else if( (ch & 0xF8) == 0xF0 ) { len = 4; ch &= 0x07; }
+        else if( (ch & 0xF0) == 0xE0 ) { len = 3; ch &= 0x0F; }
+        else if( (ch & 0xE0) == 0xC0 ) { len = 2; ch &= 0x1F; }
 
-        for( i=*length; i>1; --i, ++utf8 )
+        for( i=1; i<len; ++i, ++utf8 )
         {
             ch <<= 6;
-            ch |= (((unsigned char)*utf8) ^ 0x80);
+            ch |= (*utf8) & 0x3F;
         }
     }
 
