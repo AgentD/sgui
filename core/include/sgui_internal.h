@@ -199,6 +199,13 @@ struct sgui_widget
      */
     void (* window_event_callback )( sgui_widget* widget, int type,
                                      sgui_event* event );
+
+    /**
+     * \brief Callback that is called when the internal state of a widget
+     *        changes(e.g. position, visibility, etc...)
+     * 
+     */
+    void (* state_change_callback )( sgui_widget* widget );
 };
 
 struct sgui_window
@@ -212,6 +219,8 @@ struct sgui_window
     unsigned int w, h;          /**< \brief the size of the window */
 
     int visible;                /**< \brief Window visibility */
+
+    void* userptr;
 };
 
 

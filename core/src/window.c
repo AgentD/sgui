@@ -110,3 +110,14 @@ sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
     return wnd ? wnd->back_buffer : NULL;
 }
 
+void sgui_window_set_userptr( sgui_window* wnd, void* ptr )
+{
+    if( wnd )
+        wnd->userptr = ptr;
+}
+
+void* sgui_window_get_userptr( sgui_window* wnd )
+{
+    return wnd ? wnd->userptr : NULL;
+}
+

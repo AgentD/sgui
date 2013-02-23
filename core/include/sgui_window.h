@@ -243,6 +243,28 @@ SGUI_DLL void sgui_window_get_position( sgui_window* wnd, int* x, int* y );
 SGUI_DLL void sgui_window_on_event( sgui_window* wnd,
                                     sgui_window_callback fun );
 
+/**
+ * \brief Store a user supplied pointer along with a window
+ *
+ * This function can be used to conviently store a user pointer (e.g. to a C++
+ * class managing the window, or a widget managing a sub window, etc...) with
+ * a window to be later retrieved on demand.
+ *
+ * \param wnd A pointer to a window
+ * \param ptr The user supplied pointer to store
+ */
+SGUI_DLL void sgui_window_set_userptr( sgui_window* wnd, void* ptr );
+
+/**
+ * \brief Obtain a user supplied pointer from a window
+ *
+ * \see sgui_window_set_userptr
+ *
+ * \param wnd A pointer to a window
+ *
+ * \return The user supplied pointer stored in the window structure
+ */
+SGUI_DLL void* sgui_window_get_userptr( sgui_window* wnd );
 
 /**
  * \brief Add a widget to a window

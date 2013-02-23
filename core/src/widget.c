@@ -39,6 +39,7 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->mgr                   = NULL;
     widget->draw_callback         = NULL;
     widget->window_event_callback = NULL;
+    widget->state_change_callback = NULL;
 }
 
 
@@ -61,6 +62,10 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
 
         /* flag the new area dirty */
         sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
+
+        /* call the state change callback if there is one */
+        if( w->state_change_callback )
+            w->state_change_callback( w );
     }
 }
 
@@ -101,7 +106,12 @@ int sgui_widget_is_visible( sgui_widget* w )
 void sgui_widget_set_visible( sgui_widget* w, int visible )
 {
     if( w )
+    {
         w->visible = visible;
+
+        if( w->state_change_callback )
+            w->state_change_callback( w );
+    }
 }
 
 void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r )

@@ -42,7 +42,7 @@ SOURCE_WIDGETS="widgets/src/progress_bar.c widgets/src/static_text.c
                 widgets/src/button.c widgets/src/image.c
                 widgets/src/edit_box.c widgets/src/frame.c
                 widgets/src/scroll_bar.c widgets/src/group_box.c
-                widgets/src/tab.c"
+                widgets/src/tab.c widgets/src/subview.c"
 
 SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c"
 

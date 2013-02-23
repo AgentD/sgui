@@ -28,6 +28,7 @@
 #include "sgui_widget_manager.h"
 #include "sgui_event.h"
 #include "sgui_canvas.h"
+#include "sgui_widget.h"
 #include "sgui_internal.h"
 
 #include <stdlib.h>
@@ -293,7 +294,14 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
         for( count=0; count<index && i; i=i->next, ++count );
 
         if( count==index && i )
+        {
             sgui_widget_manager_add_widget( i->mgr, w );
+
+            if( i != ((sgui_tab_group*)tab)->selected )
+                sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
+            else
+                sgui_widget_send_window_event( w, SGUI_TAB_SELECTED, NULL );
+        }
     }
 }
 
