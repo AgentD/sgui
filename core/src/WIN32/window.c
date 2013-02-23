@@ -143,14 +143,24 @@ void sgui_window_move( sgui_window* wnd, int x, int y )
 
     if( wnd )
     {
-        GetClientRect( TO_W32(wnd)->hWnd, &inner );
-        GetWindowRect( TO_W32(wnd)->hWnd, &outer );
+        if( GetWindowLong( TO_W32(wnd)->hWnd, GWL_STYLE ) & WS_CHILD )
+        {
+            dx = dy = 0;
+            w = wnd->w;
+            h = wnd->h;
+        }
+        else
+        {
+            /* This did not work for child windows (nonsense dx and dy) */
+            GetClientRect( TO_W32(wnd)->hWnd, &inner );
+            GetWindowRect( TO_W32(wnd)->hWnd, &outer );
 
-        w = outer.right  - outer.left;
-        h = outer.bottom - outer.top;
+            w = outer.right  - outer.left;
+            h = outer.bottom - outer.top;
 
-        dx = inner.left - outer.left;
-        dy = inner.top  - outer.top;
+            dx = inner.left - outer.left;
+            dy = inner.top  - outer.top;
+        }
 
         MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
 
@@ -323,10 +333,12 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
 
 /****************************************************************************/
 
-sgui_window* sgui_window_create( unsigned int width, unsigned int height,
-                                 int resizeable, int backend )
+sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
+                                 unsigned int height, int resizeable,
+                                 int backend )
 {
     sgui_window_w32* wnd;
+    HWND parent_hnd = 0;
     DWORD style;
     RECT r;
     unsigned char rgb[3];
@@ -365,13 +377,23 @@ sgui_window* sgui_window_create( unsigned int width, unsigned int height,
     add_window( wnd );
 
     /*************************** create a window ***************************/
-    style = resizeable ? WS_OVERLAPPEDWINDOW : (WS_CAPTION | WS_SYSMENU);
-
     SetRect( &r, 0, 0, width, height );
-    AdjustWindowRect( &r, style, FALSE );
+
+    if( parent )
+    {
+        parent_hnd = TO_W32(parent)->hWnd;
+        style = WS_CHILD;
+    }
+    else
+    {
+        style = resizeable ? WS_OVERLAPPEDWINDOW : (WS_CAPTION | WS_SYSMENU);
+        AdjustWindowRect( &r, style, FALSE );
+    }
+
+    style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
     wnd->hWnd = CreateWindowEx( 0, wndclass, "", style, 0, 0, r.right-r.left,
-                                r.bottom-r.top, 0, 0, hInstance, NULL );
+                                r.bottom-r.top, parent_hnd, 0, hInstance, 0 );
 
     if( !wnd->hWnd )
     {
