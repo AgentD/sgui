@@ -481,11 +481,14 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
-        if( backend!=SGUI_OPENGL_COMPAT )
-            wnd->gl = create_context( fbc );
+        sgui_window_xlib* share_wnd = find_gl_window( );
+        GLXContext share_ctx = share_wnd ? share_wnd->gl : 0;
+
+        if( backend!=SGUI_OPENGL_COMPAT && fbc )
+            wnd->gl = create_context( fbc, share_ctx );
 
         if( !wnd->gl )
-            wnd->gl = glXCreateContext( dpy, vi, NULL, GL_TRUE );
+            wnd->gl = glXCreateContext( dpy, vi, share_ctx, GL_TRUE );
 
         XFree( vi );    /* we don't need the visual info anymore */
 

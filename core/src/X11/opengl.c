@@ -95,7 +95,7 @@ XVisualInfo* get_visual_old( void )
     return glXChooseVisual( dpy, DefaultScreen(dpy), attr );
 }
 
-GLXContext create_context( GLXFBConfig cfg )
+GLXContext create_context( GLXFBConfig cfg, GLXContext share )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     GLXContext ctx = 0;
@@ -126,7 +126,7 @@ GLXContext create_context( GLXFBConfig cfg )
         {
             attribs[1] = major;
             attribs[3] = minor;
-            ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+            ctx = CreateContextAttribs( dpy, cfg, share, True, attribs );
         }
     }
 
@@ -135,7 +135,7 @@ GLXContext create_context( GLXFBConfig cfg )
     {
         attribs[1] = 2;
         attribs[3] = minor;
-        ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+        ctx = CreateContextAttribs( dpy, cfg, share, True, attribs );
     }
 
     /* try to create 1.x context */
@@ -143,7 +143,7 @@ GLXContext create_context( GLXFBConfig cfg )
     {
         attribs[1] = 1;
         attribs[3] = minor;
-        ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+        ctx = CreateContextAttribs( dpy, cfg, share, True, attribs );
     }
 
     return ctx;
