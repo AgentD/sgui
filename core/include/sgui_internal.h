@@ -220,6 +220,8 @@ struct sgui_window
 
     int visible;                /**< \brief Window visibility */
 
+    int backend;                /**< \breif Window backend used */
+
     void* userptr;
 };
 

@@ -103,7 +103,6 @@ typedef struct _sgui_window_xlib
 
     int resizeable;           /* remembers whether the window is resizeable */
     unsigned int mouse_warped;/* mouse warp counter */
-    int backend;              /* holds the back end from the create function*/
 
 #ifndef SGUI_NO_OPENGL
     GLXContext gl;

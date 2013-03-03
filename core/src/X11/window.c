@@ -377,7 +377,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         }
     }
 
-    wnd->backend = backend;
+    wnd->base.backend = backend;
     wnd->resizeable = resizeable;
 
     add_window( wnd );
@@ -531,8 +531,8 @@ void sgui_window_make_current( sgui_window* wnd )
 #ifdef SGUI_NO_OPENGL
     (void)wnd;
 #else
-    if( wnd && (TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
-                TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT) )
+    if( wnd && (wnd->backend==SGUI_OPENGL_CORE ||
+                wnd->backend==SGUI_OPENGL_COMPAT) )
     {
         glXMakeCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->gl );
     }
@@ -548,8 +548,8 @@ void sgui_window_swap_buffers( sgui_window* wnd )
 #ifdef SGUI_NO_OPENGL
     (void)wnd;
 #else
-    if( wnd && (TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
-                TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT) )
+    if( wnd && (wnd->backend==SGUI_OPENGL_CORE ||
+                wnd->backend==SGUI_OPENGL_COMPAT) )
     {
         glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
     }
@@ -572,8 +572,7 @@ void sgui_window_destroy( sgui_window* wnd )
     if( TO_X11(wnd)->ic )
         XDestroyIC( TO_X11(wnd)->ic );
 
-    if( TO_X11(wnd)->backend==SGUI_OPENGL_CORE ||
-        TO_X11(wnd)->backend==SGUI_OPENGL_COMPAT )
+    if( wnd->backend==SGUI_OPENGL_CORE || wnd->backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
         if( TO_X11(wnd)->gl )

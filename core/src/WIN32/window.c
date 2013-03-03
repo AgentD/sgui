@@ -403,8 +403,9 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     SET_USER_PTR( wnd->hWnd, wnd );
 
-    wnd->base.w = width;
-    wnd->base.h = height;
+    wnd->base.w       = width;
+    wnd->base.h       = height;
+    wnd->base.backend = backend;
 
     /**************************** create canvas ****************************/
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
@@ -485,8 +486,11 @@ void sgui_window_make_current( sgui_window* wnd )
 #ifdef SGUI_NO_OPENGL
     (void)wnd;
 #else
-    if( wnd )
+    if( wnd && (wnd->backend==SGUI_OPENGL_COMPAT ||
+                wnd->backend==SGUI_OPENGL_CORE) )
+    {
         wglMakeCurrent( TO_W32(wnd)->hDC, TO_W32(wnd)->hRC );
+    }
     else
         wglMakeCurrent( NULL, NULL );
 #endif
