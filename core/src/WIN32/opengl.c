@@ -64,67 +64,143 @@ int set_pixel_format( HDC hDC )
     return SetPixelFormat( hDC, format, &pfd );
 }
 
-HGLRC create_context( HDC hDC, int compatibillity )
+int create_gl_context( sgui_window_w32* wnd, int compatibillity )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-    HGLRC ctx = NULL;
     int attribs[10], major, minor;
+    HGLRC temp, oldctx;
+    HDC olddc;
+
+    /* get a device context and set a pixel format */
+    wnd->hDC = GetDC( wnd->hWnd );
+
+    if( !wnd->hDC || !set_pixel_format( wnd->hDC ) )
+        return 0;
+
+    /* create an old fashioned OpenGL temporary context */
+    temp = wglCreateContext( wnd->hDC );
+
+    if( !temp )
+        return 0;
+
+    /* try to make it current */
+    oldctx = wglGetCurrentContext( );
+    olddc = wglGetCurrentDC( );
+
+    if( !wglMakeCurrent( wnd->hDC, temp ) )
+        return 0;
 
     /* load the new context creation function */
     wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
     wglGetProcAddress( "wglCreateContextAttribsARB" );
 
-    if( !wglCreateContextAttribsARB )
-        return NULL;
+    /* try to create a new context */
+    wnd->hRC = 0;
 
-    /* fill attrib array */
-    attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-    attribs[1] = 0;
-    attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-    attribs[3] = 0;
-    attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+    if( wglCreateContextAttribsARB )
+    {
+        /* fill attrib array */
+        attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+        attribs[1] = 0;
+        attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+        attribs[3] = 0;
+        attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
 
-    if( compatibillity )
-    {
-        attribs[5] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-        attribs[6] = 0;
-    }
-    else
-    {
-        attribs[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-        attribs[6] = WGL_CONTEXT_FLAGS_ARB;
-        attribs[7] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-        attribs[8] = 0;
-    }
-
-    /* try to create 4.3 down to 3.0 context */
-    for( major=4; !ctx && major>=3; --major )
-    {
-        for( minor=3; !ctx && minor>=0; --minor )
+        if( compatibillity )
         {
-            attribs[1] = major;
+            attribs[5] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+            attribs[6] = 0;
+        }
+        else
+        {
+            attribs[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attribs[6] = WGL_CONTEXT_FLAGS_ARB;
+            attribs[7] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+            attribs[8] = 0;
+        }
+
+        /* try to create 4.3 down to 3.0 context */
+        for( major=4; !wnd->hRC && major>=3; --major )
+        {
+            for( minor=3; !wnd->hRC && minor>=0; --minor )
+            {
+                attribs[1] = major;
+                attribs[3] = minor;
+                wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
+            }
+        }
+
+        /* try to create 2.x context */
+        for( minor=1; !wnd->hRC && minor>=0; --minor )
+        {
+            attribs[1] = 2;
             attribs[3] = minor;
-            ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
+            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
+        }
+
+        /* try to create 1.x context */
+        for( minor=5; !wnd->hRC && minor>=0; --minor )
+        {
+            attribs[1] = 1;
+            attribs[3] = minor;
+            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
         }
     }
 
-    /* try to create 2.x context */
-    for( minor=1; !ctx && minor>=0; --minor )
-    {
-        attribs[1] = 2;
-        attribs[3] = minor;
-        ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
-    }
+    /* restore the privous context */
+    wglMakeCurrent( olddc, oldctx );
 
-    /* try to create 1.x context */
-    for( minor=5; !ctx && minor>=0; --minor )
-    {
-        attribs[1] = 1;
-        attribs[3] = minor;
-        ctx = wglCreateContextAttribsARB( hDC, 0, attribs );
-    }
+    /* delete the temporary context on success, use it instead otherwise */
+    if( wnd->hRC )
+        wglDeleteContext( temp );
+    else
+        wnd->hRC = temp;
 
-    return ctx;
+    return 1;
+}
+
+void destroy_gl_context( sgui_window_w32* wnd )
+{
+    if( wnd->hRC )
+        wglDeleteContext( wnd->hRC );
+
+    if( wnd->hDC )
+        ReleaseDC( wnd->hWnd, wnd->hDC );
+}
+
+void gl_swap_buffers( sgui_window_w32* wnd )
+{
+    SwapBuffers( wnd->hDC );
+}
+
+void gl_make_current( sgui_window_w32* wnd )
+{
+    if( wnd )
+        wglMakeCurrent( wnd->hDC, wnd->hRC );
+    else
+        wglMakeCurrent( NULL, NULL );
+}
+#else
+int create_gl_context( sgui_window_w32* wnd, int compatibillity )
+{
+    (void)wnd;
+    (void)compatibillity;
+    return 0;
+}
+
+void destroy_gl_context( sgui_window_w32* wnd )
+{
+    (void)wnd;
+}
+
+void gl_swap_buffers( sgui_window_w32* wnd )
+{
+    (void)wnd;
+}
+
+void gl_make_current( sgui_window_w32* wnd )
+{
+    (void)wnd;
 }
 #endif
 

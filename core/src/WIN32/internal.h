@@ -100,14 +100,18 @@ void remove_window( sgui_window_w32* wnd );
 int handle_window_events( sgui_window_w32* wnd, UINT msg,
                           WPARAM wp, LPARAM lp );
 
-#ifndef SGUI_NO_OPENGL
-/* in opengl.c: set the pixel format for a device context */
-int set_pixel_format( HDC hDC );
+/* in opengl.c: create OpenGL context with maximum version,
+   return non-zero on success, zero on failure */
+int create_gl_context( sgui_window_w32* wnd, int compatibillity );
 
-/* in opengl.c: create OpenGL context with maximum version */
-HGLRC create_context( HDC hDC, int compatibillity );
-#endif
+/* in opengl.c: destroy OpenGL context of a window */
+void destroy_gl_context( sgui_window_w32* wnd );
 
+/* in opengl.c: swap buffers of an OpenGL context of a window */
+void gl_swap_buffers( sgui_window_w32* wnd );
+
+/* in opengl.c: make the OpenGL context of a window current */
+void gl_make_current( sgui_window_w32* wnd );
 
 /* in canvas.c: create a gdi canvas */
 sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
