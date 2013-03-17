@@ -105,48 +105,28 @@ void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
-void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
-                       unsigned int height, unsigned int scanline_length,
-                       int format, const void* data )
+void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                       sgui_rect* srcrect )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    unsigned int i, endy, bpp = format==SGUI_RGBA8 ? 4 : 3;
-    unsigned char *src = (unsigned char*)data, *srow;
+    Picture pic = pixmap_get_picture( pixmap );
 
-    for( endy=y+height; y<(int)endy; ++y, src+=scanline_length*bpp )
-    {
-        for( srow=src, i=0; i<width; ++i, srow+=bpp )
-        {
-            XSetForeground( dpy, cv->gc, srow[0]<<16 | srow[1]<<8 | srow[2] );
-            XDrawPoint( dpy, cv->pixmap, cv->gc, x+i, y );
-        }
-    }
+    XRenderComposite( dpy, PictOpSrc, pic, 0, cv->pic,
+                      srcrect->left, srcrect->top, 0, 0, x, y,
+                      SGUI_RECT_WIDTH_V(srcrect),
+                      SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
-void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
-                        unsigned int height, unsigned int scanline_length,
-                        const void* data )
+void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                        sgui_rect* srcrect )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    unsigned int i, endy;
-    unsigned char *src = (unsigned char*)data, *srow, A, iA;
-    long c;
+    Picture pic = pixmap_get_picture( pixmap );
 
-    for( endy=y+height; y<(int)endy; ++y, src+=scanline_length*4 )
-    {
-        for( srow=src, i=0; i<width; ++i, srow+=4 )
-        {
-            A = srow[3];
-            iA = 0xFF - A;
-
-            c  = (srow[0] * A + canvas->bg_color[0] * iA)>>8; c <<= 8;
-            c |= (srow[1] * A + canvas->bg_color[1] * iA)>>8; c <<= 8;
-            c |= (srow[2] * A + canvas->bg_color[2] * iA)>>8;
-
-            XSetForeground( dpy, cv->gc, c );
-            XDrawPoint( dpy, cv->pixmap, cv->gc, x+i, y );
-        }
-    }
+    XRenderComposite( dpy, PictOpOver, pic, 0, cv->pic,
+                      srcrect->left, srcrect->top, 0, 0, x, y,
+                      SGUI_RECT_WIDTH_V(srcrect),
+                      SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
 void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,

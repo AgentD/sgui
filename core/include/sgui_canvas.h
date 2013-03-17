@@ -192,29 +192,24 @@ SGUI_DLL void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y );
  *
  * \param x      Distance from the left of the canvas to the left of the image
  * \param y      Distance from the top of the canvas to the top of the image
- * \param width  Width of the image
- * \param height Width of the image
- * \param format Color format of the image (SGUI_RGB8, ...)
- * \param data   Pointer to the image data
+ * \param pixmap The pixmap to blit onto the canvas
+ * \param srcrect A sub rect within the source image, or NULL to use the
+ *                uncropped source image.
  */
 SGUI_DLL void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
-                                unsigned int width, unsigned int height,
-                                int format, const void* data );
+                                sgui_pixmap* pixmap, sgui_rect* srcrect );
 
 /**
  * \brief Blend an image onto a canvas
  *
  * \param x      Distance from the left of the canvas to the left of the image
  * \param y      Distance from the top of the canvas to the top of the image
- * \param width  Width of the image
- * \param height Width of the image
- * \param format Color format of the image (SGUI_RGBA8, ... must be a format
- *               with an alpha channel)
- * \param data   Pointer to the image data
+ * \param pixmap The pixmap to blend onto the canvas
+ * \param srcrect A sub rect within the source image, or NULL to use the
+ *                uncropped source image.
  */
 SGUI_DLL void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
-                                 unsigned int width, unsigned int height,
-                                 int format, const void* data );
+                                 sgui_pixmap* pixmap, sgui_rect* srcrect );
 
 /**
  * \brief Draw a rectangle onto a canvas

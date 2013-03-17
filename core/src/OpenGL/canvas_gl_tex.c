@@ -161,59 +161,16 @@ void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )
     glBindTexture( GL_TEXTURE_2D, current );
 }
 
-void canvas_gl_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
-                     unsigned int height, unsigned int scanline_length,
-                     int format, const void* data )
+void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
+                     sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-    unsigned char *drow, *srow, *src, *dst;
-    unsigned int i, j, ds, dt, src_bpp = (format==SGUI_RGBA8 ? 4 : 3);
-
-    dst = cv->data + (y*canvas->width + x)*4;
-    src = (unsigned char*)data;
-
-    ds = scanline_length * (format==SGUI_RGBA8 ? 4 : 3);
-    dt = canvas->width * 4;
-
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
-    {
-        for( drow=dst, srow=src, i=0; i<width; ++i, srow+=src_bpp )
-        {
-            *(drow++) = srow[0];
-            *(drow++) = srow[1];
-            *(drow++) = srow[2];
-            *(drow++) = 0x00;
-        }
-    }
+    (void)canvas; (void)x; (void)y; (void)pixmap; (void)srcrect;
 }
 
-void canvas_gl_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
-                      unsigned int height, unsigned int scanline_length,
-                      const void* data )
+void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
+                      sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-    unsigned char *dst, *src, *drow, *srow, A, iA;
-    unsigned int ds, dt, i, j;
-
-    dst = cv->data + (y*canvas->width + x)*4;
-    src = (unsigned char*)data;
-
-    ds = scanline_length * 4;
-    dt = canvas->width*4;
-
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
-    {
-        for( drow=dst, srow=src, i=0; i<width; ++i, srow+=4, drow+=4 )
-        {
-            A = srow[3];
-            iA = 0xFF-A;
-
-            drow[0] = (drow[0] * iA + srow[0] * A)>>8;
-            drow[1] = (drow[1] * iA + srow[1] * A)>>8;
-            drow[2] = (drow[2] * iA + srow[2] * A)>>8;
-            drow[3] = 0x00;
-        }
-    }
+    (void)canvas; (void)x; (void)y; (void)pixmap; (void)srcrect;
 }
 
 void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,

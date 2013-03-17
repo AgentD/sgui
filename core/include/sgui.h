@@ -32,6 +32,7 @@
 #include "sgui_event.h"
 #include "sgui_font.h"
 #include "sgui_keycodes.h"
+#include "sgui_pixmap.h"
 #include "sgui_predef.h"
 #include "sgui_rect.h"
 #include "sgui_skin.h"

@@ -26,6 +26,7 @@
 #include "sgui_image.h"
 #include "sgui_canvas.h"
 #include "sgui_internal.h"
+#include "sgui_pixmap.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +38,9 @@ typedef struct
     sgui_widget widget;
 
     void* data;
-    int alpha, blend, is_mine;
+    int format, blend, backend;
+
+    sgui_pixmap* pixmap;
 }
 sgui_image;
 
@@ -52,23 +55,21 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
         sgui_canvas_clear( cv, &widget->area );
 
         sgui_canvas_blend( cv, widget->area.left, widget->area.top,
-                           SGUI_RECT_WIDTH(widget->area),
-                           SGUI_RECT_HEIGHT(widget->area), SGUI_RGBA8,
-                           img->data );
+                           img->pixmap, NULL );
     }
     else
     {
         sgui_canvas_blit( cv, widget->area.left, widget->area.top,
-                          SGUI_RECT_WIDTH(widget->area),
-                          SGUI_RECT_HEIGHT(widget->area),
-                          img->alpha ? SGUI_RGBA8 : SGUI_RGB8, img->data );
+                          img->pixmap, NULL );
     }
 }
 
+/****************************************************************************/
+
 sgui_widget* sgui_image_create( int x, int y,
                                 unsigned int width, unsigned int height,
-                                const void* data, int alpha,
-                                int blend, int copy )
+                                const void* data, int format,
+                                int blend, int backend )
 {
     sgui_image* img = malloc( sizeof(sgui_image) );
 
@@ -77,27 +78,20 @@ sgui_widget* sgui_image_create( int x, int y,
 
     sgui_internal_widget_init( (sgui_widget*)img, x, y, width, height );
 
-    if( copy )
-    {
-        img->data = malloc( width*height*(alpha ? 4 : 3) );
+    img->pixmap = sgui_pixmap_create( width, height, format, backend );
 
-        if( !img->data )
-        {
-            free( img );
-            return NULL;
-        }
-
-        memcpy( img->data, data, width*height*(alpha ? 4 : 3) );
-    }
-    else
+    if( !img->pixmap )
     {
-        img->data = (void*)data;
+        free( img );
+        return NULL;
     }
+
+    sgui_pixmap_load( img->pixmap, NULL, data, 0, 0, width, height, format );
 
     img->widget.draw_callback = sgui_image_draw;
-    img->alpha = alpha;
-    img->blend = blend && alpha;
-    img->is_mine = copy;
+    img->format  = format;
+    img->blend   = blend;
+    img->backend = backend;
 
     return (sgui_widget*)img;
 }
@@ -108,9 +102,7 @@ void sgui_image_destroy( sgui_widget* widget )
 
     if( img )
     {
-        if( img->is_mine )
-            free( img->data );
-
+        sgui_pixmap_destroy( img->pixmap );
         free( img );
     }
 }

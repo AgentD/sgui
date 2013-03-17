@@ -28,6 +28,7 @@
 #include "sgui_utf8.h"
 #include "sgui_font.h"
 #include "sgui_skin.h"
+#include "sgui_pixmap.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -249,55 +250,52 @@ void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y )
 
 /**************************** drawing functions ****************************/
 
-void sgui_canvas_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
-                       unsigned int height, int format,
-                       const void* data )
+void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
+                       sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    unsigned char* src;
-    sgui_rect r, r0;
+    unsigned int w, h;
+    sgui_rect r;
 
     /* sanity check */
-    if( !canvas || !width || !height || !data || !canvas->began )
+    if( !canvas || !pixmap || !canvas->began )
         return;
 
-    /* get actual destination rect */
-    sgui_rect_set_size( &r0, x+canvas->ox, y+canvas->oy, width, height );
+    x += canvas->ox;
+    y += canvas->oy;
 
-    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r0 ) )
-        return;
-
-    /* get a pointer to the first pixel, taking clipping into account */
-    src = (unsigned char*)data +
-          ((r.top-r0.top)*width + r.left-r0.left)*(format==SGUI_RGBA8 ? 4 : 3);
+    if( !srcrect )
+    {
+        sgui_pixmap_get_size( pixmap, &w, &h );
+        sgui_rect_set_size( &r, 0, 0, w, h );
+        srcrect = &r;
+    }
 
     /* do the blitting */
-    canvas->blit( canvas, r.left, r.top, r.right-r.left, r.bottom-r.top,
-                  width, format, src );
+    canvas->blit( canvas, x, y, pixmap, srcrect );
 }
 
-void sgui_canvas_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
-                        unsigned int height, int format, const void* data )
+void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
+                        sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    unsigned char* src;
-    sgui_rect r, r0;
+    unsigned int w, h;
+    sgui_rect r;
 
     /* sanity check */
-    if( !canvas || !width || !height || !data || format!=SGUI_RGBA8 ||
-        !canvas->began )
+    if( !canvas || !pixmap || !canvas->began )
         return;
 
-    /* get actual destination rect */
-    sgui_rect_set_size( &r0, x+canvas->ox, y+canvas->oy, width, height );
+    x += canvas->ox;
+    y += canvas->oy;
 
-    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r0 ) )
-        return;
-
-    /* get a pointer to the first pixel, taking clipping into account */
-    src = (unsigned char*)data + ((r.top-r0.top)*width + r.left-r0.left)*4;
+    if( !srcrect )
+    {
+        sgui_pixmap_get_size( pixmap, &w, &h );
+        sgui_rect_set_size( &r, 0, 0, w, h );
+        srcrect = &r;
+    }
 
     /* do the blending */
-    canvas->blend( canvas, r.left, r.top, r.right-r.left, r.bottom-r.top,
-                   width, src );
+    canvas->blend( canvas, x, y, pixmap, srcrect );
 }
 
 void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,

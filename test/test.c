@@ -142,8 +142,10 @@ int main( void )
 
     tex = sgui_static_text_create( 10, 200, text );
 
-    i0 = sgui_image_create(  10, 50, 128, 128, image, 1, 0, 0 );
-    i1 = sgui_image_create( 150, 50, 128, 128, image, 1, 1, 0 );
+    i0 = sgui_image_create(  10, 50, 128, 128, image,
+                            SGUI_RGBA8, 0, SGUI_NATIVE );
+    i1 = sgui_image_create( 150, 50, 128, 128, image,
+                            SGUI_RGBA8, 1, SGUI_NATIVE );
 
     sgui_tab_group_add_widget( tab, 1, i0 );
     sgui_tab_group_add_widget( tab, 1, i1 );

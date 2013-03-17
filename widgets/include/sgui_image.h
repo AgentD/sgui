@@ -44,16 +44,15 @@ extern "C"
  * \param width  Width of the image
  * \param height Height of the image
  * \param data   The RGB or RGBA image data
- * \param alpha  Non-zero if the image has an alpha channel
+ * \param format The color format used by the image
  * \param blend  Non-zero if the image should be blended instead of blitted
- * \param copy   Non-zero if the widget should make an internal copy of the
- *               image. Zero means it KEEPS AND USES YOUR POINTER.
+ * \param backend The backend for wich to create a pixmap
  */
 SGUI_DLL sgui_widget* sgui_image_create( int x, int y,
                                          unsigned int width,
                                          unsigned int height,
-                                         const void* data, int alpha,
-                                         int blend, int copy );
+                                         const void* data, int format,
+                                         int blend, int backend );
 
 /** \brief Destroy a static text widget */
 SGUI_DLL void sgui_image_destroy( sgui_widget* widget );

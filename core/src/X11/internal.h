@@ -151,6 +151,10 @@ XVisualInfo* get_visual_old( void );
 GLXContext create_context( GLXFBConfig cfg, GLXContext share );
 #endif
 
+Picture pixmap_get_picture( sgui_pixmap* pixmap );
+
+Pixmap pixmap_get_pixmap( sgui_pixmap* pixmap );
+
 /* in keycode_translate.c: initialise keycode symbol lookup table */
 void init_keycodes( );
 

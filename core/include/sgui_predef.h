@@ -45,6 +45,8 @@ typedef struct sgui_widget_manager sgui_widget_manager;
 
 typedef struct sgui_window sgui_window;
 
+typedef struct sgui_pixmap sgui_pixmap;
+
 typedef union sgui_event sgui_event;
 
 

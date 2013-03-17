@@ -111,9 +111,8 @@ struct sgui_canvas
      * \param data            The data to blit. Already advanced to the actual
      *                        first pixel after clipping.
      */
-    void(* blit )( sgui_canvas* canvas, int x, int y, unsigned int width,
-                   unsigned int height, unsigned int scanline_length,
-                   int format, const void* data );
+    void(* blit )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                   sgui_rect* srcrect );
 
     /**
      * \brief Blend onto a canvas
@@ -128,9 +127,8 @@ struct sgui_canvas
      * \param data            The data to blit. Already advanced to the actual
      *                        first pixel after clipping.
      */
-    void(* blend )( sgui_canvas* canvas, int x, int y,
-                    unsigned int width, unsigned int height,
-                    unsigned int scanline_length, const void* data );
+    void(* blend )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                    sgui_rect* srcrect );
 
     /**
      * \brief Draw a box onto a canvas
