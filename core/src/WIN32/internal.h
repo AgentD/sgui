@@ -34,6 +34,7 @@
 #include "sgui_rect.h"
 #include "sgui_internal.h"
 #include "sgui_font.h"
+#include "sgui_pixmap.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -122,6 +123,12 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
 /* in canvas.c: display the canvas on a same sized window */
 void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,
                          unsigned int width, unsigned int height );
+
+/* in pixmap.c: get the bytes per pixmap pixel */
+int pixmap_get_bpp( sgui_pixmap* pixmap );
+
+/* in pixmap.c: get a pointer to the pixmap data */
+unsigned char* pixmap_get_data( sgui_pixmap* pixmap );
 
 #endif /* INTERNAL_H */
 

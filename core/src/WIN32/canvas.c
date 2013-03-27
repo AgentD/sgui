@@ -28,6 +28,8 @@
 
 
 #define COLOR_COPY_INV( a, b ) (a)[0]=(b)[2]; (a)[1]=(b)[1]; (a)[2]=(b)[0]
+#define COLOR_COPY( a, b ) (a)[0]=(b)[0]; (a)[1]=(b)[1]; (a)[2]=(b)[2]
+
 
 typedef struct
 {
@@ -109,53 +111,83 @@ void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
     }
 }
 
-void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, unsigned int width,
-                      unsigned int height, unsigned int scanline_length,
-                      int format, const void* data )
+void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                      sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned char *drow, *srow, *src, *dst;
-    unsigned int i, j, ds, dt, src_bpp = (format==SGUI_RGBA8 ? 4 : 3);
+    unsigned int i, j, ds, dt, src_bpp, w, h;
+    sgui_rect r;
 
+    sgui_pixmap_get_size( pixmap, &w, &h );
+    sgui_rect_set_size( &r, 0, 0, w, h );
+    sgui_rect_get_intersection( &r, &r, srcrect );
+
+    src_bpp = pixmap_get_bpp( pixmap );
     dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
-    src = (unsigned char*)data;
+    src = pixmap_get_data( pixmap );
 
-    ds = scanline_length * (format==SGUI_RGBA8 ? 4 : 3);
+    if( !src )
+        return;
+
+    src += (r.top*w + r.left)*src_bpp;
+
+    ds = w * src_bpp;
     dt = canvas->width * 4;
 
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    w = SGUI_RECT_WIDTH( r );
+    h = SGUI_RECT_HEIGHT( r );
+
+    for( j=0; j<h; ++j, src+=ds, dst+=dt )
     {
-        for( drow=dst, srow=src, i=0; i<width; ++i, srow+=src_bpp, drow+=4 )
+        for( drow=dst, srow=src, i=0; i<w; ++i, srow+=src_bpp, drow+=4 )
         {
-            COLOR_COPY_INV( drow, srow );
+            COLOR_COPY( drow, srow );
         }
     }
 }
 
-void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, unsigned int width,
-                       unsigned int height, unsigned int scanline_length,
-                       const void* data )
+void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                       sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned char *dst, *src, *drow, *srow, A, iA;
-    unsigned int ds, dt, i, j;
+    unsigned char *drow, *srow, *src, *dst;
+    unsigned int i, j, ds, dt, src_bpp, w, h;
+    sgui_rect r;
+
+    src_bpp = pixmap_get_bpp( pixmap );
+
+    if( src_bpp != 4 )
+    {
+        canvas_gdi_blit( canvas, x, y, pixmap, srcrect );
+        return;
+    }
+
+    sgui_pixmap_get_size( pixmap, &w, &h );
+    sgui_rect_set_size( &r, 0, 0, w, h );
+    sgui_rect_get_intersection( &r, &r, srcrect );
 
     dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
-    src = (unsigned char*)data;
+    src = pixmap_get_data( pixmap );
 
-    ds = scanline_length * 4;
-    dt = canvas->width*4;
+    if( !src )
+        return;
 
-    for( j=0; j<height; ++j, src+=ds, dst+=dt )
+    src += (r.top*w + r.left)*4;
+
+    ds = w * 4;
+    dt = canvas->width * 4;
+
+    w = SGUI_RECT_WIDTH( r );
+    h = SGUI_RECT_HEIGHT( r );
+
+    for( j=0; j<h; ++j, src+=ds, dst+=dt )
     {
-        for( drow=dst, srow=src, i=0; i<width; ++i, srow+=4, drow+=4 )
+        for( drow=dst, srow=src, i=0; i<w; ++i, srow+=src_bpp, drow+=4 )
         {
-            A = srow[3];
-            iA = 0xFF-A;
-
-            drow[0] = (drow[0] * iA + srow[2] * A)>>8;
-            drow[1] = (drow[1] * iA + srow[1] * A)>>8;
-            drow[2] = (drow[2] * iA + srow[0] * A)>>8;
+            drow[0] = srow[0] + ((drow[0]*srow[3])>>8);
+            drow[1] = srow[1] + ((drow[1]*srow[3])>>8);
+            drow[2] = srow[2] + ((drow[2]*srow[3])>>8);
         }
     }
 }

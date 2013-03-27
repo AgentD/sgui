@@ -64,7 +64,7 @@ SOURCE_COMMON="core/src/widget.c core/src/rect.c core/src/widget_manager.c
 
 SOURCE_PLATFORM="core/src/WIN32/window.c core/src/WIN32/canvas.c
                  core/src/WIN32/platform.c core/src/WIN32/opengl.c
-                 core/src/WIN32/font.c"
+                 core/src/WIN32/font.c core/src/WIN32/pixmap.c"
 
 # Platform specific dependencies
 LIBS32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32 -lopengl32"
