@@ -5,6 +5,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 
 
 
@@ -46,13 +47,19 @@ void glview_on_draw( sgui_widget* glview )
 
 
 
-int main( void )
+int main( int argc, char** argv )
 {
-    int x, y;
+    int x, y, nogl=0;
     sgui_font* font;
     sgui_font* font_bold;
     sgui_font* font_ital;
     sgui_font* font_boit;
+
+    for( x=1; x<argc; ++x )
+    {
+        if( !strcmp( argv[x], "--nogl" ) )
+            nogl = 1;
+    }
 
     sgui_init( );
 
@@ -167,15 +174,18 @@ int main( void )
     /* OpenGL widget tab */
     sgui_tab_group_add_tab( tab, "OpenGL" );
 
-    gl_view = sgui_subview_create( a, 30, 50, 200, 150, SGUI_OPENGL_COMPAT );
-    gl_sub0 = sgui_static_text_create( 45, 200, "Redraw on demand" );
-    gl_sub1 = sgui_static_text_create( 275, 200, "Redraw continuous" );
+    if( !nogl )
+    {
+        gl_view = sgui_subview_create(a,30,50,200,150,SGUI_OPENGL_COMPAT);
+        gl_sub0 = sgui_static_text_create( 45, 200, "Redraw on demand" );
+        gl_sub1 = sgui_static_text_create( 275, 200, "Redraw continuous" );
 
-    sgui_subview_set_draw_callback( gl_view, glview_on_draw );
+        sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 
-    sgui_tab_group_add_widget( tab, 3, gl_view );
-    sgui_tab_group_add_widget( tab, 3, gl_sub0 );
-    sgui_tab_group_add_widget( tab, 3, gl_sub1 );
+        sgui_tab_group_add_widget( tab, 3, gl_view );
+        sgui_tab_group_add_widget( tab, 3, gl_sub0 );
+        sgui_tab_group_add_widget( tab, 3, gl_sub1 );
+    }
 
     /* */
     sgui_window_add_widget( a, tab );

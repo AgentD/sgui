@@ -278,7 +278,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         wnd->wnd = 0;
         break;
     case UnmapNotify:
-        if( e->xunmap.window == wnd->wnd )  /* window got unmaped */
+        if( e->xunmap.window==wnd->wnd && wnd->is_child )
         {
             wnd->base.visible = 0;
             SEND_EVENT( wnd, SGUI_USER_CLOSED_EVENT, NULL );
@@ -384,6 +384,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     /******************** create the window ********************/
     x_parent = parent ? TO_X11(parent)->wnd : DefaultRootWindow(dpy);
+    wnd->is_child = (parent!=NULL);
 
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {

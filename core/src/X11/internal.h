@@ -101,6 +101,7 @@ typedef struct _sgui_window_xlib
     Window wnd;
     XIC ic;
 
+    int is_child;             /* Non-zero for child windows */
     int resizeable;           /* remembers whether the window is resizeable */
     unsigned int mouse_warped;/* mouse warp counter */
 
