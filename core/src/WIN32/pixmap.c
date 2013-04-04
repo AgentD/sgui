@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define SGUI_BUILDING_DLL
 #include "internal.h"
 
 
@@ -33,7 +34,13 @@ struct sgui_pixmap
 
     union
     {
-        void* native;
+        struct
+        {
+            HDC hDC;
+            HBITMAP bitmap;
+            unsigned char* ptr;
+        }
+        native;
 
 #ifndef SGUI_NO_OPENGL
         GLuint opengl;
@@ -103,13 +110,36 @@ sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
     }
     else
     {
-        pix->pm.native = malloc( width*height*(format==SGUI_RGBA8 ? 4 : 3) );
+        BITMAPINFO info;
 
-        if( !pix->pm.native )
+        info.bmiHeader.biSize        = sizeof(info.bmiHeader);
+        info.bmiHeader.biBitCount    = 32;
+        info.bmiHeader.biCompression = BI_RGB;
+        info.bmiHeader.biPlanes      = 1;
+        info.bmiHeader.biWidth       = width;
+        info.bmiHeader.biHeight      = -((int)height);
+
+        pix->pm.native.hDC = CreateCompatibleDC( NULL );
+
+        if( !pix->pm.native.hDC )
         {
             free( pix );
-            pix = NULL;
+            return NULL;
         }
+
+        pix->pm.native.bitmap = CreateDIBSection( pix->pm.native.hDC, &info,
+                                                  DIB_RGB_COLORS,
+                                                  (void**)&pix->pm.native.ptr,
+                                                  0, 0 );
+
+        if( !pix->pm.native.bitmap )
+        {
+            DeleteDC( pix->pm.native.hDC );
+            free( pix );
+            return NULL;
+        }
+
+        SelectObject( pix->pm.native.hDC, pix->pm.native.bitmap );
     }
 
     return pix;
@@ -156,9 +186,10 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
     {
         unsigned char* dst;
         const unsigned char *src, *row;
-        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha;
+        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha, dstbpp;
 
-        dst = pixmap->pm.native;
+        dstbpp = pixmap->format==SGUI_RGBA8 ? 4 : 3;
+        dst = pixmap->pm.native.ptr + (dstx + dsty*pixmap->width)*dstbpp;
 
         for( src=data, j=0; j<subh; ++j, src+=width*bpp )
         {
@@ -171,7 +202,7 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
                 *(dst++) = row[0]*alpha >> 8;
 
                 if( pixmap->format==SGUI_RGBA8 )
-                    *(dst++) = 0xFF - alpha;
+                    *(dst++) = alpha;
             }
         }
     }
@@ -206,7 +237,8 @@ void sgui_pixmap_destroy( sgui_pixmap* pixmap )
     }
     else
     {
-        free( pixmap->pm.native );
+        DeleteObject( pixmap->pm.native.bitmap );
+        DeleteDC( pixmap->pm.native.hDC );
     }
 
     free( pixmap );
@@ -214,19 +246,32 @@ void sgui_pixmap_destroy( sgui_pixmap* pixmap )
 
 /****************************************************************************/
 
-int pixmap_get_bpp( sgui_pixmap* pixmap )
-{
-    if( !pixmap )
-        return 0;
-
-    return pixmap->format==SGUI_RGBA8 ? 4 : 3;
-}
-
-unsigned char* pixmap_get_data( sgui_pixmap* pixmap )
+void pixmap_blit( sgui_pixmap* pixmap, HDC hDC, int x, int y,
+                  int srcx, int srcy,
+                  unsigned int width, unsigned int height )
 {
     if( pixmap && pixmap->backend==SGUI_NATIVE )
-        return pixmap->pm.native;
+    {
+        BitBlt( hDC, x, y, width, height, pixmap->pm.native.hDC,
+                srcx, srcy, SRCCOPY );
+    }
+}
 
-    return NULL;
+void pixmap_blend( sgui_pixmap* pixmap, HDC hDC, int x, int y,
+                   int srcx, int srcy,
+                   unsigned int width, unsigned int height )
+{
+    BLENDFUNCTION ftn;
+
+    if( pixmap && pixmap->backend==SGUI_NATIVE )
+    {
+        ftn.BlendOp             = AC_SRC_OVER;
+        ftn.BlendFlags          = 0;
+        ftn.SourceConstantAlpha = 0xFF;
+        ftn.AlphaFormat         = AC_SRC_ALPHA;
+
+        AlphaBlend( hDC, x, y, width, height, pixmap->pm.native.hDC,
+                    srcx, srcy, width, height, ftn );
+    }
 }
 

@@ -54,8 +54,9 @@
  *
  * \return A pointer to a new pixmap object on success, NULL on error.
  */
-sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
-                                 int format, int backend );
+SGUI_DLL sgui_pixmap* sgui_pixmap_create( unsigned int width,
+                                          unsigned int height,
+                                          int format, int backend );
 
 /**
  * \brief Upload data to a pixmap
@@ -69,10 +70,10 @@ sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
  * \param height   The height of the source buffer.
  * \param format   The color format of the source data (SGUI_RGB8, etc...)
  */
-void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
-                       const unsigned char* data, int srcx, int srcy,
-                       unsigned int width, unsigned int height,
-                       int format );
+SGUI_DLL void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
+                                const unsigned char* data, int srcx, int srcy,
+                                unsigned int width, unsigned int height,
+                                int format );
 
 /**
  * \brief Get the size of a pixmap
@@ -81,11 +82,11 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
  * \param width  Returns the width of the pixmap
  * \param height Returns the height of the pixmap
  */
-void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
-                           unsigned int* height );
+SGUI_DLL void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
+                                    unsigned int* height );
 
 /** \brief Destroy a pixmap */
-void sgui_pixmap_destroy( sgui_pixmap* pixmap );
+SGUI_DLL void sgui_pixmap_destroy( sgui_pixmap* pixmap );
 
 
 

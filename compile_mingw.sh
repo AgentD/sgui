@@ -2,7 +2,8 @@
 
 # Flags for the C compiler
 CFLAGS="-ansi -pedantic -Werror -Wall -Wextra -Wshadow -Wwrite-strings
-        -Icore/include -Iwidgets/include -Ibuild/win_dep/include -mwindows $1"
+        -Icore/include -Iwidgets/include -Ibuild/win_dep/include -mwindows
+        -DWINVER=0x0410 $1"
 
 # Compile a list of files. $1: prefix, $2: list of files,
 #                          $3: object directory, $4: object prefix
@@ -67,8 +68,8 @@ SOURCE_PLATFORM="core/src/WIN32/window.c core/src/WIN32/canvas.c
                  core/src/WIN32/font.c core/src/WIN32/pixmap.c"
 
 # Platform specific dependencies
-LIBS32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32 -lopengl32"
-LIBS64="-Lbuild/win_dep/x64 -llibfreetype -lgdi32 -lopengl32"
+LIBS32="-Lbuild/win_dep/x86 -llibfreetype -lgdi32 -lmsimg32 -lopengl32"
+LIBS64="-Lbuild/win_dep/x64 -llibfreetype -lgdi32 -lmsimg32 -lopengl32"
 
 ############################# Do the compilation #############################
 

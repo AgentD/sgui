@@ -254,7 +254,7 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
                        sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     unsigned int w, h;
-    sgui_rect r;
+    sgui_rect r, clip;
 
     /* sanity check */
     if( !canvas || !pixmap || !canvas->began )
@@ -263,22 +263,29 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
     x += canvas->ox;
     y += canvas->oy;
 
-    if( !srcrect )
-    {
-        sgui_pixmap_get_size( pixmap, &w, &h );
-        sgui_rect_set_size( &r, 0, 0, w, h );
-        srcrect = &r;
-    }
+    sgui_pixmap_get_size( pixmap, &w, &h );
+    sgui_rect_set_size( &r, 0, 0, w, h );
+
+    if( srcrect )
+        sgui_rect_get_intersection( &r, &r, srcrect );
+
+    /* get the scissor clipping rectangle in image local coordinates */
+    clip = canvas->sc;
+    clip.left -= x; clip.right  -= x;
+    clip.top  -= y; clip.bottom -= y;
+
+    /* clip the source rect against the image local scissor rectangle */
+    sgui_rect_get_intersection( &r, &r, &clip );
 
     /* do the blitting */
-    canvas->blit( canvas, x, y, pixmap, srcrect );
+    canvas->blit( canvas, x, y, pixmap, &r );
 }
 
 void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
                         sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     unsigned int w, h;
-    sgui_rect r;
+    sgui_rect r, clip;
 
     /* sanity check */
     if( !canvas || !pixmap || !canvas->began )
@@ -287,15 +294,22 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
     x += canvas->ox;
     y += canvas->oy;
 
-    if( !srcrect )
-    {
-        sgui_pixmap_get_size( pixmap, &w, &h );
-        sgui_rect_set_size( &r, 0, 0, w, h );
-        srcrect = &r;
-    }
+    sgui_pixmap_get_size( pixmap, &w, &h );
+    sgui_rect_set_size( &r, 0, 0, w, h );
+
+    if( srcrect )
+        sgui_rect_get_intersection( &r, &r, srcrect );
+
+    /* get the scissor clipping rectangle in image local coordinates */
+    clip = canvas->sc;
+    clip.left -= x; clip.right  -= x;
+    clip.top  -= y; clip.bottom -= y;
+
+    /* clip the source rect against the image local scissor rectangle */
+    sgui_rect_get_intersection( &r, &r, &clip );
 
     /* do the blending */
-    canvas->blend( canvas, x, y, pixmap, srcrect );
+    canvas->blend( canvas, x, y, pixmap, &r );
 }
 
 void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,

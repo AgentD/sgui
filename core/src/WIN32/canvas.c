@@ -1,4 +1,4 @@
-/*
+    /*
  * canvas.c
  * This file is part of sgui
  *
@@ -115,81 +115,24 @@ void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
                       sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned char *drow, *srow, *src, *dst;
-    unsigned int i, j, ds, dt, src_bpp, w, h;
-    sgui_rect r;
+    unsigned int w, h;
+    (void)srcrect;
 
     sgui_pixmap_get_size( pixmap, &w, &h );
-    sgui_rect_set_size( &r, 0, 0, w, h );
-    sgui_rect_get_intersection( &r, &r, srcrect );
 
-    src_bpp = pixmap_get_bpp( pixmap );
-    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
-    src = pixmap_get_data( pixmap );
-
-    if( !src )
-        return;
-
-    src += (r.top*w + r.left)*src_bpp;
-
-    ds = w * src_bpp;
-    dt = canvas->width * 4;
-
-    w = SGUI_RECT_WIDTH( r );
-    h = SGUI_RECT_HEIGHT( r );
-
-    for( j=0; j<h; ++j, src+=ds, dst+=dt )
-    {
-        for( drow=dst, srow=src, i=0; i<w; ++i, srow+=src_bpp, drow+=4 )
-        {
-            COLOR_COPY( drow, srow );
-        }
-    }
+    pixmap_blit( pixmap, cv->dc, x, y, 0, 0, w, h );
 }
 
 void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
                        sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned char *drow, *srow, *src, *dst;
-    unsigned int i, j, ds, dt, src_bpp, w, h;
-    sgui_rect r;
-
-    src_bpp = pixmap_get_bpp( pixmap );
-
-    if( src_bpp != 4 )
-    {
-        canvas_gdi_blit( canvas, x, y, pixmap, srcrect );
-        return;
-    }
+    unsigned int w, h;
+    (void)srcrect;
 
     sgui_pixmap_get_size( pixmap, &w, &h );
-    sgui_rect_set_size( &r, 0, 0, w, h );
-    sgui_rect_get_intersection( &r, &r, srcrect );
 
-    dst = (unsigned char*)cv->data + (y*canvas->width + x)*4;
-    src = pixmap_get_data( pixmap );
-
-    if( !src )
-        return;
-
-    src += (r.top*w + r.left)*4;
-
-    ds = w * 4;
-    dt = canvas->width * 4;
-
-    w = SGUI_RECT_WIDTH( r );
-    h = SGUI_RECT_HEIGHT( r );
-
-    for( j=0; j<h; ++j, src+=ds, dst+=dt )
-    {
-        for( drow=dst, srow=src, i=0; i<w; ++i, srow+=src_bpp, drow+=4 )
-        {
-            drow[0] = srow[0] + ((drow[0]*srow[3])>>8);
-            drow[1] = srow[1] + ((drow[1]*srow[3])>>8);
-            drow[2] = srow[2] + ((drow[2]*srow[3])>>8);
-        }
-    }
+    pixmap_blend( pixmap, cv->dc, x, y, 0, 0, w, h );
 }
 
 void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,

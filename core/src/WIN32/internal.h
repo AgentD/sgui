@@ -124,11 +124,15 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
 void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,
                          unsigned int width, unsigned int height );
 
-/* in pixmap.c: get the bytes per pixmap pixel */
-int pixmap_get_bpp( sgui_pixmap* pixmap );
+/* in pixmap.c: perform a blit pixmap */
+void pixmap_blit( sgui_pixmap* pixmap, HDC hDC, int x, int y,
+                  int srcx, int srcy,
+                  unsigned int width, unsigned int height );
 
-/* in pixmap.c: get a pointer to the pixmap data */
-unsigned char* pixmap_get_data( sgui_pixmap* pixmap );
+/* in pixmap.c: perform pixmap blending */
+void pixmap_blend( sgui_pixmap* pixmap, HDC hDC, int x, int y,
+                   int srcx, int srcy,
+                   unsigned int width, unsigned int height );
 
 #endif /* INTERNAL_H */
 
