@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_pixmap.h"
+#include "sgui_opengl.h"
 #include "internal.h"
 
 
@@ -44,9 +45,7 @@ struct sgui_pixmap
         }
         native;
 
-#ifndef SGUI_NO_OPENGL
-        GLuint opengl;
-#endif
+        unsigned int opengl;
     }
     pm;
 };
@@ -71,45 +70,13 @@ sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
 
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
-#ifndef SGUI_NO_OPENGL
-        GLint current;
-
-        /* try to create an OpenGL texture */
-        glGenTextures( 1, &pixmap->pm.opengl );
+        pixmap->pm.opengl = sgui_opengl_pixmap_create(width, height, format);
 
         if( !pixmap->pm.opengl )
         {
             free( pixmap );
             pixmap = NULL;
         }
-        else
-        {
-            /* get current texture and bind ours */
-            glGetIntegerv( GL_TEXTURE_BINDING_2D, &current );
-            glBindTexture( GL_TEXTURE_2D, pixmap->pm.opengl );
-
-            /* reserve texture memory */
-            if( format==SGUI_RGBA8 )
-            {
-                glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
-                              0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
-            }
-            else
-            {
-                glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0,
-                              GL_RGB, GL_UNSIGNED_BYTE, NULL );
-            }
-
-            /* disable mipmapping */
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                             GL_LINEAR );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                             GL_LINEAR );
-
-            /* rebind old texture */
-            glBindTexture( GL_TEXTURE_2D, current );
-        }
-#endif
     }
     else
     {
@@ -149,23 +116,27 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
                        unsigned int width, unsigned int height,
                        int format )
 {
-    int dstx, dsty, subw, subh;
-
     if( !pixmap || !data || !width || !height )
         return;
 
-    dstx = dstrect ? dstrect->left : 0;
-    dsty = dstrect ? dstrect->top  : 0;
-    subw = dstrect ? SGUI_RECT_WIDTH_V( dstrect ) : (int)width;
-    subh = dstrect ? SGUI_RECT_HEIGHT_V( dstrect ) : (int)height;
-
-    data += (srcy*width + srcx)*(format==SGUI_RGB8 ? 3 : 4);
-
-    if( pixmap->backend==SGUI_NATIVE )
+    if( pixmap->backend==SGUI_OPENGL_CORE ||
+        pixmap->backend==SGUI_OPENGL_COMPAT )
+    {
+        sgui_opengl_pixmap_load( pixmap->pm.opengl, dstrect, data, srcx, srcy,
+                                 width, height, format );
+    }
+    else
     {
         XRenderColor c;
         const unsigned char *src, *row;
         int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha;
+
+        int dstx = dstrect ? dstrect->left : 0;
+        int dsty = dstrect ? dstrect->top  : 0;
+        int subw = dstrect ? SGUI_RECT_WIDTH_V( dstrect ) : (int)width;
+        int subh = dstrect ? SGUI_RECT_HEIGHT_V( dstrect ) : (int)height;
+
+        data += (srcy*width + srcx)*(format==SGUI_RGB8 ? 3 : 4);
 
         for( src=data, j=0; j<subh; ++j, src+=width*bpp )
         {
@@ -183,26 +154,6 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
                                       &c, dstx+i, dsty+j, 1, 1 );
             }
         }
-    }
-    else if( pixmap->backend==SGUI_OPENGL_CORE ||
-             pixmap->backend==SGUI_OPENGL_COMPAT )
-    {
-#ifndef SGUI_NO_OPENGL
-        GLint current;
-
-        glGetIntegerv( GL_TEXTURE_BINDING_2D, &current );
-        glBindTexture( GL_TEXTURE_2D, pixmap->pm.opengl );
-
-        glPixelStorei( GL_UNPACK_ROW_LENGTH, width );
-
-        glTexSubImage2D( GL_TEXTURE_2D, 0, dstx, dsty, subw, subh,
-                         format==SGUI_RGB8 ? GL_RGB : GL_RGBA,
-                         GL_UNSIGNED_BYTE, data );
-
-        glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
-
-        glBindTexture( GL_TEXTURE_2D, current );
-#endif
     }
 }
 
@@ -226,17 +177,15 @@ void sgui_pixmap_destroy( sgui_pixmap* pixmap )
     if( !pixmap )
         return;
 
-    if( pixmap->backend==SGUI_NATIVE )
+    if( pixmap->backend==SGUI_OPENGL_CORE ||
+        pixmap->backend==SGUI_OPENGL_COMPAT )
+    {
+        sgui_opengl_pixmap_destroy( pixmap->pm.opengl );
+    }
+    else
     {
         XRenderFreePicture( dpy, pixmap->pm.native.pic );
         XFreePixmap( dpy, pixmap->pm.native.pix );
-    }
-    else if( pixmap->backend==SGUI_OPENGL_CORE ||
-             pixmap->backend==SGUI_OPENGL_COMPAT )
-    {
-#ifndef SGUI_NO_OPENGL
-        glDeleteTextures( 1, &pixmap->pm.opengl );
-#endif
     }
 
     free( pixmap );

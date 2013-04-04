@@ -52,6 +52,54 @@ SGUI_DLL sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
 /** \brief Get the OpenGL texture handle from an OpenGL canvas */
 SGUI_DLL unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
 
+
+
+/**
+ * \brief Create an OpenGL pixmap
+ *
+ * This function is an OpenGL specific variation of sgui_pixmap_create.
+ *
+ * \note This function requires an OpenGL context to be made current.
+ *
+ * \param width   The width of the pixmap in pixels
+ * \param height  The height of the pixmap in pixels
+ * \param format  The color format used by the pixmap (SGUI_RGB8, SGUI_RGBA8,
+ *                etc...)
+ *
+ * \return An OpenGL texture handle
+ */
+
+SGUI_DLL unsigned int sgui_opengl_pixmap_create( unsigned int width,
+                                                 unsigned int height,
+                                                 int format );
+
+/**
+ * \brief Upload data to an OpenGL pixmap
+ *
+ * This s an OpenGL specific variant of sgui_pixmap_load.
+ *
+ * \note This function requires an OpenGL context to be made current.
+ *
+ * \param pixmap   An OpenGL texture handle.
+ * \param dstrect  A subrect within the texture to update.
+ * \param data     A pointer to the data buffer of which to upload a portion.
+ * \param srcx     Offset from the left of the source buffer to start reading.
+ * \param srcy     Offset from the top of the source buffer to start reading.
+ * \param width    The width of the source buffer.
+ * \param height   The height of the source buffer.
+ * \param format   The color format of the source data (SGUI_RGB8, etc...)
+ */
+SGUI_DLL void sgui_opengl_pixmap_load( unsigned int pixmap,
+                                       sgui_rect* dstrect,
+                                       const unsigned char* data,
+                                       int srcx, int srcy,
+                                       unsigned int width,
+                                       unsigned int height,
+                                       int format );
+
+/** \brief Destroy an OpenGL pixmap */
+SGUI_DLL void sgui_opengl_pixmap_destroy( unsigned int pixmap );
+
 #ifdef __cplusplus
 }
 #endif
