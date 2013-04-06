@@ -32,6 +32,9 @@ void glview_on_draw( sgui_widget* glview )
 #ifndef SGUI_NO_OPENGL
     glViewport( 0, 0, w, h );
 
+    glMatrixMode( GL_MODELVIEW );
+    glRotatef( 5.0f, 0.0f, 1.0f, 0.0f );
+
     glClear( GL_COLOR_BUFFER_BIT );
 
     glBegin( GL_TRIANGLES );

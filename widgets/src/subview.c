@@ -45,43 +45,51 @@ sgui_subview;
 
 
 
+/* subview event handler for events from the parent widget manager */
 static void subview_on_parent_event( sgui_widget* w, int type,
-                                    sgui_event* event )
+                                     sgui_event* event )
 {
     sgui_subview* view = (sgui_subview*)w;
 
-    /* */
+    /* handle internal events not to be redirected */
     switch( type )
     {
     case SGUI_TAB_DESELECTED:
         sgui_widget_set_visible( w, SGUI_INVISIBLE );
-        break;
+        return;
     case SGUI_TAB_SELECTED:
         sgui_widget_set_visible( w, SGUI_VISIBLE );
-        break;
+        return;
     }
 
+    /* send events to widget manager accordingly */
     if( view->window_fun )
         view->window_fun( w, type, event );
 }
 
+/* subview event handler for events from the managed subwindow */
 static void subview_on_subwindow_event( sgui_window* wnd, int type,
-                                       sgui_event* event )
+                                        sgui_event* event )
 {
     sgui_subview* view;
     (void)type; (void)event;
 
     view = sgui_window_get_userptr( wnd );
 
-    if( view->draw_fun )
+    /* perform a redraw if required */
+    if( type==SGUI_SIZE_CHANGE_EVENT || type==SGUI_EXPOSE_EVENT )
     {
-        sgui_window_make_current( view->subwnd );
-        view->draw_fun( (sgui_widget*)view );
-        sgui_window_swap_buffers( view->subwnd );
-        sgui_window_make_current( NULL );
+        if( view->draw_fun )
+        {
+            sgui_window_make_current( view->subwnd );
+            view->draw_fun( (sgui_widget*)view );
+            sgui_window_swap_buffers( view->subwnd );
+            sgui_window_make_current( NULL );
+        }
     }
 }
 
+/* subview event handler for widget state change events from base class */
 void subview_on_state_change( sgui_widget* w )
 {
     sgui_subview* view = (sgui_subview*)w;
