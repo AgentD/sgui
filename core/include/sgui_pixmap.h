@@ -90,5 +90,13 @@ SGUI_DLL void sgui_pixmap_destroy( sgui_pixmap* pixmap );
 
 
 
+/**
+ * \brief If the pixmap is an OpenGL pixmap, get the texture handle from the
+ *        pixmap
+ */
+SGUI_DLL unsigned int sgui_pixmap_opengl_get_handle( sgui_pixmap* pixmap );
+
+
+
 #endif /* SGUI_PIXMAP_H */
 

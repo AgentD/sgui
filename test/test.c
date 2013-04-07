@@ -30,12 +30,8 @@ void glview_on_draw( sgui_widget* glview )
     sgui_widget_get_size( glview, &w, &h );
 
 #ifndef SGUI_NO_OPENGL
-    glViewport( 0, 0, w, h );
-
     glMatrixMode( GL_MODELVIEW );
     glRotatef( 5.0f, 0.0f, 1.0f, 0.0f );
-
-    glClear( GL_COLOR_BUFFER_BIT );
 
     glBegin( GL_TRIANGLES );
     glColor3f( 1.0f, 0.0f, 0.0f );
@@ -52,7 +48,7 @@ void glview_on_draw( sgui_widget* glview )
 
 int main( int argc, char** argv )
 {
-    int x, y, nogl=0;
+    int x, y, nogl=0, backend=SGUI_NATIVE;
     sgui_font* font;
     sgui_font* font_bold;
     sgui_font* font_ital;
@@ -62,12 +58,22 @@ int main( int argc, char** argv )
     {
         if( !strcmp( argv[x], "--nogl" ) )
             nogl = 1;
+        else if( !strcmp( argv[x], "--glcore" ) )
+        {
+            nogl = 1;
+            backend = SGUI_OPENGL_CORE;
+        }
+        else if( !strcmp( argv[x], "--glcompat" ) )
+        {
+            nogl = 1;
+            backend = SGUI_OPENGL_COMPAT;
+        }
     }
 
     sgui_init( );
 
-    a = sgui_window_create( NULL, 400, 300, SGUI_RESIZEABLE, 0 );
-    b = sgui_window_create( NULL, 100, 100, SGUI_FIXED_SIZE, 0 );
+    a = sgui_window_create( NULL, 400, 300, SGUI_RESIZEABLE, backend );
+    b = sgui_window_create( NULL, 100, 100, SGUI_FIXED_SIZE, backend );
 
     sgui_window_set_visible( a, SGUI_VISIBLE );
     sgui_window_set_visible( b, SGUI_VISIBLE );
@@ -80,6 +86,8 @@ int main( int argc, char** argv )
 
     sgui_window_set_size( a, 520, 420 );
     sgui_window_set_size( b, 200, 100 );
+
+    sgui_window_make_current( a );
 
     /* */
     for( y=0; y<128; ++y )
@@ -152,10 +160,8 @@ int main( int argc, char** argv )
 
     tex = sgui_static_text_create( 10, 200, text );
 
-    i0 = sgui_image_create(  10, 50, 128, 128, image,
-                            SGUI_RGBA8, 0, SGUI_NATIVE );
-    i1 = sgui_image_create( 150, 50, 128, 128, image,
-                            SGUI_RGBA8, 1, SGUI_NATIVE );
+    i0 = sgui_image_create( 10, 50, 128, 128, image, SGUI_RGBA8, 0, backend);
+    i1 = sgui_image_create(150, 50, 128, 128, image, SGUI_RGBA8, 1, backend);
 
     sgui_tab_group_add_widget( tab, 1, i0 );
     sgui_tab_group_add_widget( tab, 1, i1 );
@@ -179,10 +185,13 @@ int main( int argc, char** argv )
 
     if( !nogl )
     {
+        unsigned char color[3] = { 0, 0, 0 };
+
         gl_view = sgui_subview_create(a,30,50,200,150,SGUI_OPENGL_COMPAT);
         gl_sub0 = sgui_static_text_create( 45, 200, "Redraw on demand" );
         gl_sub1 = sgui_static_text_create( 275, 200, "Redraw continuous" );
 
+        sgui_subview_set_background_color( gl_view, color );
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 
         sgui_tab_group_add_widget( tab, 3, gl_view );

@@ -57,7 +57,7 @@ SOURCE_WIDGETS="widgets/src/progress_bar.c widgets/src/static_text.c
                 widgets/src/scroll_bar.c widgets/src/group_box.c
                 widgets/src/tab.c widgets/src/subview.c"
 
-SOURCE_OPENGL="core/src/OpenGL/canvas_gl_tex.c core/src/OpenGL/pixmap_gl.c"
+SOURCE_OPENGL="core/src/OpenGL/canvas_gl.c core/src/OpenGL/pixmap_gl.c"
 
 SOURCE_COMMON="core/src/widget.c core/src/rect.c core/src/widget_manager.c
                core/src/skin.c core/src/canvas.c core/src/window.c
@@ -101,7 +101,7 @@ do_build( )
                -Ibuild/include -Lbuild/lib/$1 -lsgui"
 
         "$3"gcc test/test.c $FLAGS -lopengl32 -o build/bin/$1/test.exe
-        "$3"gcc test/test_gl.c $FLAGS -lopengl32 -o build/bin/$1/test_gl.exe
+        #"$3"gcc test/test_gl.c $FLAGS -lopengl32 -o build/bin/$1/test_gl.exe
     fi
 }
 

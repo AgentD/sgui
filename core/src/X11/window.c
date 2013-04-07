@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "internal.h"
 #include "sgui_event.h"
+#include "sgui_opengl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -127,8 +128,11 @@ void sgui_window_set_size( sgui_window* wnd,
 
     /* resize the back buffer image */
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+
+    sgui_window_make_current( (sgui_window*)wnd );
     sgui_canvas_clear( wnd->back_buffer, NULL );
     sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+    sgui_window_make_current( NULL );
 }
 
 void sgui_window_move_center( sgui_window* wnd )
@@ -269,9 +273,10 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
         /* redraw everything */
+        sgui_window_make_current( (sgui_window*)wnd );
         sgui_canvas_clear( wnd->base.back_buffer, NULL );
-
         sgui_widget_manager_draw_all( wnd->base.mgr, wnd->base.back_buffer );
+        sgui_window_make_current( NULL );
         break;
     case DestroyNotify:
         wnd->base.visible = 0;
@@ -294,14 +299,28 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
-        sgui_rect_set_size( &se.expose_event, e->xexpose.x, e->xexpose.y,
-                            e->xexpose.width, e->xexpose.height );
+        if( wnd->base.backend==SGUI_NATIVE )
+        {
+            sgui_rect_set_size( &se.expose_event, e->xexpose.x, e->xexpose.y,
+                                e->xexpose.width, e->xexpose.height );
 
-        SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+            SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
 
-        canvas_xlib_display( wnd->base.back_buffer,
-                             e->xexpose.x, e->xexpose.y,
-                             e->xexpose.width, e->xexpose.height );
+            canvas_xlib_display( wnd->base.back_buffer,
+                                 e->xexpose.x, e->xexpose.y,
+                                 e->xexpose.width, e->xexpose.height );
+        }
+        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
+                 wnd->base.backend==SGUI_OPENGL_COMPAT )
+        {
+            sgui_window_make_current( (sgui_window*)wnd );
+            sgui_canvas_clear( wnd->base.back_buffer, NULL );
+            SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+            sgui_widget_manager_draw_all(wnd->base.mgr,wnd->base.back_buffer);
+            sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            sgui_window_swap_buffers( (sgui_window*)wnd );
+            sgui_window_make_current( NULL );
+        }
         break;
     };
 
@@ -315,20 +334,37 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
     exp.window     = wnd->wnd;
     exp.count      = 0;
 
-    for( i=0; i<num; ++i )
+    if( wnd->base.backend==SGUI_NATIVE )
     {
-        sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &r, i );
+        for( i=0; i<num; ++i )
+        {
+            sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &r, i );
 
-        exp.x      = r.left;
-        exp.y      = r.top;
-        exp.width  = r.right  - r.left + 1;
-        exp.height = r.bottom - r.top  + 1;
+            exp.x      = r.left;
+            exp.y      = r.top;
+            exp.width  = r.right  - r.left + 1;
+            exp.height = r.bottom - r.top  + 1;
 
-        XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+            XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+        }
+
+        sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
+        sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
     }
+    else if( wnd->base.backend==SGUI_OPENGL_CORE ||
+             wnd->base.backend==SGUI_OPENGL_COMPAT )
+    {
+        if( num )
+        {
+            exp.x      = 0;
+            exp.y      = 0;
+            exp.width  = wnd->base.w;
+            exp.height = wnd->base.h;
 
-    sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
-    sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+            sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+        }
+    }
 }
 
 /****************************************************************************/
@@ -366,15 +402,12 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     memset( wnd, 0, sizeof(sgui_window_xlib) );
 
-    if( backend==SGUI_NATIVE )
-    {
-        wnd->base.mgr = sgui_widget_manager_create( );
+    wnd->base.mgr = sgui_widget_manager_create( );
 
-        if( !wnd->base.mgr )
-        {
-            free( wnd );
-            return NULL;
-        }
+    if( !wnd->base.mgr )
+    {
+        free( wnd );
+        return NULL;
     }
 
     wnd->base.backend = backend;
@@ -498,6 +531,15 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
             sgui_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
+
+        wnd->base.back_buffer = sgui_opengl_canvas_create( wnd->base.w,
+                                                           wnd->base.h );
+
+        if( !wnd->base.back_buffer )
+        {
+            sgui_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
 #endif
     }
     else
@@ -510,11 +552,13 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
             sgui_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
-
-        sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
-
-        sgui_canvas_clear( wnd->base.back_buffer, NULL );
     }
+
+    sgui_window_make_current( (sgui_window*)wnd );
+    sgui_skin_get_window_background_color( rgb );
+    sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
+    sgui_canvas_clear( wnd->base.back_buffer, NULL );
+    sgui_window_make_current( NULL );
 
     /*********** Create an input context ************/
     wnd->ic = XCreateIC( im, XNInputStyle,

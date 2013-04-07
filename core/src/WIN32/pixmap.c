@@ -177,6 +177,20 @@ void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
     }
 }
 
+unsigned int sgui_pixmap_opengl_get_handle( sgui_pixmap* pixmap )
+{
+    if( !pixmap )
+        return 0;
+
+    if( pixmap->backend==SGUI_OPENGL_CORE ||
+        pixmap->backend==SGUI_OPENGL_COMPAT )
+    {
+        return pixmap->pm.opengl;
+    }
+
+    return 0;
+}
+
 void sgui_pixmap_destroy( sgui_pixmap* pixmap )
 {
     if( !pixmap )

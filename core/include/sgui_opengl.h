@@ -49,9 +49,6 @@ extern "C" {
 SGUI_DLL sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
                                                  unsigned int height );
 
-/** \brief Get the OpenGL texture handle from an OpenGL canvas */
-SGUI_DLL unsigned int sgui_opengl_canvas_get_texture( sgui_canvas* canvas );
-
 
 
 /**
