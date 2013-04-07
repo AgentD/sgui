@@ -62,11 +62,21 @@
 
 
 
+#define TEX_ENABLE   0x01
+#define DEPTH_ENABLE 0x02
+#define DEPTH_WRITE  0x04
+#define BLEND_ENABLE 0x08
+
+
+
 typedef struct
 {
     sgui_canvas canvas;
 
     int began;
+
+    int state;
+    GLint blend_src, blend_dst;
 }
 sgui_canvas_gl;
 
@@ -89,8 +99,16 @@ void canvas_gl_resize( sgui_canvas* canvas, unsigned int width,
 
 void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 {
+    GLboolean v;
+    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
+
+    cv->state = 0;
+    cv->began = 1;
+
+    /* configure the viewport to canvas size */
     glViewport( 0, 0, canvas->width, canvas->height );
 
+    /* push matrices we use and setup 2D rendering */
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix( );
     glLoadIdentity( );
@@ -100,24 +118,57 @@ void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     glMatrixMode( GL_TEXTURE );
     glPushMatrix( );
 
+    /* enable 2D texturing */
+    cv->state |= glIsEnabled( GL_TEXTURE_2D ) ? TEX_ENABLE : 0;
     glEnable( GL_TEXTURE_2D );
-    glDisable( GL_DEPTH_TEST );
+    glBindTexture( GL_TEXTURE_2D, 0 );
+
+    /* enable alpha blending */
+    cv->state |= glIsEnabled( GL_BLEND ) ? BLEND_ENABLE : 0;
+
+    glGetIntegerv( GL_BLEND_SRC, &cv->blend_src );
+    glGetIntegerv( GL_BLEND_DST, &cv->blend_dst );
+
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    glBegin( GL_QUADS );
+    /* disable depth write and depth test */
+    glGetBooleanv( GL_DEPTH_WRITEMASK, &v );
+    cv->state |= v ? DEPTH_WRITE : 0;
+    cv->state |= glIsEnabled( GL_DEPTH_TEST ) ? DEPTH_ENABLE : 0;
 
-    ((sgui_canvas_gl*)canvas)->began = 1;
+    glDisable( GL_DEPTH_TEST );
+    glDepthMask( GL_FALSE );
+
+    /* start rendering rectangles */
+    glBegin( GL_QUADS );
 
     (void)r;
 }
 
 void canvas_gl_end( sgui_canvas* canvas )
 {
+    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
+
     glEnd( );
 
-    glDisable( GL_BLEND );
+    /* restore depth test and depth write mask */
+    glDepthMask( (cv->state & DEPTH_WRITE)!=0 );
 
+    if( cv->state & DEPTH_ENABLE )
+        glEnable( GL_DEPTH_TEST );
+
+    /* restore blending */
+    glBlendFunc( cv->blend_src, cv->blend_dst );
+
+    if( !(cv->state & BLEND_ENABLE) )
+        glDisable( GL_BLEND );
+
+    /* restore texture state */
+    if( !(cv->state & TEX_ENABLE) )
+        glDisable( GL_TEXTURE_2D );
+
+    /* restore matrices */
     glMatrixMode( GL_TEXTURE );
     glPopMatrix( );
     glMatrixMode( GL_PROJECTION );

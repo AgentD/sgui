@@ -129,10 +129,11 @@ void sgui_window_set_size( sgui_window* wnd,
     /* resize the back buffer image */
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
-    sgui_window_make_current( (sgui_window*)wnd );
-    sgui_canvas_clear( wnd->back_buffer, NULL );
-    sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
-    sgui_window_make_current( NULL );
+    if( wnd->backend==SGUI_NATIVE )
+    {
+        sgui_canvas_clear( wnd->back_buffer, NULL );
+        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+    }
 }
 
 void sgui_window_move_center( sgui_window* wnd )
@@ -273,10 +274,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
         /* redraw everything */
-        sgui_window_make_current( (sgui_window*)wnd );
-        sgui_canvas_clear( wnd->base.back_buffer, NULL );
-        sgui_widget_manager_draw_all( wnd->base.mgr, wnd->base.back_buffer );
-        sgui_window_make_current( NULL );
+        if( wnd->base.backend==SGUI_NATIVE )
+        {
+            sgui_canvas_clear( wnd->base.back_buffer, NULL );
+            sgui_widget_manager_draw_all(wnd->base.mgr,wnd->base.back_buffer);
+        }
         break;
     case DestroyNotify:
         wnd->base.visible = 0;
@@ -315,10 +317,12 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         {
             sgui_window_make_current( (sgui_window*)wnd );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
+            sgui_canvas_allow_clear( wnd->base.back_buffer, 0 );
             SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
             sgui_widget_manager_draw_all(wnd->base.mgr,wnd->base.back_buffer);
             sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
             sgui_window_swap_buffers( (sgui_window*)wnd );
+            sgui_canvas_allow_clear( wnd->base.back_buffer, 1 );
             sgui_window_make_current( NULL );
         }
         break;

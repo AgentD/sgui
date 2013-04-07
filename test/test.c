@@ -44,6 +44,25 @@ void glview_on_draw( sgui_widget* glview )
 #endif
 }
 
+void gl_window_callback( sgui_window* wnd, int type, sgui_event* event )
+{
+    (void)wnd; (void)event;
+
+    if( type==SGUI_EXPOSE_EVENT )
+    {
+#ifndef SGUI_NO_OPENGL
+        glBegin( GL_TRIANGLES );
+        glColor3f( 1.0f, 0.0f, 0.0f );
+        glVertex2f( -0.8f, -0.3f );
+        glColor3f( 0.0f, 1.0f, 0.0f );
+        glVertex2f(  0.2f, -0.3f );
+        glColor3f( 0.0f, 0.0f, 1.0f );
+        glVertex2f( -0.3f,  0.7f );
+        glEnd( );
+#endif
+    }
+}
+
 
 
 int main( int argc, char** argv )
@@ -88,6 +107,7 @@ int main( int argc, char** argv )
     sgui_window_set_size( b, 200, 100 );
 
     sgui_window_make_current( a );
+    sgui_window_on_event( a, gl_window_callback );
 
     /* */
     for( y=0; y<128; ++y )
@@ -181,11 +201,11 @@ int main( int argc, char** argv )
     sgui_tab_group_add_widget( tab, 2, p3 );
 
     /* OpenGL widget tab */
-    sgui_tab_group_add_tab( tab, "OpenGL" );
-
     if( !nogl )
     {
         unsigned char color[3] = { 0, 0, 0 };
+
+        sgui_tab_group_add_tab( tab, "OpenGL" );
 
         gl_view = sgui_subview_create(a,30,50,200,150,SGUI_OPENGL_COMPAT);
         gl_sub0 = sgui_static_text_create( 45, 200, "Redraw on demand" );

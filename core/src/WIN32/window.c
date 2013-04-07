@@ -112,10 +112,12 @@ void sgui_window_set_size( sgui_window* wnd,
 
     /* resize the canvas */
     sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
-    sgui_window_make_current( wnd );
-    sgui_canvas_clear( wnd->back_buffer, NULL );
-    sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
-    sgui_window_make_current( NULL );
+
+    if( wnd->backend==SGUI_NATIVE )
+    {
+        sgui_canvas_clear( wnd->back_buffer, NULL );
+        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+    }
 }
 
 void sgui_window_move_center( sgui_window* wnd )
@@ -291,11 +293,13 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         sgui_internal_window_fire_event( base, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* resize canvas and redraw everything */
-        sgui_window_make_current( (sgui_window*)wnd );
         sgui_canvas_resize( base->back_buffer, base->w, base->h );
-        sgui_canvas_clear( base->back_buffer, NULL );
-        sgui_widget_manager_draw_all( base->mgr, base->back_buffer );
-        sgui_window_make_current( NULL );
+
+        if( wnd->base.backend==SGUI_NATIVE )
+        {
+            sgui_canvas_clear( base->back_buffer, NULL );
+            sgui_widget_manager_draw_all( base->mgr, base->back_buffer );
+        }
         break;
     case WM_MOVE:
         base->x = LOWORD( lp );
@@ -316,10 +320,12 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         {
             sgui_window_make_current( (sgui_window*)wnd );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
+            sgui_canvas_allow_clear( wnd->base.back_buffer, 0 );
             sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
             sgui_widget_manager_draw_all(wnd->base.mgr,wnd->base.back_buffer);
             sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
             sgui_window_swap_buffers( (sgui_window*)wnd );
+            sgui_canvas_allow_clear( wnd->base.back_buffer, 1 );
             sgui_window_make_current( NULL );
         }
     default:
