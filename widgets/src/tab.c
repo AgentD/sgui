@@ -93,7 +93,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
         }
 
         /* select coresponding tab and mark widget area dirty */
-        if( i!=g->selected )
+        if( i && i!=g->selected )
         {
             sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
 
