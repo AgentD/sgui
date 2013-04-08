@@ -132,7 +132,8 @@ void sgui_window_set_size( sgui_window* wnd,
     if( wnd->backend==SGUI_NATIVE )
     {
         sgui_canvas_clear( wnd->back_buffer, NULL );
-        sgui_widget_manager_draw_all( wnd->mgr, wnd->back_buffer );
+        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
+        sgui_widget_manager_clear_dirty_rects( wnd->mgr );
     }
 }
 
@@ -277,7 +278,9 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         if( wnd->base.backend==SGUI_NATIVE )
         {
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
-            sgui_widget_manager_draw_all(wnd->base.mgr,wnd->base.back_buffer);
+            sgui_widget_manager_draw( wnd->base.mgr,
+                                      wnd->base.back_buffer, NULL );
+            sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
         }
         break;
     case DestroyNotify:
@@ -317,12 +320,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         {
             sgui_window_make_current( (sgui_window*)wnd );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
-            sgui_canvas_allow_clear( wnd->base.back_buffer, 0 );
             SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
-            sgui_widget_manager_draw_all(wnd->base.mgr,wnd->base.back_buffer);
+            sgui_widget_manager_draw( wnd->base.mgr,
+                                      wnd->base.back_buffer, NULL );
             sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
             sgui_window_swap_buffers( (sgui_window*)wnd );
-            sgui_canvas_allow_clear( wnd->base.back_buffer, 1 );
             sgui_window_make_current( NULL );
         }
         break;
@@ -350,9 +352,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
             exp.height = r.bottom - r.top  + 1;
 
             XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+
+            sgui_canvas_clear( wnd->base.back_buffer, &r );
+            sgui_widget_manager_draw(wnd->base.mgr,wnd->base.back_buffer,&r);
         }
 
-        sgui_widget_manager_draw( wnd->base.mgr, wnd->base.back_buffer );
         sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
     }
     else if( wnd->base.backend==SGUI_OPENGL_CORE ||

@@ -49,7 +49,6 @@ void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
 {
     sgui_static_text* t = (sgui_static_text*)w;
 
-    sgui_canvas_clear( cv, &w->area );
     sgui_canvas_draw_text( cv, w->area.left, w->area.top, t->text );
 }
 

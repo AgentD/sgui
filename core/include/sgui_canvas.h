@@ -156,12 +156,6 @@ SGUI_DLL void sgui_canvas_get_scissor_rect( sgui_canvas* canvas,
 SGUI_DLL void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas,
                                               sgui_rect* r );
 
-/** \brief Enable or disable background clearing */
-SGUI_DLL void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear );
-
-/** \brief Returns non-zero if background clearing is enabled */
-SGUI_DLL int sgui_canvas_is_clear_allowed( sgui_canvas* canvas );
-
 /**
  * \brief Set an offset added to all drawing and scissor positions
  *

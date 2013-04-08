@@ -46,7 +46,6 @@
 void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                 unsigned int height )
 {
-    cv->allow_clear = 1;
     cv->ox = cv->oy = 0;
 
     cv->width = width;
@@ -148,7 +147,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_rect r1;
 
-    if( !canvas || !canvas->allow_clear )
+    if( !canvas )
         return;
 
     /* if no rect is given, set to the full canvas area */
@@ -203,17 +202,6 @@ void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
         COPY_RECT_OFFSET( r1, r );
         sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
     }
-}
-
-void sgui_canvas_allow_clear( sgui_canvas* canvas, int clear )
-{
-    if( canvas )
-        canvas->allow_clear = clear;
-}
-
-int sgui_canvas_is_clear_allowed( sgui_canvas* canvas )
-{
-    return canvas ? canvas->allow_clear : 0;
 }
 
 void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )

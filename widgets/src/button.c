@@ -262,7 +262,6 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     unsigned int h = sgui_skin_get_default_font_height( );
     int oy = h > b->cy ? (h/2-b->cy/4) : 0;
     int x = w->area.left, y = w->area.top;
-    sgui_rect r;
 
     /* draw widget */
     if( b->type == BUTTON_RADIO )
@@ -275,17 +274,10 @@ void sgui_button_draw( sgui_widget* w, sgui_canvas* cv )
     /* draw text */
     if( b->type == BUTTON_NORMAL )
     {
-        sgui_rect_set_size( &r, b->cx - b->state-1, b->cy - b->state-1,
-                                b->text_width+2, h+2 );
-        sgui_canvas_clear( cv, &r );
         sgui_canvas_draw_text( cv, b->cx-b->state, b->cy-b->state, b->text );
     }
     else
     {
-        r.left = w->area.left + b->cx; r.right  = w->area.right;
-        r.top  = w->area.top;          r.bottom = w->area.bottom;
-
-        sgui_canvas_clear( cv, &r );
         sgui_canvas_draw_text( cv, x+b->cx, y, b->text );
     }
 }

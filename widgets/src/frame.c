@@ -138,18 +138,15 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
 void frame_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_frame* f = (sgui_frame*)widget;
-    int offset, clear, old_ox, old_oy;
+    int offset, old_ox, old_oy;
     sgui_rect r, old_sc;
 
     offset = sgui_scroll_bar_get_offset( f->v_bar );
-    clear  = sgui_canvas_is_clear_allowed( cv );
 
     /* draw background */
     sgui_skin_draw_frame( cv, widget->area.left, widget->area.top,
                               SGUI_RECT_WIDTH(widget->area),
                               SGUI_RECT_HEIGHT(widget->area) );
-
-    sgui_canvas_allow_clear( cv, 0 );
 
     /* adjust offset and scissor rect to frame area */
     r = widget->area;
@@ -163,12 +160,12 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_canvas_add_offset( cv, r.left, r.top-offset );
 
     /* draw the widgets */
-    sgui_widget_manager_draw_all( f->mgr, cv );
+    sgui_widget_manager_draw( f->mgr, cv, NULL );
+    sgui_widget_manager_clear_dirty_rects( f->mgr );
 
     /* restore canvas state */
     sgui_canvas_set_offset( cv, old_ox, old_oy );
     sgui_canvas_set_scissor_rect( cv, &old_sc );
-    sgui_canvas_allow_clear( cv, clear );
 }
 
 

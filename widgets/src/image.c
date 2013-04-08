@@ -52,8 +52,6 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
 
     if( img->blend )
     {
-        sgui_canvas_clear( cv, &widget->area );
-
         sgui_canvas_blend( cv, widget->area.left, widget->area.top,
                            img->pixmap, NULL );
     }

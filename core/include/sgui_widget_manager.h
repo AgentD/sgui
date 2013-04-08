@@ -118,23 +118,15 @@ SGUI_DLL void sgui_widget_manager_clear_dirty_rects( sgui_widget_manager*
 
 /**
  * \brief Redraw all widgets of a widget manager that are flaged visible and
- *        are within a dirty rect
+ *        are within a given rect
  *
  * \param mgr The widget manager
  * \param cv  The canvas to draw to
+ * \param r   The area to redraw, or NULL to redraw everything
  */
 SGUI_DLL void sgui_widget_manager_draw( sgui_widget_manager* mgr,
-                                        sgui_canvas* cv );
-
-/**
- * \brief Force redrawing of all widgets of a widget manager that are
- *        flaged visible
- *
- * \param mgr The widget manager
- * \param cv  The canvas to draw to
- */
-SGUI_DLL void sgui_widget_manager_draw_all( sgui_widget_manager* mgr,
-                                            sgui_canvas* cv );
+                                        sgui_canvas* cv,
+                                        sgui_rect* r );
 
 /**
  * \brief Send a window event to all widgets held by a widget manager

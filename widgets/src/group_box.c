@@ -85,7 +85,8 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
     /* adjust offset and draw */
     sgui_canvas_get_offset( cv, &old_ox, &old_oy );
     sgui_canvas_add_offset( cv, widget->area.left, widget->area.top );
-    sgui_widget_manager_draw_all( b->mgr, cv );
+    sgui_widget_manager_draw( b->mgr, cv, NULL );
+    sgui_widget_manager_clear_dirty_rects( b->mgr );
     sgui_canvas_set_offset( cv, old_ox, old_oy );
 }
 

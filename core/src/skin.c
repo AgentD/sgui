@@ -278,7 +278,6 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
     sgui_rect r;
 
     sgui_rect_set_size( &r, x, y, ww, wh );
-    sgui_canvas_clear( cv, &r );
 
     /* draw background box */
     color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
@@ -387,7 +386,6 @@ void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y, int state )
     sgui_rect r;
 
     sgui_rect_set_size( &r, x, y, 12, 12 );
-    sgui_canvas_clear( cv, &r );
     sgui_canvas_draw_box( cv, &r, color, SGUI_RGBA8 );
 
     color[0] = color[1] = color[2] = 0x00; color[3] = 0xFF;
@@ -419,9 +417,6 @@ void sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
     sgui_rect r;
 
     color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
-
-    sgui_rect_set_size( &r, x, y, 12, 12 );
-    sgui_canvas_clear( cv, &r );
 
     sgui_rect_set_size( &r, x+2, y+2, 8, 8 );
     sgui_canvas_draw_box( cv, &r, color, SGUI_RGBA8 );
@@ -475,12 +470,10 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
 
     height = font_height + (font_height / 2) + 4;
 
-    sgui_rect_set_size( &r, x, y, width, height );
-    sgui_canvas_clear( cv, &r );
-
     /* draw background box */
     color[0] = color[1] = color[2] = 0x00; color[3] = 0x80;
 
+    sgui_rect_set_size( &r, x, y, width, height );
     sgui_canvas_draw_box( cv, &r, color, SGUI_RGBA8 );
 
     /* draw text */
@@ -533,8 +526,6 @@ void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
     sgui_rect r;
 
     sgui_rect_set_size( &r, x, y, width, height );
-    sgui_canvas_clear( cv, &r );
-
     sgui_canvas_draw_box( cv, &r, color, SGUI_RGBA8 );
 
     sgui_canvas_draw_line( cv, x, y, width,  1, color, SGUI_RGB8 );
@@ -632,12 +623,8 @@ void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
 {
     unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
     unsigned int len;
-    sgui_rect r;
 
     len = sgui_skin_default_font_extents( caption, -1, 0, 0 );
-
-    sgui_rect_set_size( &r, x+10, y, len+6, font_height );
-    sgui_canvas_clear( cv, &r );
 
     sgui_canvas_draw_text_plain( cv, x+13, y, 0, 0, color, caption, -1 );
 
@@ -670,10 +657,6 @@ void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
 {
     unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     unsigned int h = font_height + font_height / 2;
-    sgui_rect r;
-
-    sgui_rect_set_size( &r, x, y, width, h );
-    sgui_canvas_clear( cv, &r );
 
     sgui_canvas_draw_line( cv, x, y, width, 1, color, SGUI_RGB8 );
     sgui_canvas_draw_line( cv, x, y, h,     0, color, SGUI_RGB8 );

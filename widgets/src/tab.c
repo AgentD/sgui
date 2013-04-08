@@ -143,7 +143,6 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int gap, gap_w;
     int x = widget->area.left, y = widget->area.top, old_ox, old_oy;
-    sgui_rect r;
     sgui_tab* i;
 
     /* draw tab captions */
@@ -161,12 +160,6 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         for( i=g->tabs, gap=0; i && i!=g->selected; i=i->next )
             gap += i->caption_width;
 
-        r = widget->area;
-        r.top += g->tab_cap_height;
-        r.bottom -= g->tab_cap_height + g->tab_cap_height;
-
-        sgui_canvas_clear( cv, &r );
-
         sgui_skin_draw_tab( cv, widget->area.left,
                                 widget->area.top + g->tab_cap_height, 
                                 SGUI_RECT_WIDTH(widget->area),
@@ -176,7 +169,8 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         /* adjust offset and draw the tab area */
         sgui_canvas_get_offset( cv, &old_ox, &old_oy );
         sgui_canvas_add_offset( cv, widget->area.left, widget->area.top );
-        sgui_widget_manager_draw_all( g->selected->mgr, cv );
+        sgui_widget_manager_draw( g->selected->mgr, cv, NULL );
+        sgui_widget_manager_clear_dirty_rects( g->selected->mgr );
         sgui_canvas_set_offset( cv, old_ox, old_oy );
     }
 }

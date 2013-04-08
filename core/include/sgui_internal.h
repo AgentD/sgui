@@ -36,7 +36,6 @@
 
 struct sgui_canvas
 {
-    int allow_clear;
     int ox, oy;                     /**< \brief current offset */
 
     unsigned int width, height;     /**< \brief Size of the canvas */
