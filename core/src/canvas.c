@@ -103,9 +103,9 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_rect r0;
 
-    if( canvas && r )
+    if( canvas && !canvas->began )
     {
-        if( !canvas->began )
+        if( r )
         {
             sgui_rect_copy( &r0, r );
 
@@ -121,25 +121,25 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
 
             if( r0.bottom >= (int)canvas->height )
                 r0.bottom = canvas->height - 1;
-
-            /* tell the implementation to begin drawing */
-            canvas->begin( canvas, &r0 );
-            canvas->sc = r0;
+        }
+        else
+        {
+            sgui_rect_set_size( &r0, 0, 0, canvas->width, canvas->height );
         }
 
-        ++canvas->began;
+        /* tell the implementation to begin drawing */
+        canvas->begin( canvas, &r0 );
+        canvas->sc = r0;
+        canvas->began = 1;
     }
 }
 
 void sgui_canvas_end( sgui_canvas* canvas )
 {
-    if( canvas )
+    if( canvas && canvas->began )
     {
-        if( canvas->began )
-            --canvas->began;
-
-        if( !canvas->began )
-            canvas->end( canvas );
+        canvas->began = 0;
+        canvas->end( canvas );
     }
 }
 
@@ -147,7 +147,7 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_rect r1;
 
-    if( !canvas )
+    if( !canvas || !canvas->began )
         return;
 
     /* if no rect is given, set to the full canvas area */
@@ -160,21 +160,9 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
         sgui_rect_set_size( &r1, 0, 0, canvas->width, canvas->height );
     }
 
-    /* prepare the clearing rect */
-    if( canvas->began )
-    {
-        if( !sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
-            return;
-    }
-    else
-    {
-        if( r1.left   <  0                   ) r1.left   = 0;
-        if( r1.top    <  0                   ) r1.top    = 0;
-        if( r1.right  >= (int)canvas->width  ) r1.right  = canvas->width - 1;
-        if( r1.bottom >= (int)canvas->height ) r1.bottom = canvas->height - 1;
-    }
-
-    canvas->clear( canvas, &r1 );
+    /* clear if we have an intersection */
+    if( sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
+        canvas->clear( canvas, &r1 );
 }
 
 void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r )

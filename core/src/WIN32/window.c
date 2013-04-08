@@ -115,8 +115,10 @@ void sgui_window_set_size( sgui_window* wnd,
 
     if( wnd->backend==SGUI_NATIVE )
     {
+        sgui_canvas_begin( wnd->back_buffer, NULL );
         sgui_canvas_clear( wnd->back_buffer, NULL );
         sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
+        sgui_canvas_end( wnd->back_buffer );
         sgui_widget_manager_clear_dirty_rects( wnd->mgr );
     }
 }
@@ -298,8 +300,10 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
 
         if( wnd->base.backend==SGUI_NATIVE )
         {
+            sgui_canvas_begin( base->back_buffer, NULL );
             sgui_canvas_clear( base->back_buffer, NULL );
             sgui_widget_manager_draw( base->mgr, base->back_buffer, NULL );
+            sgui_canvas_end( base->back_buffer );
             sgui_widget_manager_clear_dirty_rects( base->mgr );
         }
         break;
@@ -321,11 +325,18 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
                  wnd->base.backend==SGUI_OPENGL_COMPAT )
         {
             sgui_window_make_current( (sgui_window*)wnd );
+
+            sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
+            sgui_canvas_end( wnd->base.back_buffer );
+
             sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
+
+            sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_widget_manager_draw( wnd->base.mgr,
                                       wnd->base.back_buffer, NULL );
             sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            sgui_canvas_end( wnd->base.back_buffer );
             sgui_window_swap_buffers( (sgui_window*)wnd );
             sgui_window_make_current( NULL );
         }
@@ -342,8 +353,10 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         {
             sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &sr, i );
 
+            sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_canvas_clear( wnd->base.back_buffer, &sr );
             sgui_widget_manager_draw(wnd->base.mgr,wnd->base.back_buffer,&sr);
+            sgui_canvas_end( wnd->base.back_buffer );
             SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
             InvalidateRect( wnd->hWnd, &r, TRUE );
         }
@@ -459,7 +472,9 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     sgui_skin_get_window_background_color( rgb );
     sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
     sgui_window_make_current( (sgui_window*)wnd );
+    sgui_canvas_begin( wnd->base.back_buffer, NULL );
     sgui_canvas_clear( wnd->base.back_buffer, NULL );
+    sgui_canvas_end( wnd->base.back_buffer );
     sgui_window_make_current( NULL );
 
     return (sgui_window*)wnd;

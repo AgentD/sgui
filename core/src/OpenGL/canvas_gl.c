@@ -73,8 +73,6 @@ typedef struct
 {
     sgui_canvas canvas;
 
-    int began;
-
     int state;
     GLint blend_src, blend_dst;
 }
@@ -103,7 +101,6 @@ void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
 
     cv->state = 0;
-    cv->began = 1;
 
     /* configure the viewport to canvas size */
     glViewport( 0, 0, canvas->width, canvas->height );
@@ -175,30 +172,15 @@ void canvas_gl_end( sgui_canvas* canvas )
     glPopMatrix( );
     glMatrixMode( GL_MODELVIEW );
     glPopMatrix( );
-
-    ((sgui_canvas_gl*)canvas)->began = 0;
 }
 
 void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )
 {
-    int do_end = 0;
-
-    if( !((sgui_canvas_gl*)canvas)->began )
-    {
-        canvas_gl_begin( canvas, NULL );
-        do_end = 1;
-    }
-
     glColor3ub(canvas->bg_color[0], canvas->bg_color[1], canvas->bg_color[2]);
     glVertex2i( r->left,  r->top    );
     glVertex2i( r->right, r->top    );
     glVertex2i( r->right, r->bottom );
     glVertex2i( r->left,  r->bottom );
-
-    if( do_end )
-    {
-        canvas_gl_end( canvas );
-    }
 }
 
 void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
@@ -319,8 +301,6 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
         return NULL;
 
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
-
-    cv->began = 0;
 
     cv->canvas.destroy = canvas_gl_destroy;
     cv->canvas.resize = canvas_gl_resize;

@@ -131,8 +131,10 @@ void sgui_window_set_size( sgui_window* wnd,
 
     if( wnd->backend==SGUI_NATIVE )
     {
+        sgui_canvas_begin( wnd->back_buffer, NULL );
         sgui_canvas_clear( wnd->back_buffer, NULL );
         sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
+        sgui_canvas_end( wnd->back_buffer );
         sgui_widget_manager_clear_dirty_rects( wnd->mgr );
     }
 }
@@ -277,9 +279,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         /* redraw everything */
         if( wnd->base.backend==SGUI_NATIVE )
         {
+            sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
             sgui_widget_manager_draw( wnd->base.mgr,
                                       wnd->base.back_buffer, NULL );
+            sgui_canvas_end( wnd->base.back_buffer );
             sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
         }
         break;
@@ -319,11 +323,18 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
                  wnd->base.backend==SGUI_OPENGL_COMPAT )
         {
             sgui_window_make_current( (sgui_window*)wnd );
+
+            sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
+            sgui_canvas_end( wnd->base.back_buffer );
+
             SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+
+            sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_widget_manager_draw( wnd->base.mgr,
                                       wnd->base.back_buffer, NULL );
             sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            sgui_canvas_end( wnd->base.back_buffer );
             sgui_window_swap_buffers( (sgui_window*)wnd );
             sgui_window_make_current( NULL );
         }
@@ -353,8 +364,10 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
             XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
 
+            sgui_canvas_begin( wnd->base.back_buffer, &r );
             sgui_canvas_clear( wnd->base.back_buffer, &r );
             sgui_widget_manager_draw(wnd->base.mgr,wnd->base.back_buffer,&r);
+            sgui_canvas_end( wnd->base.back_buffer );
         }
 
         sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
@@ -565,7 +578,9 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     sgui_window_make_current( (sgui_window*)wnd );
     sgui_skin_get_window_background_color( rgb );
     sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
+    sgui_canvas_begin( wnd->base.back_buffer, NULL );
     sgui_canvas_clear( wnd->base.back_buffer, NULL );
+    sgui_canvas_end( wnd->base.back_buffer );
     sgui_window_make_current( NULL );
 
     /*********** Create an input context ************/
