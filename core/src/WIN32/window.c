@@ -400,7 +400,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     if( !wnd->hWnd )
     {
-        sgui_window_destroy( (sgui_window*)wnd );
+        w32_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
 
@@ -411,7 +411,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     {
         if( !create_gl_context( wnd, backend==SGUI_OPENGL_COMPAT ) )
         {
-            sgui_window_destroy( (sgui_window*)wnd );
+            w32_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 
@@ -425,7 +425,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     if( !wnd->base.back_buffer )
     {
-        sgui_window_destroy( (sgui_window*)wnd );
+        w32_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
 
