@@ -78,18 +78,6 @@ void w32_window_set_size( sgui_window* wnd,
 
     wnd->w = width;
     wnd->h = height;
-
-    /* resize the canvas */
-    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
-
-    if( wnd->backend==SGUI_NATIVE )
-    {
-        sgui_canvas_begin( wnd->back_buffer, NULL );
-        sgui_canvas_clear( wnd->back_buffer, NULL );
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
-        sgui_canvas_end( wnd->back_buffer );
-        sgui_widget_manager_clear_dirty_rects( wnd->mgr );
-    }
 }
 
 void w32_window_move_center( sgui_window* wnd )
@@ -366,7 +354,6 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     HWND parent_hnd = 0;
     DWORD style;
     RECT r;
-    unsigned char rgb[3];
 
     if( !width || !height )
         return NULL;
@@ -419,10 +406,6 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     SET_USER_PTR( wnd->hWnd, wnd );
 
-    wnd->base.w       = width;
-    wnd->base.h       = height;
-    wnd->base.backend = backend;
-
     /**************************** create canvas ****************************/
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
@@ -432,13 +415,12 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
             return NULL;
         }
 
-        wnd->base.back_buffer = sgui_opengl_canvas_create( wnd->base.w,
-                                                           wnd->base.h );
+        wnd->base.back_buffer = sgui_opengl_canvas_create( width, height );
         wnd->base.swap_buffers = gl_swap_buffers;
     }
     else
     {
-        wnd->base.back_buffer = canvas_gdi_create( wnd->base.w, wnd->base.h );
+        wnd->base.back_buffer = canvas_gdi_create( width, height );
     }
 
     if( !wnd->base.back_buffer )
@@ -447,13 +429,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         return NULL;
     }
 
-    sgui_skin_get_window_background_color( rgb );
-    sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
-    sgui_window_make_current( (sgui_window*)wnd );
-    sgui_canvas_begin( wnd->base.back_buffer, NULL );
-    sgui_canvas_clear( wnd->base.back_buffer, NULL );
-    sgui_canvas_end( wnd->base.back_buffer );
-    sgui_window_make_current( NULL );
+    sgui_internal_window_post_init((sgui_window*)wnd, width, height, backend);
 
     /* store entry points */
     wnd->base.get_mouse_position = w32_window_get_mouse_position;

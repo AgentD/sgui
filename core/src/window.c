@@ -27,6 +27,7 @@
 #include "sgui_window.h"
 #include "sgui_event.h"
 #include "sgui_canvas.h"
+#include "sgui_skin.h"
 
 #include <stddef.h>
 
@@ -40,6 +41,27 @@ int sgui_internal_window_init( sgui_window* window )
         return 0;
 
     return 1;
+}
+
+void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
+                                     unsigned int height, int backend )
+{
+    unsigned char rgb[3];
+
+    if( window )
+    {
+        window->w       = width;
+        window->h       = height;
+        window->backend = backend;
+
+        sgui_skin_get_window_background_color( rgb );
+        sgui_canvas_set_background_color( window->back_buffer, rgb );
+        sgui_window_make_current( window );
+        sgui_canvas_begin( window->back_buffer, NULL );
+        sgui_canvas_clear( window->back_buffer, NULL );
+        sgui_canvas_end( window->back_buffer );
+        sgui_window_make_current( NULL );
+    }
 }
 
 void sgui_internal_window_deinit( sgui_window* window )
@@ -124,7 +146,21 @@ void sgui_window_set_size( sgui_window* wnd,
                            unsigned int width, unsigned int height )
 {
     if( wnd && width && height && (width!=wnd->w || height!=wnd->h) )
+    {
         wnd->set_size( wnd, width, height );
+
+        /* resize the canvas */
+        sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+
+        if( wnd->backend==SGUI_NATIVE )
+        {
+            sgui_canvas_begin( wnd->back_buffer, NULL );
+            sgui_canvas_clear( wnd->back_buffer, NULL );
+            sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
+            sgui_canvas_end( wnd->back_buffer );
+            sgui_widget_manager_clear_dirty_rects( wnd->mgr );
+        }
+    }
 }
 
 void sgui_window_move_center( sgui_window* wnd )

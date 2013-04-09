@@ -86,18 +86,6 @@ void xlib_window_set_size( sgui_window* wnd,
     XGetWindowAttributes( dpy, TO_X11(wnd)->wnd, &attr );
     wnd->w = (unsigned int)attr.width;
     wnd->h = (unsigned int)attr.height;
-
-    /* resize the back buffer image */
-    sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
-
-    if( wnd->backend==SGUI_NATIVE )
-    {
-        sgui_canvas_begin( wnd->back_buffer, NULL );
-        sgui_canvas_clear( wnd->back_buffer, NULL );
-        sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
-        sgui_canvas_end( wnd->back_buffer );
-        sgui_widget_manager_clear_dirty_rects( wnd->mgr );
-    }
 }
 
 void xlib_window_move_center( sgui_window* wnd )
@@ -509,8 +497,6 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     wnd->base.x = attr.x;
     wnd->base.y = attr.y;
-    wnd->base.w = (unsigned int)attr.width;
-    wnd->base.h = (unsigned int)attr.height;
 
     /********************** create canvas **********************/
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
@@ -533,37 +519,22 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
             return NULL;
         }
 
-        wnd->base.back_buffer = sgui_opengl_canvas_create( wnd->base.w,
-                                                           wnd->base.h );
-
-        if( !wnd->base.back_buffer )
-        {
-            xlib_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
-
+        wnd->base.back_buffer = sgui_opengl_canvas_create( attr.width,
+                                                           attr.height );
         wnd->base.swap_buffers = gl_swap_buffers;
 #endif
     }
     else
     {
-        wnd->base.back_buffer = canvas_xlib_create( wnd->wnd, wnd->base.w,
-                                                    wnd->base.h );
-
-        if( !wnd->base.back_buffer )
-        {
-            xlib_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
+        wnd->base.back_buffer = canvas_xlib_create( wnd->wnd, attr.width,
+                                                    attr.height );
     }
 
-    sgui_window_make_current( (sgui_window*)wnd );
-    sgui_skin_get_window_background_color( rgb );
-    sgui_canvas_set_background_color( wnd->base.back_buffer, rgb );
-    sgui_canvas_begin( wnd->base.back_buffer, NULL );
-    sgui_canvas_clear( wnd->base.back_buffer, NULL );
-    sgui_canvas_end( wnd->base.back_buffer );
-    sgui_window_make_current( NULL );
+    if( !wnd->base.back_buffer )
+    {
+        xlib_window_destroy( (sgui_window*)wnd );
+        return NULL;
+    }
 
     /*********** Create an input context ************/
     wnd->ic = XCreateIC( im, XNInputStyle,
@@ -575,6 +546,9 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         xlib_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
+
+    sgui_internal_window_post_init( (sgui_window*)wnd, attr.width,
+                                    attr.height, backend );
 
     /* store entry points */
     wnd->base.get_mouse_position = xlib_window_get_mouse_position;

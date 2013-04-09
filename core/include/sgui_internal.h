@@ -269,6 +269,9 @@ struct sgui_window
     /**
      * \brief Called by sgui_window_set_size
      *
+     * The sgui_window_set_size function takes care of also resizing the
+     * canvas and redrawing the widget, if the backend is SGUI_NATIVE.
+     *
      * \param wnd    Pointer to the window itself
      * \param width  New width of the window
      * \param height New height of the window
@@ -348,6 +351,23 @@ SGUI_DLL void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
  * \return Non-zero on success, zero on failure
  */
 SGUI_DLL int sgui_internal_window_init( sgui_window* window );
+
+/**
+ * \brief Perform common operations at the end of sgui_window_create
+ *
+ * This function stores the size and backend of a window in a window
+ * structure, sets the window canvas background color to default window
+ * color and clears it.
+ *
+ * \param window  A pointer to a window structure
+ * \param width   The width to store in the structure
+ * \param height  The height to store in the structure
+ * \param backend The backend to store in the structure
+ */
+SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
+                                              unsigned int width,
+                                              unsigned int height,
+                                              int backend );
 
 /**
  * \brief Perform the reverse oprations of sgui_internal_window_init
