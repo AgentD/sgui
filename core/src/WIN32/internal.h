@@ -112,7 +112,7 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity );
 void destroy_gl_context( sgui_window_w32* wnd );
 
 /* in opengl.c: swap buffers of an OpenGL context of a window */
-void gl_swap_buffers( sgui_window_w32* wnd );
+void gl_swap_buffers( sgui_window* wnd );
 
 /* in opengl.c: make the OpenGL context of a window current */
 void gl_make_current( sgui_window_w32* wnd );

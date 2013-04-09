@@ -29,73 +29,42 @@
 
 
 
-void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+void w32_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     POINT pos = { 0, 0 };
 
-    if( wnd )
-    {
-        GetCursorPos( &pos );
-        ScreenToClient( TO_W32(wnd)->hWnd, &pos );
-    }
+    GetCursorPos( &pos );
+    ScreenToClient( TO_W32(wnd)->hWnd, &pos );
 
-    if( x ) *x = pos.x<0 ? 0 : (pos.x>=(int)wnd->w ? ((int)wnd->w-1) : pos.x);
-    if( y ) *y = pos.y<0 ? 0 : (pos.y>=(int)wnd->h ? ((int)wnd->h-1) : pos.y);
+    *x = pos.x;
+    *y = pos.y;
 }
 
-void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
-                                     int send_event )
+void w32_window_set_mouse_position( sgui_window* wnd, int x, int y )
 {
     POINT pos;
-    sgui_event e;
 
-    if( wnd && wnd->visible )
-    {
-        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
-        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
-
-        pos.x = x;
-        pos.y = y;
-        ClientToScreen( TO_W32(wnd)->hWnd, &pos );
-        SetCursorPos( pos.x, pos.y );
-
-        if( send_event )
-        {
-            e.mouse_move.x = x;
-            e.mouse_move.y = y;
-            sgui_internal_window_fire_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
-        }
-    }
+    pos.x = x;
+    pos.y = y;
+    ClientToScreen( TO_W32(wnd)->hWnd, &pos );
+    SetCursorPos( pos.x, pos.y );
 }
 
-void sgui_window_set_visible( sgui_window* wnd, int visible )
+void w32_window_set_visible( sgui_window* wnd, int visible )
 {
-    if( wnd && (wnd->visible!=visible) )
-    {
-        ShowWindow( TO_W32(wnd)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
-
-        wnd->visible = visible;
-
-        if( !visible )
-            sgui_internal_window_fire_event( wnd, SGUI_API_INVISIBLE_EVENT,
-                                             NULL );
-    }
+    ShowWindow( TO_W32(wnd)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
 }
 
-void sgui_window_set_title( sgui_window* wnd, const char* title )
+void w32_window_set_title( sgui_window* wnd, const char* title )
 {
-    if( wnd && title )
-        SetWindowTextA( TO_W32(wnd)->hWnd, title );
+    SetWindowTextA( TO_W32(wnd)->hWnd, title );
 }
 
-void sgui_window_set_size( sgui_window* wnd,
-                           unsigned int width, unsigned int height )
+void w32_window_set_size( sgui_window* wnd,
+                          unsigned int width, unsigned int height )
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
-
-    if( !wnd || !width || !height )
-        return;
 
     /* Determine the actual window size for the given client size */
     GetClientRect( TO_W32(wnd)->hWnd, &rcClient );
@@ -123,58 +92,68 @@ void sgui_window_set_size( sgui_window* wnd,
     }
 }
 
-void sgui_window_move_center( sgui_window* wnd )
+void w32_window_move_center( sgui_window* wnd )
 {
     RECT desktop, window;
     int w, h, dw, dh;
 
-    if( wnd )
-    {
-        GetClientRect( GetDesktopWindow( ), &desktop );
-        GetWindowRect( TO_W32(wnd)->hWnd,   &window  );
+    GetClientRect( GetDesktopWindow( ), &desktop );
+    GetWindowRect( TO_W32(wnd)->hWnd,   &window  );
 
-        w = window.right  - window.left;
-        h = window.bottom - window.top;
+    w = window.right  - window.left;
+    h = window.bottom - window.top;
 
-        dw = desktop.right  - desktop.left;
-        dh = desktop.bottom - desktop.top;
+    dw = desktop.right  - desktop.left;
+    dh = desktop.bottom - desktop.top;
 
-        MoveWindow( TO_W32(wnd)->hWnd,
-                    (dw>>1)-(w>>1), (dh>>1)-(h>>1), w, h, TRUE );
-    }
+    MoveWindow( TO_W32(wnd)->hWnd, (dw>>1)-(w>>1),
+                (dh>>1)-(h>>1), w, h, TRUE );
 }
 
-void sgui_window_move( sgui_window* wnd, int x, int y )
+void w32_window_move( sgui_window* wnd, int x, int y )
 {
     RECT outer, inner;
     int w, h, dx, dy;
 
-    if( wnd )
+    if( GetWindowLong( TO_W32(wnd)->hWnd, GWL_STYLE ) & WS_CHILD )
     {
-        if( GetWindowLong( TO_W32(wnd)->hWnd, GWL_STYLE ) & WS_CHILD )
-        {
-            dx = dy = 0;
-            w = wnd->w;
-            h = wnd->h;
-        }
-        else
-        {
-            /* This did not work for child windows (nonsense dx and dy) */
-            GetClientRect( TO_W32(wnd)->hWnd, &inner );
-            GetWindowRect( TO_W32(wnd)->hWnd, &outer );
-
-            w = outer.right  - outer.left;
-            h = outer.bottom - outer.top;
-
-            dx = inner.left - outer.left;
-            dy = inner.top  - outer.top;
-        }
-
-        MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
-
-        wnd->x = x;
-        wnd->y = y;
+        dx = dy = 0;
+        w = wnd->w;
+        h = wnd->h;
     }
+    else
+    {
+        /* This did not work for child windows (nonsense dx and dy) */
+        GetClientRect( TO_W32(wnd)->hWnd, &inner );
+        GetWindowRect( TO_W32(wnd)->hWnd, &outer );
+
+        w = outer.right  - outer.left;
+        h = outer.bottom - outer.top;
+
+        dx = inner.left - outer.left;
+        dy = inner.top  - outer.top;
+    }
+
+    MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
+}
+
+void w32_window_destroy( sgui_window* wnd )
+{
+    MSG msg;
+
+    sgui_internal_window_deinit( (sgui_window*)wnd );
+
+    if(wnd->backend==SGUI_OPENGL_COMPAT || wnd->backend==SGUI_OPENGL_CORE)
+        destroy_gl_context( TO_W32(wnd) );
+
+    if( TO_W32(wnd)->hWnd )
+    {
+        DestroyWindow( TO_W32(wnd)->hWnd );
+        PeekMessage(&msg, TO_W32(wnd)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE);
+    }
+
+    remove_window( (sgui_window_w32*)wnd );
+    free( wnd );
 }
 
 /****************************************************************************/
@@ -405,9 +384,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     memset( wnd, 0, sizeof(sgui_window_w32) );
 
-    wnd->base.mgr = sgui_widget_manager_create( );
-
-    if( !wnd->base.mgr )
+    if( !sgui_internal_window_init( (sgui_window*)wnd ) )
     {
         free( wnd );
         return NULL;
@@ -457,6 +434,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         wnd->base.back_buffer = sgui_opengl_canvas_create( wnd->base.w,
                                                            wnd->base.h );
+        wnd->base.swap_buffers = gl_swap_buffers;
     }
     else
     {
@@ -477,16 +455,17 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     sgui_canvas_end( wnd->base.back_buffer );
     sgui_window_make_current( NULL );
 
-    return (sgui_window*)wnd;
-}
+    /* store entry points */
+    wnd->base.get_mouse_position = w32_window_get_mouse_position;
+    wnd->base.set_mouse_position = w32_window_set_mouse_position;
+    wnd->base.set_visible        = w32_window_set_visible;
+    wnd->base.set_title          = w32_window_set_title;
+    wnd->base.set_size           = w32_window_set_size;
+    wnd->base.move_center        = w32_window_move_center;
+    wnd->base.move               = w32_window_move;
+    wnd->base.destroy            = w32_window_destroy;
 
-void sgui_window_swap_buffers( sgui_window* wnd )
-{
-    if( wnd && (wnd->backend==SGUI_OPENGL_COMPAT ||
-                wnd->backend==SGUI_OPENGL_CORE) )
-    {
-        gl_swap_buffers( TO_W32(wnd) );
-    }
+    return (sgui_window*)wnd;
 }
 
 void sgui_window_make_current( sgui_window* wnd )
@@ -498,33 +477,5 @@ void sgui_window_make_current( sgui_window* wnd )
     }
     else
         gl_make_current( NULL );
-}
-
-void sgui_window_destroy( sgui_window* wnd )
-{
-    MSG msg;
-
-    if( wnd )
-    {
-        sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
-
-        if(wnd->backend==SGUI_OPENGL_COMPAT || wnd->backend==SGUI_OPENGL_CORE)
-            destroy_gl_context( TO_W32(wnd) );
-
-        if( TO_W32(wnd)->hWnd )
-        {
-            DestroyWindow( TO_W32(wnd)->hWnd );
-            PeekMessage(&msg, TO_W32(wnd)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE);
-        }
-
-        if( wnd->back_buffer )
-            sgui_canvas_destroy( wnd->back_buffer );
-
-        if( wnd->mgr )
-            sgui_widget_manager_destroy( wnd->mgr );
-
-        remove_window( (sgui_window_w32*)wnd );
-        free( wnd );
-    }
 }
 

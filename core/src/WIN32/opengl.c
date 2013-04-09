@@ -182,9 +182,9 @@ void destroy_gl_context( sgui_window_w32* wnd )
         ReleaseDC( wnd->hWnd, wnd->hDC );
 }
 
-void gl_swap_buffers( sgui_window_w32* wnd )
+void gl_swap_buffers( sgui_window* wnd )
 {
-    SwapBuffers( wnd->hDC );
+    SwapBuffers( ((sgui_window_w32*)wnd)->hDC );
 }
 
 void gl_make_current( sgui_window_w32* wnd )

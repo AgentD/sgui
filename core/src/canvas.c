@@ -55,10 +55,13 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
     cv->bg_color[0] = 0;
     cv->bg_color[1] = 0;
     cv->bg_color[2] = 0;
+
+    cv->begin  = NULL;
+    cv->end    = NULL;
+    cv->resize = NULL;
 }
 
-
-
+/****************************************************************************/
 
 void sgui_canvas_destroy( sgui_canvas* canvas )
 {
@@ -71,15 +74,13 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 {
     if( canvas && (canvas->width!=width || canvas->height!=height) )
     {
-        canvas->resize( canvas, width, height );
+        if( canvas->resize )
+            canvas->resize( canvas, width, height );
 
         canvas->width = width;
         canvas->height = height;
     }
 }
-
-
-
 
 void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
                            unsigned int* height )
@@ -128,7 +129,9 @@ void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
         }
 
         /* tell the implementation to begin drawing */
-        canvas->begin( canvas, &r0 );
+        if( canvas->begin )
+            canvas->begin( canvas, &r0 );
+
         canvas->sc = r0;
         canvas->began = 1;
     }
@@ -139,7 +142,9 @@ void sgui_canvas_end( sgui_canvas* canvas )
     if( canvas && canvas->began )
     {
         canvas->began = 0;
-        canvas->end( canvas );
+
+        if( canvas->end )
+            canvas->end( canvas );
     }
 }
 

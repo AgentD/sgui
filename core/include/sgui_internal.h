@@ -61,6 +61,8 @@ struct sgui_canvas
     /**
      * \brief Gets called by sgui_canvas_resize
      *
+     * Can be set to NULL if not needed by the implementation.
+     *
      * \param canvas A pointer to the canvas (for C++ people: practically a
      *               this pointer).
      * \param width  The new width of the canvas
@@ -72,6 +74,8 @@ struct sgui_canvas
     /**
      * \brief Gets called by sgui_canvas_begin
      *
+     * Can be set to NULL if not needed by the implementation.
+     *
      * \param canvas A pointer to the canvas (for C++ people: practically a
      *               this pointer).
      * \param r      The rectangle to redraw (already clamped to the canvas)
@@ -80,6 +84,8 @@ struct sgui_canvas
 
     /**
      * \brief Gets called by sgui_canvas_end
+     *
+     * Can be set to NULL if not needed by the implementation.
      *
      * \param canvas A pointer to the canvas (for C++ people: practically a
      *               this pointer).
@@ -220,6 +226,87 @@ struct sgui_window
     int backend;                /**< \breif Window backend used */
 
     void* userptr;
+
+
+    /**
+     * \brief Called by sgui_window_get_mouse_position
+     *
+     * \param wnd Pointer to the window itself
+     * \param x   Pointer to the x return value, never NULL, adjusted to
+     *            window dimensions after return
+     * \param y   Pointer to the y return value, never NULL, adjusted to
+     *            window dimensions after return
+     */
+    void (* get_mouse_position )( sgui_window* wnd, int* x, int* y );
+
+    /**
+     * \brief Called by sgui_window_set_mouse_position
+     *
+     * \param wnd Pointer to the window itself
+     * \param x   The horizontal component of the position, already
+     *            adjusted to the window size
+     * \param y   The vertical component of the position, already
+     *            adjusted to the window size
+     */
+    void (* set_mouse_position )( sgui_window* wnd, int x, int y );
+
+    /**
+     * \brief Called by sgui_window_set_visible
+     *
+     * \param wnd     Pointer to the window itself
+     * \param visible Non-zero to show window, zero to hide
+     */
+    void (* set_visible )( sgui_window* wnd, int visible );
+
+    /**
+     * \brief Called by sgui_window_set_visible
+     *
+     * \param wnd   Pointer to the window itself
+     * \param title Pointer to the new title string (never a NULL pointer)
+     */
+    void (* set_title )( sgui_window* wnd, const char* title );
+
+    /**
+     * \brief Called by sgui_window_set_size
+     *
+     * \param wnd    Pointer to the window itself
+     * \param width  New width of the window
+     * \param height New height of the window
+     */
+    void (* set_size )( sgui_window* wnd,
+                        unsigned int width, unsigned int height );
+
+    /**
+     * \brief Called by sgui_window_move_center
+     *
+     * \param wnd Pointer to the window itself
+     */
+    void (* move_center )( sgui_window* wnd );
+
+    /**
+     * \brief Called by sgui_window_move
+     *
+     * \param wnd    Pointer to the window itself
+     * \param x      New position horizontal component
+     * \param y      New position vertical component
+     */
+    void (* move )( sgui_window* wnd, int x, int y );
+
+    /**
+     * \brief Called by sgui_window_swap_buffers
+     *
+     * Can be set to NULL if not needed by the implementation.
+     *
+     * \param wnd Pointer to the window itself
+     */
+    void (* swap_buffers )( sgui_window* wnd );
+
+    /**
+     * \brief Called by sgui_window_destroy
+     *
+     * \param wnd Pointer to the window itself
+     */
+    void (* destroy )( sgui_window* wnd );
 };
 
 
@@ -250,6 +337,27 @@ SGUI_DLL void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
  */
 SGUI_DLL void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                          unsigned int height );
+
+/**
+ * \brief Initialise a window structure
+ *
+ * This function also creates a widget manager for the window.
+ *
+ * \param window A pointer to the window structure
+ *
+ * \return Non-zero on success, zero on failure
+ */
+SGUI_DLL int sgui_internal_window_init( sgui_window* window );
+
+/**
+ * \brief Perform the reverse oprations of sgui_internal_window_init
+ *
+ * This function takes care of destroying the widget manager and
+ * canvas of the window.
+ *
+ * \param window A pointer to a window structure
+ */
+SGUI_DLL void sgui_internal_window_deinit( sgui_window* window );
 
 /**
  * \brief Propagate a window event

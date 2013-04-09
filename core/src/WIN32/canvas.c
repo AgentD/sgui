@@ -80,19 +80,6 @@ void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
                   ((sgui_canvas_gdi*)canvas)->bitmap );
 }
 
-
-
-void canvas_gdi_begin( sgui_canvas* canvas, sgui_rect* r )
-{
-    (void)canvas;
-    (void)r;
-}
-
-void canvas_gdi_end( sgui_canvas* canvas )
-{
-    (void)canvas;
-}
-
 void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
@@ -288,8 +275,6 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
 
     cv->canvas.destroy = canvas_gdi_destroy;
     cv->canvas.resize = canvas_gdi_resize;
-    cv->canvas.begin = canvas_gdi_begin;
-    cv->canvas.end = canvas_gdi_end;
     cv->canvas.clear = canvas_gdi_clear;
     cv->canvas.blit = canvas_gdi_blit;
     cv->canvas.blend = canvas_gdi_blend;

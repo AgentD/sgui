@@ -80,17 +80,6 @@ void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
     cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
 }
 
-void canvas_xlib_begin( sgui_canvas* canvas, sgui_rect* r )
-{
-    (void)canvas;
-    (void)r;
-}
-
-void canvas_xlib_end( sgui_canvas* canvas )
-{
-    (void)canvas;
-}
-
 void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
@@ -285,8 +274,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
 
     cv->canvas.destroy       = canvas_xlib_destroy;
     cv->canvas.resize        = canvas_xlib_resize;
-    cv->canvas.begin         = canvas_xlib_begin;
-    cv->canvas.end           = canvas_xlib_end;
     cv->canvas.blit          = canvas_xlib_blit;
     cv->canvas.blend         = canvas_xlib_blend;
     cv->canvas.clear         = canvas_xlib_clear;

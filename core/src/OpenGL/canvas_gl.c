@@ -86,15 +86,6 @@ void canvas_gl_destroy( sgui_canvas* canvas )
     free( canvas );
 }
 
-void canvas_gl_resize( sgui_canvas* canvas, unsigned int width,
-                       unsigned int height )
-{
-    (void)canvas;
-    (void)width;
-    (void)height;
-}
-
-
 void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     GLboolean v;
@@ -303,7 +294,6 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
 
     cv->canvas.destroy = canvas_gl_destroy;
-    cv->canvas.resize = canvas_gl_resize;
     cv->canvas.begin = canvas_gl_begin;
     cv->canvas.end = canvas_gl_end;
     cv->canvas.clear = canvas_gl_clear;

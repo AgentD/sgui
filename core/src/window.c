@@ -32,6 +32,25 @@
 
 
 
+int sgui_internal_window_init( sgui_window* window )
+{
+    window->mgr = sgui_widget_manager_create( );
+
+    if( !window->mgr )
+        return 0;
+
+    return 1;
+}
+
+void sgui_internal_window_deinit( sgui_window* window )
+{
+    if( window )
+    {
+        sgui_widget_manager_destroy( window->mgr );
+        sgui_canvas_destroy( window->back_buffer );
+    }
+}
+
 void sgui_internal_window_fire_event( sgui_window* wnd, int event,
                                       sgui_event* e )
 {
@@ -41,6 +60,102 @@ void sgui_internal_window_fire_event( sgui_window* wnd, int event,
             wnd->event_fun( wnd, event, e );
 
         sgui_widget_manager_send_window_event( wnd->mgr, event, e );
+    }
+}
+
+/****************************************************************************/
+
+void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+{
+    int mx = 0, my = 0;
+
+    if( wnd )
+    {
+        wnd->get_mouse_position( wnd, &mx, &my );
+
+        mx = mx<0 ? 0 : (mx>=(int)wnd->w ? ((int)wnd->w-1) : mx);
+        my = my<0 ? 0 : (my>=(int)wnd->h ? ((int)wnd->h-1) : my);
+    }
+
+    if( x ) *x = mx;
+    if( y ) *y = my;
+}
+
+void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+                                     int send_event )
+{
+    sgui_event e;
+
+    if( wnd && wnd->visible )
+    {
+        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
+        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
+
+        wnd->set_mouse_position( wnd, x, y );
+
+        if( send_event )
+        {
+            e.mouse_move.x = x;
+            e.mouse_move.y = y;
+            sgui_internal_window_fire_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+        }
+    }
+}
+
+void sgui_window_set_visible( sgui_window* wnd, int visible )
+{
+    if( !wnd || (wnd->visible==visible) )
+        return;
+
+    wnd->set_visible( wnd, visible );
+    wnd->visible = visible;
+
+    if( !visible )
+        sgui_internal_window_fire_event(wnd, SGUI_API_INVISIBLE_EVENT, NULL);
+}
+
+void sgui_window_set_title( sgui_window* wnd, const char* title )
+{
+    if( wnd && title )
+        wnd->set_title( wnd, title );
+}
+
+void sgui_window_set_size( sgui_window* wnd,
+                           unsigned int width, unsigned int height )
+{
+    if( wnd && width && height && (width!=wnd->w || height!=wnd->h) )
+        wnd->set_size( wnd, width, height );
+}
+
+void sgui_window_move_center( sgui_window* wnd )
+{
+    if( wnd )
+        wnd->move_center( wnd );
+}
+
+void sgui_window_move( sgui_window* wnd, int x, int y )
+{
+    if( wnd )
+    {
+        wnd->move( wnd, x, y );
+        wnd->x = x;
+        wnd->y = y;
+    }
+}
+
+void sgui_window_swap_buffers( sgui_window* wnd )
+{
+    if( wnd && wnd->swap_buffers )
+        wnd->swap_buffers( wnd );
+}
+
+void sgui_window_destroy( sgui_window* wnd )
+{
+    if( wnd )
+    {
+        sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
+
+        wnd->destroy( wnd );
     }
 }
 

@@ -32,80 +32,41 @@
 #include <ctype.h>
 
 
-void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+void xlib_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     Window t1, t2;   /* values we are not interested */
     int t3, t4;      /* into but xlib does not accept */
     unsigned int t5; /* a NULL pointer for these */
-    int X=0, Y=0;
 
-    if( wnd )
-    {
-        XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3,
-                       &t4, &X, &Y, &t5 );
-    }
-
-    if( x ) *x = X<0 ? 0 : (X>=(int)wnd->w ? ((int)wnd->w-1) : X);
-    if( y ) *y = Y<0 ? 0 : (Y>=(int)wnd->h ? ((int)wnd->h-1) : Y);
+    XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
 }
 
-void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
-                                     int send_event )
+void xlib_window_set_mouse_position( sgui_window* wnd, int x, int y )
 {
-    sgui_event e;
+    XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0, wnd->w, wnd->h, x, y );
+    XFlush( dpy );
 
-    if( wnd && wnd->visible )
-    {
-        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
-        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
-
-        XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0,
-                      wnd->w, wnd->h, x, y );
-
-        XFlush( dpy );
-
-        ++(TO_X11(wnd)->mouse_warped);  /* increment warp counter */
-
-        if( send_event )
-        {
-            e.mouse_move.x = x;
-            e.mouse_move.y = y;
-            sgui_internal_window_fire_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
-        }
-    }
+    ++(TO_X11(wnd)->mouse_warped);  /* increment warp counter */
 }
 
-void sgui_window_set_visible( sgui_window* wnd, int visible )
+void xlib_window_set_visible( sgui_window* wnd, int visible )
 {
-    if( wnd && (wnd->visible!=visible) )
-    {
-        if( visible )
-            XMapWindow( dpy, TO_X11(wnd)->wnd );
-        else
-            XUnmapWindow( dpy, TO_X11(wnd)->wnd );
-
-        wnd->visible = visible;
-
-        if( !visible )
-            sgui_internal_window_fire_event( wnd, SGUI_API_INVISIBLE_EVENT,
-                                             NULL );
-    }
+    if( visible )
+        XMapWindow( dpy, TO_X11(wnd)->wnd );
+    else
+        XUnmapWindow( dpy, TO_X11(wnd)->wnd );
 }
 
-void sgui_window_set_title( sgui_window* wnd, const char* title )
+void xlib_window_set_title( sgui_window* wnd, const char* title )
 {
-    if( wnd && title )
-        XStoreName( dpy, TO_X11(wnd)->wnd, title );
+    XStoreName( dpy, TO_X11(wnd)->wnd, title );
 }
 
-void sgui_window_set_size( sgui_window* wnd,
+void xlib_window_set_size( sgui_window* wnd,
                            unsigned int width, unsigned int height )
 {
     XSizeHints hints;
     XWindowAttributes attr;
-
-    if( !wnd || !width || !height )
-        return;
 
     /* adjust the fixed size for nonresizeable windows */
     if( !TO_X11(wnd)->resizeable )
@@ -139,24 +100,45 @@ void sgui_window_set_size( sgui_window* wnd,
     }
 }
 
-void sgui_window_move_center( sgui_window* wnd )
+void xlib_window_move_center( sgui_window* wnd )
 {
-    if( wnd )
-    {
-        wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
-        wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
-        XMoveWindow( dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
-    }
+    wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
+    wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
+    XMoveWindow( dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
 }
 
-void sgui_window_move( sgui_window* wnd, int x, int y )
+void xlib_window_move( sgui_window* wnd, int x, int y )
 {
-    if( wnd )
+    XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
+}
+
+#ifndef SGUI_NO_OPENGL
+void gl_swap_buffers( sgui_window* wnd )
+{
+    glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
+}
+#endif
+
+void xlib_window_destroy( sgui_window* wnd )
+{
+    sgui_internal_window_deinit( wnd );
+
+    if( TO_X11(wnd)->ic )
+        XDestroyIC( TO_X11(wnd)->ic );
+
+#ifndef SGUI_NO_OPENGL
+    if( wnd->backend==SGUI_OPENGL_CORE || wnd->backend==SGUI_OPENGL_COMPAT )
     {
-        XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
-        wnd->x = x;
-        wnd->y = y;
+        if( TO_X11(wnd)->gl )
+            glXDestroyContext( dpy, TO_X11(wnd)->gl );
     }
+#endif
+
+    if( TO_X11(wnd)->wnd )
+        XDestroyWindow( dpy, TO_X11(wnd)->wnd );
+
+    remove_window( TO_X11(wnd) );
+    free( wnd );
 }
 
 /****************************************************************************/
@@ -423,9 +405,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     memset( wnd, 0, sizeof(sgui_window_xlib) );
 
-    wnd->base.mgr = sgui_widget_manager_create( );
-
-    if( !wnd->base.mgr )
+    if( !sgui_internal_window_init( (sgui_window*)wnd ) )
     {
         free( wnd );
         return NULL;
@@ -454,7 +434,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         if( !vi )
         {
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 
@@ -465,7 +445,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         if( !cmap )
         {
             XFree( vi );
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 
@@ -481,7 +461,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         if( !wnd->wnd )
         {
             XFree( vi );
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 #endif
@@ -499,7 +479,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         if( !wnd->wnd )
         {
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
     }
@@ -549,7 +529,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         if( !wnd->gl )
         {
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 
@@ -558,9 +538,11 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         if( !wnd->base.back_buffer )
         {
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
+
+        wnd->base.swap_buffers = gl_swap_buffers;
 #endif
     }
     else
@@ -570,7 +552,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         if( !wnd->base.back_buffer )
         {
-            sgui_window_destroy( (sgui_window*)wnd );
+            xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
     }
@@ -590,9 +572,19 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
     if( !wnd->ic )
     {
-        sgui_window_destroy( (sgui_window*)wnd );
+        xlib_window_destroy( (sgui_window*)wnd );
         return NULL;
     }
+
+    /* store entry points */
+    wnd->base.get_mouse_position = xlib_window_get_mouse_position;
+    wnd->base.set_mouse_position = xlib_window_set_mouse_position;
+    wnd->base.set_visible        = xlib_window_set_visible;
+    wnd->base.set_title          = xlib_window_set_title;
+    wnd->base.set_size           = xlib_window_set_size;
+    wnd->base.move_center        = xlib_window_move_center;
+    wnd->base.move               = xlib_window_move;
+    wnd->base.destroy            = xlib_window_destroy;
 
     return (sgui_window*)wnd;
 }
@@ -612,49 +604,5 @@ void sgui_window_make_current( sgui_window* wnd )
         glXMakeCurrent( dpy, 0, 0 );
     }
 #endif
-}
-
-void sgui_window_swap_buffers( sgui_window* wnd )
-{
-#ifdef SGUI_NO_OPENGL
-    (void)wnd;
-#else
-    if( wnd && (wnd->backend==SGUI_OPENGL_CORE ||
-                wnd->backend==SGUI_OPENGL_COMPAT) )
-    {
-        glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
-    }
-#endif
-}
-
-void sgui_window_destroy( sgui_window* wnd )
-{
-    if( !wnd )
-        return;
-
-    sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
-
-    if( wnd->back_buffer )
-        sgui_canvas_destroy( wnd->back_buffer );
-
-    if( wnd->mgr )
-        sgui_widget_manager_destroy( wnd->mgr );
-
-    if( TO_X11(wnd)->ic )
-        XDestroyIC( TO_X11(wnd)->ic );
-
-    if( wnd->backend==SGUI_OPENGL_CORE || wnd->backend==SGUI_OPENGL_COMPAT )
-    {
-#ifndef SGUI_NO_OPENGL
-        if( TO_X11(wnd)->gl )
-            glXDestroyContext( dpy, TO_X11(wnd)->gl );
-#endif
-    }
-
-    if( TO_X11(wnd)->wnd )
-        XDestroyWindow( dpy, TO_X11(wnd)->wnd );
-
-    remove_window( TO_X11(wnd) );
-    free( wnd );
 }
 
