@@ -27,38 +27,11 @@
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
 
+#include "internal_gl.h"
+
 
 
 #ifndef SGUI_NO_OPENGL
-
-/* Operating system check */
-#ifndef MACHINE_OS_WINDOWS
-    #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-        #define MACHINE_OS_WINDOWS
-    #elif defined(__TOS_WIN__) || defined(__WINDOWS__) || defined(__WIN32__)
-        #define MACHINE_OS_WINDOWS
-    #endif
-#endif
-
-#ifndef MACHINE_OS_X
-    #if defined(__APPLE__) && defined(__MACH__)
-        #define MACHINE_OS_X
-    #endif
-#endif
-
-/* include required system headers */
-#ifdef MACHINE_OS_WINDOWS
-    #include <windows.h>
-#endif
-
-#ifdef MACHINE_OS_X
-    #include <OpenGL/gl.h>
-#else
-    #include <GL/gl.h>
-#endif
-
-
-
 unsigned int sgui_opengl_pixmap_create( unsigned int width,
                                         unsigned int height,
                                         int format )
