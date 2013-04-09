@@ -100,13 +100,6 @@ void xlib_window_move( sgui_window* wnd, int x, int y )
     XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
 }
 
-#ifndef SGUI_NO_OPENGL
-void gl_swap_buffers( sgui_window* wnd )
-{
-    glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
-}
-#endif
-
 void xlib_window_destroy( sgui_window* wnd )
 {
     sgui_internal_window_deinit( wnd );
@@ -371,7 +364,6 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     XSetWindowAttributes swa;
     XVisualInfo* vi = NULL;
     GLXFBConfig fbc = NULL;
-    Colormap cmap;
 #endif
     unsigned long color = 0;
     unsigned char rgb[3];
@@ -411,34 +403,14 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
-        /* try to get an XVisualInfo by any means possible */
-        fbc = get_fb_config( );
-
-        if( fbc )
-            vi = get_visual_from_fbc( fbc );
-
-        if( !vi )
-            vi = get_visual_old( );
-
-        if( !vi )
+        /* Get an fbc (optional), a visual and a Colormap */
+        if( !get_fbc_visual_cmap( &fbc, &vi, &swa.colormap ) )
         {
-            xlib_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
-
-        /* get a color map for the visual */
-        cmap = XCreateColormap( dpy, RootWindow(dpy, vi->screen),
-                                vi->visual, AllocNone );
-
-        if( !cmap )
-        {
-            XFree( vi );
             xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 
         /* create the window */
-        swa.colormap          = cmap;
         swa.background_pixmap = None;
         swa.border_pixel      = 0;
 
@@ -447,11 +419,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
                                   CWBorderPixel|CWColormap, &swa );
 
         if( !wnd->wnd )
-        {
             XFree( vi );
-            xlib_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
 #endif
     }
     else
@@ -464,12 +432,12 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 
         wnd->wnd = XCreateSimpleWindow( dpy, x_parent, 0, 0, width, height,
                                         0, 0, color );
+    }
 
-        if( !wnd->wnd )
-        {
-            xlib_window_destroy( (sgui_window*)wnd );
-            return NULL;
-        }
+    if( !wnd->wnd )
+    {
+        xlib_window_destroy( (sgui_window*)wnd );
+        return NULL;
     }
 
     /* make the window non resizeable if required */
@@ -502,16 +470,8 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
-        sgui_window_xlib* share_wnd = find_gl_window( );
-        GLXContext share_ctx = share_wnd ? share_wnd->gl : 0;
-
-        if( backend!=SGUI_OPENGL_COMPAT && fbc )
-            wnd->gl = create_context( fbc, share_ctx );
-
-        if( !wnd->gl )
-            wnd->gl = glXCreateContext( dpy, vi, share_ctx, GL_TRUE );
-
-        XFree( vi );    /* we don't need the visual info anymore */
+        wnd->gl = create_context( fbc, vi, backend==SGUI_OPENGL_CORE );
+        XFree( vi );
 
         if( !wnd->gl )
         {

@@ -48,39 +48,14 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#ifndef SGUI_NO_OPENGL
+#ifdef SGUI_NO_OPENGL
+    typedef void* GLXFBConfig;
+#else
 #include <GL/glx.h>
-
-#define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
 
 #ifndef GLX_VERSION_1_3
     typedef struct GLXFBConfigRec* GLXFBConfig;
-
-    #define GLX_X_RENDERABLE  0x8012
-    #define GLX_X_VISUAL_TYPE 0x22
-    #define GLX_TRUE_COLOR    0x8002
 #endif
-
-#ifndef GLX_ARB_create_context
-    #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
-    #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
-    #define GLX_CONTEXT_FLAGS_ARB                     0x2094
-
-    #define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
-    #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
-#endif
-
-#ifndef GLX_ARB_create_context_profile
-    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
-    #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
-    #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-#endif
-
-typedef GLXFBConfig* (* CHOOSEFBCFGPROC )(Display*,int,const int*,int*);
-typedef XVisualInfo* (* GETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
-typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
-                                                    GLXContext, Bool,
-                                                    const int* );
 #endif /* !SGUI_NO_OPENGL */
 
 
@@ -139,17 +114,16 @@ void canvas_xlib_display( sgui_canvas* cv, int x, int y,
                           unsigned int width, unsigned int height );
 
 #ifndef SGUI_NO_OPENGL
-/* in OpenGL.c: get a framebuffer configuration */
-GLXFBConfig get_fb_config( void );
+/* in OpenGL.c: get a framebuffer configuration, visual and colormap
+   creating an framebuffer configuration may fail, returns non-zero on
+   success, zero if creating a visual or colormap failed */
+int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap );
 
-/* in OpenGL.c: get a visual from a framebuffer configuration */
-XVisualInfo* get_visual_from_fbc( GLXFBConfig fbc );
+/* in OpenGL.c: try to create an OpenGL context */
+GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core );
 
-/* in OpenGL.c: get a visual without a framebuffer configuration */
-XVisualInfo* get_visual_old( void );
-
-/* in OpenGL.c: try to create an OpenGL context with the maximum version */
-GLXContext create_context( GLXFBConfig cfg, GLXContext share );
+/* in OpenGL.c: sgui_window_swap_buffers implementation */
+void gl_swap_buffers( sgui_window* wnd );
 #endif
 
 Picture pixmap_get_picture( sgui_pixmap* pixmap );
