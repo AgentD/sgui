@@ -36,6 +36,20 @@
 
 
 
+/**
+ * \brief Scroll bar callback
+ *
+ * Signature of a callback that gets called when the scroll bar gets scrolled.
+ *
+ * \param userptr    A predefined user pointer
+ * \param new_offset The new view offset of the scroll bar
+ * \param delta      The difference between the old and the new view offsets
+ */
+typedef void(* sgui_scrollbar_callback )( void* userptr, int new_offset,
+                                          int delta );
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -59,6 +73,18 @@ SGUI_DLL sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 
 /** \brief Destroy a scroll bar widget */
 SGUI_DLL void sgui_scroll_bar_destroy( sgui_widget* bar );
+
+/**
+ * \brief Register a function to be called when the user scrolls
+ *
+ * \param bar     A pointer to the scroll bar
+ * \param fun     A pointer to the function to be called
+ * \param userptr A user pointer to be stored in the scroll bar and passed to
+ *                the callback function
+ */
+SGUI_DLL void sgui_scroll_bar_on_scroll( sgui_widget* bar,
+                                         sgui_scrollbar_callback fun,
+                                         void* userptr );
 
 /**
  * \brief Set the scroll area offset in pixels of a scroll bar

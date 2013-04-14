@@ -184,6 +184,20 @@ struct sgui_widget
     sgui_widget* next;
 
     /**
+     * \brief A pointer to the first widget in the children list
+     *
+     * Used by widget manager. Do not alter in widget code!
+     */
+    sgui_widget* children;
+
+    /**
+     * \brief A pointer to the parent widget
+     *
+     * Used by widget manager. Do not alter in widget code!
+     */
+    sgui_widget* parent;
+
+    /**
      * \brief Callback that is called to draw a widget
      *
      * \param widget A pointer to the widget to draw (for C++

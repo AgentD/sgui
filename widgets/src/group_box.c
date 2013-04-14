@@ -28,6 +28,7 @@
 #include "sgui_skin.h"
 #include "sgui_canvas.h"
 #include "sgui_internal.h"
+#include "sgui_widget.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,57 +38,18 @@
 typedef struct
 {
     sgui_widget widget;
-
-    sgui_widget_manager* mgr;
-
     char* caption;
 }
 sgui_group_box;
 
 
 
-/* widget manager callback that passes widget events to the parent manager */
-void group_box_pass_event( sgui_widget* widget, int type, void* user )
-{
-    sgui_widget_manager_fire_widget_event( ((sgui_widget*)user)->mgr,
-                                           widget, type );
-}
-
-
-
-void group_box_on_event( sgui_widget* widget, int type, sgui_event* event )
-{
-    sgui_group_box* b = (sgui_group_box*)widget;
-
-    sgui_widget_manager_send_window_event( b->mgr, type, event );
-
-    /*
-        If we need a redraw, redraw eniter group box. No sane human would
-        place more than a few widgets in a group box anyway.
-     */
-    if( sgui_widget_manager_num_dirty_rects( b->mgr ) )
-    {
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
-        sgui_widget_manager_clear_dirty_rects( b->mgr );
-    }
-}
-
 void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
 {
-    sgui_group_box* b = (sgui_group_box*)widget;
-    int old_ox, old_oy;
-
-    /* draw background */
     sgui_skin_draw_group_box( cv, widget->area.left, widget->area.top,
                               SGUI_RECT_WIDTH(widget->area),
-                              SGUI_RECT_HEIGHT(widget->area), b->caption );
-
-    /* adjust offset and draw */
-    sgui_canvas_get_offset( cv, &old_ox, &old_oy );
-    sgui_canvas_add_offset( cv, widget->area.left, widget->area.top );
-    sgui_widget_manager_draw( b->mgr, cv, NULL );
-    sgui_widget_manager_clear_dirty_rects( b->mgr );
-    sgui_canvas_set_offset( cv, old_ox, old_oy );
+                              SGUI_RECT_HEIGHT(widget->area),
+                              ((sgui_group_box*)widget)->caption );
 }
 
 
@@ -101,23 +63,11 @@ sgui_widget* sgui_group_box_create( int x, int y,
     if( !b )
         return NULL;
 
-    /* try to create a widget manager */
-    b->mgr = sgui_widget_manager_create( );
-
-    if( !b->mgr )
-    {
-        free( b );
-        return NULL;
-    }
-
-    sgui_widget_manager_on_event( b->mgr, group_box_pass_event, b );
-
     /* try to store the caption string */
     b->caption = malloc( strlen( caption ) + 1 );
 
     if( !b->caption )
     {
-        sgui_widget_manager_destroy( b->mgr );
         free( b );
         return NULL;
     }
@@ -127,8 +77,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
     /* initialize widget base struct */
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
-    b->widget.draw_callback         = group_box_draw;
-    b->widget.window_event_callback = group_box_on_event;
+    b->widget.draw_callback = group_box_draw;
 
     return (sgui_widget*)b;
 }
@@ -139,7 +88,6 @@ void sgui_group_box_destroy( sgui_widget* box )
 
     if( b )
     {
-        sgui_widget_manager_destroy( b->mgr );
         free( b->caption );
         free( b );
     }
@@ -147,13 +95,13 @@ void sgui_group_box_destroy( sgui_widget* box )
 
 void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w )
 {
-    if( box )
-        sgui_widget_manager_add_widget( ((sgui_group_box*)box)->mgr, w );
+    if( box && w )
+        sgui_widget_manager_add_widget( box->mgr, w, box );
 }
 
 void sgui_group_box_remove_widget( sgui_widget* box, sgui_widget* w )
 {
-    if( box )
-        sgui_widget_manager_remove_widget( ((sgui_group_box*)box)->mgr, w );
+    if( box && w )
+        sgui_widget_manager_remove_widget( box->mgr, w );
 }
 

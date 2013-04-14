@@ -29,6 +29,7 @@
 #include "sgui_canvas.h"
 #include "sgui_font.h"
 #include "sgui_internal.h"
+#include "sgui_widget.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -69,17 +70,20 @@ sgui_button* sgui_button_create_common( const char* text, int type );
 void sgui_radio_button_select( sgui_button* b )
 {
     sgui_button* i;
+    sgui_rect r;
 
     b->state = 1;
-    sgui_widget_manager_add_dirty_rect( b->widget.mgr,
-                                        &b->widget.area );
+    sgui_widget_get_absolute_rect( &b->widget, &r );
+    sgui_widget_manager_add_dirty_rect( b->widget.mgr, &r );
 
     /* deselect all preceeding radio buttons */
     for( i=b->prev; i!=NULL; i=i->prev )
     {
         if( i->state )
-            sgui_widget_manager_add_dirty_rect( i->widget.mgr,
-                                                &i->widget.area );
+        {
+            sgui_widget_get_absolute_rect( &i->widget, &r );
+            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+        }
         i->state = 0;
     }
 
@@ -87,8 +91,10 @@ void sgui_radio_button_select( sgui_button* b )
     for( i=b->next; i!=NULL; i=i->next )
     {
         if( i->state )
-            sgui_widget_manager_add_dirty_rect( i->widget.mgr,
-                                                &i->widget.area );
+        {
+            sgui_widget_get_absolute_rect( &i->widget, &r );
+            sgui_widget_manager_add_dirty_rect( i->widget.mgr, &r );
+        }
         i->state = 0;
     }
 }
@@ -160,6 +166,7 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
 void sgui_checkbox_on_event(sgui_widget* widget, int type, sgui_event* event)
 {
     sgui_button* b = (sgui_button*)widget;
+    sgui_rect r;
     int e;
     (void)event;
 
@@ -168,7 +175,8 @@ void sgui_checkbox_on_event(sgui_widget* widget, int type, sgui_event* event)
         b->state = !b->state;   /* invert state */
 
         /* flag dirty */
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         /* fire appropriate event */
         e = b->state ? SGUI_CHECKBOX_CHECK_EVENT : 
@@ -204,18 +212,21 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
+    sgui_rect r;
     (void)event;
 
     /* the mouse left a pressed button */
     if( type == SGUI_MOUSE_LEAVE_EVENT && b->state!=0 )
     {
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         b->state = 0;
     }
     else if( type == SGUI_MOUSE_PRESS_EVENT )   /* a button got pressed */
     {
         b->state = 1;
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
     else if( type == SGUI_MOUSE_RELEASE_EVENT && b->state )
     {
@@ -224,7 +235,8 @@ void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
                                                SGUI_BUTTON_CLICK_EVENT );
 
         b->state = 0;
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
 }
 
@@ -374,6 +386,7 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
 void sgui_button_set_state( sgui_widget* button, int state )
 {
     sgui_button* b = (sgui_button*)button;
+    sgui_rect r;
 
     /* does not work on normal buttons */
     if( !b || b->type==BUTTON_NORMAL )
@@ -385,9 +398,14 @@ void sgui_button_set_state( sgui_widget* button, int state )
 
     /* perform appropriate action */
     if( b->type==BUTTON_RADIO )
+    {
         sgui_radio_button_select( b );
+    }
     else
-        sgui_widget_manager_add_dirty_rect( button->mgr, &button->area );
+    {
+        sgui_widget_get_absolute_rect( button, &r );
+        sgui_widget_manager_add_dirty_rect( button->mgr, &r );
+    }
 
     b->state = state;
 }

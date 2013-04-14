@@ -56,6 +56,17 @@ SGUI_DLL void sgui_widget_set_position( sgui_widget* w, int x, int y );
 SGUI_DLL void sgui_widget_get_position( sgui_widget* w, int* x, int* y );
 
 /**
+ * \brief Get the absolute position of a widget (i.e. not parent relative
+ *        but relative to the window)
+ *
+ * \param w The widget to get the position from
+ * \param x Returns the x component of the position
+ * \param y Returns the y component of the position
+ */
+SGUI_DLL void sgui_widget_get_absolute_position( sgui_widget* w,
+                                                 int* x, int* y );
+
+/**
  * \brief Get the size of a widget
  *
  * \param w      The widget to get the size of
@@ -88,14 +99,13 @@ SGUI_DLL void sgui_widget_set_visible( sgui_widget* w, int visible );
 SGUI_DLL void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
 
 /**
- * \brief Returns non-zero if a point is inside the bounding box of a widget
+ * \brief Get the bounding box of a widget in absolute coordinates (i.e. not
+ *        parent relative but relative to the window)
  *
- * \param w The widget to test
- * \param x The x component of the position to test
- * \param y The y component of the position to test
+ * \param w The widget to get the position from
+ * \param r Returns the rect
  */
-SGUI_DLL int sgui_widget_is_point_inside( sgui_widget* w, int x, int y );
-
+SGUI_DLL void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r );
 /**
  * \brief Send a window event to a widget
  *

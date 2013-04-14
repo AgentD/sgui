@@ -234,7 +234,7 @@ void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
 void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
     if( wnd )
-        sgui_widget_manager_add_widget( wnd->mgr, widget );
+        sgui_widget_manager_add_widget( wnd->mgr, widget, NULL );
 }
 
 void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )

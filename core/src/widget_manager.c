@@ -52,6 +52,102 @@ struct sgui_widget_manager
 
 
 
+static sgui_widget* get_widget_from_point( sgui_widget* i, int x, int y )
+{
+    sgui_widget* j = NULL;
+    sgui_rect r;
+
+    while( i!=NULL )
+    {
+        sgui_widget_get_absolute_rect( i, &r );
+
+        if( sgui_rect_is_point_inside( &r, x, y ) )
+        {
+            j = i;
+            i = i->children;
+        }
+        else
+        {
+            i = i->next;
+        }
+    }
+
+    return j;
+}
+
+static void draw_children( sgui_widget* widget, sgui_rect* r,
+                           sgui_canvas* cv )
+{
+    int old_ox, old_oy;
+    sgui_widget* i;
+    sgui_rect wr;
+
+    sgui_canvas_get_offset( cv, &old_ox, &old_oy );
+    sgui_canvas_add_offset( cv, widget->area.left, widget->area.top );
+
+    if( r )
+    {
+        /* redraw all widgets that lie inside the rect */
+        for( i=widget->children; i!=NULL; i=i->next )
+        {
+            if( !sgui_widget_is_visible( i ) )
+                continue;
+
+            sgui_widget_get_absolute_rect( i, &wr );
+
+            if( wr.left>=wr.right || wr.top>=wr.bottom )
+                continue;
+
+            if( sgui_rect_get_intersection( &wr, r, &wr ) )
+            {
+                sgui_widget_draw( i, cv );
+                draw_children( i, &wr, cv );
+            }
+        }
+    }
+    else
+    {
+        /* draw all widgets */
+        for( i=widget->children; i!=NULL; i=i->next )
+        {
+            if( sgui_widget_is_visible( i ) )
+            {
+                sgui_widget_get_absolute_rect( i, &wr );
+
+                if( wr.left<wr.right && wr.top<wr.bottom )
+                {
+                    sgui_widget_draw( i, cv );
+                    draw_children( i, NULL, cv );
+                }
+            }
+        }
+    }
+
+    sgui_canvas_set_offset( cv, old_ox, old_oy );
+}
+
+static void send_event( sgui_widget* i, int event, sgui_event* e )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        sgui_widget_send_window_event( i, event, e );
+        send_event( i->children, event, e );
+    }
+}
+
+static void set_child_widget_manager( sgui_widget* i,
+                                      sgui_widget_manager* mgr )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        i->mgr = mgr;
+        set_child_widget_manager( i->children, mgr );
+    }
+}
+
+
+
+
 sgui_widget_manager* sgui_widget_manager_create( void )
 {
     sgui_widget_manager* mgr = malloc( sizeof(sgui_widget_manager) );
@@ -69,25 +165,33 @@ void sgui_widget_manager_destroy( sgui_widget_manager* mgr )
 }
 
 void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
-                                     sgui_widget* widget )
+                                     sgui_widget* widget,
+                                     sgui_widget* parent )
 {
-    unsigned int w, h;
-    int x, y;
     sgui_rect r;
 
-    if( !mgr || !widget )
+    if( !widget || (parent && parent->mgr!=mgr) )
         return;
 
     /* add widget */
     widget->mgr = mgr;
-    widget->next = mgr->widgets;
-    mgr->widgets = widget;
+    widget->parent = parent;
+
+    if( parent )
+    {
+        widget->next = parent->children;
+        parent->children = widget;
+    }
+    else
+    {
+        widget->next = mgr->widgets;
+        mgr->widgets = widget;
+    }
+
+    set_child_widget_manager( widget->children, mgr );
 
     /* flag coresponding area as dirty */
-    sgui_widget_get_position( widget, &x, &y );
-    sgui_widget_get_size( widget, &w, &h );
-
-    sgui_rect_set_size( &r, x, y, w, h );
+    sgui_widget_get_absolute_rect( widget, &r );
 
     sgui_widget_manager_add_dirty_rect( mgr, &r );
 }
@@ -95,26 +199,52 @@ void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
 void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
                                         sgui_widget* widget )
 {
-    unsigned int w, h;
-    int x, y;
     sgui_rect r;
     sgui_widget* i;
 
-    if( !mgr || !widget )
+    if( !widget )
         return;
 
-    for( i=mgr->widgets; i->next; i=i->next )
+    if( widget->parent )
+    {
+        i = widget->parent->children;
+
+        if( i==widget )
+        {
+            widget->parent->children = widget->parent->children->next;
+        }
+    }
+    else
+    {
+        i = mgr->widgets;
+
+        if( i==widget )
+        {
+            mgr->widgets = mgr->widgets->next;
+        }
+    }
+
+    if( i==widget )
+    {
+        widget->parent = NULL;
+        widget->next = NULL;
+        widget->mgr = NULL;
+        set_child_widget_manager( widget->children, NULL );
+        return;
+    }
+
+    for( ; i!=NULL; i=i->next )
     {
         if( i->next == widget )
         {
             i->next = i->next->next;
+
+            widget->parent = NULL;
+            widget->next = NULL;
             widget->mgr = NULL;
+            set_child_widget_manager( widget->children, NULL );
 
-            sgui_widget_get_position( widget, &x, &y );
-            sgui_widget_get_size( widget, &w, &h );
-
-            sgui_rect_set_size( &r, x, y, w, h );
-
+            sgui_widget_get_absolute_rect( widget, &r );
             sgui_widget_manager_add_dirty_rect( mgr, &r );
             break;
         }
@@ -185,10 +315,11 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv,
         {
             sgui_widget_get_rect( i, &wr );
 
-            if( sgui_rect_get_intersection( NULL, r, &wr ) &&
-                sgui_widget_is_visible( i ) )
+            if( sgui_widget_is_visible( i ) &&
+                sgui_rect_get_intersection( &wr, r, &wr ) )
             {
                 sgui_widget_draw( i, cv );
+                draw_children( i, &wr, cv );
             }
         }
     }
@@ -200,6 +331,7 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv,
             if( sgui_widget_is_visible( i ) )
             {
                 sgui_widget_draw( i, cv );
+                draw_children( i, NULL, cv );
             }
         }
     }
@@ -214,22 +346,16 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
     if( !mgr || !mgr->widgets )
         return;
 
-    /* generated by the widget manager itself, propagating them through a
-       nested widget manager would generate strange bahaviour */
-    if( event==SGUI_FOCUS_EVENT || event==SGUI_MOUSE_ENTER_EVENT )
+    /* don't handle events that the widget manager generates, must be error */
+    if( event==SGUI_FOCUS_EVENT || event==SGUI_MOUSE_ENTER_EVENT ||
+        event==SGUI_MOUSE_ENTER_EVENT || event==SGUI_MOUSE_LEAVE_EVENT )
         return;
 
     if( event == SGUI_MOUSE_MOVE_EVENT )
     {
         /* find the widget under the mouse cursor */
-        for( i=mgr->widgets; i!=NULL; i=i->next )
-        {
-            if( sgui_widget_is_point_inside( i, e->mouse_move.x,
-                                                e->mouse_move.y ) )
-            {
-                break;
-            }
-        }
+        i = get_widget_from_point( mgr->widgets, e->mouse_move.x,
+                                                 e->mouse_move.y );
 
         /* generate mouse enter/leave events */
         if( mgr->mouse_over != i )
@@ -248,7 +374,7 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
     case SGUI_MOUSE_PRESS_EVENT:
     case SGUI_MOUSE_RELEASE_EVENT:
         /* transform to widget local coordinates */
-        sgui_widget_get_position( mgr->mouse_over, &x, &y );
+        sgui_widget_get_absolute_position( mgr->mouse_over, &x, &y );
 
         e->mouse_press.x -= x;
         e->mouse_press.y -= y;
@@ -270,7 +396,7 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
         break;
     case SGUI_MOUSE_MOVE_EVENT:
         /* transform to widget local coordinates */
-        sgui_widget_get_position( mgr->mouse_over, &x, &y );
+        sgui_widget_get_absolute_position( mgr->mouse_over, &x, &y );
 
         e->mouse_move.x -= x;
         e->mouse_move.y -= y;
@@ -293,8 +419,7 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
 
     /* propagate all other events */
     default:
-        for( i=mgr->widgets; i!=NULL; i=i->next )
-            sgui_widget_send_window_event( i, event, e );
+        send_event( mgr->widgets, event, e );
         break;
     }
 }

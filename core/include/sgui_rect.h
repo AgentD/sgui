@@ -126,6 +126,15 @@ SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
 SGUI_DLL int sgui_rect_join( sgui_rect* acc, sgui_rect* r,
                              int only_if_touch );
 
+/**
+ * \brief Returns non-zero if a given point lies within the given rectangle
+ *
+ * \param r The rectangle to test for
+ * \param x The hotizontal component of the position
+ * \param y The vertical component of the position
+ */
+SGUI_DLL int sgui_rect_is_point_inside( sgui_rect* r, int x, int y );
+
 #ifdef __cplusplus
 }
 #endif

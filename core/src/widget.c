@@ -36,6 +36,9 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     sgui_rect_set_size( &widget->area, x, y, width, height );
 
     widget->visible               = 1;
+    widget->next                  = NULL;
+    widget->children              = NULL;
+    widget->parent                = NULL;
     widget->mgr                   = NULL;
     widget->draw_callback         = NULL;
     widget->window_event_callback = NULL;
@@ -47,11 +50,13 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
 void sgui_widget_set_position( sgui_widget* w, int x, int y )
 {
     int dx, dy;
+    sgui_rect r;
 
     if( w )
     {
         /* flag the old area dirty */
-        sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
+        sgui_widget_get_absolute_rect( w, &r );
+        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
 
         /* move the widget area */
         dx = x - w->area.left;
@@ -60,8 +65,9 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
         w->area.left += dx; w->area.right  += dx;
         w->area.top  += dy; w->area.bottom += dy;
 
-        /* flag the new area dirty */
-        sgui_widget_manager_add_dirty_rect( w->mgr, &w->area );
+        /* flag the old area dirty */
+        sgui_widget_get_absolute_rect( w, &r );
+        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
 
         /* call the state change callback if there is one */
         if( w->state_change_callback )
@@ -81,6 +87,21 @@ void sgui_widget_get_position( sgui_widget* w, int* x, int* y )
         if( x ) *x = 0;
         if( y ) *y = 0;
     }
+}
+
+void sgui_widget_get_absolute_position( sgui_widget* w, int* x, int* y )
+{
+    sgui_widget* i;
+    int X, Y;
+
+    for( X=0, Y=0, i=w; i!=NULL; i=i->parent )
+    {
+        X += i->area.left;
+        Y += i->area.top;
+    }
+
+    if( x ) *x = X;
+    if( y ) *y = Y;
 }
 
 void sgui_widget_get_size( sgui_widget* w,
@@ -119,21 +140,27 @@ void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r )
     sgui_rect_copy( r, &w->area );
 }
 
-int sgui_widget_is_point_inside( sgui_widget* w, int x, int y )
+void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r )
 {
-    if( !w )        /* cannot be inside nonexisting widget */
-        return 0;
+    sgui_widget* i;
 
-    /* point is to the left or above */
-    if( x < w->area.left || y < w->area.top )
-        return 0;
+    if( w && r )
+    {
+        sgui_rect_copy( r, &w->area );
 
-    /* point is to the right or below */
-    if( x > w->area.right || y > w->area.bottom )
-        return 0;
+        for( i=w->parent; i!=NULL; i=i->parent )
+        {
+            /* transform to parent local */
+            r->left   += i->area.left;
+            r->right  += i->area.left;
+            r->top    += i->area.top;
+            r->bottom += i->area.top;
 
-    /* everything else -> point is inside */
-    return 1;
+            /* clip against the parent rectangle */
+            if( !sgui_rect_get_intersection( r, r, &i->area ) )
+                return;
+        }
+    }
 }
 
 void sgui_widget_send_window_event( sgui_widget* widget, int type,

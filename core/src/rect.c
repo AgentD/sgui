@@ -131,3 +131,8 @@ int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch )
     return 1;
 }
 
+int sgui_rect_is_point_inside( sgui_rect* r, int x, int y )
+{
+    return (r && x>=r->left && x<=r->right && y>=r->top && y<=r->bottom);
+}
+

@@ -27,6 +27,7 @@
 #include "sgui_skin.h"
 #include "sgui_event.h"
 #include "sgui_internal.h"
+#include "sgui_widget.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -161,18 +162,21 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
                              sgui_event* event )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
+    sgui_rect r;
 
     if( type == SGUI_FOCUS_EVENT )
     {
         /* enable cursor drawing, flag area as dirty */
         b->draw_cursor = 1;
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
     }
     else if( type == SGUI_FOCUS_LOSE_EVENT )
     {
         /* disable cursor drawing, flag area as dirty */
         b->draw_cursor = 0;
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
 
         /* fire a text changed event */
         sgui_widget_manager_fire_widget_event( widget->mgr, widget,
@@ -192,7 +196,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         if( new_cur != b->cursor )
         {
             b->cursor = new_cur;
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
     }
     else if( type == SGUI_KEY_PRESSED_EVENT )
@@ -214,7 +219,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             b->end -= (old - b->cursor);
 
             /* flag dirty and adjust offset */
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         /* delete pressed, cursor is not at end, chars have been entered */
@@ -234,7 +240,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             b->end -= (offset - b->cursor);
 
             /* flag dirty and adjust offset */
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         /* move cursor left pressed and cursor is not 0 */
@@ -242,7 +249,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         {
             ROLL_BACK_UTF8( b->buffer, b->cursor );
 
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         /* move cursor right pressed and cursor is not at the end */
@@ -251,7 +259,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         {
             ADVANCE_UTF8( b->buffer, b->cursor );
 
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         /* home key pressed and we have an offset OR the cursor is not */
@@ -260,7 +269,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         {
             b->cursor = 0;
             b->offset = 0;
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         }
         /* end key pressed and the cursor is not at the end */
         else if( (event->keyboard_event.code==SGUI_KC_END) &&
@@ -268,7 +278,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         {
             b->cursor = b->end;
             b->offset = b->end;
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
             sgui_edit_box_determine_offset( b );
         }
         /* ENTER key pressed */
@@ -298,7 +309,8 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         b->num_entered += 1;
 
         /* flag dirty and determine cursor position */
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
         sgui_edit_box_determine_offset( b );
     }
 }
@@ -355,6 +367,7 @@ const char* sgui_edit_box_get_text( sgui_widget* box )
 
 void sgui_edit_box_set_text( sgui_widget* box, const char* text )
 {
+    sgui_rect r;
     unsigned int i;
     sgui_edit_box* b = (sgui_edit_box*)box;
 
@@ -389,7 +402,8 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
         b->offset = 0;
 
         /* flag area dirt */
-        sgui_widget_manager_add_dirty_rect( box->mgr, &box->area );
+        sgui_widget_get_absolute_rect( box, &r );
+        sgui_widget_manager_add_dirty_rect( box->mgr, &r );
     }
 }
 

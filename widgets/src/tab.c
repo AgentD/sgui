@@ -41,7 +41,7 @@ typedef struct _sgui_tab
 {
     struct _sgui_tab* next; /* linked list */
 
-    sgui_widget_manager* mgr;
+    sgui_widget* widgets;
     char* caption;
     unsigned int caption_width;
 }
@@ -59,23 +59,13 @@ sgui_tab_group;
 
 
 
-
-/* widget manager callback that passes widget events to the parent manager */
-void tab_pass_event( sgui_widget* widget, int type, void* user )
-{
-    sgui_widget_manager_fire_widget_event( ((sgui_widget*)user)->mgr,
-                                           widget, type );
-}
-
-
-
 void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
-    sgui_rect r;
     sgui_tab* i;
-    int x, num;
+    sgui_widget* j;
+    int x;
 
     if( type == SGUI_MOUSE_PRESS_EVENT &&
         event->mouse_press.y < (int)g->tab_cap_height )
@@ -99,42 +89,25 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
 
             if( g->selected )
             {
-                sgui_widget_manager_on_event( g->selected->mgr, NULL, NULL );
-                sgui_widget_manager_send_window_event( g->selected->mgr,
-                                                       SGUI_TAB_DESELECTED,
-                                                       NULL );
+                for( j=g->selected->widgets; j!=NULL; j=j->next )
+                {
+                    sgui_widget_send_window_event( j, SGUI_TAB_DESELECTED,
+                                                   NULL );
+                }
             }
 
             if( i )
             {
-                sgui_widget_manager_on_event( i->mgr, tab_pass_event, widget );
-                sgui_widget_manager_send_window_event( i->mgr,
-                                                       SGUI_TAB_SELECTED,
-                                                       NULL );
+                for( j=i->widgets; j!=NULL; j=j->next )
+                {
+                    sgui_widget_send_window_event( j, SGUI_TAB_SELECTED,
+                                                   NULL );
+                }
             }
 
             g->selected = i;
+            widget->children = g->selected->widgets;
         }
-    }
-    else if( g->selected )
-    {
-        /* send event to selected tab */
-        sgui_widget_manager_send_window_event(g->selected->mgr, type, event);
-
-        /* transfer dirty rects from tab manager to parent widget manager */
-        num = sgui_widget_manager_num_dirty_rects( g->selected->mgr );
-
-        for( x=0; x<num; ++x )
-        {
-            sgui_widget_manager_get_dirty_rect( g->selected->mgr, &r, x );
-
-            r.left += widget->area.left; r.right  += widget->area.left;
-            r.top  += widget->area.top;  r.bottom += widget->area.top;
-
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
-        }
-
-        sgui_widget_manager_clear_dirty_rects( g->selected->mgr );
     }
 }
 
@@ -142,7 +115,7 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int gap, gap_w;
-    int x = widget->area.left, y = widget->area.top, old_ox, old_oy;
+    int x = widget->area.left, y = widget->area.top;
     sgui_tab* i;
 
     /* draw tab captions */
@@ -165,13 +138,6 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
                                 SGUI_RECT_WIDTH(widget->area),
                                 SGUI_RECT_HEIGHT(widget->area) -
                                 g->tab_cap_height, gap, gap_w );
-
-        /* adjust offset and draw the tab area */
-        sgui_canvas_get_offset( cv, &old_ox, &old_oy );
-        sgui_canvas_add_offset( cv, widget->area.left, widget->area.top );
-        sgui_widget_manager_draw( g->selected->mgr, cv, NULL );
-        sgui_widget_manager_clear_dirty_rects( g->selected->mgr );
-        sgui_canvas_set_offset( cv, old_ox, old_oy );
     }
 }
 
@@ -209,7 +175,6 @@ void sgui_tab_group_destroy( sgui_widget* tab )
         {
             old = i;
             i = i->next;
-            sgui_widget_manager_destroy( old->mgr );
             free( old->caption );
             free( old );
         }
@@ -235,6 +200,7 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
         return -1;
 
     /* initialise the tab */
+    t->widgets = NULL;
     t->next = NULL;
     t->caption = malloc( strlen(caption) + 1 );
 
@@ -247,16 +213,7 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     strcpy( t->caption, caption );
     t->caption_width = sgui_skin_get_tab_caption_width( caption );
 
-    t->mgr = sgui_widget_manager_create( );
-
-    if( !t->mgr )
-    {
-        free( t->caption );
-        free( t );
-        return -1;
-    }
-
-    /* add the tab */
+    /* add the tab to the end, if we already have tabs */
     if( g->tabs )
     {
         for( index=0, i=g->tabs; i->next; i=i->next, ++index );
@@ -265,43 +222,96 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
         return index + 1;
     }
 
+    /* we don't have any tabs yet, make it the first one */
     g->tabs = t;
     g->selected = t;
-    sgui_widget_manager_on_event( t->mgr, tab_pass_event, tab );
-
-    if( g->selected )
-        sgui_widget_manager_send_window_event( g->selected->mgr,
-                                               SGUI_TAB_DESELECTED, NULL );
+    tab->children = NULL;
 
     return 0;
 }
 
 void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
 {
+    sgui_rect r;
     sgui_tab* i;
     int count;
 
     if( tab && index>=0 && w )
     {
+        /* find the tab for the number */
         i = ((sgui_tab_group*)tab)->tabs;
-
         for( count=0; count<index && i; i=i->next, ++count );
 
-        if( count==index && i )
-        {
-            sgui_widget_manager_add_widget( i->mgr, w );
+        if( count!=index || !i )
+            return;
 
-            if( i != ((sgui_tab_group*)tab)->selected )
-                sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
-            else
-                sgui_widget_send_window_event( w, SGUI_TAB_SELECTED, NULL );
+        /* add the widget */
+        w->mgr = tab->mgr;
+        w->next = i->widgets;
+        w->parent = tab;
+        i->widgets = w;
+
+        /* send a tab select/deselect event and flag the area dirty */
+        if( i == ((sgui_tab_group*)tab)->selected )
+        {
+            tab->children = i->widgets;
+            sgui_widget_send_window_event( w, SGUI_TAB_SELECTED, NULL );
+
+            sgui_widget_get_absolute_rect( w, &r );
+            sgui_widget_manager_add_dirty_rect( tab->mgr, &r );
+        }
+        else
+        {
+            sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
         }
     }
 }
 
 void sgui_tab_group_remove_widget( sgui_widget* tab, sgui_widget* w )
 {
-    if( tab && w )
-        sgui_widget_manager_remove_widget( w->mgr, w );
+    sgui_tab* i;
+    sgui_widget* j;
+
+    if( !tab || !w )
+        return;
+
+    /* find the tab that has the widget */
+    i = ((sgui_tab_group*)tab)->tabs;
+
+    for( ; i!=NULL; i=i->next )
+    {
+        /* if the widget is the first widget of the current tab */
+        if( w==i->widgets )
+        {
+            /* if the current tab is the selected tab */
+            if( i==((sgui_tab_group*)tab)->selected )
+            {
+                sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
+                sgui_widget_manager_remove_widget( tab->mgr, w );
+            }
+
+            i->widgets = i->widgets->next;
+            return;
+        }
+
+        /* otherwise, traverse the widgets in the current tab */
+        for( j=i->widgets; j!=NULL; j=j->next )
+        {
+            if( j->next == w )
+            {
+                /* remove from hirarchy and send deselect event */
+                if( i == ((sgui_tab_group*)tab)->selected )
+                {
+                    sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED,
+                                                   NULL );
+                    sgui_widget_manager_remove_widget( tab->mgr, w );
+                }
+
+                /* remove the widget */
+                j->next = j->next->next;
+                return;
+            }
+        }
+    }
 }
 

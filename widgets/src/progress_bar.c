@@ -26,6 +26,7 @@
 #include "sgui_progress_bar.h"
 #include "sgui_skin.h"
 #include "sgui_internal.h"
+#include "sgui_widget.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -91,10 +92,12 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 void sgui_progress_bar_set_progress( sgui_widget* bar, unsigned int progress )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
+    sgui_rect r;
 
     if( b )
     {
-        sgui_widget_manager_add_dirty_rect( bar->mgr, &bar->area );
+        sgui_widget_get_absolute_rect( bar, &r );
+        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
 
         b->progress = progress > 100 ? 100 : progress;
     }

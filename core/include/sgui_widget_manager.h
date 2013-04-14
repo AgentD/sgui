@@ -65,9 +65,11 @@ SGUI_DLL void sgui_widget_manager_destroy( sgui_widget_manager* mgr );
  *
  * \param mgr    The widget manager
  * \param widget The widget to add
+ * \param parent The parent widget to add the widget to
  */
 SGUI_DLL void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
-                                              sgui_widget* widget );
+                                              sgui_widget* widget,
+                                              sgui_widget* parent );
 
 /**
  * \brief Remove a widget from a widget manager
