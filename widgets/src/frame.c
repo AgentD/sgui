@@ -162,7 +162,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
 
     sgui_scroll_bar_on_scroll( f->v_bar, frame_on_scroll, f );
     sgui_widget_set_visible( f->v_bar, 0 );
-    sgui_widget_manager_add_widget( NULL, f->v_bar, (sgui_widget*)f );
+    sgui_widget_add_child( (sgui_widget*)f, f->v_bar );
 
     return (sgui_widget*)f;
 }
@@ -186,7 +186,7 @@ void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w )
 
     if( f && w )
     {
-        sgui_widget_manager_add_widget( frame->mgr, w, frame );
+        sgui_widget_add_child( frame, w );
 
         /* check if the widget lies outside the displayed frame area */
         sgui_widget_get_position( w, &wx, &wy );
@@ -200,11 +200,5 @@ void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w )
             sgui_scroll_bar_set_area( f->v_bar, wy+wh+10, fh );
         }
     }
-}
-
-void sgui_frame_remove_widget( sgui_widget* frame, sgui_widget* w )
-{
-    if( frame )
-        sgui_widget_manager_remove_widget( frame->mgr, w );
 }
 

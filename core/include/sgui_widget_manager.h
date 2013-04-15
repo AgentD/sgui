@@ -61,24 +61,13 @@ SGUI_DLL sgui_widget_manager* sgui_widget_manager_create( void );
 SGUI_DLL void sgui_widget_manager_destroy( sgui_widget_manager* mgr );
 
 /**
- * \brief Add a widget to a widget manager
+ * \brief Get the root node of a widget manager
  *
- * \param mgr    The widget manager
- * \param widget The widget to add
- * \param parent The parent widget to add the widget to
- */
-SGUI_DLL void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
-                                              sgui_widget* widget,
-                                              sgui_widget* parent );
-
-/**
- * \brief Remove a widget from a widget manager
+ * \param mgr A pointer to the widget manager
  *
- * \param mgr    The widget manager
- * \param widget The widget to remove
+ * \return A pointer to the root widget
  */
-SGUI_DLL void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
-                                                 sgui_widget* widget );
+SGUI_DLL sgui_widget* sgui_widget_manager_get_root(sgui_widget_manager* mgr);
 
 /**
  * \brief Add a dirty rect (area that needs redraw) to a widget manager

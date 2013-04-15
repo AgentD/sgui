@@ -166,9 +166,9 @@ int main( int argc, char** argv )
     sgui_radio_button_connect( rc, rb,   NULL );
     sgui_button_set_state( ra, 1 );
 
-    sgui_group_box_add_widget( gb, ra );
-    sgui_group_box_add_widget( gb, rb );
-    sgui_group_box_add_widget( gb, rc );
+    sgui_widget_add_child( gb, ra );
+    sgui_widget_add_child( gb, rb );
+    sgui_widget_add_child( gb, rc );
 
     sgui_tab_group_add_widget( tab, 0, butt );
     sgui_tab_group_add_widget( tab, 0, gb );

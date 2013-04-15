@@ -129,6 +129,25 @@ SGUI_DLL void sgui_widget_send_window_event( sgui_widget* widget, int type,
  */
 SGUI_DLL void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv );
 
+/**
+ * \brief Add a widget as child widget to an other widget
+ *
+ * \param parent The parent to add the child widget to
+ * \param child  The child widget to add to the parent
+ */
+SGUI_DLL void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child );
+
+/**
+ * \brief Remove a widget from the widget hirarchy
+ *
+ * This function removes a widget from its parent and sets its widget manager
+ * pointer to NULL, as well as all the widget manager pointers of all the
+ * children of the given widget.
+ *
+ * \param widget The widget to remove from its parent
+ */
+SGUI_DLL void sgui_widget_remove_from_parent( sgui_widget* widget );
+
 
 
 #ifdef __cplusplus

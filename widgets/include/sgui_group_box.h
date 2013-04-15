@@ -62,23 +62,6 @@ SGUI_DLL sgui_widget* sgui_group_box_create( int x, int y,
  */
 SGUI_DLL void sgui_group_box_destroy( sgui_widget* box );
 
-/**
- * \brief Add a widget to a group box
- *
- * \param box A pointer to a group box widget
- * \param w   A pointer to the widget to add
- */
-SGUI_DLL void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w );
-
-/**
- * \brief Remove a widget from a group box
- *
- * \param box A pointer to a group box widget
- * \param w   A pointer to the widget to remove
- */
-SGUI_DLL void sgui_group_box_remove_widget( sgui_widget* box,
-                                            sgui_widget* w );
-
 #ifdef __cplusplus
 }
 #endif

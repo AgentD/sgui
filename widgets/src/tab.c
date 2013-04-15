@@ -59,6 +59,27 @@ sgui_tab_group;
 
 
 
+static void set_manager( sgui_widget* i, sgui_widget_manager* mgr )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        i->mgr = mgr;
+        set_manager( i->children, mgr );
+    }
+}
+
+static void reparent( sgui_widget* i, sgui_widget* parent )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        i->parent = parent;
+        i->mgr = parent ? parent->mgr : NULL;
+        set_manager( i->children, parent ? parent->mgr : NULL );
+    }
+}
+
+
+
 void sgui_tab_group_on_event( sgui_widget* widget, int type,
                               sgui_event* event )
 {
@@ -105,8 +126,11 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
                 }
             }
 
+            reparent( g->selected->widgets, NULL );
             g->selected = i;
+
             widget->children = g->selected->widgets;
+            reparent( g->selected->widgets, widget );
         }
     }
 }
@@ -254,6 +278,8 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
         /* send a tab select/deselect event and flag the area dirty */
         if( i == ((sgui_tab_group*)tab)->selected )
         {
+            reparent( w, tab );
+
             tab->children = i->widgets;
             sgui_widget_send_window_event( w, SGUI_TAB_SELECTED, NULL );
 
@@ -262,55 +288,9 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
         }
         else
         {
+            reparent( w, NULL );
+
             sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
-        }
-    }
-}
-
-void sgui_tab_group_remove_widget( sgui_widget* tab, sgui_widget* w )
-{
-    sgui_tab* i;
-    sgui_widget* j;
-
-    if( !tab || !w )
-        return;
-
-    /* find the tab that has the widget */
-    i = ((sgui_tab_group*)tab)->tabs;
-
-    for( ; i!=NULL; i=i->next )
-    {
-        /* if the widget is the first widget of the current tab */
-        if( w==i->widgets )
-        {
-            /* if the current tab is the selected tab */
-            if( i==((sgui_tab_group*)tab)->selected )
-            {
-                sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
-                sgui_widget_manager_remove_widget( tab->mgr, w );
-            }
-
-            i->widgets = i->widgets->next;
-            return;
-        }
-
-        /* otherwise, traverse the widgets in the current tab */
-        for( j=i->widgets; j!=NULL; j=j->next )
-        {
-            if( j->next == w )
-            {
-                /* remove from hirarchy and send deselect event */
-                if( i == ((sgui_tab_group*)tab)->selected )
-                {
-                    sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED,
-                                                   NULL );
-                    sgui_widget_manager_remove_widget( tab->mgr, w );
-                }
-
-                /* remove the widget */
-                j->next = j->next->next;
-                return;
-            }
         }
     }
 }

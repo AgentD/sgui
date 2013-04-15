@@ -93,15 +93,3 @@ void sgui_group_box_destroy( sgui_widget* box )
     }
 }
 
-void sgui_group_box_add_widget( sgui_widget* box, sgui_widget* w )
-{
-    if( box && w )
-        sgui_widget_manager_add_widget( box->mgr, w, box );
-}
-
-void sgui_group_box_remove_widget( sgui_widget* box, sgui_widget* w )
-{
-    if( box && w )
-        sgui_widget_manager_remove_widget( box->mgr, w );
-}
-

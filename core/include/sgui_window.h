@@ -277,15 +277,6 @@ SGUI_DLL void* sgui_window_get_userptr( sgui_window* wnd );
 SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
 
 /**
- * \brief Remove a widget from a window
- *
- * \param wnd    The window to remove the widget from
- * \param widget The widget to remove
- */
-SGUI_DLL void sgui_window_remove_widget( sgui_window* wnd,
-                                         sgui_widget* widget );
-
-/**
  * \brief Register a callback to be called on a widget event
  *
  * \param wnd  A pointer to a window

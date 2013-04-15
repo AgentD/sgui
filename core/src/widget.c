@@ -45,7 +45,18 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->state_change_callback = NULL;
 }
 
+/****************************************************************************/
 
+static void propagate_manager( sgui_widget* i )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        i->mgr = i->parent->mgr;
+        propagate_manager( i->children );
+    }
+}
+
+/****************************************************************************/
 
 void sgui_widget_set_position( sgui_widget* w, int x, int y )
 {
@@ -174,5 +185,61 @@ void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv )
 {
     if( widget && widget->draw_callback )
         widget->draw_callback( widget, cv );
+}
+
+void sgui_widget_remove_from_parent( sgui_widget* widget )
+{
+    sgui_rect r;
+    sgui_widget* i = NULL;
+
+    if( widget )
+    {
+        i = widget->parent->children;
+
+        if( i==widget )
+        {
+            widget->parent->children = widget->parent->children->next;
+        }
+        else
+        {
+            for( ; i!=NULL; i=i->next )
+            {
+                if( i->next == widget )
+                {
+                    i->next = i->next->next;
+                    break;
+                }
+            }
+        }
+
+        sgui_widget_get_absolute_rect( widget, &r );
+        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+
+        widget->parent = NULL;
+        widget->next = NULL;
+        widget->mgr = NULL;
+
+        propagate_manager( widget->children );
+    }
+}
+
+void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
+{
+    sgui_rect r;
+
+    if( !child || !parent )
+        return;
+
+    /* add widget */
+    child->parent = parent;
+    child->mgr = parent->mgr;
+    child->next = parent->children;
+    parent->children = child;
+
+    propagate_manager( child->children );
+
+    /* flag coresponding area as dirty */
+    sgui_widget_get_absolute_rect( child, &r );
+    sgui_widget_manager_add_dirty_rect( child->mgr, &r );
 }
 

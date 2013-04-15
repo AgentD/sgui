@@ -67,14 +67,6 @@ SGUI_DLL void sgui_frame_destroy( sgui_widget* frame );
  */
 SGUI_DLL void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w );
 
-/**
- * \brief Remove a widget from a frame
- *
- * \param frame The frame to remove the widget from
- * \param w     The widget to remove
- */
-SGUI_DLL void sgui_frame_remove_widget( sgui_widget* frame, sgui_widget* w );
-
 #ifdef __cplusplus
 }
 #endif

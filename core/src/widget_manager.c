@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 
 #define WIDGET_MANAGER_MAX_DIRTY 10
@@ -39,9 +40,10 @@
 
 struct sgui_widget_manager
 {
+    sgui_widget root;
+
     sgui_widget* mouse_over;
     sgui_widget* focus;
-    sgui_widget* widgets;
 
     sgui_rect dirty[ WIDGET_MANAGER_MAX_DIRTY ];
     unsigned int num_dirty;
@@ -135,17 +137,6 @@ static void send_event( sgui_widget* i, int event, sgui_event* e )
     }
 }
 
-static void set_child_widget_manager( sgui_widget* i,
-                                      sgui_widget_manager* mgr )
-{
-    for( ; i!=NULL; i=i->next )
-    {
-        i->mgr = mgr;
-        set_child_widget_manager( i->children, mgr );
-    }
-}
-
-
 
 
 sgui_widget_manager* sgui_widget_manager_create( void )
@@ -153,102 +144,36 @@ sgui_widget_manager* sgui_widget_manager_create( void )
     sgui_widget_manager* mgr = malloc( sizeof(sgui_widget_manager) );
 
     if( mgr )
+    {
         memset( mgr, 0, sizeof(sgui_widget_manager) );
+
+        mgr->root.area.left = 0;
+        mgr->root.area.top = 0;
+        mgr->root.area.right = INT_MAX;
+        mgr->root.area.bottom = INT_MAX;
+        mgr->root.visible = 1;
+        mgr->root.mgr = mgr;
+    }
 
     return mgr;
 }
 
 void sgui_widget_manager_destroy( sgui_widget_manager* mgr )
 {
-    if( mgr )
-        free( mgr );
-}
-
-void sgui_widget_manager_add_widget( sgui_widget_manager* mgr,
-                                     sgui_widget* widget,
-                                     sgui_widget* parent )
-{
-    sgui_rect r;
-
-    if( !widget || (parent && parent->mgr!=mgr) )
-        return;
-
-    /* add widget */
-    widget->mgr = mgr;
-    widget->parent = parent;
-
-    if( parent )
-    {
-        widget->next = parent->children;
-        parent->children = widget;
-    }
-    else
-    {
-        widget->next = mgr->widgets;
-        mgr->widgets = widget;
-    }
-
-    set_child_widget_manager( widget->children, mgr );
-
-    /* flag coresponding area as dirty */
-    sgui_widget_get_absolute_rect( widget, &r );
-
-    sgui_widget_manager_add_dirty_rect( mgr, &r );
-}
-
-void sgui_widget_manager_remove_widget( sgui_widget_manager* mgr,
-                                        sgui_widget* widget )
-{
-    sgui_rect r;
     sgui_widget* i;
 
-    if( !widget )
-        return;
-
-    if( widget->parent )
+    if( mgr )
     {
-        i = widget->parent->children;
+        for( i=mgr->root.children; i!=NULL; i=i->next )
+            sgui_widget_remove_from_parent( i );
 
-        if( i==widget )
-        {
-            widget->parent->children = widget->parent->children->next;
-        }
+        free( mgr );
     }
-    else
-    {
-        i = mgr->widgets;
+}
 
-        if( i==widget )
-        {
-            mgr->widgets = mgr->widgets->next;
-        }
-    }
-
-    if( i==widget )
-    {
-        widget->parent = NULL;
-        widget->next = NULL;
-        widget->mgr = NULL;
-        set_child_widget_manager( widget->children, NULL );
-        return;
-    }
-
-    for( ; i!=NULL; i=i->next )
-    {
-        if( i->next == widget )
-        {
-            i->next = i->next->next;
-
-            widget->parent = NULL;
-            widget->next = NULL;
-            widget->mgr = NULL;
-            set_child_widget_manager( widget->children, NULL );
-
-            sgui_widget_get_absolute_rect( widget, &r );
-            sgui_widget_manager_add_dirty_rect( mgr, &r );
-            break;
-        }
-    }
+sgui_widget* sgui_widget_manager_get_root( sgui_widget_manager* mgr )
+{
+    return mgr ? &(mgr->root) : NULL;
 }
 
 void sgui_widget_manager_add_dirty_rect( sgui_widget_manager* mgr,
@@ -305,13 +230,13 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv,
     sgui_rect wr;
     sgui_widget* i;
 
-    if( !mgr || !cv || !mgr->widgets )
+    if( !mgr || !cv || !mgr->root.children )
         return;
 
     if( r )
     {
         /* redraw all widgets that lie inside the rect */
-        for( i=mgr->widgets; i!=NULL; i=i->next )
+        for( i=mgr->root.children; i!=NULL; i=i->next )
         {
             sgui_widget_get_rect( i, &wr );
 
@@ -326,7 +251,7 @@ void sgui_widget_manager_draw( sgui_widget_manager* mgr, sgui_canvas* cv,
     else
     {
         /* draw all widgets */
-        for( i=mgr->widgets; i!=NULL; i=i->next )
+        for( i=mgr->root.children; i!=NULL; i=i->next )
         {
             if( sgui_widget_is_visible( i ) )
             {
@@ -343,7 +268,7 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
     sgui_widget* i;
     int x, y;
 
-    if( !mgr || !mgr->widgets )
+    if( !mgr || !mgr->root.children )
         return;
 
     /* don't handle events that the widget manager generates, must be error */
@@ -354,8 +279,8 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
     if( event == SGUI_MOUSE_MOVE_EVENT )
     {
         /* find the widget under the mouse cursor */
-        i = get_widget_from_point( mgr->widgets, e->mouse_move.x,
-                                                 e->mouse_move.y );
+        i = get_widget_from_point( mgr->root.children, e->mouse_move.x,
+                                                       e->mouse_move.y );
 
         /* generate mouse enter/leave events */
         if( mgr->mouse_over != i )
@@ -419,7 +344,7 @@ void sgui_widget_manager_send_window_event( sgui_widget_manager* mgr,
 
     /* propagate all other events */
     default:
-        send_event( mgr->widgets, event, e );
+        send_event( mgr->root.children, event, e );
         break;
     }
 }

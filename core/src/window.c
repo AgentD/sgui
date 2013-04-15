@@ -28,6 +28,7 @@
 #include "sgui_event.h"
 #include "sgui_canvas.h"
 #include "sgui_skin.h"
+#include "sgui_widget.h"
 
 #include <stddef.h>
 
@@ -234,13 +235,8 @@ void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
 void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
     if( wnd )
-        sgui_widget_manager_add_widget( wnd->mgr, widget, NULL );
-}
-
-void sgui_window_remove_widget( sgui_window* wnd, sgui_widget* widget )
-{
-    if( wnd )
-        sgui_widget_manager_remove_widget( wnd->mgr, widget );
+        sgui_widget_add_child( sgui_widget_manager_get_root( wnd->mgr ),
+                               widget );
 }
 
 void sgui_window_on_widget_event( sgui_window* wnd,
