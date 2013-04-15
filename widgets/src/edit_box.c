@@ -315,6 +315,15 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
     }
 }
 
+static void edit_box_destroy( sgui_widget* box )
+{
+    if( box )
+    {
+        free( ((sgui_edit_box*)box)->buffer );
+        free( box );
+    }
+}
+
 
 
 sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
@@ -344,20 +353,12 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                sgui_skin_get_edit_box_height( ) );
 
     b->widget.window_event_callback = sgui_edit_box_on_event;
+    b->widget.destroy               = edit_box_destroy;
     b->widget.draw_callback         = sgui_edit_box_draw;
     b->max_chars                    = max_chars;
     b->buffer[0]                    = '\0';
 
     return (sgui_widget*)b;
-}
-
-void sgui_edit_box_destroy( sgui_widget* box )
-{
-    if( box )
-    {
-        free( ((sgui_edit_box*)box)->buffer );
-        free( box );
-    }
 }
 
 const char* sgui_edit_box_get_text( sgui_widget* box )

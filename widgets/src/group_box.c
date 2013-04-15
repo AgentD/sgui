@@ -52,6 +52,17 @@ void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
                               ((sgui_group_box*)widget)->caption );
 }
 
+static void group_box_destroy( sgui_widget* box )
+{
+    sgui_group_box* b = (sgui_group_box*)box;
+
+    if( b )
+    {
+        free( b->caption );
+        free( b );
+    }
+}
+
 
 
 sgui_widget* sgui_group_box_create( int x, int y,
@@ -78,18 +89,8 @@ sgui_widget* sgui_group_box_create( int x, int y,
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
 
     b->widget.draw_callback = group_box_draw;
+    b->widget.destroy = group_box_destroy;
 
     return (sgui_widget*)b;
-}
-
-void sgui_group_box_destroy( sgui_widget* box )
-{
-    sgui_group_box* b = (sgui_group_box*)box;
-
-    if( b )
-    {
-        free( b->caption );
-        free( b );
-    }
 }
 

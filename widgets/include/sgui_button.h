@@ -90,13 +90,6 @@ SGUI_DLL void sgui_radio_button_connect( sgui_widget* radio,
                                          sgui_widget* next );
 
 /**
- * \brief Destroy a button widget
- *
- * \param button The button widget
- */
-SGUI_DLL void sgui_button_destroy( sgui_widget* button );
-
-/**
  * \brief Set the text to be printed onto a button
  *
  * \param button The button to alter.

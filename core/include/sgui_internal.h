@@ -198,6 +198,14 @@ struct sgui_widget
     sgui_widget* parent;
 
     /**
+     * \brief Callback that is called to destroy a widget
+     *
+     * \param widget A pointer to the widget to destroy (for C++
+     *               people: practically a this pointer).
+     */
+    void (* destroy )( sgui_widget* widget );
+
+    /**
      * \brief Callback that is called to draw a widget
      *
      * \param widget A pointer to the widget to draw (for C++

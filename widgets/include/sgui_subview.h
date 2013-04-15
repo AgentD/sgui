@@ -117,14 +117,6 @@ SGUI_DLL void sgui_subview_set_draw_callback( sgui_widget* subview,
 SGUI_DLL void sgui_subview_on_window_event( sgui_widget* subview,
                                             sgui_subview_window_fun windowcb );
 
-/**
- * \brief Destroy a subview widget
- *
- * \param widget The subview widget to destroy
- */
-SGUI_DLL void sgui_subview_destroy( sgui_widget* widget );
-
-
 #ifdef __cplusplus
 }
 #endif

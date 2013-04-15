@@ -49,9 +49,6 @@ SGUI_DLL sgui_widget* sgui_tab_group_create( int x, int y,
                                              unsigned int width,
                                              unsigned int height );
 
-/** \brief Destroy a tab group widget */
-SGUI_DLL void sgui_tab_group_destroy( sgui_widget* tab );
-
 /**
  * \brief Add a tab to a tab group widget
  *

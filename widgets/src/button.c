@@ -209,6 +209,22 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 }
 
 /******************************* button code *******************************/
+static void button_destroy( sgui_widget* button )
+{
+    sgui_button* b = (sgui_button*)button;
+
+    if( button )
+    {
+        /* detatch from linked list */
+        if( b->prev ) b->prev->next = b->next;
+        if( b->next ) b->next->prev = b->prev;
+
+        /* free memory of text buffer and button */
+        free( b->text );
+        free( button );
+    }
+}
+
 void sgui_button_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_button* b = (sgui_button*)widget;
@@ -324,25 +340,11 @@ sgui_button* sgui_button_create_common( const char* text, int type )
 
         b->prev = NULL;
         b->next = NULL;
+
+        b->widget.destroy = button_destroy;
     }
 
     return b;
-}
-
-void sgui_button_destroy( sgui_widget* button )
-{
-    sgui_button* b = (sgui_button*)button;
-
-    if( button )
-    {
-        /* detatch from linked list */
-        if( b->prev ) b->prev->next = b->next;
-        if( b->next ) b->next->prev = b->prev;
-
-        /* free memory of text buffer and button */
-        free( b->text );
-        free( button );
-    }
 }
 
 void sgui_button_set_text( sgui_widget* button, const char* text )

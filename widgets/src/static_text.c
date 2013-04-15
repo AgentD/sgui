@@ -52,6 +52,15 @@ void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
     sgui_canvas_draw_text( cv, w->area.left, w->area.top, t->text );
 }
 
+static void static_text_destroy( sgui_widget* widget )
+{
+    if( widget )
+    {
+        free( ((sgui_static_text*)widget)->text );
+        free( widget );
+    }
+}
+
 
 
 sgui_widget* sgui_static_text_create( int x, int y, const char* text )
@@ -84,16 +93,8 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h );
 
     t->widget.draw_callback = sgui_static_text_draw;
+    t->widget.destroy       = static_text_destroy;
 
     return (sgui_widget*)t;
-}
-
-void sgui_static_text_destroy( sgui_widget* widget )
-{
-    if( widget )
-    {
-        free( ((sgui_static_text*)widget)->text );
-        free( widget );
-    }
 }
 

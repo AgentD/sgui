@@ -38,6 +38,13 @@ extern "C" {
 
 
 /**
+ * \brief Destroy a widget, freeing up all its resources
+ *
+ * \param widget A pointer to the widget to destroy
+ */
+SGUI_DLL void sgui_widget_destroy( sgui_widget* widget );
+
+/**
  * \brief Change the position of a widget
  *
  * \param w The widget to reposition

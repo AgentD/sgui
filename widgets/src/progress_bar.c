@@ -55,6 +55,12 @@ void sgui_progress_draw( sgui_widget* widget, sgui_canvas* cv )
                                  b->progress );
 }
 
+static void progress_bar_destroy( sgui_widget* bar )
+{
+    if( bar )
+        free( bar );
+}
+
 
 
 sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
@@ -81,6 +87,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
 
     b->widget.draw_callback = sgui_progress_draw;
+    b->widget.destroy       = progress_bar_destroy;
     b->vertical             = vertical;
     b->progress             = progress;
     b->style                = style;
@@ -108,11 +115,5 @@ unsigned int sgui_progress_bar_get_progress( sgui_widget* bar )
     sgui_progress_bar* b = (sgui_progress_bar*)bar;
 
     return b ? b->progress : 0;
-}
-
-void sgui_progress_bar_destroy( sgui_widget* bar )
-{
-    if( bar )
-        free( bar );
 }
 

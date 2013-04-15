@@ -47,13 +47,6 @@ SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                             unsigned int max_chars );
 
 /**
- * \brief Destroy an edit box widget
- *
- * \param box The edit box widget to destroy
- */
-SGUI_DLL void sgui_edit_box_destroy( sgui_widget* box );
-
-/**
  * \brief Get a pointer to the text in an edit box
  *
  * \param box The edit box to get the text from

@@ -78,6 +78,27 @@ static void reparent( sgui_widget* i, sgui_widget* parent )
     }
 }
 
+static void tab_group_destroy( sgui_widget* tab )
+{
+    sgui_tab_group* t = (sgui_tab_group*)tab;
+    sgui_tab *i, *old;
+
+    if( t )
+    {
+        i = t->tabs;
+
+        while( i!=NULL )
+        {
+            old = i;
+            i = i->next;
+            free( old->caption );
+            free( old );
+        }
+
+        free( t );
+    }
+}
+
 
 
 void sgui_tab_group_on_event( sgui_widget* widget, int type,
@@ -179,32 +200,12 @@ sgui_widget* sgui_tab_group_create( int x, int y,
 
     g->widget.draw_callback         = sgui_tab_group_draw;
     g->widget.window_event_callback = sgui_tab_group_on_event;
+    g->widget.destroy               = tab_group_destroy;
     g->tabs                         = NULL;
     g->selected                     = NULL;
     g->tab_cap_height               = sgui_skin_get_tab_caption_height( );
 
     return (sgui_widget*)g;
-}
-
-void sgui_tab_group_destroy( sgui_widget* tab )
-{
-    sgui_tab_group* t = (sgui_tab_group*)tab;
-    sgui_tab *i, *old;
-
-    if( t )
-    {
-        i = t->tabs;
-
-        while( i!=NULL )
-        {
-            old = i;
-            i = i->next;
-            free( old->caption );
-            free( old );
-        }
-
-        free( t );
-    }
 }
 
 int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )

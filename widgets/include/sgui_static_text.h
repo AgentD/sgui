@@ -50,9 +50,6 @@ extern "C"
 SGUI_DLL sgui_widget* sgui_static_text_create( int x, int y,
                                                const char* text );
 
-/** \brief Destroy a static text widget */
-SGUI_DLL void sgui_static_text_destroy( sgui_widget* widget );
-
 #ifdef __cplusplus
 }
 #endif

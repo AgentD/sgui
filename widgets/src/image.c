@@ -62,6 +62,17 @@ void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
     }
 }
 
+static void image_destroy( sgui_widget* widget )
+{
+    sgui_image* img = (sgui_image*)widget;
+
+    if( img )
+    {
+        sgui_pixmap_destroy( img->pixmap );
+        free( img );
+    }
+}
+
 /****************************************************************************/
 
 sgui_widget* sgui_image_create( int x, int y,
@@ -87,21 +98,11 @@ sgui_widget* sgui_image_create( int x, int y,
     sgui_pixmap_load( img->pixmap, NULL, data, 0, 0, width, height, format );
 
     img->widget.draw_callback = sgui_image_draw;
+    img->widget.destroy       = image_destroy;
     img->format  = format;
     img->blend   = blend;
     img->backend = backend;
 
     return (sgui_widget*)img;
-}
-
-void sgui_image_destroy( sgui_widget* widget )
-{
-    sgui_image* img = (sgui_image*)widget;
-
-    if( img )
-    {
-        sgui_pixmap_destroy( img->pixmap );
-        free( img );
-    }
 }
 

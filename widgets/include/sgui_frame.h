@@ -53,13 +53,6 @@ SGUI_DLL sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                          unsigned int height );
 
 /**
- * \brief Destroy a frame widget
- *
- * \param frame The frame widget to destroy
- */
-SGUI_DLL void sgui_frame_destroy( sgui_widget* frame );
-
-/**
  * \brief Add a widget to a frame
  *
  * \param frame The frame to add the widget to

@@ -110,6 +110,15 @@ void subview_on_state_change( sgui_widget* w )
     sgui_window_set_visible( view->subwnd, w->visible );
 }
 
+static void subview_destroy( sgui_widget* widget )
+{
+    if( widget )
+    {
+        sgui_window_destroy( ((sgui_subview*)widget)->subwnd );
+        free( widget );
+    }
+}
+
 /****************************************************************************/
 
 sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
@@ -132,6 +141,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     sgui_internal_widget_init( (sgui_widget*)view, x, y, width, height );
     view->widget.window_event_callback = subview_on_parent_event;
     view->widget.state_change_callback = subview_on_state_change;
+    view->widget.destroy               = subview_destroy;
     view->window_fun = NULL;
     view->draw_fun = NULL;
 
@@ -184,15 +194,6 @@ void sgui_subview_on_window_event( sgui_widget* subview,
     if( subview )
     {
         ((sgui_subview*)subview)->window_fun = windowcb;
-    }
-}
-
-void sgui_subview_destroy( sgui_widget* widget )
-{
-    if( widget )
-    {
-        sgui_window_destroy( ((sgui_subview*)widget)->subwnd );
-        free( widget );
     }
 }
 

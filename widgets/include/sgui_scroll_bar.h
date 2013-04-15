@@ -71,9 +71,6 @@ SGUI_DLL sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
                                               unsigned int scroll_area_length,
                                               unsigned int disp_area_length );
 
-/** \brief Destroy a scroll bar widget */
-SGUI_DLL void sgui_scroll_bar_destroy( sgui_widget* bar );
-
 /**
  * \brief Register a function to be called when the user scrolls
  *

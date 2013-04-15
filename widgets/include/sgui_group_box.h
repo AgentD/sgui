@@ -55,13 +55,6 @@ SGUI_DLL sgui_widget* sgui_group_box_create( int x, int y,
                                              unsigned int height,
                                              const char* caption );
 
-/**
- * \brief Destroy a group box widget
- *
- * \param box A pointer to a group box widget
- */
-SGUI_DLL void sgui_group_box_destroy( sgui_widget* box );
-
 #ifdef __cplusplus
 }
 #endif

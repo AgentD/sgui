@@ -54,9 +54,6 @@ SGUI_DLL sgui_widget* sgui_image_create( int x, int y,
                                          const void* data, int format,
                                          int blend, int backend );
 
-/** \brief Destroy a static text widget */
-SGUI_DLL void sgui_image_destroy( sgui_widget* widget );
-
 #ifdef __cplusplus
 }
 #endif

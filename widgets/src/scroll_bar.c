@@ -265,6 +265,12 @@ void scroll_bar_draw( sgui_widget* widget, sgui_canvas* cv )
                                b->inc_button_state, b->dec_button_state );
 }
 
+static void scroll_bar_destroy( sgui_widget* bar )
+{
+    if( bar )
+        free( bar );
+}
+
 
 
 sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
@@ -291,6 +297,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
         b->widget.window_event_callback = scroll_bar_on_event_v;
 
     b->widget.draw_callback = scroll_bar_draw;
+    b->widget.destroy       = scroll_bar_destroy;
     b->horizontal           = horizontal;
     b->length               = length;
     b->v_length             = disp_area_length;
@@ -301,12 +308,6 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     b->p_length >>= 8;
 
     return (sgui_widget*)b;
-}
-
-void sgui_scroll_bar_destroy( sgui_widget* bar )
-{
-    if( bar )
-        free( bar );
 }
 
 void sgui_scroll_bar_on_scroll( sgui_widget* bar, sgui_scrollbar_callback fun,

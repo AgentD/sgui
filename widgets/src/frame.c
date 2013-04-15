@@ -125,6 +125,17 @@ void frame_draw( sgui_widget* widget, sgui_canvas* cv )
                               SGUI_RECT_HEIGHT(widget->area) );
 }
 
+static void frame_destroy( sgui_widget* frame )
+{
+    sgui_frame* f = (sgui_frame*)frame;
+
+    if( f )
+    {
+        sgui_widget_destroy( f->v_bar );
+        free( f );
+    }
+}
+
 /****************************************************************************/
 
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
@@ -146,6 +157,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
 
     f->widget.draw_callback         = frame_draw;
     f->widget.window_event_callback = frame_on_event;
+    f->widget.destroy               = frame_destroy;
     f->border                       = sgui_skin_get_frame_border_width( );
     f->v_bar_dist                   = width - w - f->border;
 
@@ -165,17 +177,6 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     sgui_widget_add_child( (sgui_widget*)f, f->v_bar );
 
     return (sgui_widget*)f;
-}
-
-void sgui_frame_destroy( sgui_widget* frame )
-{
-    sgui_frame* f = (sgui_frame*)frame;
-
-    if( f )
-    {
-        sgui_scroll_bar_destroy( f->v_bar );
-        free( f );
-    }
 }
 
 void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w )

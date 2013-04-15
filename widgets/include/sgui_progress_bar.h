@@ -76,13 +76,6 @@ SGUI_DLL void sgui_progress_bar_set_progress( sgui_widget* bar,
  */
 SGUI_DLL unsigned int sgui_progress_bar_get_progress( sgui_widget* bar );
 
-/**
- * \brief Destroy a progress bar widget
- *
- * \param par The progress bar widget to delete
- */
-SGUI_DLL void sgui_progress_bar_destroy( sgui_widget* bar );
-
 #ifdef __cplusplus
 }
 #endif

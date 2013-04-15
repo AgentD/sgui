@@ -58,6 +58,12 @@ static void propagate_manager( sgui_widget* i )
 
 /****************************************************************************/
 
+void sgui_widget_destroy( sgui_widget* widget )
+{
+    if( widget )
+        widget->destroy( widget );
+}
+
 void sgui_widget_set_position( sgui_widget* w, int x, int y )
 {
     int dx, dy;

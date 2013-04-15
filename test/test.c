@@ -229,36 +229,36 @@ int main( int argc, char** argv )
     sgui_window_destroy( a );
     sgui_window_destroy( b );
 
-    sgui_subview_destroy( gl_view );
+    sgui_widget_destroy( gl_view );
 
-    sgui_group_box_destroy( gb );
-    sgui_frame_destroy( f );
-    sgui_tab_group_destroy( tab );
+    sgui_widget_destroy( gb );
+    sgui_widget_destroy( f );
+    sgui_widget_destroy( tab );
 
-    sgui_static_text_destroy( gl_sub1 );
-    sgui_static_text_destroy( gl_sub0 );
-    sgui_static_text_destroy( tex );
+    sgui_widget_destroy( gl_sub1 );
+    sgui_widget_destroy( gl_sub0 );
+    sgui_widget_destroy( tex );
 
-    sgui_edit_box_destroy( eb );
+    sgui_widget_destroy( eb );
 
-    sgui_button_destroy( butt );
-    sgui_button_destroy( c0 );
-    sgui_button_destroy( c1 );
-    sgui_button_destroy( c2 );
-    sgui_button_destroy( r0 );
-    sgui_button_destroy( r1 );
-    sgui_button_destroy( r2 );
-    sgui_button_destroy( ra );
-    sgui_button_destroy( rb );
-    sgui_button_destroy( rc );
+    sgui_widget_destroy( butt );
+    sgui_widget_destroy( c0 );
+    sgui_widget_destroy( c1 );
+    sgui_widget_destroy( c2 );
+    sgui_widget_destroy( r0 );
+    sgui_widget_destroy( r1 );
+    sgui_widget_destroy( r2 );
+    sgui_widget_destroy( ra );
+    sgui_widget_destroy( rb );
+    sgui_widget_destroy( rc );
 
-    sgui_progress_bar_destroy( p0 );
-    sgui_progress_bar_destroy( p1 );
-    sgui_progress_bar_destroy( p2 );
-    sgui_progress_bar_destroy( p3 );
+    sgui_widget_destroy( p0 );
+    sgui_widget_destroy( p1 );
+    sgui_widget_destroy( p2 );
+    sgui_widget_destroy( p3 );
 
-    sgui_image_destroy( i0 );
-    sgui_image_destroy( i1 );
+    sgui_widget_destroy( i0 );
+    sgui_widget_destroy( i1 );
 
     sgui_font_destroy( font_bold );
     sgui_font_destroy( font_ital );
