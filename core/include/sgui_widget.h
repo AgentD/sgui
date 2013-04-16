@@ -132,9 +132,8 @@ SGUI_DLL void sgui_widget_send_window_event( sgui_widget* widget, int type,
  * This is called to draw a widget onto a canvas.
  *
  * \param widget The widget to update.
- * \param cv     The canvas to draw to.
  */
-SGUI_DLL void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv );
+SGUI_DLL void sgui_widget_draw( sgui_widget* widget );
 
 /**
  * \brief Add a widget as child widget to an other widget

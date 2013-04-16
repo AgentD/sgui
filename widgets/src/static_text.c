@@ -45,11 +45,11 @@ sgui_static_text;
 
 
 
-void sgui_static_text_draw( sgui_widget* w, sgui_canvas* cv )
+void sgui_static_text_draw( sgui_widget* w )
 {
     sgui_static_text* t = (sgui_static_text*)w;
 
-    sgui_canvas_draw_text( cv, w->area.left, w->area.top, t->text );
+    sgui_canvas_draw_text( w->canvas, w->area.left, w->area.top, t->text );
 }
 
 static void static_text_destroy( sgui_widget* widget )

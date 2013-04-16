@@ -38,6 +38,18 @@ extern "C"
 
 
 
+/**
+ * \brief A callback for listening to widget events
+ *
+ * \param widget The widget that triggered the event
+ * \param type   An identifyer describing the event
+ * \param user   User data that was registered with the callback function
+ */
+typedef void (* sgui_widget_callback ) ( sgui_widget* widget, int type,
+                                         void* user );
+
+
+
 #define SGUI_RGB8  0
 #define SGUI_RGBA8 1
 
@@ -45,6 +57,92 @@ extern "C"
 
 /** \brief Destroy a canvas */
 SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
+
+/**
+ * \brief Get the root node of a canvas
+ *
+ * \param canvas A pointer to the canvas
+ *
+ * \return A pointer to the root widget
+ */
+SGUI_DLL sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas );
+
+/**
+ * \brief Add a dirty rect (area that needs redraw) to a canvas
+ *
+ * \param canvas The canvas
+ * \param r      The dirty rectangle
+ */
+SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r );
+
+/**
+ * \brief Get the number of dirty rectangles from a canvas
+ *
+ * \param canvas The canvas
+ *
+ * \return The number of dirty rectangles
+ */
+SGUI_DLL unsigned int sgui_canvas_num_dirty_rects( sgui_canvas* canvas );
+
+/**
+ * \brief Get a dirty rectangle from a canvas by index
+ *
+ * \param canvas The canvas
+ * \param rect   A pointer to a rectangle to write to
+ * \param i      The index of the dirty rectangle
+ */
+SGUI_DLL void sgui_canvas_get_dirty_rect( sgui_canvas* canvas,
+                                          sgui_rect* rect, unsigned int i );
+
+/**
+ * \brief Clear the dirty rects of a canvas
+ *
+ * \param canvas The canvas
+ */
+SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
+
+/**
+ * \brief Redraw all widgets of a canvas that are flaged visible and
+ *        are within a given rect
+ *
+ * \param canvas The canvas
+ * \param r      The area to redraw, or NULL to redraw everything
+ */
+SGUI_DLL void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r );
+
+/**
+ * \brief Send a window event to all widgets held by a canvas
+ *
+ * The canvas automatically manages keyboard focus and generates mouse
+ * enter, mouse leave, focus and focus lost events for the widgets it holds.
+ *
+ * \param canvas The canvas
+ * \param event  The event type to send
+ * \param e      The event data to send
+ */
+SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
+                                             sgui_event* e );
+
+/**
+ * \brief Register a callback to be called on a widget event
+ *
+ * \param canvas The canvas
+ * \param fun    The function to call when a widget event occours
+ * \param user   A user data pointer that is passed to the given function
+ */
+SGUI_DLL void sgui_canvas_on_event( sgui_canvas* canvas,
+                                    sgui_widget_callback fun,
+                                    void* user );
+
+/**
+ * \brief Trigger a widget event
+ *
+ * \param canvas The canvas
+ * \param widget The widget that triggered the event (must not be NULL)
+ * \param event  The event that got triggered
+ */
+SGUI_DLL void sgui_canvas_fire_widget_event( sgui_canvas* canvas,
+                                             sgui_widget* widget, int event );
 
 /**
  * \brief Change the size of a canvas
@@ -55,8 +153,6 @@ SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
  */
 SGUI_DLL void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
                                   unsigned int height );
-
-
 
 /**
  * \brief Get the size of a canvas

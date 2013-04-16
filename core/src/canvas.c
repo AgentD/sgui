@@ -29,6 +29,8 @@
 #include "sgui_font.h"
 #include "sgui_skin.h"
 #include "sgui_pixmap.h"
+#include "sgui_widget.h"
+#include "sgui_event.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -59,14 +61,315 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
     cv->begin  = NULL;
     cv->end    = NULL;
     cv->resize = NULL;
+
+    cv->root.area.left = 0;
+    cv->root.area.top = 0;
+    cv->root.area.right = width-1;
+    cv->root.area.bottom = height-1;
+    cv->root.visible = 1;
+    cv->root.canvas = cv;
+    cv->root.next = NULL;
+    cv->root.children = NULL;
+    cv->root.parent = NULL;
+    cv->root.destroy = NULL;
+    cv->root.draw_callback = NULL;
+    cv->root.window_event_callback = NULL;
+    cv->root.state_change_callback = NULL;
+}
+
+/****************************************************************************/
+
+static sgui_widget* get_widget_from_point( sgui_widget* i, int x, int y )
+{
+    sgui_widget* j = NULL;
+    sgui_rect r;
+
+    while( i!=NULL )
+    {
+        sgui_widget_get_absolute_rect( i, &r );
+
+        if( sgui_rect_is_point_inside( &r, x, y ) )
+        {
+            j = i;
+            i = i->children;
+        }
+        else
+        {
+            i = i->next;
+        }
+    }
+
+    return j;
+}
+
+static void draw_children( sgui_widget* widget, sgui_rect* r )
+{
+    int old_ox, old_oy;
+    sgui_widget* i;
+    sgui_rect wr;
+
+    sgui_canvas_get_offset( widget->canvas, &old_ox, &old_oy );
+    sgui_canvas_add_offset( widget->canvas, widget->area.left,
+                                            widget->area.top );
+
+    if( r )
+    {
+        /* redraw all widgets that lie inside the rect */
+        for( i=widget->children; i!=NULL; i=i->next )
+        {
+            if( !sgui_widget_is_visible( i ) )
+                continue;
+
+            sgui_widget_get_absolute_rect( i, &wr );
+
+            if( wr.left>=wr.right || wr.top>=wr.bottom )
+                continue;
+
+            if( sgui_rect_get_intersection( &wr, r, &wr ) )
+            {
+                sgui_widget_draw( i );
+                draw_children( i, &wr );
+            }
+        }
+    }
+    else
+    {
+        /* draw all widgets */
+        for( i=widget->children; i!=NULL; i=i->next )
+        {
+            if( sgui_widget_is_visible( i ) )
+            {
+                sgui_widget_get_absolute_rect( i, &wr );
+
+                if( wr.left<wr.right && wr.top<wr.bottom )
+                {
+                    sgui_widget_draw( i );
+                    draw_children( i, NULL );
+                }
+            }
+        }
+    }
+
+    sgui_canvas_set_offset( widget->canvas, old_ox, old_oy );
+}
+
+static void send_event( sgui_widget* i, int event, sgui_event* e )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        sgui_widget_send_window_event( i, event, e );
+        send_event( i->children, event, e );
+    }
+}
+
+/****************************************************************************/
+
+sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas )
+{
+    return canvas ? &(canvas->root) : NULL;
+}
+
+void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r )
+{
+    unsigned int i;
+
+    if( !canvas || !r )
+        return;
+
+    /* try to find an existing diry rect it touches */
+    for( i=0; i<canvas->num_dirty; ++i )
+    {
+        if( sgui_rect_join( canvas->dirty + i, r, 1 ) )
+            return;
+    }
+
+    /* add a new one if posible, join all existing if not */
+    if( canvas->num_dirty < CANVAS_MAX_DIRTY )
+    {
+        sgui_rect_copy( canvas->dirty + (canvas->num_dirty++), r );
+    }
+    else
+    {
+        for( i=1; i<canvas->num_dirty; ++i )
+            sgui_rect_join( canvas->dirty, canvas->dirty + i, 0 );
+
+        sgui_rect_copy( canvas->dirty + 1, r );
+        canvas->num_dirty = 2;
+    }
+}
+
+unsigned int sgui_canvas_num_dirty_rects( sgui_canvas* canvas )
+{
+    return canvas ? canvas->num_dirty : 0;
+}
+
+void sgui_canvas_get_dirty_rect( sgui_canvas* canvas, sgui_rect* rect,
+                                 unsigned int i )
+{
+    if( canvas && (i < canvas->num_dirty) )
+        sgui_rect_copy( rect, canvas->dirty + i );
+}
+
+void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas )
+{
+    if( canvas )
+        canvas->num_dirty = 0;
+}
+
+void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r )
+{
+    sgui_rect wr;
+    sgui_widget* i;
+
+    if( !canvas || !canvas->root.children )
+        return;
+
+    if( r )
+    {
+        /* redraw all widgets that lie inside the rect */
+        for( i=canvas->root.children; i!=NULL; i=i->next )
+        {
+            sgui_widget_get_rect( i, &wr );
+
+            if( sgui_widget_is_visible( i ) &&
+                sgui_rect_get_intersection( &wr, r, &wr ) )
+            {
+                sgui_widget_draw( i );
+                draw_children( i, &wr );
+            }
+        }
+    }
+    else
+    {
+        /* draw all widgets */
+        for( i=canvas->root.children; i!=NULL; i=i->next )
+        {
+            if( sgui_widget_is_visible( i ) )
+            {
+                sgui_widget_draw( i );
+                draw_children( i, NULL );
+            }
+        }
+    }
+}
+
+void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
+                                    sgui_event* e )
+{
+    sgui_widget* i;
+    int x, y;
+
+    if( !canvas || !canvas->root.children )
+        return;
+
+    /* don't handle events that the widget manager generates, must be error */
+    if( event==SGUI_FOCUS_EVENT || event==SGUI_MOUSE_ENTER_EVENT ||
+        event==SGUI_MOUSE_ENTER_EVENT || event==SGUI_MOUSE_LEAVE_EVENT )
+        return;
+
+    if( event == SGUI_MOUSE_MOVE_EVENT )
+    {
+        /* find the widget under the mouse cursor */
+        i = get_widget_from_point( canvas->root.children, e->mouse_move.x,
+                                                       e->mouse_move.y );
+
+        /* generate mouse enter/leave events */
+        if( canvas->mouse_over != i )
+        {
+            sgui_widget_send_window_event( i, SGUI_MOUSE_ENTER_EVENT, NULL );
+
+            sgui_widget_send_window_event( canvas->mouse_over,
+                                           SGUI_MOUSE_LEAVE_EVENT, NULL );
+
+            canvas->mouse_over = i;
+        }
+    }
+
+    switch( event )
+    {
+    case SGUI_MOUSE_PRESS_EVENT:
+    case SGUI_MOUSE_RELEASE_EVENT:
+        /* transform to widget local coordinates */
+        sgui_widget_get_absolute_position( canvas->mouse_over, &x, &y );
+
+        e->mouse_press.x -= x;
+        e->mouse_press.y -= y;
+
+        /* inject event */
+        sgui_widget_send_window_event( canvas->mouse_over, event, e );
+
+        /* give clicked widget focus */
+        if( canvas->focus != canvas->mouse_over )
+        {
+            sgui_widget_send_window_event( canvas->focus,
+                                           SGUI_FOCUS_LOSE_EVENT, NULL );
+
+            sgui_widget_send_window_event( canvas->mouse_over,
+                                           SGUI_FOCUS_EVENT, NULL );
+
+            canvas->focus = canvas->mouse_over;
+        }
+        break;
+    case SGUI_MOUSE_MOVE_EVENT:
+        /* transform to widget local coordinates */
+        sgui_widget_get_absolute_position( canvas->mouse_over, &x, &y );
+
+        e->mouse_move.x -= x;
+        e->mouse_move.y -= y;
+
+        /* inject event */
+        sgui_widget_send_window_event( canvas->mouse_over, event, e );
+        break;
+
+    /* only send to mouse over widget */
+    case SGUI_MOUSE_WHEEL_EVENT:
+        sgui_widget_send_window_event( canvas->mouse_over, event, e );
+        break;
+
+    /* only send keyboard events to widget that has focus */
+    case SGUI_KEY_PRESSED_EVENT:
+    case SGUI_KEY_RELEASED_EVENT:
+    case SGUI_CHAR_EVENT:
+        sgui_widget_send_window_event( canvas->focus, event, e );
+        break;
+
+    /* propagate all other events */
+    default:
+        send_event( canvas->root.children, event, e );
+        break;
+    }
+}
+
+void sgui_canvas_on_event( sgui_canvas* canvas, sgui_widget_callback fun,
+                           void* user )
+{
+    if( canvas )
+    {
+        canvas->fun = fun;
+        canvas->fun_user = user;
+    }
+}
+
+void sgui_canvas_fire_widget_event( sgui_canvas* canvas, sgui_widget* widget,
+                                    int event )
+{
+    if( canvas && canvas->fun && widget )
+        canvas->fun( widget, event, canvas->fun_user );
 }
 
 /****************************************************************************/
 
 void sgui_canvas_destroy( sgui_canvas* canvas )
 {
+    sgui_widget* i;
+
     if( canvas )
+    {
+        for( i=canvas->root.children; i!=NULL; i=i->next )
+            sgui_widget_remove_from_parent( i );
+
         canvas->destroy( canvas );
+    }
 }
 
 void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
@@ -79,6 +382,9 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 
         canvas->width = width;
         canvas->height = height;
+
+        canvas->root.area.right  = width-1;
+        canvas->root.area.bottom = height-1;
     }
 }
 

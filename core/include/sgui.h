@@ -40,7 +40,6 @@
 #include "sgui_window.h"
 
 #include "sgui_widget.h"
-#include "sgui_widget_manager.h"
 #include "sgui_button.h"
 #include "sgui_edit_box.h"
 #include "sgui_frame.h"

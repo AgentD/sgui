@@ -91,7 +91,7 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
 
         sgui_widget_get_absolute_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_canvas_add_dirty_rect( widget->canvas, &r );
     }
     else if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
@@ -99,7 +99,7 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
         if( b->dec_button_state || b->inc_button_state )
         {
             sgui_widget_get_absolute_rect( widget, &r );
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+            sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
 
         b->dec_button_state = b->inc_button_state = 0;
@@ -112,7 +112,7 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
                               ((int)b->length-(int)b->bw);
 
         sgui_widget_get_absolute_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_canvas_add_dirty_rect( widget->canvas, &r );
 
         /* modify offset accordingly if a button was pressed */
         old = b->v_offset;
@@ -195,7 +195,7 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
 
         sgui_widget_get_absolute_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_canvas_add_dirty_rect( widget->canvas, &r );
     }
     else if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
@@ -203,7 +203,7 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
         if( b->dec_button_state || b->inc_button_state )
         {
             sgui_widget_get_absolute_rect( widget, &r );
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+            sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
 
         b->dec_button_state = b->inc_button_state = 0;
@@ -216,7 +216,7 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
                               ((int)b->length-(int)b->bh);
 
         sgui_widget_get_absolute_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_canvas_add_dirty_rect( widget->canvas, &r );
 
         /* modify offset accordingly if a button was pressed */
         old = b->v_offset;
@@ -255,11 +255,12 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
     }
 }
 
-void scroll_bar_draw( sgui_widget* widget, sgui_canvas* cv )
+void scroll_bar_draw( sgui_widget* widget )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
 
-    sgui_skin_draw_scroll_bar( cv, widget->area.left, widget->area.top,
+    sgui_skin_draw_scroll_bar( widget->canvas,
+                               widget->area.left, widget->area.top,
                                b->horizontal, b->length,
                                b->p_offset, b->p_length,
                                b->inc_button_state, b->dec_button_state );
@@ -343,7 +344,7 @@ void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
         }
 
         sgui_widget_get_absolute_rect( bar, &r );
-        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
+        sgui_canvas_add_dirty_rect( bar->canvas, &r );
     }
 }
 
@@ -369,7 +370,7 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
         b->p_length >>= 8;
 
         sgui_widget_get_absolute_rect( bar, &r );
-        sgui_widget_manager_add_dirty_rect( bar->mgr, &r );
+        sgui_canvas_add_dirty_rect( bar->canvas, &r );
     }
 }
 

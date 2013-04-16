@@ -46,18 +46,18 @@ sgui_image;
 
 
 
-void sgui_image_draw( sgui_widget* widget, sgui_canvas* cv )
+void sgui_image_draw( sgui_widget* widget )
 {
     sgui_image* img = (sgui_image*)widget;
 
     if( img->blend )
     {
-        sgui_canvas_blend( cv, widget->area.left, widget->area.top,
-                           img->pixmap, NULL );
+        sgui_canvas_blend(widget->canvas, widget->area.left, widget->area.top,
+                          img->pixmap, NULL );
     }
     else
     {
-        sgui_canvas_blit( cv, widget->area.left, widget->area.top,
+        sgui_canvas_blit( widget->canvas, widget->area.left, widget->area.top,
                           img->pixmap, NULL );
     }
 }

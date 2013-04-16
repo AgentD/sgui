@@ -36,11 +36,7 @@
 
 int sgui_internal_window_init( sgui_window* window )
 {
-    window->mgr = sgui_widget_manager_create( );
-
-    if( !window->mgr )
-        return 0;
-
+    (void)window;
     return 1;
 }
 
@@ -69,7 +65,6 @@ void sgui_internal_window_deinit( sgui_window* window )
 {
     if( window )
     {
-        sgui_widget_manager_destroy( window->mgr );
         sgui_canvas_destroy( window->back_buffer );
     }
 }
@@ -82,7 +77,7 @@ void sgui_internal_window_fire_event( sgui_window* wnd, int event,
         if( wnd->event_fun )
             wnd->event_fun( wnd, event, e );
 
-        sgui_widget_manager_send_window_event( wnd->mgr, event, e );
+        sgui_canvas_send_window_event( wnd->back_buffer, event, e );
     }
 }
 
@@ -157,9 +152,9 @@ void sgui_window_set_size( sgui_window* wnd,
         {
             sgui_canvas_begin( wnd->back_buffer, NULL );
             sgui_canvas_clear( wnd->back_buffer, NULL );
-            sgui_widget_manager_draw( wnd->mgr, wnd->back_buffer, NULL );
+            sgui_canvas_draw( wnd->back_buffer, NULL );
             sgui_canvas_end( wnd->back_buffer );
-            sgui_widget_manager_clear_dirty_rects( wnd->mgr );
+            sgui_canvas_clear_dirty_rects( wnd->back_buffer );
         }
     }
 }
@@ -235,15 +230,14 @@ void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
 void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
     if( wnd )
-        sgui_widget_add_child( sgui_widget_manager_get_root( wnd->mgr ),
-                               widget );
+        sgui_widget_add_child(sgui_canvas_get_root(wnd->back_buffer), widget);
 }
 
 void sgui_window_on_widget_event( sgui_window* wnd,
                                   sgui_widget_callback fun, void* user )
 {
     if( wnd )
-        sgui_widget_manager_on_event( wnd->mgr, fun, user );
+        sgui_canvas_on_event( wnd->back_buffer, fun, user );
 }
 
 void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )

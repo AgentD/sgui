@@ -244,10 +244,9 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         {
             sgui_canvas_begin( wnd->base.back_buffer, NULL );
             sgui_canvas_clear( wnd->base.back_buffer, NULL );
-            sgui_widget_manager_draw( wnd->base.mgr,
-                                      wnd->base.back_buffer, NULL );
+            sgui_canvas_draw( wnd->base.back_buffer, NULL );
             sgui_canvas_end( wnd->base.back_buffer );
-            sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
         }
         break;
     case DestroyNotify:
@@ -294,9 +293,8 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
             SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
 
             sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_widget_manager_draw( wnd->base.mgr,
-                                      wnd->base.back_buffer, NULL );
-            sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            sgui_canvas_draw( wnd->base.back_buffer, NULL );
+            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
             sgui_canvas_end( wnd->base.back_buffer );
             sgui_window_swap_buffers( (sgui_window*)wnd );
             sgui_window_make_current( NULL );
@@ -305,7 +303,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
     };
 
     /* generate expose events for dirty rectangles */
-    num = sgui_widget_manager_num_dirty_rects( wnd->base.mgr );
+    num = sgui_canvas_num_dirty_rects( wnd->base.back_buffer );
 
     exp.type       = Expose;
     exp.serial     = 0;
@@ -318,7 +316,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
     {
         for( i=0; i<num; ++i )
         {
-            sgui_widget_manager_get_dirty_rect( wnd->base.mgr, &r, i );
+            sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &r, i );
 
             exp.x      = r.left;
             exp.y      = r.top;
@@ -329,11 +327,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
             sgui_canvas_begin( wnd->base.back_buffer, &r );
             sgui_canvas_clear( wnd->base.back_buffer, &r );
-            sgui_widget_manager_draw(wnd->base.mgr,wnd->base.back_buffer,&r);
+            sgui_canvas_draw( wnd->base.back_buffer, &r );
             sgui_canvas_end( wnd->base.back_buffer );
         }
 
-        sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+        sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
     }
     else if( wnd->base.backend==SGUI_OPENGL_CORE ||
              wnd->base.backend==SGUI_OPENGL_COMPAT )
@@ -346,7 +344,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
             exp.height = wnd->base.h;
 
             XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
-            sgui_widget_manager_clear_dirty_rects( wnd->base.mgr );
+            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
         }
     }
 }

@@ -24,7 +24,6 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui_frame.h"
-#include "sgui_widget_manager.h"
 #include "sgui_skin.h"
 #include "sgui_scroll_bar.h"
 #include "sgui_event.h"
@@ -114,15 +113,15 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
         }
 
         sgui_widget_get_absolute_rect( f->v_bar, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_canvas_add_dirty_rect( widget->canvas, &r );
     }
 }
 
-void frame_draw( sgui_widget* widget, sgui_canvas* cv )
+void frame_draw( sgui_widget* widget )
 {
-    sgui_skin_draw_frame( cv, widget->area.left, widget->area.top,
-                              SGUI_RECT_WIDTH(widget->area),
-                              SGUI_RECT_HEIGHT(widget->area) );
+    sgui_skin_draw_frame( widget->canvas, widget->area.left, widget->area.top,
+                          SGUI_RECT_WIDTH(widget->area),
+                          SGUI_RECT_HEIGHT(widget->area) );
 }
 
 static void frame_destroy( sgui_widget* frame )

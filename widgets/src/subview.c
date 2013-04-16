@@ -45,7 +45,7 @@ sgui_subview;
 
 
 
-/* subview event handler for events from the parent widget manager */
+/* subview event handler for events from the parent canvas */
 static void subview_on_parent_event( sgui_widget* w, int type,
                                      sgui_event* event )
 {
@@ -62,7 +62,7 @@ static void subview_on_parent_event( sgui_widget* w, int type,
         return;
     }
 
-    /* send events to widget manager accordingly */
+    /* send events accordingly */
     if( view->window_fun )
         view->window_fun( w, type, event );
 }

@@ -25,7 +25,6 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_tab.h"
 #include "sgui_skin.h"
-#include "sgui_widget_manager.h"
 #include "sgui_event.h"
 #include "sgui_canvas.h"
 #include "sgui_widget.h"
@@ -59,12 +58,12 @@ sgui_tab_group;
 
 
 
-static void set_manager( sgui_widget* i, sgui_widget_manager* mgr )
+static void set_canvas( sgui_widget* i, sgui_canvas* canvas )
 {
     for( ; i!=NULL; i=i->next )
     {
-        i->mgr = mgr;
-        set_manager( i->children, mgr );
+        i->canvas = canvas;
+        set_canvas( i->children, canvas );
     }
 }
 
@@ -73,8 +72,8 @@ static void reparent( sgui_widget* i, sgui_widget* parent )
     for( ; i!=NULL; i=i->next )
     {
         i->parent = parent;
-        i->mgr = parent ? parent->mgr : NULL;
-        set_manager( i->children, parent ? parent->mgr : NULL );
+        i->canvas = parent ? parent->canvas : NULL;
+        set_canvas( i->children, parent ? parent->canvas : NULL );
     }
 }
 
@@ -127,7 +126,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
         /* select coresponding tab and mark widget area dirty */
         if( i && i!=g->selected )
         {
-            sgui_widget_manager_add_dirty_rect( widget->mgr, &widget->area );
+            sgui_canvas_add_dirty_rect( widget->canvas, &widget->area );
 
             if( g->selected )
             {
@@ -156,7 +155,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
     }
 }
 
-void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
+void sgui_tab_group_draw( sgui_widget* widget )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int gap, gap_w;
@@ -166,7 +165,8 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
     /* draw tab captions */
     for( i=g->tabs; i!=NULL; x += i->caption_width, i=i->next )
     {
-        sgui_skin_draw_tab_caption( cv, x, y, i->caption_width, i->caption );
+        sgui_skin_draw_tab_caption( widget->canvas, x, y, i->caption_width,
+                                    i->caption );
     }
 
     /* draw selected tab */
@@ -178,11 +178,11 @@ void sgui_tab_group_draw( sgui_widget* widget, sgui_canvas* cv )
         for( i=g->tabs, gap=0; i && i!=g->selected; i=i->next )
             gap += i->caption_width;
 
-        sgui_skin_draw_tab( cv, widget->area.left,
-                                widget->area.top + g->tab_cap_height, 
-                                SGUI_RECT_WIDTH(widget->area),
-                                SGUI_RECT_HEIGHT(widget->area) -
-                                g->tab_cap_height, gap, gap_w );
+        sgui_skin_draw_tab( widget->canvas, widget->area.left,
+                            widget->area.top + g->tab_cap_height, 
+                            SGUI_RECT_WIDTH(widget->area),
+                            SGUI_RECT_HEIGHT(widget->area) -
+                            g->tab_cap_height, gap, gap_w );
     }
 }
 
@@ -271,7 +271,7 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
             return;
 
         /* add the widget */
-        w->mgr = tab->mgr;
+        w->canvas = tab->canvas;
         w->next = i->widgets;
         w->parent = tab;
         i->widgets = w;
@@ -285,7 +285,7 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
             sgui_widget_send_window_event( w, SGUI_TAB_SELECTED, NULL );
 
             sgui_widget_get_absolute_rect( w, &r );
-            sgui_widget_manager_add_dirty_rect( tab->mgr, &r );
+            sgui_canvas_add_dirty_rect( tab->canvas, &r );
         }
         else
         {

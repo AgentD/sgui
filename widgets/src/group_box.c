@@ -24,7 +24,6 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui_group_box.h"
-#include "sgui_widget_manager.h"
 #include "sgui_skin.h"
 #include "sgui_canvas.h"
 #include "sgui_internal.h"
@@ -44,9 +43,10 @@ sgui_group_box;
 
 
 
-void group_box_draw( sgui_widget* widget, sgui_canvas* cv )
+void group_box_draw( sgui_widget* widget )
 {
-    sgui_skin_draw_group_box( cv, widget->area.left, widget->area.top,
+    sgui_skin_draw_group_box( widget->canvas,
+                              widget->area.left, widget->area.top,
                               SGUI_RECT_WIDTH(widget->area),
                               SGUI_RECT_HEIGHT(widget->area),
                               ((sgui_group_box*)widget)->caption );

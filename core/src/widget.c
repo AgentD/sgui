@@ -39,7 +39,7 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->next                  = NULL;
     widget->children              = NULL;
     widget->parent                = NULL;
-    widget->mgr                   = NULL;
+    widget->canvas                = NULL;
     widget->draw_callback         = NULL;
     widget->window_event_callback = NULL;
     widget->state_change_callback = NULL;
@@ -47,12 +47,12 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
 
 /****************************************************************************/
 
-static void propagate_manager( sgui_widget* i )
+static void propagate_canvas( sgui_widget* i )
 {
     for( ; i!=NULL; i=i->next )
     {
-        i->mgr = i->parent->mgr;
-        propagate_manager( i->children );
+        i->canvas = i->parent->canvas;
+        propagate_canvas( i->children );
     }
 }
 
@@ -73,7 +73,7 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
     {
         /* flag the old area dirty */
         sgui_widget_get_absolute_rect( w, &r );
-        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
+        sgui_canvas_add_dirty_rect( w->canvas, &r );
 
         /* move the widget area */
         dx = x - w->area.left;
@@ -84,7 +84,7 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
 
         /* flag the old area dirty */
         sgui_widget_get_absolute_rect( w, &r );
-        sgui_widget_manager_add_dirty_rect( w->mgr, &r );
+        sgui_canvas_add_dirty_rect( w->canvas, &r );
 
         /* call the state change callback if there is one */
         if( w->state_change_callback )
@@ -187,10 +187,10 @@ void sgui_widget_send_window_event( sgui_widget* widget, int type,
         widget->window_event_callback( widget, type, event );
 }
 
-void sgui_widget_draw( sgui_widget* widget, sgui_canvas* cv )
+void sgui_widget_draw( sgui_widget* widget )
 {
     if( widget && widget->draw_callback )
-        widget->draw_callback( widget, cv );
+        widget->draw_callback( widget );
 }
 
 void sgui_widget_remove_from_parent( sgui_widget* widget )
@@ -219,13 +219,13 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
         }
 
         sgui_widget_get_absolute_rect( widget, &r );
-        sgui_widget_manager_add_dirty_rect( widget->mgr, &r );
+        sgui_canvas_add_dirty_rect( widget->canvas, &r );
 
         widget->parent = NULL;
         widget->next = NULL;
-        widget->mgr = NULL;
+        widget->canvas = NULL;
 
-        propagate_manager( widget->children );
+        propagate_canvas( widget->children );
     }
 }
 
@@ -238,14 +238,14 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
 
     /* add widget */
     child->parent = parent;
-    child->mgr = parent->mgr;
+    child->canvas = parent->canvas;
     child->next = parent->children;
     parent->children = child;
 
-    propagate_manager( child->children );
+    propagate_canvas( child->children );
 
     /* flag coresponding area as dirty */
     sgui_widget_get_absolute_rect( child, &r );
-    sgui_widget_manager_add_dirty_rect( child->mgr, &r );
+    sgui_canvas_add_dirty_rect( child->canvas, &r );
 }
 

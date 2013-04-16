@@ -41,8 +41,6 @@ typedef struct sgui_canvas sgui_canvas;
 
 typedef struct sgui_widget sgui_widget;
 
-typedef struct sgui_widget_manager sgui_widget_manager;
-
 typedef struct sgui_window sgui_window;
 
 typedef struct sgui_pixmap sgui_pixmap;

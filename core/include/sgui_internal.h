@@ -34,6 +34,76 @@
 
 
 
+#define CANVAS_MAX_DIRTY 10
+
+
+
+struct sgui_widget
+{
+    sgui_rect area;         /**< \brief The area occupied by a widget */
+
+    int visible;            /**< \brief zero if the widget should not be
+                                        rendered */
+
+    /** \brief The canvas that the widget is attached to */
+    sgui_canvas* canvas;
+
+    /**
+     * \brief The next widget on the same level (linked list)
+     *
+     * Used by widget manager. Do not alter in widget code!
+     */
+    sgui_widget* next;
+
+    /**
+     * \brief A pointer to the first widget in the children list
+     *
+     * Used by widget manager. Do not alter in widget code!
+     */
+    sgui_widget* children;
+
+    /**
+     * \brief A pointer to the parent widget
+     *
+     * Used by widget manager. Do not alter in widget code!
+     */
+    sgui_widget* parent;
+
+    /**
+     * \brief Callback that is called to destroy a widget
+     *
+     * \param widget A pointer to the widget to destroy (for C++
+     *               people: practically a this pointer).
+     */
+    void (* destroy )( sgui_widget* widget );
+
+    /**
+     * \brief Callback that is called to draw a widget
+     *
+     * \param widget A pointer to the widget to draw (for C++
+     *               people: practically a this pointer).
+     */
+    void (* draw_callback )( sgui_widget* widget );
+
+    /**
+     * \brief Callback that is called to inject window events
+     *
+     * \param widget A pointer to the widget to update (for C++
+     *               people: practically a this pointer).
+     * \param type   The event type.
+     * \param event  The window event that occoured.
+     */
+    void (* window_event_callback )( sgui_widget* widget, int type,
+                                     sgui_event* event );
+
+    /**
+     * \brief Callback that is called when the internal state of a widget
+     *        changes(e.g. position, visibility, etc...)
+     * 
+     */
+    void (* state_change_callback )( sgui_widget* widget );
+};
+
 struct sgui_canvas
 {
     int ox, oy;                     /**< \brief current offset */
@@ -46,6 +116,18 @@ struct sgui_canvas
 
     unsigned char bg_color[3];      /**< \brief RGB8 background color */
 
+    sgui_widget root;               /**< \brief The dummy root widget */
+
+    sgui_widget* mouse_over;        /**< \brief The widget under the mouse
+                                                cursor */
+    sgui_widget* focus;             /**< \brief The widget with keyboad
+                                                focus */
+
+    sgui_rect dirty[ CANVAS_MAX_DIRTY ];
+    unsigned int num_dirty;
+
+    sgui_widget_callback fun;
+    void* fun_user;
 
     /**
      * \brief Gets called by sgui_canvas_destroy
@@ -166,76 +248,8 @@ struct sgui_canvas
                          unsigned int length );
 };
 
-struct sgui_widget
-{
-    sgui_rect area;         /**< \brief The area occupied by a widget */
-
-    int visible;            /**< \brief zero if the widget should not be
-                                        rendered */
-
-    /** \brief The widget manager responsible for that widget */
-    sgui_widget_manager* mgr;
-
-    /**
-     * \brief The next widget on the same level (linked list)
-     *
-     * Used by widget manager. Do not alter in widget code!
-     */
-    sgui_widget* next;
-
-    /**
-     * \brief A pointer to the first widget in the children list
-     *
-     * Used by widget manager. Do not alter in widget code!
-     */
-    sgui_widget* children;
-
-    /**
-     * \brief A pointer to the parent widget
-     *
-     * Used by widget manager. Do not alter in widget code!
-     */
-    sgui_widget* parent;
-
-    /**
-     * \brief Callback that is called to destroy a widget
-     *
-     * \param widget A pointer to the widget to destroy (for C++
-     *               people: practically a this pointer).
-     */
-    void (* destroy )( sgui_widget* widget );
-
-    /**
-     * \brief Callback that is called to draw a widget
-     *
-     * \param widget A pointer to the widget to draw (for C++
-     *               people: practically a this pointer).
-     * \param cv     A pointer to a canvas to draw to.
-     */
-    void (* draw_callback )( sgui_widget* widget, sgui_canvas* cv );
-
-    /**
-     * \brief Callback that is called to inject window events
-     *
-     * \param widget A pointer to the widget to update (for C++
-     *               people: practically a this pointer).
-     * \param type   The event type.
-     * \param event  The window event that occoured.
-     */
-    void (* window_event_callback )( sgui_widget* widget, int type,
-                                     sgui_event* event );
-
-    /**
-     * \brief Callback that is called when the internal state of a widget
-     *        changes(e.g. position, visibility, etc...)
-     * 
-     */
-    void (* state_change_callback )( sgui_widget* widget );
-};
-
 struct sgui_window
 {
-    sgui_widget_manager* mgr;   /**< \brief pointer to a widget manager */
     sgui_canvas* back_buffer;   /**< \brief pointer to a canvas */
 
     sgui_window_callback event_fun; /**< \brief the window event callback */
