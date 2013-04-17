@@ -90,7 +90,7 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
 {
     int old_ox, old_oy;
     sgui_widget* i;
-    sgui_rect wr;
+    sgui_rect wr, old_sc;
 
     old_ox = widget->canvas->ox;
     old_oy = widget->canvas->oy;
@@ -113,8 +113,14 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
 
             if( sgui_rect_get_intersection( &wr, r, &wr ) )
             {
+                old_sc = widget->canvas->sc;
+                sgui_rect_get_intersection( &widget->canvas->sc,
+                                            &widget->canvas->sc, &wr );
+
                 sgui_widget_draw( i );
                 draw_children( i, &wr );
+
+                widget->canvas->sc = old_sc;
             }
         }
     }
@@ -129,8 +135,14 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
 
                 if( wr.left<wr.right && wr.top<wr.bottom )
                 {
+                    old_sc = widget->canvas->sc;
+                    sgui_rect_get_intersection( &widget->canvas->sc,
+                                                &widget->canvas->sc, &wr );
+
                     sgui_widget_draw( i );
                     draw_children( i, NULL );
+
+                    widget->canvas->sc = old_sc;
                 }
             }
         }
@@ -205,7 +217,7 @@ void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas )
 
 void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r )
 {
-    sgui_rect wr;
+    sgui_rect wr, old_sc;
     sgui_widget* i;
 
     if( !canvas || !canvas->root.children )
@@ -221,8 +233,13 @@ void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r )
             if( sgui_widget_is_visible( i ) &&
                 sgui_rect_get_intersection( &wr, r, &wr ) )
             {
+                old_sc = canvas->sc;
+                sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &wr );
+
                 sgui_widget_draw( i );
                 draw_children( i, &wr );
+
+                canvas->sc = old_sc;
             }
         }
     }
@@ -233,8 +250,14 @@ void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r )
         {
             if( sgui_widget_is_visible( i ) )
             {
+                old_sc = canvas->sc;
+                sgui_widget_get_rect( i, &wr );
+                sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &wr );
+
                 sgui_widget_draw( i );
                 draw_children( i, NULL );
+
+                canvas->sc = old_sc;
             }
         }
     }
@@ -461,33 +484,6 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
     /* clear if we have an intersection */
     if( sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
         canvas->clear( canvas, &r1 );
-}
-
-void sgui_canvas_set_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
-{
-    if( canvas && r )
-    {
-        sgui_rect_copy( &canvas->sc, r );
-    }
-}
-
-void sgui_canvas_get_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
-{
-    if( canvas && r )
-    {
-        sgui_rect_copy( r, &canvas->sc );
-    }
-}
-
-void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
-{
-    sgui_rect r1;
-
-    if( canvas && canvas->began && r )
-    {
-        COPY_RECT_OFFSET( r1, r );
-        sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
-    }
 }
 
 /**************************** drawing functions ****************************/

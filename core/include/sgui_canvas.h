@@ -208,50 +208,6 @@ SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
  */
 SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
 
-
-/**
- * \brief Set the current scissor rect of a canvas in absolute coordinates
- *
- * Rendering to a canvas is only allowed inside the scissor rect, everything
- * outside will be clipped.
- *
- * This function sets the current scissor rect in absolute coordinates
- * (i.e. relative to the upper left corner, no offset).
- *
- * \param r A pointer to the rect to set as new scissor rect
- */
-SGUI_DLL void sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
-                                            sgui_rect* r );
-
-/**
- * \brief Get the current scissor rect of a canvas in absolute coordinates
- *
- * Rendering to a canvas is only allowed inside the scissor rect, everything
- * outside will be clipped.
- *
- * This function returns the current scissor rect in absolute coordinates
- * (i.e. relative to the upper left corner, no offset).
- *
- * \param r A pointer to the rect that returns the current scissor rect
- */
-SGUI_DLL void sgui_canvas_get_scissor_rect( sgui_canvas* canvas,
-                                            sgui_rect* r );
-
-/**
- * \brief Merge the current scissor rect of a canvas with a given rect
- *
- * Rendering to a canvas is only allowed inside the scissor rect, everything
- * outside will be clipped.
- *
- * This function takes a rectangle, shifts it by the current offset of the
- * canvas and then sets the scissor rect of the canvas to the intersection
- * of the rect with the current scissor rect.
- *
- * \param r A pointer to the rect that returns the current scissor rect
- */
-SGUI_DLL void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas,
-                                              sgui_rect* r );
-
 /**
  * \brief Blit an image onto a canvas
  *
