@@ -253,31 +253,6 @@ SGUI_DLL void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas,
                                               sgui_rect* r );
 
 /**
- * \brief Set an offset added to all drawing and scissor positions
- *
- * \param x The distance from the left of the canvas.
- * \param y The distance from the top of the canvas.
- */
-SGUI_DLL void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
-
-/**
- * \brief Add an offset to the current offset added to all drawing and
- *        scissor positions
- *
- * \param x A horizontal offset to add
- * \param y A vertical offset to add
- */
-SGUI_DLL void sgui_canvas_add_offset( sgui_canvas* canvas, int x, int y );
-
-/**
- * \brief Get the current offset added to all drawing and scissor positions
- *
- * \param x Returns the distance from the left of the canvas.
- * \param y Returns the distance from the top of the canvas.
- */
-SGUI_DLL void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y );
-
-/**
  * \brief Blit an image onto a canvas
  *
  * \param x      Distance from the left of the canvas to the left of the image

@@ -92,9 +92,11 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
     sgui_widget* i;
     sgui_rect wr;
 
-    sgui_canvas_get_offset( widget->canvas, &old_ox, &old_oy );
-    sgui_canvas_add_offset( widget->canvas, widget->area.left,
-                                            widget->area.top );
+    old_ox = widget->canvas->ox;
+    old_oy = widget->canvas->oy;
+
+    widget->canvas->ox += widget->area.left;
+    widget->canvas->oy += widget->area.top;
 
     if( r )
     {
@@ -134,7 +136,8 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
         }
     }
 
-    sgui_canvas_set_offset( widget->canvas, old_ox, old_oy );
+    widget->canvas->ox = old_ox;
+    widget->canvas->oy = old_oy;
 }
 
 static void send_event( sgui_widget* i, int event, sgui_event* e )
@@ -484,38 +487,6 @@ void sgui_canvas_merge_scissor_rect( sgui_canvas* canvas, sgui_rect* r )
     {
         COPY_RECT_OFFSET( r1, r );
         sgui_rect_get_intersection( &canvas->sc, &canvas->sc, &r1 );
-    }
-}
-
-void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )
-{
-    if( canvas && canvas->began )
-    {
-        canvas->ox = x;
-        canvas->oy = y;
-    }
-}
-
-void sgui_canvas_add_offset( sgui_canvas* canvas, int x, int y )
-{
-    if( canvas && canvas->began )
-    {
-        canvas->ox += x;
-        canvas->oy += y;
-    }
-}
-
-void sgui_canvas_get_offset( sgui_canvas* canvas, int* x, int* y )
-{
-    if( canvas && canvas->began )
-    {
-        if( x ) *x = canvas->ox;
-        if( y ) *y = canvas->oy;
-    }
-    else
-    {
-        if( x ) *x = 0;
-        if( y ) *y = 0;
     }
 }
 
