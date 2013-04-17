@@ -50,31 +50,15 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 {
     cv->ox = cv->oy = 0;
 
+    memset( cv, 0, sizeof(sgui_canvas) );
+
     cv->width = width;
     cv->height = height;
-    cv->began = 0;
 
-    cv->bg_color[0] = 0;
-    cv->bg_color[1] = 0;
-    cv->bg_color[2] = 0;
-
-    cv->begin  = NULL;
-    cv->end    = NULL;
-    cv->resize = NULL;
-
-    cv->root.area.left = 0;
-    cv->root.area.top = 0;
     cv->root.area.right = width-1;
     cv->root.area.bottom = height-1;
     cv->root.visible = 1;
     cv->root.canvas = cv;
-    cv->root.next = NULL;
-    cv->root.children = NULL;
-    cv->root.parent = NULL;
-    cv->root.destroy = NULL;
-    cv->root.draw_callback = NULL;
-    cv->root.window_event_callback = NULL;
-    cv->root.state_change_callback = NULL;
 }
 
 /****************************************************************************/
