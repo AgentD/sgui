@@ -56,6 +56,17 @@ static void propagate_canvas( sgui_widget* i )
     }
 }
 
+static void propagat_state_change( sgui_widget* i )
+{
+    for( ; i!=NULL; i=i->next )
+    {
+        if( i->state_change_callback )
+            i->state_change_callback( i );
+
+        propagat_state_change( i->children );
+    }
+}
+
 /****************************************************************************/
 
 void sgui_widget_destroy( sgui_widget* widget )
@@ -83,8 +94,11 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
         w->area.top  += dy; w->area.bottom += dy;
 
         /* flag the old area dirty */
-        sgui_widget_get_absolute_rect( w, &r );
-        sgui_canvas_add_dirty_rect( w->canvas, &r );
+        if( sgui_widget_is_absolute_visible( w ) )
+        {
+            sgui_widget_get_absolute_rect( w, &r );
+            sgui_canvas_add_dirty_rect( w->canvas, &r );
+        }
 
         /* call the state change callback if there is one */
         if( w->state_change_callback )
@@ -141,20 +155,40 @@ int sgui_widget_is_visible( sgui_widget* w )
     return w ? w->visible : 0;
 }
 
+int sgui_widget_is_absolute_visible( sgui_widget* w )
+{
+    for( ; w!=NULL; w=w->parent )
+    {
+        if( !w->visible )
+            return 0;
+    }
+
+    return 1;
+}
+
 void sgui_widget_set_visible( sgui_widget* w, int visible )
 {
-    if( w )
+    sgui_rect r;
+
+    if( w && w->visible!=visible )
     {
         w->visible = visible;
 
         if( w->state_change_callback )
             w->state_change_callback( w );
+
+        propagat_state_change( w->children );
+
+        /* flag area as dirty */ 
+        sgui_widget_get_absolute_rect( w, &r );
+        sgui_canvas_add_dirty_rect( w->canvas, &r );
     }
 }
 
 void sgui_widget_get_rect( sgui_widget* w, sgui_rect*r )
 {
-    sgui_rect_copy( r, &w->area );
+    if( w && r )
+        sgui_rect_copy( r, &w->area );
 }
 
 void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r )
@@ -180,11 +214,24 @@ void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r )
     }
 }
 
-void sgui_widget_send_window_event( sgui_widget* widget, int type,
-                                    sgui_event* event )
+void sgui_widget_send_event( sgui_widget* widget, int type,
+                             sgui_event* event, int propagate )
 {
-    if( widget && widget->window_event_callback )
-        widget->window_event_callback( widget, type, event );
+    sgui_widget* i;
+
+    if( widget )
+    {
+        if( widget->window_event_callback )
+            widget->window_event_callback( widget, type, event );
+
+        if( propagate )
+        {
+            for( i=widget->children; i!=NULL; i=i->next )
+            {
+                sgui_widget_send_event( i, type, event, 1 );
+            }
+        }
+    }
 }
 
 void sgui_widget_draw( sgui_widget* widget )
@@ -198,7 +245,7 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
     sgui_rect r;
     sgui_widget* i = NULL;
 
-    if( widget )
+    if( widget && widget->parent )
     {
         i = widget->parent->children;
 
@@ -218,8 +265,11 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
             }
         }
 
-        sgui_widget_get_absolute_rect( widget, &r );
-        sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        if( sgui_widget_is_absolute_visible( widget ) )
+        {
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        }
 
         widget->parent = NULL;
         widget->next = NULL;
@@ -245,7 +295,10 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
     propagate_canvas( child->children );
 
     /* flag coresponding area as dirty */
-    sgui_widget_get_absolute_rect( child, &r );
-    sgui_canvas_add_dirty_rect( child->canvas, &r );
+    if( sgui_widget_is_absolute_visible( child ) )
+    {
+        sgui_widget_get_absolute_rect( child, &r );
+        sgui_canvas_add_dirty_rect( child->canvas, &r );
+    }
 }
 

@@ -90,6 +90,12 @@ SGUI_DLL void sgui_widget_get_size( sgui_widget* w,
 SGUI_DLL int sgui_widget_is_visible( sgui_widget* w );
 
 /**
+ * \brief Returns non-zero if the given widget is visible and all its parents
+ *        are visible too
+ */
+SGUI_DLL int sgui_widget_is_absolute_visible( sgui_widget* w );
+
+/**
  * \brief Set whether a given widget should be rendered or not
  *
  * \param w       The widget
@@ -113,18 +119,22 @@ SGUI_DLL void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
  * \param r Returns the rect
  */
 SGUI_DLL void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r );
+
 /**
- * \brief Send a window event to a widget
+ * \brief Send a parent widget or window event to a widget
  *
  * This is called inside the sgui_window_update function to make widgets
- * interact with user input.
+ * interact with user input or by parent widgets to send things like tab group
+ * deselect notifications.
  *
- * \param widget The widget to send the event to
- * \param type   The event type
- * \param event  The event to send
+ * \param widget    The widget to send the event to
+ * \param type      The event type
+ * \param event     The event to send
+ * \param propagate Nonzero if the event should be propagate to the widgets
+ *                  children, zero if it should not
  */
-SGUI_DLL void sgui_widget_send_window_event( sgui_widget* widget, int type,
-                                             sgui_event* event );
+SGUI_DLL void sgui_widget_send_event( sgui_widget* widget, int type,
+                                      sgui_event* event, int propagate );
 
 /**
  * \brief Draw a widget

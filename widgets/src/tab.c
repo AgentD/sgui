@@ -132,8 +132,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
             {
                 for( j=g->selected->widgets; j!=NULL; j=j->next )
                 {
-                    sgui_widget_send_window_event( j, SGUI_TAB_DESELECTED,
-                                                   NULL );
+                    sgui_widget_send_event( j, SGUI_TAB_DESELECTED, NULL, 1 );
                 }
             }
 
@@ -141,8 +140,7 @@ void sgui_tab_group_on_event( sgui_widget* widget, int type,
             {
                 for( j=i->widgets; j!=NULL; j=j->next )
                 {
-                    sgui_widget_send_window_event( j, SGUI_TAB_SELECTED,
-                                                   NULL );
+                    sgui_widget_send_event( j, SGUI_TAB_SELECTED, NULL, 1 );
                 }
             }
 
@@ -282,7 +280,7 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
             reparent( w, tab );
 
             tab->children = i->widgets;
-            sgui_widget_send_window_event( w, SGUI_TAB_SELECTED, NULL );
+            sgui_widget_send_event( w, SGUI_TAB_SELECTED, NULL, 1 );
 
             sgui_widget_get_absolute_rect( w, &r );
             sgui_canvas_add_dirty_rect( tab->canvas, &r );
@@ -291,7 +289,7 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
         {
             reparent( w, NULL );
 
-            sgui_widget_send_window_event( w, SGUI_TAB_DESELECTED, NULL );
+            sgui_widget_send_event( w, SGUI_TAB_DESELECTED, NULL, 1 );
         }
     }
 }
