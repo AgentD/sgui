@@ -131,12 +131,12 @@ int main( int argc, char** argv )
     /* input widget tab */
     sgui_tab_group_add_tab( tab, "Input" );
 
-    butt = sgui_button_create( 10, 270, 80, 30, "Button" );
-    eb = sgui_edit_box_create( 10, 220, 100, 100 );
+    butt = sgui_button_create( 10, 245, 80, 30, "Button" );
+    eb = sgui_edit_box_create( 10, 195, 100, 100 );
 
     sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
 
-    f = sgui_frame_create( 10, 50, 150, 150 );
+    f = sgui_frame_create( 10, 25, 150, 150 );
     r0 = sgui_radio_button_create( 10, 100, "Option 1" );
     r1 = sgui_radio_button_create( 10, 125, "Option 2" );
     r2 = sgui_radio_button_create( 10, 150, "Option 3" );
@@ -156,7 +156,7 @@ int main( int argc, char** argv )
     sgui_frame_add_widget( f, r1 );
     sgui_frame_add_widget( f, r2 );
 
-    gb = sgui_group_box_create( 200, 50, 130, 110, "Group Box" );
+    gb = sgui_group_box_create( 200, 25, 130, 110, "Group Box" );
     ra = sgui_radio_button_create( 10, 25, "Option 1" );
     rb = sgui_radio_button_create( 10, 50, "Option 2" );
     rc = sgui_radio_button_create( 10, 75, "Option 3" );
@@ -178,10 +178,10 @@ int main( int argc, char** argv )
     /* static widget tab */
     sgui_tab_group_add_tab( tab, "Static" );
 
-    tex = sgui_static_text_create( 10, 200, text );
+    tex = sgui_static_text_create( 10, 175, text );
 
-    i0 = sgui_image_create( 10, 50, 128, 128, image, SGUI_RGBA8, 0, backend);
-    i1 = sgui_image_create(150, 50, 128, 128, image, SGUI_RGBA8, 1, backend);
+    i0 = sgui_image_create( 10, 25, 128, 128, image, SGUI_RGBA8, 0, backend);
+    i1 = sgui_image_create(150, 25, 128, 128, image, SGUI_RGBA8, 1, backend);
 
     sgui_tab_group_add_widget( tab, 1, i0 );
     sgui_tab_group_add_widget( tab, 1, i1 );
@@ -190,10 +190,10 @@ int main( int argc, char** argv )
     /* output widget tab */
     sgui_tab_group_add_tab( tab, "Output" );
 
-    p0 = sgui_progress_bar_create( 10,  40, 0, 0, 50, 300 );
-    p1 = sgui_progress_bar_create( 10,  80, 1, 0, 50, 300 );
-    p2 = sgui_progress_bar_create( 320, 40, 0, 1, 50, 300 );
-    p3 = sgui_progress_bar_create( 355, 40, 1, 1, 50, 300 );
+    p0 = sgui_progress_bar_create( 10,  25, 0, 0, 50, 300 );
+    p1 = sgui_progress_bar_create( 10,  65, 1, 0, 50, 300 );
+    p2 = sgui_progress_bar_create( 320, 25, 0, 1, 50, 300 );
+    p3 = sgui_progress_bar_create( 355, 25, 1, 1, 50, 300 );
 
     sgui_tab_group_add_widget( tab, 2, p0 );
     sgui_tab_group_add_widget( tab, 2, p1 );
@@ -207,9 +207,9 @@ int main( int argc, char** argv )
 
         sgui_tab_group_add_tab( tab, "OpenGL" );
 
-        gl_view = sgui_subview_create(a,30,50,200,150,SGUI_OPENGL_COMPAT);
-        gl_sub0 = sgui_static_text_create( 45, 200, "Redraw on demand" );
-        gl_sub1 = sgui_static_text_create( 275, 200, "Redraw continuous" );
+        gl_view = sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT);
+        gl_sub0 = sgui_static_text_create( 45, 175, "Redraw on demand" );
+        gl_sub1 = sgui_static_text_create( 275, 175, "Redraw continuous" );
 
         sgui_subview_set_background_color( gl_view, color );
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );

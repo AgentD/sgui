@@ -70,12 +70,19 @@ static sgui_widget* get_widget_from_point( sgui_widget* i, int x, int y )
 
     while( i!=NULL )
     {
-        sgui_widget_get_absolute_rect( i, &r );
-
-        if( sgui_rect_is_point_inside( &r, x, y ) )
+        if( i->visible )
         {
-            j = i;
-            i = i->children;
+            sgui_widget_get_absolute_rect( i, &r );
+
+            if( sgui_rect_is_point_inside( &r, x, y ) )
+            {
+                j = i;
+                i = i->children;
+            }
+            else
+            {
+                i = i->next;
+            }
         }
         else
         {
