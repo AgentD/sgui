@@ -87,7 +87,7 @@ static void subview_on_subwindow_event( sgui_window* wnd, int type,
 }
 
 /* subview event handler for widget state change events from base class */
-void subview_on_state_change( sgui_widget* w )
+static void subview_on_state_change( sgui_widget* w )
 {
     sgui_subview* view = (sgui_subview*)w;
     unsigned int wnd_w, wnd_h, ww, wh;
@@ -116,11 +116,8 @@ void subview_on_state_change( sgui_widget* w )
 
 static void subview_destroy( sgui_widget* widget )
 {
-    if( widget )
-    {
-        sgui_window_destroy( ((sgui_subview*)widget)->subwnd );
-        free( widget );
-    }
+    sgui_window_destroy( ((sgui_subview*)widget)->subwnd );
+    free( widget );
 }
 
 /****************************************************************************/

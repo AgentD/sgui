@@ -43,7 +43,7 @@ sgui_group_box;
 
 
 
-void group_box_draw( sgui_widget* widget )
+static void group_box_draw( sgui_widget* widget )
 {
     sgui_skin_draw_group_box( widget->canvas,
                               widget->area.left, widget->area.top,
@@ -56,11 +56,8 @@ static void group_box_destroy( sgui_widget* box )
 {
     sgui_group_box* b = (sgui_group_box*)box;
 
-    if( b )
-    {
-        free( b->caption );
-        free( b );
-    }
+    free( b->caption );
+    free( b );
 }
 
 

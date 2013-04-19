@@ -32,7 +32,7 @@
 #include <ctype.h>
 
 
-void xlib_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+static void xlib_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     Window t1, t2;   /* values we are not interested */
     int t3, t4;      /* into but xlib does not accept */
@@ -41,7 +41,7 @@ void xlib_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
     XQueryPointer( dpy, TO_X11(wnd)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
 }
 
-void xlib_window_set_mouse_position( sgui_window* wnd, int x, int y )
+static void xlib_window_set_mouse_position( sgui_window* wnd, int x, int y )
 {
     XWarpPointer( dpy, None, TO_X11(wnd)->wnd, 0, 0, wnd->w, wnd->h, x, y );
     XFlush( dpy );
@@ -49,7 +49,7 @@ void xlib_window_set_mouse_position( sgui_window* wnd, int x, int y )
     ++(TO_X11(wnd)->mouse_warped);  /* increment warp counter */
 }
 
-void xlib_window_set_visible( sgui_window* wnd, int visible )
+static void xlib_window_set_visible( sgui_window* wnd, int visible )
 {
     if( visible )
         XMapWindow( dpy, TO_X11(wnd)->wnd );
@@ -57,13 +57,13 @@ void xlib_window_set_visible( sgui_window* wnd, int visible )
         XUnmapWindow( dpy, TO_X11(wnd)->wnd );
 }
 
-void xlib_window_set_title( sgui_window* wnd, const char* title )
+static void xlib_window_set_title( sgui_window* wnd, const char* title )
 {
     XStoreName( dpy, TO_X11(wnd)->wnd, title );
 }
 
-void xlib_window_set_size( sgui_window* wnd,
-                           unsigned int width, unsigned int height )
+static void xlib_window_set_size( sgui_window* wnd,
+                                  unsigned int width, unsigned int height )
 {
     XSizeHints hints;
     XWindowAttributes attr;
@@ -88,19 +88,19 @@ void xlib_window_set_size( sgui_window* wnd,
     wnd->h = (unsigned int)attr.height;
 }
 
-void xlib_window_move_center( sgui_window* wnd )
+static void xlib_window_move_center( sgui_window* wnd )
 {
     wnd->x = (DPY_WIDTH  >> 1) - (int)(wnd->w >> 1);
     wnd->y = (DPY_HEIGHT >> 1) - (int)(wnd->h >> 1);
     XMoveWindow( dpy, TO_X11(wnd)->wnd, wnd->x, wnd->y );
 }
 
-void xlib_window_move( sgui_window* wnd, int x, int y )
+static void xlib_window_move( sgui_window* wnd, int x, int y )
 {
     XMoveWindow( dpy, TO_X11(wnd)->wnd, x, y );
 }
 
-void xlib_window_destroy( sgui_window* wnd )
+static void xlib_window_destroy( sgui_window* wnd )
 {
     sgui_internal_window_deinit( wnd );
 

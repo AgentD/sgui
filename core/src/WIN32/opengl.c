@@ -44,7 +44,7 @@ typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
 
 
 
-int set_pixel_format( HDC hDC )
+static int set_pixel_format( HDC hDC )
 {
     PIXELFORMATDESCRIPTOR pfd;
     int format;

@@ -37,7 +37,8 @@ const char* wndclass = "sgui_wnd_class";
 
 
 
-LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
+static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
+                                       LPARAM lp )
 {
     sgui_window_w32* wnd;
     int result = -1;

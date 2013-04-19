@@ -47,7 +47,8 @@ sgui_scroll_bar;
 
 
 
-void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
+static void scroll_bar_on_event_h( sgui_widget* widget, int type,
+                                   sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bw;
@@ -151,7 +152,8 @@ void scroll_bar_on_event_h( sgui_widget* widget, int type, sgui_event* event )
     }
 }
 
-void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
+static void scroll_bar_on_event_v( sgui_widget* widget, int type,
+                                   sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bh;
@@ -255,7 +257,7 @@ void scroll_bar_on_event_v( sgui_widget* widget, int type, sgui_event* event )
     }
 }
 
-void scroll_bar_draw( sgui_widget* widget )
+static void scroll_bar_draw( sgui_widget* widget )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
 
@@ -268,8 +270,7 @@ void scroll_bar_draw( sgui_widget* widget )
 
 static void scroll_bar_destroy( sgui_widget* bar )
 {
-    if( bar )
-        free( bar );
+    free( bar );
 }
 
 

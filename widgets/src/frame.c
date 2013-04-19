@@ -70,9 +70,7 @@ static void frame_on_scroll( void* userptr, int new_offset, int delta )
     }
 }
 
-
-
-void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
+static void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
 {
     sgui_frame* f = (sgui_frame*)widget;
     int offset, old_offset, x, y, delta;
@@ -117,7 +115,7 @@ void frame_on_event( sgui_widget* widget, int type, sgui_event* event )
     }
 }
 
-void frame_draw( sgui_widget* widget )
+static void frame_draw( sgui_widget* widget )
 {
     sgui_skin_draw_frame( widget->canvas, widget->area.left, widget->area.top,
                           SGUI_RECT_WIDTH(widget->area),
@@ -128,11 +126,8 @@ static void frame_destroy( sgui_widget* frame )
 {
     sgui_frame* f = (sgui_frame*)frame;
 
-    if( f )
-    {
-        sgui_widget_destroy( f->v_bar );
-        free( f );
-    }
+    sgui_widget_destroy( f->v_bar );
+    free( f );
 }
 
 /****************************************************************************/

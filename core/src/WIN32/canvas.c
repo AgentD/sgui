@@ -45,7 +45,7 @@ typedef struct
 sgui_canvas_gdi;
 
 /************************* public canvas functions *************************/
-void canvas_gdi_destroy( sgui_canvas* canvas )
+static void canvas_gdi_destroy( sgui_canvas* canvas )
 {
     /* destroy offscreen context and dib section */
     if( ((sgui_canvas_gdi*)canvas)->dc )
@@ -58,8 +58,8 @@ void canvas_gdi_destroy( sgui_canvas* canvas )
     free( canvas );
 }
 
-void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
-                        unsigned int height )
+static void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
+                               unsigned int height )
 {
     /* adjust size in the header */
     ((sgui_canvas_gdi*)canvas)->info.bmiHeader.biWidth  = width;
@@ -80,7 +80,7 @@ void canvas_gdi_resize( sgui_canvas* canvas, unsigned int width,
                   ((sgui_canvas_gdi*)canvas)->bitmap );
 }
 
-void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
+static void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned char *dst, *row;
@@ -98,8 +98,8 @@ void canvas_gdi_clear( sgui_canvas* canvas, sgui_rect* r )
     }
 }
 
-void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
-                      sgui_rect* srcrect )
+static void canvas_gdi_blit( sgui_canvas* canvas, int x, int y,
+                             sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned int w, h;
@@ -110,8 +110,8 @@ void canvas_gdi_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
     pixmap_blit( pixmap, cv->dc, x, y, 0, 0, w, h );
 }
 
-void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
-                       sgui_rect* srcrect )
+static void canvas_gdi_blend( sgui_canvas* canvas, int x, int y,
+                              sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned int w, h;
@@ -122,8 +122,8 @@ void canvas_gdi_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
     pixmap_blend( pixmap, cv->dc, x, y, 0, 0, w, h );
 }
 
-void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                          unsigned char* color, int format )
+static void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                                 unsigned char* color, int format )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned char A, iA;
@@ -161,9 +161,12 @@ void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
     }
 }
 
-void canvas_gdi_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
-                               int x, int y, unsigned int w, unsigned int h,
-                               unsigned int scan, unsigned char* color )
+static void canvas_gdi_blend_stencil( sgui_canvas* canvas,
+                                      unsigned char* buffer,
+                                      int x, int y,
+                                      unsigned int w, unsigned int h,
+                                      unsigned int scan,
+                                      unsigned char* color )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
     unsigned char A, iA, *src, *dst, *row;
@@ -185,9 +188,9 @@ void canvas_gdi_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
-int canvas_gdi_draw_string( sgui_canvas* canvas, int x, int y,
-                            sgui_font* font, unsigned char* color,
-                            const char* text, unsigned int length )
+static int canvas_gdi_draw_string( sgui_canvas* canvas, int x, int y,
+                                   sgui_font* font, unsigned char* color,
+                                   const char* text, unsigned int length )
 {
     int bearing, oldx = x;
     unsigned int i, w, h, len = 0;

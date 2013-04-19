@@ -46,8 +46,7 @@ sgui_canvas_xlib;
 
 
 
-/************************* public canvas functions *************************/
-void canvas_xlib_destroy( sgui_canvas* canvas )
+static void canvas_xlib_destroy( sgui_canvas* canvas )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
 
@@ -63,8 +62,8 @@ void canvas_xlib_destroy( sgui_canvas* canvas )
     free( cv );
 }
 
-void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
-                         unsigned int height )
+static void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
+                                unsigned int height )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     XRenderPictFormat* fmt;
@@ -80,7 +79,7 @@ void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
     cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
 }
 
-void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
+static void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     XRenderColor c;
@@ -94,8 +93,8 @@ void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
-void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
-                       sgui_rect* srcrect )
+static void canvas_xlib_blit( sgui_canvas* canvas, int x, int y,
+                              sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     Picture pic = pixmap_get_picture( pixmap );
@@ -106,8 +105,8 @@ void canvas_xlib_blit( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
-void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
-                        sgui_rect* srcrect )
+static void canvas_xlib_blend( sgui_canvas* canvas, int x, int y,
+                               sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     Picture pic = pixmap_get_picture( pixmap );
@@ -118,8 +117,8 @@ void canvas_xlib_blend( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
-void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                           unsigned char* color, int format )
+static void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                                  unsigned char* color, int format )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     XRenderColor c;
@@ -133,9 +132,12 @@ void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
-void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
-                                int x, int y, unsigned int w, unsigned int h,
-                                unsigned int scan, unsigned char* color )
+static void canvas_xlib_blend_stencil( sgui_canvas* canvas,
+                                       unsigned char* buffer,
+                                       int x, int y,
+                                       unsigned int w, unsigned int h,
+                                       unsigned int scan,
+                                       unsigned char* color )
 {
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
     unsigned char iA, *src;
@@ -173,10 +175,9 @@ void canvas_xlib_blend_stencil( sgui_canvas* canvas, unsigned char* buffer,
     }
 }
 
-
-int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
-                             sgui_font* font, unsigned char* color,
-                             const char* text, unsigned int length )
+static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
+                                    sgui_font* font, unsigned char* color,
+                                    const char* text, unsigned int length )
 {
     int bearing, oldx = x;
     unsigned int i, w, h, len = 0;

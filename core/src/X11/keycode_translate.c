@@ -43,7 +43,7 @@ static unsigned int num_key_entries = 0;
     add a coresponding KeySym <-> sgui key code pair to the LUT, sorted by
     KeySym. Runs in O(n) complexity, only called at initialisation anyway
  */
-void key_entries_add( KeySym key, int code )
+static void key_entries_add( KeySym key, int code )
 {
     unsigned int i, j;
 

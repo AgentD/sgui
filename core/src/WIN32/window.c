@@ -29,7 +29,7 @@
 
 
 
-void w32_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+static void w32_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     POINT pos = { 0, 0 };
 
@@ -40,7 +40,7 @@ void w32_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
     *y = pos.y;
 }
 
-void w32_window_set_mouse_position( sgui_window* wnd, int x, int y )
+static void w32_window_set_mouse_position( sgui_window* wnd, int x, int y )
 {
     POINT pos;
 
@@ -50,18 +50,18 @@ void w32_window_set_mouse_position( sgui_window* wnd, int x, int y )
     SetCursorPos( pos.x, pos.y );
 }
 
-void w32_window_set_visible( sgui_window* wnd, int visible )
+static void w32_window_set_visible( sgui_window* wnd, int visible )
 {
     ShowWindow( TO_W32(wnd)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
 }
 
-void w32_window_set_title( sgui_window* wnd, const char* title )
+static void w32_window_set_title( sgui_window* wnd, const char* title )
 {
     SetWindowTextA( TO_W32(wnd)->hWnd, title );
 }
 
-void w32_window_set_size( sgui_window* wnd,
-                          unsigned int width, unsigned int height )
+static void w32_window_set_size( sgui_window* wnd,
+                                 unsigned int width, unsigned int height )
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
@@ -80,7 +80,7 @@ void w32_window_set_size( sgui_window* wnd,
     wnd->h = height;
 }
 
-void w32_window_move_center( sgui_window* wnd )
+static void w32_window_move_center( sgui_window* wnd )
 {
     RECT desktop, window;
     int w, h, dw, dh;
@@ -98,7 +98,7 @@ void w32_window_move_center( sgui_window* wnd )
                 (dh>>1)-(h>>1), w, h, TRUE );
 }
 
-void w32_window_move( sgui_window* wnd, int x, int y )
+static void w32_window_move( sgui_window* wnd, int x, int y )
 {
     RECT outer, inner;
     int w, h, dx, dy;
@@ -125,7 +125,7 @@ void w32_window_move( sgui_window* wnd, int x, int y )
     MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
 }
 
-void w32_window_destroy( sgui_window* wnd )
+static void w32_window_destroy( sgui_window* wnd )
 {
     MSG msg;
 

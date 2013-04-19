@@ -75,7 +75,7 @@ sgui_edit_box;
 
 
 /* Adjust text render offset after moving the cursor */
-void sgui_edit_box_determine_offset( sgui_edit_box* b )
+static void determine_offset( sgui_edit_box* b )
 {
     unsigned int cx, w;
 
@@ -127,7 +127,7 @@ void sgui_edit_box_determine_offset( sgui_edit_box* b )
 }
 
 /* get a cursor position from a mouse offset */
-unsigned int sgui_edit_box_cursor_from_mouse( sgui_edit_box* b, int mouse_x )
+static unsigned int cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 {
     unsigned int len = 0, cur = b->offset;
 
@@ -147,7 +147,7 @@ unsigned int sgui_edit_box_cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 
 
 
-void sgui_edit_box_draw( sgui_widget* widget )
+static void edit_box_draw( sgui_widget* widget )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
 
@@ -159,8 +159,8 @@ void sgui_edit_box_draw( sgui_widget* widget )
                              (int)(b->cursor-b->offset) : -1 );
 }
 
-void sgui_edit_box_on_event( sgui_widget* widget, int type,
-                             sgui_event* event )
+static void edit_box_on_event( sgui_widget* widget, int type,
+                               sgui_event* event )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
     sgui_rect r;
@@ -190,7 +190,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         unsigned int new_cur;
 
         /* get the cursor offset from the mouse position */
-        new_cur = sgui_edit_box_cursor_from_mouse( b, event->mouse_press.x );
+        new_cur = cursor_from_mouse( b, event->mouse_press.x );
 
         /* store new position and flag area dirty if the
            cursor position changed */
@@ -222,7 +222,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             /* flag dirty and adjust offset */
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
-            sgui_edit_box_determine_offset( b );
+            determine_offset( b );
         }
         /* delete pressed, cursor is not at end, chars have been entered */
         else if( (event->keyboard_event.code==SGUI_KC_DELETE) &&
@@ -243,7 +243,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             /* flag dirty and adjust offset */
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
-            sgui_edit_box_determine_offset( b );
+            determine_offset( b );
         }
         /* move cursor left pressed and cursor is not 0 */
         else if( (event->keyboard_event.code==SGUI_KC_LEFT) && b->cursor )
@@ -252,7 +252,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
 
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
-            sgui_edit_box_determine_offset( b );
+            determine_offset( b );
         }
         /* move cursor right pressed and cursor is not at the end */
         else if( (event->keyboard_event.code==SGUI_KC_RIGHT) &&
@@ -262,7 +262,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
 
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
-            sgui_edit_box_determine_offset( b );
+            determine_offset( b );
         }
         /* home key pressed and we have an offset OR the cursor is not */
         else if( (event->keyboard_event.code==SGUI_KC_HOME) &&
@@ -281,7 +281,7 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
             b->offset = b->end;
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
-            sgui_edit_box_determine_offset( b );
+            determine_offset( b );
         }
         /* ENTER key pressed */
         else if( event->keyboard_event.code==SGUI_KC_RETURN )
@@ -312,17 +312,14 @@ void sgui_edit_box_on_event( sgui_widget* widget, int type,
         /* flag dirty and determine cursor position */
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
-        sgui_edit_box_determine_offset( b );
+        determine_offset( b );
     }
 }
 
 static void edit_box_destroy( sgui_widget* box )
 {
-    if( box )
-    {
-        free( ((sgui_edit_box*)box)->buffer );
-        free( box );
-    }
+    free( ((sgui_edit_box*)box)->buffer );
+    free( box );
 }
 
 
@@ -353,9 +350,9 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width,
                                sgui_skin_get_edit_box_height( ) );
 
-    b->widget.window_event_callback = sgui_edit_box_on_event;
+    b->widget.window_event_callback = edit_box_on_event;
     b->widget.destroy               = edit_box_destroy;
-    b->widget.draw_callback         = sgui_edit_box_draw;
+    b->widget.draw_callback         = edit_box_draw;
     b->max_chars                    = max_chars;
     b->buffer[0]                    = '\0';
 
