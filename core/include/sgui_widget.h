@@ -156,9 +156,9 @@ SGUI_DLL void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child );
 /**
  * \brief Remove a widget from the widget hirarchy
  *
- * This function removes a widget from its parent and sets its widget manager
- * pointer to NULL, as well as all the widget manager pointers of all the
- * children of the given widget.
+ * This function removes a widget from its parent and sets its canvas pointer
+ * to NULL, as well as all the canvas pointers of all the children of the
+ * given widget.
  *
  * \param widget The widget to remove from its parent
  */

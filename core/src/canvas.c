@@ -230,7 +230,7 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
     if( !canvas || !canvas->root.children )
         return;
 
-    /* don't handle events that the widget manager generates, must be error */
+    /* don't handle events that the canvas generates */
     if( event==SGUI_FOCUS_EVENT || event==SGUI_MOUSE_ENTER_EVENT ||
         event==SGUI_MOUSE_ENTER_EVENT || event==SGUI_MOUSE_LEAVE_EVENT )
         return;

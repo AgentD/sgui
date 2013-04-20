@@ -40,56 +40,40 @@
 
 struct sgui_widget
 {
-    sgui_rect area;         /**< \brief The area occupied by a widget */
+    sgui_rect area;  /**< \brief The area occupied by a widget */
 
-    int visible;            /**< \brief zero if the widget should not be
-                                        rendered */
+    int visible;     /**< \brief zero if the widget should not be rendered */
 
     /** \brief The canvas that the widget is attached to */
     sgui_canvas* canvas;
 
-    /**
-     * \brief The next widget on the same level (linked list)
-     *
-     * Used by widget manager. Do not alter in widget code!
-     */
+    /** \brief The next widget on the same level (linked list) */
     sgui_widget* next;
 
-    /**
-     * \brief A pointer to the first widget in the children list
-     *
-     * Used by widget manager. Do not alter in widget code!
-     */
+    /** \brief A pointer to the first widget in the children list */
     sgui_widget* children;
 
-    /**
-     * \brief A pointer to the parent widget
-     *
-     * Used by widget manager. Do not alter in widget code!
-     */
+    /** \brief A pointer to the parent widget */
     sgui_widget* parent;
 
     /**
      * \brief Callback that is called to destroy a widget
      *
-     * \param widget A pointer to the widget to destroy (for C++
-     *               people: practically a this pointer).
+     * \param widget A pointer to the widget to destroy.
      */
     void (* destroy )( sgui_widget* widget );
 
     /**
      * \brief Callback that is called to draw a widget
      *
-     * \param widget A pointer to the widget to draw (for C++
-     *               people: practically a this pointer).
+     * \param widget A pointer to the widget to draw.
      */
     void (* draw_callback )( sgui_widget* widget );
 
     /**
      * \brief Callback that is called to inject window events
      *
-     * \param widget A pointer to the widget to update (for C++
-     *               people: practically a this pointer).
+     * \param widget A pointer to the widget to update.
      * \param type   The event type.
      * \param event  The window event that occoured.
      */
@@ -132,11 +116,7 @@ struct sgui_canvas
     /**
      * \brief Gets called by sgui_canvas_destroy
      *
-     * For C++ people: This is the destructur (but it also has to free up the
-     * memory used).
-     *
-     * \param canvas A pointer to the canvas (for C++ people: practically a
-     *               this pointer).
+     * \param canvas A pointer to the canvas.
      */
     void(* destroy )( sgui_canvas* canvas );
 
@@ -145,8 +125,7 @@ struct sgui_canvas
      *
      * Can be set to NULL if not needed by the implementation.
      *
-     * \param canvas A pointer to the canvas (for C++ people: practically a
-     *               this pointer).
+     * \param canvas A pointer to the canvas.
      * \param width  The new width of the canvas
      * \param height The new height of the canvas
      */
@@ -158,8 +137,7 @@ struct sgui_canvas
      *
      * Can be set to NULL if not needed by the implementation.
      *
-     * \param canvas A pointer to the canvas (for C++ people: practically a
-     *               this pointer).
+     * \param canvas A pointer to the canvas.
      * \param r      The rectangle to redraw (already clamped to the canvas)
      */
     void(* begin )( sgui_canvas* canvas, sgui_rect* r );
@@ -169,16 +147,14 @@ struct sgui_canvas
      *
      * Can be set to NULL if not needed by the implementation.
      *
-     * \param canvas A pointer to the canvas (for C++ people: practically a
-     *               this pointer).
+     * \param canvas A pointer to the canvas.
      */
     void(* end )( sgui_canvas* canvas );
 
     /**
      * \brief Clear a portion of a canvas to the background color
      *
-     * \param canvas A pointer to the canvas (for C++ people: practically a
-     *               this pointer).
+     * \param canvas A pointer to the canvas.
      * \param r      The region to clear, with ofset applied and cliped with
      *               the scissor rect
      */
@@ -187,8 +163,7 @@ struct sgui_canvas
     /**
      * \brief Blit onto a canvas
      *
-     * \param canvas          A pointer to the canvas (for C++
-     *                        people: practically a this pointer).
+     * \param canvas          A pointer to the canvas.
      * \param x               Distance from the left of the canvas
      * \param y               Distance from the top of the canvas
      * \param width           The number of pixels per scanline after clipping
@@ -204,8 +179,7 @@ struct sgui_canvas
     /**
      * \brief Blend onto a canvas
      *
-     * \param canvas          A pointer to the canvas (for C++
-     *                        people: practically a this pointer).
+     * \param canvas          A pointer to the canvas.
      * \param x               Distance from the left of the canvas
      * \param y               Distance from the top of the canvas
      * \param width           The number of pixels per scanline after clipping
@@ -220,8 +194,7 @@ struct sgui_canvas
     /**
      * \brief Draw a box onto a canvas
      *
-     * \param canvas  A pointer to the canvas (for C++ people: practically a
-     *                this pointer).
+     * \param canvas  A pointer to the canvas.
      * \param r       The rect to draw (offset applied and clipped)
      * \param color   The color to draw the rect in
      * \param format  The format of the color
@@ -232,8 +205,7 @@ struct sgui_canvas
     /**
      * \brief Draw a string of text onto a canvas
      *
-     * \param canvas A pointer to the canvas (for C++ people: practically a
-     *               this pointer).
+     * \param canvas A pointer to the canvas.
      * \param x      The distance from the left of the canvas
      * \param y      The distance from the top of the canvas
      * \param font   The font face to use for rendering
@@ -380,8 +352,6 @@ SGUI_DLL void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 /**
  * \brief Initialise a window structure
  *
- * This function also creates a widget manager for the window.
- *
  * \param window A pointer to the window structure
  *
  * \return Non-zero on success, zero on failure
@@ -408,8 +378,7 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
 /**
  * \brief Perform the reverse oprations of sgui_internal_window_init
  *
- * This function takes care of destroying the widget manager and
- * canvas of the window.
+ * This function takes care of destroying the canvas of the window.
  *
  * \param window A pointer to a window structure
  */

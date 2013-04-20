@@ -57,7 +57,7 @@
 
 #define SGUI_EXPOSE_EVENT               0x000D
 
-/************ widget manager events ************/
+/**************** canvas events ****************/
 #define SGUI_FOCUS_EVENT                0x0010
 #define SGUI_FOCUS_LOSE_EVENT           0x0011
 

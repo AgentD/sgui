@@ -310,7 +310,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         return -1;
     }
 
-    /* invalidate all dirty rects of the widget manager */
+    /* invalidate all dirty rects of the canvas */
     num = sgui_canvas_num_dirty_rects( base->back_buffer );
 
     if( wnd->base.backend==SGUI_NATIVE )
