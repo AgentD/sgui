@@ -122,13 +122,29 @@ SGUI_DLL void sgui_canvas_get_dirty_rect( sgui_canvas* canvas,
 SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
 
 /**
- * \brief Redraw all widgets of a canvas that are flaged visible and
- *        are within a given rect
+ * \brief Redraw all visible widgets of a canvas that are within areas flaged
+ *        as dirty.
+ *
+ * The dirty areas are cleared after a call to this function. The function can
+ * calls be called outside a begin-end block and calls begin-end itself if
+ * required.
  *
  * \param canvas The canvas
- * \param r      The area to redraw, or NULL to redraw everything
+ * \param clear  If non-zero the given area is cleared before redrawing
  */
-SGUI_DLL void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r );
+SGUI_DLL void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear );
+
+/**
+ * \brief Redraw all visible widgets of a canvas.
+ *
+ * The dirty areas are cleared after a call to this function. The function can
+ * calls be called outside a begin-end block and calls begin-end itself if
+ * required.
+ *
+ * \param canvas The canvas
+ * \param clear  If non-zero the canvas is cleared before drawing
+ */
+SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
 
 /**
  * \brief Send a window event to all widgets held by a canvas

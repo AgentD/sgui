@@ -241,13 +241,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
         /* redraw everything */
         if( wnd->base.backend==SGUI_NATIVE )
-        {
-            sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_canvas_clear( wnd->base.back_buffer, NULL );
-            sgui_canvas_draw( wnd->base.back_buffer, NULL );
-            sgui_canvas_end( wnd->base.back_buffer );
-            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
-        }
+            sgui_canvas_draw_widgets( wnd->base.back_buffer, 1 );
         break;
     case DestroyNotify:
         wnd->base.visible = 0;
@@ -292,10 +286,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
             SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
 
-            sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_canvas_draw( wnd->base.back_buffer, NULL );
-            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
-            sgui_canvas_end( wnd->base.back_buffer );
+            sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
             sgui_window_swap_buffers( (sgui_window*)wnd );
             sgui_window_make_current( NULL );
         }
@@ -325,13 +316,9 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
             XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
 
-            sgui_canvas_begin( wnd->base.back_buffer, &r );
-            sgui_canvas_clear( wnd->base.back_buffer, &r );
-            sgui_canvas_draw( wnd->base.back_buffer, &r );
-            sgui_canvas_end( wnd->base.back_buffer );
         }
 
-        sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
+        sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
     }
     else if( wnd->base.backend==SGUI_OPENGL_CORE ||
              wnd->base.backend==SGUI_OPENGL_COMPAT )

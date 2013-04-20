@@ -215,10 +215,60 @@ void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas )
         canvas->num_dirty = 0;
 }
 
-void sgui_canvas_draw( sgui_canvas* canvas, sgui_rect* r )
+void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear )
 {
-    if( canvas && canvas->root.children )
-        draw_children( &canvas->root, r );
+    int need_end = 0;
+    unsigned int i;
+
+    if( canvas )
+    {
+        if( !canvas->began )
+        {
+            sgui_canvas_begin( canvas, NULL );
+            need_end = 1;
+        }
+
+        for( i=0; i<canvas->num_dirty; ++i )
+        {
+            if( clear )
+                canvas->clear( canvas, canvas->dirty + i );
+
+            if( canvas->root.children )
+                draw_children( &canvas->root, canvas->dirty + i );
+        }
+
+        if( need_end )
+            sgui_canvas_end( canvas );
+
+        canvas->num_dirty = 0;
+    }
+}
+
+void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
+{
+    sgui_rect r1;
+    int need_end = 0;
+
+    if( canvas )
+    {
+        sgui_rect_set_size( &r1, 0, 0, canvas->width, canvas->height );
+        canvas->num_dirty = 0;
+
+        if( !canvas->began )
+        {
+            sgui_canvas_begin( canvas, NULL );
+            need_end = 1;
+        }
+
+        if( clear )
+            canvas->clear( canvas, &r1 );
+
+        if( canvas->root.children )
+            draw_children( &canvas->root, NULL );
+
+        if( need_end )
+            sgui_canvas_end( canvas );
+    }
 }
 
 void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,

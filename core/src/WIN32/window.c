@@ -266,13 +266,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         sgui_canvas_resize( base->back_buffer, base->w, base->h );
 
         if( wnd->base.backend==SGUI_NATIVE )
-        {
-            sgui_canvas_begin( base->back_buffer, NULL );
-            sgui_canvas_clear( base->back_buffer, NULL );
-            sgui_canvas_draw( base->back_buffer, NULL );
-            sgui_canvas_end( base->back_buffer );
-            sgui_canvas_clear_dirty_rects( base->back_buffer );
-        }
+            sgui_canvas_draw_widgets( base->back_buffer, 1 );
         break;
     case WM_MOVE:
         base->x = LOWORD( lp );
@@ -299,10 +293,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
 
             sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
 
-            sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_canvas_draw( wnd->base.back_buffer, NULL );
-            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
-            sgui_canvas_end( wnd->base.back_buffer );
+            sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
             sgui_window_swap_buffers( (sgui_window*)wnd );
             sgui_window_make_current( NULL );
         }
@@ -319,15 +310,11 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         {
             sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &sr, i );
 
-            sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_canvas_clear( wnd->base.back_buffer, &sr );
-            sgui_canvas_draw( wnd->base.back_buffer, &sr );
-            sgui_canvas_end( wnd->base.back_buffer );
             SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
             InvalidateRect( wnd->hWnd, &r, TRUE );
         }
 
-        sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
+        sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
     }
     else if( wnd->base.backend==SGUI_OPENGL_CORE ||
              wnd->base.backend==SGUI_OPENGL_COMPAT )

@@ -149,13 +149,7 @@ void sgui_window_set_size( sgui_window* wnd,
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
         if( wnd->backend==SGUI_NATIVE )
-        {
-            sgui_canvas_begin( wnd->back_buffer, NULL );
-            sgui_canvas_clear( wnd->back_buffer, NULL );
-            sgui_canvas_draw( wnd->back_buffer, NULL );
-            sgui_canvas_end( wnd->back_buffer );
-            sgui_canvas_clear_dirty_rects( wnd->back_buffer );
-        }
+            sgui_canvas_draw_widgets( wnd->back_buffer, 1 );
     }
 }
 
