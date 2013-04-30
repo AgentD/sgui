@@ -100,7 +100,8 @@ static void canvas_xlib_blit( sgui_canvas* canvas, int x, int y,
     Picture pic = pixmap_get_picture( pixmap );
 
     XRenderComposite( dpy, PictOpSrc, pic, 0, cv->pic,
-                      srcrect->left, srcrect->top, 0, 0, x, y,
+                      srcrect->left, srcrect->top, 0, 0,
+                      x+srcrect->left, y+srcrect->top,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
@@ -112,7 +113,8 @@ static void canvas_xlib_blend( sgui_canvas* canvas, int x, int y,
     Picture pic = pixmap_get_picture( pixmap );
 
     XRenderComposite( dpy, PictOpOver, pic, 0, cv->pic,
-                      srcrect->left, srcrect->top, 0, 0, x, y,
+                      srcrect->left, srcrect->top, 0, 0,
+                      x+srcrect->left, y+srcrect->top,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
