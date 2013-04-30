@@ -34,7 +34,7 @@ with "sgui_*" and all enumerations and constants with "SGUI_".<br>
 Lets start with a minimal example that does nothing but show off initialisation,
 shutdown and how to compile the library.
 
-<h3>Initialisation and the main loop</h2>
+<h3>Initialisation and the main loop</h3>
 
 To start using SGUI, initialisation has to be done first. (Perhaps somewhere
 in your main function) and logically, once you are done using SGUI, a proper
@@ -66,6 +66,8 @@ Lets take a look at the code:
 }
 </p><br>
 
+<h3 id="compiling">Compiling</h3>
+
 <br>
 Compiling this simple example application with gcc under a UNIX&reg; like
 operating system requires the following command:
@@ -88,9 +90,10 @@ operating system requires the following command:
 </ul>
 
 This command should produce a working "a.out" that does nothing. To run the
-program, the "libsgui.so" has to be in the same directory as "a.out".<br>
+program, the "libsgui.so" has to be in the same directory as "a.out", if
+it is not installed to your systems default library directory.<br>
 <br>
-Or alternatively, you can link SGUI statically:
+Alternatively, you can link SGUI statically:
 <p class="code">
 <font class="command">gcc</font> -I&lt;sgui_include_path&gt; -L&lt;lib_path&gt; -lsgui_static test.c
 </p>

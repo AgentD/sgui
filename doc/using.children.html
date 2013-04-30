@@ -1,0 +1,112 @@
+<html>
+<head>
+    <title>SGUI - Using the SGUI library</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<h1>SGUI</h1>
+
+<h2>Using the SGUI library</h2>
+
+<h3>The widget coordinate system</h3>
+
+The coordinate system used by widgets has its origin in the upper left corner,
+with increasing X coordiantes going to the right and increasing Y coordinates
+going downwards. The image below tries to illustrate this.<br>
+<br>
+In the image, you can see a button, placed inside a
+window. The button has been placed at coordinates (10,10), what means that it
+is 10 pixels away from the left border of the window drawing area and 10
+pixels from the top border of the window drawing area.
+<br><br>
+
+<img src="images/coords.png">
+
+<br><br>
+The button widget itself, however, has a <i>local</i> coordinate system that
+starts at the upper left hand corner <i>of the widget</i> (Indicated by the
+green coordinate axes alligned to the button borders). If, for instance, the
+window detects a mouse move in the button area, the internal event sent to
+the button will use <i>widget local coordinates</i>, i.e. the mouse position
+is specified <i>relative to</i> the upper left hand corner of the widget.
+<br><br>
+Every widget has a bounding box; a rectangular area with its sides parallel to
+the coordinate axes and guaranteed to contain the maximum outlines of the
+entire widget. To represent such rectangles, SGUI internally uses the
+<b>sgui_rect</b> data structure that offers functions to check if, for
+instance, a point lies within the box or if two boxes overlap each other
+(and get the intersecting area if they do).
+
+<br><br>
+Altough in this scenario, none of this appears to be interesst for someone not
+implementing widgets. It is however very important when aranging widgets
+hirarchically what any GUI program beyond "calculate the area of a sphere"
+will most likely make use of.
+
+<h3 id="hirarchy">The widget hirarchy</h3>
+
+<table>
+<tr>
+<td><img src="images/children.png"></td>
+<td><a href="images/tree.svg"><img src="images/tree.svg" width="200"></a></td>
+</tr>
+</table>
+<br>
+
+The left hand side of the image above presents a fragment of a screen shot of
+the SGUI demo program.
+<br>
+What can be seen in the image is how widgets are aranged in a hirarchy. The
+hirarchy is shown as a tree in the right hand side of the image.
+<br><br>
+There is a root widget that all widgets that are added to the window are
+attached to (i.e. the root widget is their <i>parent</i> and all other widgets
+attached to the window are the <i>children</i> of the root widget). In this
+example, the tab widget is a child of the root widget.
+<br><br>
+Since the point of a tab widget is to attach widgets to it, there are widgets
+attached to the tab as children of the tab widget. In this example, the
+static image widget is a child of the tab widget. And for the fun of it, a
+button widget has been added as a child of the static image widget.
+<br><br>
+Adding children to an existing widget is quite easy. To make any widget a
+child of any other arbitrary widget, simply use the
+<b>sgui_widget_add_child</b> function. To remove it, use the
+<b>sgui_widget_remove_from_parent</b> function.<br><br>
+Some special container widgets like the tab widget or the frame widget,
+however, have specialized functions for adding widgets since they have to do
+more complicated mechanics inside (the tab group widget, for instance, must
+keep the widgets seperated by tabs that it does not expose to the outside
+while the frame keeps track of the space consumed by the widgets to calculate
+if and what kind of scroll bar to use).
+
+<br><br>
+There are three important and helpfull things to keep in mind about the
+behaviour of child widgets:
+<ul>
+<li>Child widgets are positioned relative to their parent widget (i.e. in
+the parents local coordinate system).
+<li>If a widget is flaged invisible (to disable drawing), none of it's
+children are drawn either (and none of <i>their</i> children and so on).
+<li>A child widget is only visible inside its parents bounding box.
+</ul>
+
+Let's get some examples. In the picture above, the button is at position
+(10,10), but since the button is a child of the static image widget, (10,10)
+means 10 pixels away from the left border <i>of the image</i> and 10 pixels
+from the top <i>of the image</i>. If the image would move, the button would
+stay at the same position inside the image. If the image would be turned
+invisible, the button would no longer be drawn either. If the entire tab was
+turned invisible, neither the image nor the button would be drawn anymore
+(that's actually what the tab group widget does internally). If the button
+was positioned so far at the right that half of it would stick out over the
+image, it would be clipped by the drawing functions and only the part inside
+the image would be visible.
+
+<hr>
+<a href="using.events.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.html">Next</a>
+
+</html>
+
