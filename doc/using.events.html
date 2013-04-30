@@ -20,7 +20,7 @@ The window callback gets called whenever something happens to the window
 etc...). The widget callback gets called whenever something happens to a
 widget (e.g. button pressed, checkbox checked, etc...).<br>
 You can read about all kinds of window and widgets events in the doxygen
-documentation or the <b>sgui_event.h</b> header.<br>
+documentation or the <a href="../doxydoc/html/sgui__event_8h.html"><b>sgui_event.h</b></a> header.<br>
 <br>
 Lets extend our previous example by a simple widget callback:
 <p class="code">
@@ -28,7 +28,7 @@ Lets extend our previous example by a simple widget callback:
 {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( type == SGUI_BUTTON_CLICK_EVENT )<br>
 &nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_visible( user, SGUI_INVISIBLE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#af22366485a757513f1982d07802ef126">sgui_window_set_visible</a>( user, SGUI_INVISIBLE );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }<br>
 </p>
@@ -63,9 +63,9 @@ All we need to do now, is to register those callbacks after we create the
 window:
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_on_widget_event( wnd, widget_callback, wnd );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#ae6417435d58723180734548cbe1c0791">sgui_window_on_widget_event</a>( wnd, widget_callback, wnd );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_on_event( wnd, window_callback );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#a9b8442aa2f65abde0c7f952a0055ecc3">sgui_window_on_event</a>( wnd, window_callback );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 The first function call registers the widget callback, with the first argument
