@@ -100,8 +100,9 @@ do_build( )
         FLAGS="-ansi -pedantic -Wall -Wextra -mwindows
                -Ibuild/include -Lbuild/lib/$1 -lsgui"
 
-        "$3"gcc test/test.c $FLAGS -lopengl32 -o build/bin/$1/test.exe
+        "$3"gcc extras/demo.c $FLAGS -lopengl32 -o build/bin/$1/demo.exe
         #"$3"gcc test/test_gl.c $FLAGS -lopengl32 -o build/bin/$1/test_gl.exe
+        "$3"gcc extras/signalsandslots.c $FLAGS -lopengl32 -o build/bin/$1/signalsandslots.exe
     fi
 }
 

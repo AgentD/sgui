@@ -89,7 +89,9 @@ else
     FLAGS="-ansi -pedantic -Wall -Wextra $1 -Wl,-rpath,. -Lbuild/bin/unix
            -Ibuild/include -lsgui"
 
-    gcc $FLAGS -lGL test/test.c -o build/bin/unix/test
+    gcc $FLAGS -lGL extras/demo.c -o build/bin/unix/demo
     #gcc $FLAGS -lGL test/test_gl.c -o build/bin/unix/test_gl
+
+    gcc $FLAGS extras/signalsandslots.c -o build/bin/unix/signalsandslots
 fi
 
