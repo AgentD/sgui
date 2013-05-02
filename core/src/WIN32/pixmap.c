@@ -55,7 +55,7 @@ sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
 {
     sgui_pixmap* pix;
 
-    if( !width || !height || !format )
+    if( !width || !height )
         return NULL;
 
     pix = malloc( sizeof(sgui_pixmap) );
@@ -83,7 +83,7 @@ sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
         BITMAPINFO info;
 
         info.bmiHeader.biSize        = sizeof(info.bmiHeader);
-        info.bmiHeader.biBitCount    = 32;
+        info.bmiHeader.biBitCount    = format==SGUI_RGBA8 ? 32 : 24;
         info.bmiHeader.biCompression = BI_RGB;
         info.bmiHeader.biPlanes      = 1;
         info.bmiHeader.biWidth       = width;
@@ -133,27 +133,32 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
     {
         unsigned char *dst, *dstrow;
         const unsigned char *src, *row;
-        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha;
+        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, srcbpp, alpha;
 
         int dstx = dstrect ? dstrect->left : 0;
         int dsty = dstrect ? dstrect->top  : 0;
         int subw = dstrect ? SGUI_RECT_WIDTH_V( dstrect ) : (int)width;
         int subh = dstrect ? SGUI_RECT_HEIGHT_V( dstrect ) : (int)height;
 
+        srcbpp = pixmap->format==SGUI_RGBA8 ? 4 : 3;
+
         data += (srcy*width + srcx)*bpp;
-        dst = pixmap->pm.native.ptr + (dstx + dsty*pixmap->width)*4;
+        dst = pixmap->pm.native.ptr + (dstx + dsty*pixmap->width)*srcbpp;
 
         for( src=data, j=0; j<subh; ++j, src+=width*bpp,
-                                         dst+=pixmap->width*4 )
+                                         dst+=pixmap->width*srcbpp )
         {
-            for( dstrow=dst, row=src, i=0; i<subw; ++i, row+=bpp, dstrow+=4 )
+            for( dstrow=dst, row=src, i=0; i<subw; ++i, row+=bpp,
+                                                        dstrow+=srcbpp )
             {
                 alpha = bpp==4 ? row[3] : 0xFF;
 
                 dstrow[0] = row[2]*alpha >> 8;
                 dstrow[1] = row[1]*alpha >> 8;
                 dstrow[2] = row[0]*alpha >> 8;
-                dstrow[3] = alpha;
+
+                if( srcbpp==4 )
+                    dstrow[3] = alpha;
             }
         }
     }
@@ -228,13 +233,20 @@ void pixmap_blend( sgui_pixmap* pixmap, HDC hDC, int x, int y,
 
     if( pixmap && pixmap->backend==SGUI_NATIVE )
     {
-        ftn.BlendOp             = AC_SRC_OVER;
-        ftn.BlendFlags          = 0;
-        ftn.SourceConstantAlpha = 0xFF;
-        ftn.AlphaFormat         = AC_SRC_ALPHA;
+        if( pixmap->format==SGUI_RGB8 )
+        {
+            pixmap_blit( pixmap, hDC, x, y, srcx, srcy, width, height );
+        }
+        else
+        {
+            ftn.BlendOp             = AC_SRC_OVER;
+            ftn.BlendFlags          = 0;
+            ftn.SourceConstantAlpha = 0xFF;
+            ftn.AlphaFormat         = AC_SRC_ALPHA;
 
-        AlphaBlend( hDC, x, y, width, height, pixmap->pm.native.hDC,
-                    srcx, srcy, width, height, ftn );
+            AlphaBlend( hDC, x, y, width, height, pixmap->pm.native.hDC,
+                        srcx, srcy, width, height, ftn );
+        }
     }
 }
 
