@@ -100,29 +100,15 @@ static void w32_window_move_center( sgui_window* wnd )
 
 static void w32_window_move( sgui_window* wnd, int x, int y )
 {
-    RECT outer, inner;
-    int w, h, dx, dy;
+    RECT r;
+    int w, h;
 
-    if( GetWindowLong( TO_W32(wnd)->hWnd, GWL_STYLE ) & WS_CHILD )
-    {
-        dx = dy = 0;
-        w = wnd->w;
-        h = wnd->h;
-    }
-    else
-    {
-        /* This did not work for child windows (nonsense dx and dy) */
-        GetClientRect( TO_W32(wnd)->hWnd, &inner );
-        GetWindowRect( TO_W32(wnd)->hWnd, &outer );
+    GetWindowRect( TO_W32(wnd)->hWnd, &r );
 
-        w = outer.right  - outer.left;
-        h = outer.bottom - outer.top;
+    w = r.right  - r.left;
+    h = r.bottom - r.top;
 
-        dx = inner.left - outer.left;
-        dy = inner.top  - outer.top;
-    }
-
-    MoveWindow( TO_W32(wnd)->hWnd, x+dx, y+dy, w, h, TRUE );
+    MoveWindow( TO_W32(wnd)->hWnd, x, y, w, h, TRUE );
 }
 
 static void w32_window_destroy( sgui_window* wnd )
