@@ -1,4 +1,4 @@
-    /*
+/*
  * canvas.c
  * This file is part of sgui
  *

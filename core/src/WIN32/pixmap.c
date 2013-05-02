@@ -131,32 +131,29 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
     }
     else
     {
-        unsigned char* dst;
+        unsigned char *dst, *dstrow;
         const unsigned char *src, *row;
-        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha, dstbpp;
+        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha;
 
         int dstx = dstrect ? dstrect->left : 0;
         int dsty = dstrect ? dstrect->top  : 0;
         int subw = dstrect ? SGUI_RECT_WIDTH_V( dstrect ) : (int)width;
         int subh = dstrect ? SGUI_RECT_HEIGHT_V( dstrect ) : (int)height;
 
-        data += (srcy*width + srcx)*(format==SGUI_RGB8 ? 3 : 4);
+        data += (srcy*width + srcx)*bpp;
+        dst = pixmap->pm.native.ptr + (dstx + dsty*pixmap->width)*4;
 
-        dstbpp = pixmap->format==SGUI_RGBA8 ? 4 : 3;
-        dst = pixmap->pm.native.ptr + (dstx + dsty*pixmap->width)*dstbpp;
-
-        for( src=data, j=0; j<subh; ++j, src+=width*bpp )
+        for( src=data, j=0; j<subh; ++j, src+=width*bpp,
+                                         dst+=pixmap->width*4 )
         {
-            for( row=src, i=0; i<subw; ++i, row+=bpp )
+            for( dstrow=dst, row=src, i=0; i<subw; ++i, row+=bpp, dstrow+=4 )
             {
                 alpha = bpp==4 ? row[3] : 0xFF;
 
-                *(dst++) = row[2]*alpha >> 8;
-                *(dst++) = row[1]*alpha >> 8;
-                *(dst++) = row[0]*alpha >> 8;
-
-                if( pixmap->format==SGUI_RGBA8 )
-                    *(dst++) = alpha;
+                dstrow[0] = row[2]*alpha >> 8;
+                dstrow[1] = row[1]*alpha >> 8;
+                dstrow[2] = row[0]*alpha >> 8;
+                dstrow[3] = alpha;
             }
         }
     }

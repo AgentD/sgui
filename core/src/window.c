@@ -66,6 +66,7 @@ void sgui_internal_window_deinit( sgui_window* window )
     if( window )
     {
         sgui_canvas_destroy( window->back_buffer );
+        window->back_buffer = NULL;
     }
 }
 
