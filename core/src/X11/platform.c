@@ -55,29 +55,14 @@ static int xlib_swallow_errors( Display* display, XErrorEvent* event )
 
 void add_window( sgui_window_xlib* wnd )
 {
-    wnd->next = list;
-    list = wnd;
+    SGUI_ADD_TO_LIST( list, wnd );
 }
 
 void remove_window( sgui_window_xlib* wnd )
 {
     sgui_window_xlib* i;
 
-    if( wnd==list )
-    {
-        list = list->next;
-    }
-    else
-    {
-        for( i=list; i->next; i=i->next )
-        {
-            if( i->next == wnd )
-            {
-                i->next = i->next->next;
-                break;
-            }
-        }
-    }
+    SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
 sgui_window_xlib* find_gl_window( void )

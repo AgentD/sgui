@@ -249,21 +249,7 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
     {
         i = widget->parent->children;
 
-        if( i==widget )
-        {
-            widget->parent->children = widget->parent->children->next;
-        }
-        else
-        {
-            for( ; i!=NULL; i=i->next )
-            {
-                if( i->next == widget )
-                {
-                    i->next = i->next->next;
-                    break;
-                }
-            }
-        }
+        SGUI_REMOVE_FROM_LIST( widget->parent->children, i, widget );
 
         if( sgui_widget_is_absolute_visible( widget ) )
         {
@@ -289,8 +275,8 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
     /* add widget */
     child->parent = parent;
     child->canvas = parent->canvas;
-    child->next = parent->children;
-    parent->children = child;
+
+    SGUI_ADD_TO_LIST( parent->children, child );
 
     propagate_canvas( child->children );
 

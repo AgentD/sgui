@@ -58,29 +58,14 @@ static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
 
 void add_window( sgui_window_w32* wnd )
 {
-    wnd->next = list;
-    list = wnd;
+    SGUI_ADD_TO_LIST( list, wnd );
 }
 
 void remove_window( sgui_window_w32* wnd )
 {
     sgui_window_w32* i;
 
-    if( wnd==list )
-    {
-        list = list->next;
-    }
-    else
-    {
-        for( i=list; i->next; i=i->next )
-        {
-            if( i->next == wnd )
-            {
-                i->next = i->next->next;
-                break;
-            }
-        }
-    }
+    SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
 sgui_window_w32* find_gl_window( void )

@@ -34,6 +34,28 @@
 
 
 
+#define SGUI_ADD_TO_LIST( list, element )\
+        (element)->next=(list); (list)=(element)
+
+#define SGUI_REMOVE_FROM_LIST( list, iterator, element )\
+        if( (list)==(element) )\
+        {\
+            (list) = (list)->next;\
+        }\
+        else\
+        {\
+            for( iterator=list; iterator->next; iterator=iterator->next )\
+            {\
+                if( iterator->next==element )\
+                {\
+                    iterator->next = iterator->next->next;\
+                    break;\
+                }\
+            }\
+        }
+
+
+
 #define CANVAS_MAX_DIRTY 10
 
 
