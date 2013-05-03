@@ -117,7 +117,7 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap )
         *vi = glXChooseVisual( dpy, DefaultScreen(dpy), attr_old );
     }
 
-    if( !vi )
+    if( !(*vi) )
         return 0;
 
     /* get a color map for the visual */
