@@ -66,12 +66,19 @@ void remove_window( sgui_window_w32* wnd )
 {
     sgui_window_w32* i;
 
-    for( i=list; i->next; i=i->next )
+    if( wnd==list )
     {
-        if( i->next == wnd )
+        list = list->next;
+    }
+    else
+    {
+        for( i=list; i->next; i=i->next )
         {
-            i->next = i->next->next;
-            break;
+            if( i->next == wnd )
+            {
+                i->next = i->next->next;
+                break;
+            }
         }
     }
 }
