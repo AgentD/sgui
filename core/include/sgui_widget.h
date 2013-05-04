@@ -164,6 +164,33 @@ SGUI_DLL void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child );
  */
 SGUI_DLL void sgui_widget_remove_from_parent( sgui_widget* widget );
 
+/**
+ * \brief Get a pointer to a child widget from a point within a widget
+ *
+ * The function first tests if the given point is inside the given widget.
+ * If it is, it continues to test against all children of the given widget
+ * and, when it finds a match, transforms the point to child local coordinates
+ * and recursively continues with that child widget, until the least child at
+ * the bottom of the tree is found that has the given point inside it.
+ *
+ * If at any point the function runs out of children (i.e. the point does not
+ * lie inside any child), the last widget above in the hirarchy is returned.
+ *
+ * If the point does not even lie in the given widget to begin with, NULL is
+ * returned.
+ *
+ * Also, widgets are skiped if they are not flagged visible.
+ *
+ * \param widget The widget to test against
+ * \param x The distance from the left side of the widget
+ * \param y The distance from the top side of the widget
+ *
+ * \return A pointer to a widget or NULL if the point does not lie inside any
+ *         widget.
+ */
+SGUI_DLL sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
+                                                        int x, int y );
+
 
 
 #ifdef __cplusplus

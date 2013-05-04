@@ -136,38 +136,6 @@ sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas )
     return canvas ? &(canvas->root) : NULL;
 }
 
-sgui_widget* sgui_canvas_get_widget_from_point( sgui_canvas* canvas,
-                                                int x, int y )
-{
-    sgui_widget* j = NULL;
-    sgui_widget* i = canvas ? &canvas->root : NULL;
-    sgui_rect r;
-
-    while( i!=NULL )
-    {
-        if( i->visible )
-        {
-            sgui_widget_get_absolute_rect( i, &r );
-
-            if( sgui_rect_is_point_inside( &r, x, y ) )
-            {
-                j = i;
-                i = i->children;
-            }
-            else
-            {
-                i = i->next;
-            }
-        }
-        else
-        {
-            i = i->next;
-        }
-    }
-
-    return j;
-}
-
 void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r )
 {
     unsigned int i;
@@ -288,8 +256,8 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
     if( event == SGUI_MOUSE_MOVE_EVENT )
     {
         /* find the widget under the mouse cursor */
-        i = sgui_canvas_get_widget_from_point( canvas, e->mouse_move.x,
-                                                       e->mouse_move.y );
+        i = sgui_widget_get_child_from_point( &canvas->root, e->mouse_move.x,
+                                                             e->mouse_move.y);
 
         /* generate mouse enter/leave events */
         if( canvas->mouse_over != i )

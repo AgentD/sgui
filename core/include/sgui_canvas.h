@@ -68,26 +68,6 @@ SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
 SGUI_DLL sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas );
 
 /**
- * \brief Get a pointer to a widget from a position
- *
- * The function scans the widget list for a widget where the given point
- * lies in the widgets bounding box. If such a widget can be found, the
- * widgets children are scanned. If the point does not lie within any of its
- * children (or there are no children) the widget itself is returned, if not,
- * the same scanning is performed on the child with the point inside and so
- * on. If a widget is not visible, it is skipped (i.e. not checked against).
- *
- * \param canvas A pointer to the canvas
- * \param x      The distance from the left of the canvas
- * \param y      The distance from the top of the canvas
- *
- * \return A pointer to the widget at the given position or NULL if there is
- *         no widget at the given position
- */
-SGUI_DLL sgui_widget* sgui_canvas_get_widget_from_point( sgui_canvas* canvas,
-                                                         int x, int y );
-
-/**
  * \brief Add a dirty rect (area that needs redraw) to a canvas
  *
  * \param canvas The canvas
@@ -126,8 +106,7 @@ SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
  *        as dirty.
  *
  * The dirty areas are cleared after a call to this function. The function can
- * calls be called outside a begin-end block and calls begin-end itself if
- * required.
+ * be called outside a begin-end block and calls begin-end itself if required.
  *
  * \param canvas The canvas
  * \param clear  If non-zero the given area is cleared before redrawing

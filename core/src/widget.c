@@ -288,3 +288,39 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
     }
 }
 
+sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
+                                               int x, int y )
+{
+    sgui_widget* last;
+
+    /* check if the given widget exists and the point is inside */
+    if( !widget || !sgui_rect_is_point_inside( &widget->area, x, y ) )
+        return NULL;
+
+    /* store widget as last hit and continue with its children */
+    last = widget;
+    widget = widget->children;
+
+    /* iterate over all children */
+    while( widget!=NULL )
+    {
+        if( widget->visible && sgui_rect_is_point_inside(&widget->area,x,y) )
+        {
+            /* transform to widget local coordinates */
+            x -= widget->area.left;
+            y -= widget->area.top;
+
+            /* store last hit and continue with children */
+            last = widget;
+            widget = widget->children;
+        }
+        else
+        {
+            widget = widget->next;
+        }
+    }
+
+    /* return last hit */
+    return last;
+}
+
