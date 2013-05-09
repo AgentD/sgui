@@ -33,47 +33,24 @@
 
 
 /**
- * \brief Create a pixmap
- *
- * This function creates a pixmap. A pixmap is a server side memory area that
- * can hold a picture wich can be displayed on a canvas.
- * A pixmap created for a certain backend is automatically available to all
- * canvases and windows of that backend, so even if you create an OpenGL
- * pixmap with one context, it can be used with every other context created
- * through SGUI.
- *
- * \note Creating a pixmap for an OpenGL backend requires that a context is
- *       made current.
- *
- * \param width   The width of the pixmap in pixels
- * \param height  The height of the pixmap in pixels
- * \param format  The color format used by the pixmap (SGUI_RGB8, SGUI_RGBA8,
- *                etc...)
- * \param backend The backend for wich to create the pixmap (SGUI_NATIVE,
- *                SGUI_OPENGL_CORE, etc...)
- *
- * \return A pointer to a new pixmap object on success, NULL on error.
- */
-SGUI_DLL sgui_pixmap* sgui_pixmap_create( unsigned int width,
-                                          unsigned int height,
-                                          int format, int backend );
-
-/**
  * \brief Upload data to a pixmap
  *
  * \param pixmap   The pixmap to upload data to.
+ * \param dstx     Offset from the left of the destination.
+ * \param dsty     Offset from the top of the destination.
  * \param dstrect  A subrect within the pixmap to draw to.
  * \param data     A pointer to the data buffer of which to upload a portion.
  * \param srcx     Offset from the left of the source buffer to start reading.
  * \param srcy     Offset from the top of the source buffer to start reading.
  * \param width    The width of the source buffer.
  * \param height   The height of the source buffer.
+ * \param scan     The length of one scane line in the source buffer.
  * \param format   The color format of the source data (SGUI_RGB8, etc...)
  */
-SGUI_DLL void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
+SGUI_DLL void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
                                 const unsigned char* data, int srcx, int srcy,
                                 unsigned int width, unsigned int height,
-                                int format );
+                                unsigned int scan, int format );
 
 /**
  * \brief Get the size of a pixmap
@@ -87,14 +64,6 @@ SGUI_DLL void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
 
 /** \brief Destroy a pixmap */
 SGUI_DLL void sgui_pixmap_destroy( sgui_pixmap* pixmap );
-
-
-
-/**
- * \brief If the pixmap is an OpenGL pixmap, get the texture handle from the
- *        pixmap
- */
-SGUI_DLL unsigned int sgui_pixmap_opengl_get_handle( sgui_pixmap* pixmap );
 
 
 

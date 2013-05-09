@@ -180,8 +180,8 @@ int main( int argc, char** argv )
 
     tex = sgui_static_text_create( 10, 175, text );
 
-    i0 = sgui_image_create( 10, 25, 128, 128, image, SGUI_RGBA8, 0, backend);
-    i1 = sgui_image_create(150, 25, 128, 128, image, SGUI_RGBA8, 1, backend);
+    i0 = sgui_image_create(  10, 25, 128, 128, image, SGUI_RGBA8, 0, 1 );
+    i1 = sgui_image_create( 150, 25, 128, 128, image, SGUI_RGBA8, 1, 1 );
 
     sgui_tab_group_add_widget( tab, 1, i0 );
     sgui_tab_group_add_widget( tab, 1, i1 );

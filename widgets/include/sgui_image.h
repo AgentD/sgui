@@ -46,13 +46,14 @@ extern "C"
  * \param data   The RGB or RGBA image data
  * \param format The color format used by the image
  * \param blend  Non-zero if the image should be blended instead of blitted
- * \param backend The backend for wich to create a pixmap
+ * \param useptr Non-zero if the given pointer should be used instead of
+ *               creating an internal buffer to safe memory
  */
 SGUI_DLL sgui_widget* sgui_image_create( int x, int y,
                                          unsigned int width,
                                          unsigned int height,
                                          const void* data, int format,
-                                         int blend, int backend );
+                                         int blend, int useptr );
 
 #ifdef __cplusplus
 }

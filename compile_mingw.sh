@@ -61,7 +61,7 @@ SOURCE_OPENGL="core/src/OpenGL/canvas_gl.c core/src/OpenGL/pixmap_gl.c"
 
 SOURCE_COMMON="core/src/widget.c core/src/rect.c  core/src/skin.c
                core/src/canvas.c core/src/window.c core/src/utf8.c
-               $SOURCE_WIDGETS $SOURCE_OPENGL"
+               core/src/pixmap.c $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 SOURCE_PLATFORM="core/src/WIN32/window.c core/src/WIN32/canvas.c
                  core/src/WIN32/platform.c core/src/WIN32/opengl.c

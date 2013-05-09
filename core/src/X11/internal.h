@@ -87,6 +87,15 @@ typedef struct _sgui_window_xlib
 }
 sgui_window_xlib;
 
+typedef struct
+{
+    sgui_pixmap pm;
+
+    Pixmap pix;
+    Picture pic;
+}
+xlib_pixmap;
+
 extern XIM im;
 extern Display* dpy;
 extern Atom atom_wm_delete;
@@ -125,9 +134,9 @@ GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core );
 void gl_swap_buffers( sgui_window* wnd );
 #endif
 
-Picture pixmap_get_picture( sgui_pixmap* pixmap );
-
-Pixmap pixmap_get_pixmap( sgui_pixmap* pixmap );
+/* pixmap.c: create an xlib pixmap */
+sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
+                                 int format );
 
 /* in keycode_translate.c: initialise keycode symbol lookup table */
 void init_keycodes( );

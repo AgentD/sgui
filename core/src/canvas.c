@@ -392,6 +392,16 @@ void sgui_canvas_set_background_color( sgui_canvas* canvas,
     }
 }
 
+sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
+                                        unsigned int width,
+                                        unsigned int height, int format )
+{
+    if( !canvas || !width || !height )
+        return NULL;
+
+    return canvas->create_pixmap( canvas, width, height, format );
+}
+
 void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_rect r0;

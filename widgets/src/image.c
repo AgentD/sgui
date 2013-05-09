@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_image.h"
 #include "sgui_canvas.h"
+#include "sgui_widget.h"
 #include "sgui_internal.h"
 #include "sgui_pixmap.h"
 
@@ -38,7 +39,7 @@ typedef struct
     sgui_widget widget;
 
     void* data;
-    int format, blend, backend;
+    int format, blend, backend, useptr;
 
     sgui_pixmap* pixmap;
 }
@@ -66,8 +67,30 @@ static void image_destroy( sgui_widget* widget )
 {
     sgui_image* img = (sgui_image*)widget;
 
+    if( !img->useptr )
+        free( img->data );
+
     sgui_pixmap_destroy( img->pixmap );
     free( img );
+}
+
+static void image_on_state_change( sgui_widget* widget, int change )
+{
+    sgui_image* img = (sgui_image*)widget;
+    unsigned int w, h;
+
+    if( change & WIDGET_CANVAS_CHANGED )
+    {
+        sgui_widget_get_size( widget, &w, &h );
+
+        sgui_pixmap_destroy( img->pixmap );
+
+        img->pixmap = sgui_canvas_create_pixmap( widget->canvas, w, h,
+                                                 img->format );
+
+        sgui_pixmap_load( img->pixmap, 0, 0, img->data, 0, 0, w, h,
+                          w, img->format );
+    }
 }
 
 /****************************************************************************/
@@ -75,30 +98,41 @@ static void image_destroy( sgui_widget* widget )
 sgui_widget* sgui_image_create( int x, int y,
                                 unsigned int width, unsigned int height,
                                 const void* data, int format,
-                                int blend, int backend )
+                                int blend, int useptr )
 {
     sgui_image* img = malloc( sizeof(sgui_image) );
+    unsigned int num_bytes;
 
     if( !img )
         return NULL;
 
     sgui_internal_widget_init( (sgui_widget*)img, x, y, width, height );
 
-    img->pixmap = sgui_pixmap_create( width, height, format, backend );
-
-    if( !img->pixmap )
+    if( !useptr )
     {
-        free( img );
-        return NULL;
+        num_bytes = width*height*(format==SGUI_RGBA8 ? 4 : 3);
+        img->data = malloc( num_bytes );
+
+        if( !img->data )
+        {
+            free( img );
+            return NULL;
+        }
+
+        memcpy( img->data, data, num_bytes );
+    }
+    else
+    {
+        img->data = (unsigned char*)data;
     }
 
-    sgui_pixmap_load( img->pixmap, NULL, data, 0, 0, width, height, format );
-
-    img->widget.draw_callback = image_draw;
-    img->widget.destroy       = image_destroy;
+    img->widget.draw_callback         = image_draw;
+    img->widget.state_change_callback = image_on_state_change;
+    img->widget.destroy               = image_destroy;
+    img->pixmap  = NULL;
     img->format  = format;
     img->blend   = blend;
-    img->backend = backend;
+    img->useptr  = useptr;
 
     return (sgui_widget*)img;
 }

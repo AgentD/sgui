@@ -48,7 +48,7 @@ SOURCE_OPENGL="core/src/OpenGL/canvas_gl.c core/src/OpenGL/pixmap_gl.c"
 
 SOURCE_COMMON="core/src/widget.c core/src/rect.c core/src/skin.c
                core/src/canvas.c core/src/window.c core/src/utf8.c
-               $SOURCE_WIDGETS $SOURCE_OPENGL"
+               core/src/pixmap.c $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 # Platform specific stuff
 SOURCE_X11="core/src/X11/window.c core/src/X11/keycode_translate.c

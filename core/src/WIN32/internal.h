@@ -86,6 +86,17 @@ typedef struct _sgui_window_w32
 }
 sgui_window_w32;
 
+typedef struct
+{
+    sgui_pixmap pm;
+
+    HDC hDC;
+    HBITMAP bitmap;
+    unsigned char* ptr;
+    int format;
+}
+gdi_pixmap;
+
 extern HINSTANCE hInstance;
 extern const char* wndclass;
 extern FT_Library freetype;
@@ -123,15 +134,8 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
 void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,
                          unsigned int width, unsigned int height );
 
-/* in pixmap.c: perform a blit pixmap */
-void pixmap_blit( sgui_pixmap* pixmap, HDC hDC, int x, int y,
-                  int srcx, int srcy,
-                  unsigned int width, unsigned int height );
-
-/* in pixmap.c: perform pixmap blending */
-void pixmap_blend( sgui_pixmap* pixmap, HDC hDC, int x, int y,
-                   int srcx, int srcy,
-                   unsigned int width, unsigned int height );
+sgui_pixmap* gdi_pixmap_create( unsigned int width, unsigned int height,
+                                int format );
 
 #endif /* INTERNAL_H */
 

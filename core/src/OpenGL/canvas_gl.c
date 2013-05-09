@@ -57,6 +57,14 @@ void canvas_gl_destroy( sgui_canvas* canvas )
     free( canvas );
 }
 
+sgui_pixmap* canvas_gl_create_pixmap( sgui_canvas* canvas, unsigned int width,
+                                      unsigned int height, int format )
+{
+    (void)canvas;
+
+    return gl_pixmap_create( width, height, format );
+}
+
 void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     GLboolean v;
@@ -152,7 +160,7 @@ void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     GLuint new_tex;
     (void)canvas;
 
-    new_tex = sgui_pixmap_opengl_get_handle( pixmap );
+    new_tex = ((pixmap_gl*)pixmap)->texture;
 
     if( !new_tex )
         return;
@@ -194,7 +202,7 @@ void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
     GLuint new_tex;
     (void)canvas;
 
-    new_tex = sgui_pixmap_opengl_get_handle( pixmap );
+    new_tex = ((pixmap_gl*)pixmap)->texture;
 
     if( !new_tex )
         return;
@@ -272,6 +280,7 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     cv->canvas.blend = canvas_gl_blend;
     cv->canvas.draw_box = canvas_gl_draw_box;
     cv->canvas.draw_string = canvas_gl_draw_string;
+    cv->canvas.create_pixmap = canvas_gl_create_pixmap;
 
     return (sgui_canvas*)cv;
 }

@@ -188,6 +188,30 @@ SGUI_DLL void sgui_canvas_set_background_color( sgui_canvas* canvas,
                                                 unsigned char* color );
 
 
+/**
+ * \brief Create a pixmap
+ *
+ * This function creates a pixmap. A pixmap is a server side memory area that
+ * can hold a picture wich can be displayed on a canvas.
+ * A pixmap can only be createad by a canvas and is only valid for the canvas
+ * it was created for.
+ *
+ * \note Creating a pixmap for an OpenGL backend requires that a context is
+ *       made current.
+ *
+ * \param canvas  The canvas for which to create the pixmap
+ * \param width   The width of the pixmap in pixels
+ * \param height  The height of the pixmap in pixels
+ * \param format  The color format used by the pixmap (SGUI_RGB8, SGUI_RGBA8,
+ *                etc...)
+ *
+ * \return A pointer to a new pixmap object on success, NULL on error.
+ */
+SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
+                                                 unsigned int width,
+                                                 unsigned int height,
+                                                 int format );
+
 
 /**
  * \brief Call to start drawing to an area on the canvas

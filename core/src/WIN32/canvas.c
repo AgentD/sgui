@@ -102,24 +102,28 @@ static void canvas_gdi_blit( sgui_canvas* canvas, int x, int y,
                              sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned int w, h;
-    (void)srcrect;
+    unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
+    unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
 
-    sgui_pixmap_get_size( pixmap, &w, &h );
-
-    pixmap_blit( pixmap, cv->dc, x, y, 0, 0, w, h );
+    BitBlt( cv->dc, x, y, w, h, ((gdi_pixmap*)pixmap)->hDC,
+            srcrect->left, srcrect->top, SRCCOPY );
 }
 
 static void canvas_gdi_blend( sgui_canvas* canvas, int x, int y,
                               sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned int w, h;
-    (void)srcrect;
+    unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
+    unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
+    BLENDFUNCTION ftn;
 
-    sgui_pixmap_get_size( pixmap, &w, &h );
+    ftn.BlendOp             = AC_SRC_OVER;
+    ftn.BlendFlags          = 0;
+    ftn.SourceConstantAlpha = 0xFF;
+    ftn.AlphaFormat         = AC_SRC_ALPHA;
 
-    pixmap_blend( pixmap, cv->dc, x, y, 0, 0, w, h );
+    AlphaBlend( cv->dc, x, y, w, h, ((gdi_pixmap*)pixmap)->hDC,
+                srcrect->left, srcrect->top, w, h, ftn );
 }
 
 static void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
@@ -234,6 +238,16 @@ static int canvas_gdi_draw_string( sgui_canvas* canvas, int x, int y,
     return x - oldx;
 }
 
+static sgui_pixmap* canvas_gdi_create_pixmap( sgui_canvas* canvas,
+                                              unsigned int width,
+                                              unsigned int height,
+                                              int format )
+{
+    (void)canvas;
+
+    return gdi_pixmap_create( width, height, format );
+}
+
 /************************ internal canvas functions ************************/
 sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
 {
@@ -283,6 +297,7 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     cv->canvas.blend = canvas_gdi_blend;
     cv->canvas.draw_box = canvas_gdi_draw_box;
     cv->canvas.draw_string = canvas_gdi_draw_string;
+    cv->canvas.create_pixmap = canvas_gdi_create_pixmap;
 
     return (sgui_canvas*)cv;
 }

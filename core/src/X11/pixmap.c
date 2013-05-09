@@ -28,198 +28,79 @@
 
 
 
-struct sgui_pixmap
+void xlib_pixmap_destroy( sgui_pixmap* pixmap )
 {
-    unsigned int width;
-    unsigned int height;
+    XRenderFreePicture( dpy, ((xlib_pixmap*)pixmap)->pic );
+    XFreePixmap( dpy, ((xlib_pixmap*)pixmap)->pix );
+    free( pixmap );
+}
 
-    int backend;
-    int format;
+void xlib_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
+                       const unsigned char* data, unsigned int scan,
+                       unsigned int width, unsigned int height, int format )
+{
+    XRenderColor c;
+    const unsigned char *src, *row;
+    unsigned int i, j, alpha, bpp = format==SGUI_RGB8 ? 3 : 4;
 
-    union
+    for( src=data, j=0; j<height; ++j, src+=scan*bpp )
     {
-        struct
+        for( row=src, i=0; i<width; ++i, row+=bpp )
         {
-            Pixmap pix;
-            Picture pic;
+            alpha = bpp==4 ? row[3] : 0xFF;
+
+            /* Xrender expects premultiplied alpha! */
+            c.red   = row[0]*alpha;
+            c.green = row[1]*alpha;
+            c.blue  = row[2]*alpha;
+            c.alpha = alpha<<8;
+
+            XRenderFillRectangle( dpy, PictOpSrc, ((xlib_pixmap*)pixmap)->pic,
+                                  &c, dstx+i, dsty+j, 1, 1 );
         }
-        native;
-
-        unsigned int opengl;
     }
-    pm;
-};
+}
 
-
-
-sgui_pixmap* sgui_pixmap_create( unsigned int width, unsigned int height,
-                                 int format, int backend )
+sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
+                                 int format )
 {
-    sgui_pixmap* pixmap = NULL;
+    xlib_pixmap* pixmap = NULL;
     XRenderPictFormat* fmt;
 
-    pixmap = malloc( sizeof(sgui_pixmap) ); 
+    pixmap = malloc( sizeof(xlib_pixmap) ); 
 
     if( !pixmap )
         return NULL;
 
-    pixmap->width   = width;
-    pixmap->height  = height;
-    pixmap->format  = format;
-    pixmap->backend = backend;
+    pixmap->pm.width   = width;
+    pixmap->pm.height  = height;
+    pixmap->pm.destroy = xlib_pixmap_destroy;
+    pixmap->pm.load    = xlib_pixmap_load;
 
-    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    /* try to create an X11 Pixmap */
+    pixmap->pix = XCreatePixmap( dpy, DefaultRootWindow(dpy), width, height,
+                                 format==SGUI_RGB8 ? 24 : 32 );
+
+    if( !pixmap->pix )
     {
-        pixmap->pm.opengl = sgui_opengl_pixmap_create(width, height, format);
-
-        if( !pixmap->pm.opengl )
-        {
-            free( pixmap );
-            pixmap = NULL;
-        }
+        free( pixmap );
+        return NULL;
     }
+
+    if( format==SGUI_RGB8 )
+        fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
     else
+        fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
+
+    pixmap->pic = XRenderCreatePicture( dpy, pixmap->pix, fmt, 0, NULL );
+
+    if( !pixmap->pic )
     {
-        /* try to create an X11 Pixmap */
-        pixmap->pm.native.pix = XCreatePixmap( dpy, DefaultRootWindow(dpy),
-                                               width, height,
-                                               format==SGUI_RGB8 ? 24 : 32 );
-
-        if( !pixmap->pm.native.pix )
-        {
-            free( pixmap );
-            return NULL;
-        }
-
-        if( format==SGUI_RGB8 )
-            fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-        else
-            fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
-
-        pixmap->pm.native.pic = XRenderCreatePicture( dpy,
-                                                      pixmap->pm.native.pix,
-                                                      fmt, 0, NULL );
-
-        if( !pixmap->pm.native.pic )
-        {
-            XFreePixmap( dpy, pixmap->pm.native.pix );
-            free( pixmap );
-            return NULL;
-        }
+        XFreePixmap( dpy, pixmap->pix );
+        free( pixmap );
+        return NULL;
     }
 
-    return pixmap;
-}
-
-void sgui_pixmap_load( sgui_pixmap* pixmap, sgui_rect* dstrect,
-                       const unsigned char* data, int srcx, int srcy,
-                       unsigned int width, unsigned int height,
-                       int format )
-{
-    if( !pixmap || !data || !width || !height )
-        return;
-
-    if( pixmap->backend==SGUI_OPENGL_CORE ||
-        pixmap->backend==SGUI_OPENGL_COMPAT )
-    {
-        sgui_opengl_pixmap_load( pixmap->pm.opengl, dstrect, data, srcx, srcy,
-                                 width, height, format );
-    }
-    else
-    {
-        XRenderColor c;
-        const unsigned char *src, *row;
-        int i, j, bpp = format==SGUI_RGB8 ? 3 : 4, alpha;
-
-        int dstx = dstrect ? dstrect->left : 0;
-        int dsty = dstrect ? dstrect->top  : 0;
-        int subw = dstrect ? SGUI_RECT_WIDTH_V( dstrect ) : (int)width;
-        int subh = dstrect ? SGUI_RECT_HEIGHT_V( dstrect ) : (int)height;
-
-        data += (srcy*width + srcx)*(format==SGUI_RGB8 ? 3 : 4);
-
-        for( src=data, j=0; j<subh; ++j, src+=width*bpp )
-        {
-            for( row=src, i=0; i<subw; ++i, row+=bpp )
-            {
-                alpha = bpp==4 ? row[3] : 0xFF;
-
-                /* Xrender expects premultiplied alpha! */
-                c.red   = row[0]*alpha;
-                c.green = row[1]*alpha;
-                c.blue  = row[2]*alpha;
-                c.alpha = alpha<<8;
-
-                XRenderFillRectangle( dpy, PictOpSrc, pixmap->pm.native.pic,
-                                      &c, dstx+i, dsty+j, 1, 1 );
-            }
-        }
-    }
-}
-
-void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
-                           unsigned int* height )
-{
-    if( pixmap )
-    {
-        if( width  ) *width  = pixmap->width;
-        if( height ) *height = pixmap->height;
-    }
-    else
-    {
-        if( width  ) *width  = 0;
-        if( height ) *height = 0;
-    }
-}
-
-unsigned int sgui_pixmap_opengl_get_handle( sgui_pixmap* pixmap )
-{
-    if( !pixmap )
-        return 0;
-
-    if( pixmap->backend==SGUI_OPENGL_CORE ||
-        pixmap->backend==SGUI_OPENGL_COMPAT )
-    {
-        return pixmap->pm.opengl;
-    }
-
-    return 0;
-}
-
-void sgui_pixmap_destroy( sgui_pixmap* pixmap )
-{
-    if( !pixmap )
-        return;
-
-    if( pixmap->backend==SGUI_OPENGL_CORE ||
-        pixmap->backend==SGUI_OPENGL_COMPAT )
-    {
-        sgui_opengl_pixmap_destroy( pixmap->pm.opengl );
-    }
-    else
-    {
-        XRenderFreePicture( dpy, pixmap->pm.native.pic );
-        XFreePixmap( dpy, pixmap->pm.native.pix );
-    }
-
-    free( pixmap );
-}
-
-/****************************************************************************/
-
-Picture pixmap_get_picture( sgui_pixmap* pixmap )
-{
-    if( pixmap->backend==SGUI_NATIVE )
-        return pixmap->pm.native.pic;
-
-    return 0;
-}
-
-Pixmap pixmap_get_pixmap( sgui_pixmap* pixmap )
-{
-    if( pixmap->backend==SGUI_NATIVE )
-        return pixmap->pm.native.pix;
-
-    return 0;
+    return (sgui_pixmap*)pixmap;
 }
 

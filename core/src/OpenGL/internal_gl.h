@@ -59,6 +59,23 @@
     #include <GL/gl.h>
 #endif
 
+#include "sgui_internal.h"
+
+
+
+typedef struct
+{
+    sgui_pixmap pm;
+
+    GLuint texture;
+}
+pixmap_gl;
+
+
+
+sgui_pixmap* gl_pixmap_create( unsigned int width, unsigned int height,
+                               int format );
+
 #endif /* !SGUI_NO_OPENGL */
 
 #endif /* INTERNAL_GL_H */

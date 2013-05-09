@@ -77,6 +77,34 @@
 
 
 
+struct sgui_pixmap
+{
+    unsigned int width, height;     /**< \brief Size of the pixmap */
+
+    /**
+     * \brief Gets called by sgui_pixmap_destroy
+     *
+     * \param pixmap A pointer to the pixmap
+     */
+    void(* destroy )( sgui_pixmap* pixmap );
+
+    /**
+     * \brief Gets called by sgui_pixmap_load
+     *
+     * \param pixmap A pointer to the pixmap
+     * \param dstx   Offset from the left of the pixmap
+     * \param dsty   Offset from the top of the pixmap
+     * \param data   A pointer to the first pixel
+     * \param scan   The number of pixels to skip to get to the same pixel in
+     *               the next row
+     * \param width  The number of pixels per row to upload
+     * \param height The number of rows to upload
+     */
+    void(* load )( sgui_pixmap* pixmap, int dstx, int dsty,
+                   const unsigned char* data, unsigned int scan,
+                   unsigned int width, unsigned int height, int format );
+};
+
 struct sgui_widget
 {
     sgui_rect area;  /**< \brief The area occupied by a widget */
@@ -173,6 +201,17 @@ struct sgui_canvas
      */
     void(* resize )( sgui_canvas* canvas, unsigned int width,
                      unsigned int height );
+
+    /**
+     * \brief Gets called by sgui_canvas_create_pixmap
+     *
+     * \param canvas A pointer to the canvas
+     * \param width  The width of the pixmap
+     * \param height The height of the pixmap
+     * \param format The color format of the pixmap
+     */
+    sgui_pixmap* (* create_pixmap )( sgui_canvas* canvas, unsigned int width,
+                                     unsigned int height, int format );
 
     /**
      * \brief Gets called by sgui_canvas_begin
