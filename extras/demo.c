@@ -149,12 +149,12 @@ int main( int argc, char** argv )
     sgui_radio_button_connect( r2, r1,   NULL );
     sgui_button_set_state( r0, 1 );
 
-    sgui_frame_add_widget( f, c0 );
-    sgui_frame_add_widget( f, c1 );
-    sgui_frame_add_widget( f, c2 );
-    sgui_frame_add_widget( f, r0 );
-    sgui_frame_add_widget( f, r1 );
-    sgui_frame_add_widget( f, r2 );
+    sgui_widget_add_child( f, c0 );
+    sgui_widget_add_child( f, c1 );
+    sgui_widget_add_child( f, c2 );
+    sgui_widget_add_child( f, r0 );
+    sgui_widget_add_child( f, r1 );
+    sgui_widget_add_child( f, r2 );
 
     gb = sgui_group_box_create( 200, 25, 130, 110, "Group Box" );
     ra = sgui_radio_button_create( 10, 25, "Option 1" );

@@ -87,31 +87,29 @@ static void subview_on_subwindow_event( sgui_window* wnd, int type,
 }
 
 /* subview event handler for widget state change events from base class */
-static void subview_on_state_change( sgui_widget* w )
+static void subview_on_state_change( sgui_widget* w, int change )
 {
     sgui_subview* view = (sgui_subview*)w;
-    unsigned int wnd_w, wnd_h, ww, wh;
-    int wnd_x, wnd_y, x, y, visible;
+    unsigned int ww, wh;
+    int x, y, visible;
 
     /* adjust size and position of the subwindow */
-    sgui_window_get_position( view->subwnd, &wnd_x, &wnd_y );
-    sgui_window_get_size( view->subwnd, &wnd_w, &wnd_h );
-
-    sgui_widget_get_absolute_position( w, &x, &y );
-    sgui_widget_get_size( w, &ww, &wh );
-    visible = sgui_widget_is_absolute_visible( w );
-
-    if( visible )
+    if( change & (WIDGET_POSITION_CHANGED|WIDGET_PARENT_CHANGED) )
     {
-        if( wnd_x!=x || wnd_y!=y )
-            sgui_window_move( view->subwnd, x, y );
+        sgui_widget_get_absolute_position( w, &x, &y );
+        sgui_widget_get_size( w, &ww, &wh );
 
-        if( wnd_w!=ww || wnd_h!=wh )
-            sgui_window_set_size( view->subwnd, ww, wh );
+        sgui_window_move( view->subwnd, x, y );
+        sgui_window_set_size( view->subwnd, ww, wh );
     }
 
     /* "adjust" visibillity of the window */
-    sgui_window_set_visible( view->subwnd, visible );
+    if( change & WIDGET_VISIBILLITY_CHANGED )
+    {
+        visible = sgui_widget_is_absolute_visible( w );
+
+        sgui_window_set_visible( view->subwnd, visible );
+    }
 }
 
 static void subview_destroy( sgui_widget* widget )

@@ -52,14 +52,6 @@ extern "C"
 SGUI_DLL sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                          unsigned int height );
 
-/**
- * \brief Add a widget to a frame
- *
- * \param frame The frame to add the widget to
- * \param w     The widget to add
- */
-SGUI_DLL void sgui_frame_add_widget( sgui_widget* frame, sgui_widget* w );
-
 #ifdef __cplusplus
 }
 #endif

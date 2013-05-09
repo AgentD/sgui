@@ -54,9 +54,26 @@
             }\
         }
 
+#ifndef MAX
+    #define MAX( a, b ) (((a)>(b)) ? (a) : (b))
+#endif
+
+#ifndef MIN
+    #define MIN( a, b ) (((a)<(b)) ? (a) : (b))
+#endif
 
 
 #define CANVAS_MAX_DIRTY 10
+
+
+
+/* flags for the widget state change callback */
+#define WIDGET_POSITION_CHANGED     0x01
+#define WIDGET_VISIBILLITY_CHANGED  0x02
+#define WIDGET_PARENT_CHANGED       0x04
+#define WIDGET_CHILD_ADDED          0x08
+#define WIDGET_CHILD_REMOVED        0x10
+#define WIDGET_CANVAS_CHANGED       0x20
 
 
 
@@ -106,8 +123,11 @@ struct sgui_widget
      * \brief Callback that is called when the internal state of a widget
      *        changes(e.g. position, visibility, etc...)
      * 
+     * \param widget A pointer to the widget that changed
+     * \param change A combination of WIDGET_*_CHANGED flags that indicate
+     *               what changed
      */
-    void (* state_change_callback )( sgui_widget* widget );
+    void (* state_change_callback )( sgui_widget* widget, int change );
 };
 
 struct sgui_canvas

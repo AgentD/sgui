@@ -73,12 +73,10 @@ Adding children to an existing widget is quite easy. To make any widget a
 child of any other arbitrary widget, simply use the
 <a href="../doxydoc/html/sgui__widget_8h.html#a46d7054100b322157e4a011eae5e7b7c"><b>sgui_widget_add_child</b></a> function. To remove it, use the
 <a href="../doxydoc/html/sgui__widget_8h.html#aa1a112d6c10bc9698510d94a0c695aa3"><b>sgui_widget_remove_from_parent</b></a> function.<br><br>
-Some special container widgets like the tab widget or the frame widget,
-however, have specialized functions for adding widgets since they have to do
-more complicated mechanics inside (the tab group widget, for instance, must
-keep the widgets seperated by tabs that it does not expose to the outside
-while the frame keeps track of the space consumed by the widgets to calculate
-if and what kind of scroll bar to use).
+Some special container widgets like the tab widget have specialized functions
+for adding widgets since they have to do more complicated mechanics inside
+(the tab group widget, for instance, must keep the widgets seperated by tabs
+that it does not expose to the outside).
 
 <br><br>
 There are three important and helpfull things to keep in mind about the

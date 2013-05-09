@@ -56,14 +56,14 @@ static void propagate_canvas( sgui_widget* i )
     }
 }
 
-static void propagat_state_change( sgui_widget* i )
+static void propagat_state_change( sgui_widget* i, int change )
 {
     for( ; i!=NULL; i=i->next )
     {
         if( i->state_change_callback )
-            i->state_change_callback( i );
+            i->state_change_callback( i, change );
 
-        propagat_state_change( i->children );
+        propagat_state_change( i->children, change );
     }
 }
 
@@ -102,7 +102,7 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
 
         /* call the state change callback if there is one */
         if( w->state_change_callback )
-            w->state_change_callback( w );
+            w->state_change_callback( w, WIDGET_POSITION_CHANGED );
     }
 }
 
@@ -175,9 +175,9 @@ void sgui_widget_set_visible( sgui_widget* w, int visible )
         w->visible = visible;
 
         if( w->state_change_callback )
-            w->state_change_callback( w );
+            w->state_change_callback( w, WIDGET_VISIBILLITY_CHANGED );
 
-        propagat_state_change( w->children );
+        propagat_state_change( w->children, WIDGET_VISIBILLITY_CHANGED );
 
         /* flag area as dirty */ 
         sgui_widget_get_absolute_rect( w, &r );
@@ -244,6 +244,7 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
 {
     sgui_rect r;
     sgui_widget* i = NULL;
+    int change = WIDGET_PARENT_CHANGED;
 
     if( widget && widget->parent )
     {
@@ -257,20 +258,43 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
 
+        /* add canvas change flag if the widget had a canvas before */
+        if( widget->canvas )
+            change |= WIDGET_CANVAS_CHANGED;
+
+        /* store a pointer to the old parent */
+        i = widget->parent;
+
+        /* update links and canvas */
         widget->parent = NULL;
         widget->next = NULL;
         widget->canvas = NULL;
 
         propagate_canvas( widget->children );
+
+        /* call state change callbacks */
+        if( i && i->state_change_callback )
+            i->state_change_callback( i, WIDGET_CHILD_REMOVED );
+
+        if( widget->state_change_callback )
+            widget->state_change_callback( widget, change );
+
+        if( change & WIDGET_CANVAS_CHANGED )
+            propagat_state_change( widget->children, WIDGET_CANVAS_CHANGED );
     }
 }
 
 void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
 {
     sgui_rect r;
+    int change = WIDGET_PARENT_CHANGED;
 
     if( !child || !parent )
         return;
+
+    /* add canvas change flag if the widget had a different canvas before */
+    if( child->canvas != parent->canvas )
+        change |= WIDGET_CANVAS_CHANGED;
 
     /* add widget */
     child->parent = parent;
@@ -286,6 +310,16 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
         sgui_widget_get_absolute_rect( child, &r );
         sgui_canvas_add_dirty_rect( child->canvas, &r );
     }
+
+    /* call state change callbacks */
+    if( parent->state_change_callback )
+        parent->state_change_callback( parent, WIDGET_CHILD_ADDED );
+
+    if( child->state_change_callback )
+        child->state_change_callback( child, change );
+
+    if( change & WIDGET_CANVAS_CHANGED )
+        propagat_state_change( child->children, WIDGET_CANVAS_CHANGED );
 }
 
 sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
