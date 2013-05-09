@@ -84,6 +84,20 @@ void sgui_internal_window_fire_event( sgui_window* wnd, int event,
 
 /****************************************************************************/
 
+sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
+                                 unsigned int height, int resizeable )
+{
+    sgui_window_description desc;
+
+    desc.parent     = parent;
+    desc.width      = width;
+    desc.height     = height;
+    desc.resizeable = resizeable;
+    desc.backend    = SGUI_NATIVE;
+
+    return sgui_window_create_desc( &desc );
+}
+
 void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
 {
     int mx = 0, my = 0;

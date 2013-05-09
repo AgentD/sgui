@@ -50,6 +50,47 @@ extern "C" {
 
 
 
+
+typedef struct
+{
+    /**
+     * \brief A pointer to the parent window, or NULL for root window
+     *
+     * If a window has a parent, it is not decorted by the systems window
+     * manager, positioned relative to its parent and only visible within
+     * its parent.
+     */
+    sgui_window* parent;
+
+    /** \brief The width of the window (without borders and decoration) */
+    unsigned int width;
+
+    /** \brief The height of the window (without borders and decoration) */
+    unsigned int height;
+
+    /**
+     * \brief Non-zero if the window should be resizeable by the user,
+     *        zero if the should remain at a fixed size.
+     *
+     * The symbolic constants SGUI_RESIZEABLE and SGUI_FIXED_SIZE can be used
+     * to generate more readable code.
+     */
+    int resizeable;
+
+    /**
+     * \brief What back end to use
+     *
+     * 0 or SGUI_NATIVE for native window system back end, SGUI_OPENGL_CORE to
+     * create a core profile OpenGL context for the window, SGUI_OPENGL_COMPAT
+     * for compatibillity profile. OpenGL contexts are created for the highest
+     * version available on the current system.
+     */
+    int backend;
+}
+sgui_window_description;
+
+
+
 /**
  * \brief A callback for listening to window events
  *
@@ -69,6 +110,9 @@ typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
  * to be destroyed again using sgui_window_destroy( ), thus freeing up it's
  * resources.
  *
+ * This function internally sets up an sgui_window_description structure and
+ * calls sgui_window_create_desc( ).
+ *
  * \note The window is created invisible and has to be made visible by calling
  *       sgui_window_set_visible( ).
  *
@@ -82,19 +126,30 @@ typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
  *                   zero if the should remain at a fixed size. The symbolic
  *                   constants SGUI_RESIZEABLE and SGUI_FIXED_SIZE can be used
  *                   to generate more readable code.
- * \param backend    What back end to use. 0 or SGUI_NATIVE for native window
- *                   system back end, SGUI_OPENGL_CORE to create a core
- *                   profile OpenGL context for the window, SGUI_OPENGL_COMPAT
- *                   for compatibillity profile. OpenGL contexts are created
- *                   for the highest version available on the current system.
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
 SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
                                           unsigned int width,
                                           unsigned int height,
-                                          int resizeable,
-                                          int backend );
+                                          int resizeable );
+
+/**
+ * \brief Create a window using a pointer to a description structure
+ *
+ * Creates a window using the platforms native window system. The window has
+ * to be destroyed again using sgui_window_destroy( ), thus freeing up it's
+ * resources.
+ *
+ * \note The window is created invisible and has to be made visible by calling
+ *       sgui_window_set_visible( ).
+ *
+ * \param desc A pointer to a structure holding a description of the window
+ *             that is to be created.
+ *
+ * \return Either a valid pointer to a window or NULL if there was an error
+ */
+SGUI_DLL sgui_window* sgui_window_create_desc(sgui_window_description* desc);
 
 /**
  * \brief Make the rendering context for the window current

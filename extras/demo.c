@@ -67,11 +67,12 @@ void gl_window_callback( sgui_window* wnd, int type, sgui_event* event )
 
 int main( int argc, char** argv )
 {
-    int x, y, nogl=0, backend=SGUI_NATIVE;
+    int x, y, nogl=0;
     sgui_font* font;
     sgui_font* font_bold;
     sgui_font* font_ital;
     sgui_font* font_boit;
+    sgui_window_description desc = { NULL, 100, 100, SGUI_RESIZEABLE, 0 };
 
     for( x=1; x<argc; ++x )
     {
@@ -80,19 +81,21 @@ int main( int argc, char** argv )
         else if( !strcmp( argv[x], "--glcore" ) )
         {
             nogl = 1;
-            backend = SGUI_OPENGL_CORE;
+            desc.backend = SGUI_OPENGL_CORE;
         }
         else if( !strcmp( argv[x], "--glcompat" ) )
         {
             nogl = 1;
-            backend = SGUI_OPENGL_COMPAT;
+            desc.backend = SGUI_OPENGL_COMPAT;
         }
     }
 
     sgui_init( );
 
-    a = sgui_window_create( NULL, 400, 300, SGUI_RESIZEABLE, backend );
-    b = sgui_window_create( NULL, 100, 100, SGUI_FIXED_SIZE, backend );
+    a = sgui_window_create_desc( &desc );
+
+    desc.resizeable = SGUI_FIXED_SIZE;
+    b = sgui_window_create_desc( &desc );
 
     sgui_window_set_visible( a, SGUI_VISIBLE );
     sgui_window_set_visible( b, SGUI_VISIBLE );

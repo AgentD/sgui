@@ -338,9 +338,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
 
 /****************************************************************************/
 
-sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
-                                 unsigned int height, int resizeable,
-                                 int backend )
+sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 {
     sgui_window_xlib* wnd;
     XSizeHints hints;
@@ -354,11 +352,11 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     unsigned char rgb[3];
     Window x_parent;
 
-    if( !width || !height )
+    if( !desc || !desc->width || !desc->height )
         return NULL;
 
 #ifdef SGUI_NO_OPENGL
-    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
         return NULL;
 #endif
 
@@ -376,16 +374,16 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         return NULL;
     }
 
-    wnd->base.backend = backend;
-    wnd->resizeable = resizeable;
+    wnd->resizeable = desc->resizeable;
 
     add_window( wnd );
 
     /******************** create the window ********************/
-    x_parent = parent ? TO_X11(parent)->wnd : DefaultRootWindow(dpy);
-    wnd->is_child = (parent!=NULL);
+    x_parent = desc->parent ? TO_X11(desc->parent)->wnd :
+                              DefaultRootWindow(dpy);
+    wnd->is_child = (desc->parent!=NULL);
 
-    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
         /* Get an fbc (optional), a visual and a Colormap */
@@ -399,7 +397,8 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         swa.background_pixmap = None;
         swa.border_pixel      = 0;
 
-        wnd->wnd = XCreateWindow( dpy, x_parent, 0, 0, width, height, 0,
+        wnd->wnd = XCreateWindow( dpy, x_parent, 0, 0,
+                                  desc->width, desc->height, 0,
                                   vi->depth, InputOutput, vi->visual,
                                   CWBorderPixel|CWColormap, &swa );
 
@@ -415,7 +414,8 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         color |= ((unsigned long)rgb[1]) << 8;
         color |= ((unsigned long)rgb[2]);
 
-        wnd->wnd = XCreateSimpleWindow( dpy, x_parent, 0, 0, width, height,
+        wnd->wnd = XCreateSimpleWindow( dpy, x_parent, 0, 0,
+                                        desc->width, desc->height,
                                         0, 0, color );
     }
 
@@ -426,11 +426,13 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     }
 
     /* make the window non resizeable if required */
-    if( !resizeable )
+    if( !desc->resizeable )
     {
-        hints.flags      = PSize | PMinSize | PMaxSize;
-        hints.min_width  = hints.max_width  = hints.base_width  = (int)width;
-        hints.min_height = hints.max_height = hints.base_height = (int)height;
+        hints.flags = PSize | PMinSize | PMaxSize;
+        hints.min_width = hints.max_width =
+        hints.base_width = (int)desc->width;
+        hints.min_height = hints.max_height =
+        hints.base_height = (int)desc->height;
 
         XSetWMNormalHints( dpy, wnd->wnd, &hints );
     }
@@ -452,10 +454,10 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     wnd->base.y = attr.y;
 
     /********************** create canvas **********************/
-    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
-        wnd->gl = create_context( fbc, vi, backend==SGUI_OPENGL_CORE );
+        wnd->gl = create_context( fbc, vi, desc->backend==SGUI_OPENGL_CORE );
         XFree( vi );
 
         if( !wnd->gl )
@@ -493,7 +495,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     }
 
     sgui_internal_window_post_init( (sgui_window*)wnd, attr.width,
-                                    attr.height, backend );
+                                    attr.height, desc->backend );
 
     /* store entry points */
     wnd->base.get_mouse_position = xlib_window_get_mouse_position;

@@ -124,6 +124,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
                                   unsigned int width, unsigned int height,
                                   int backend )
 {
+    sgui_window_description desc;
     sgui_subview* view;
 
     /* sanity check */
@@ -145,7 +146,13 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     view->draw_fun = NULL;
 
     /* create the OpenGL subwindow */
-    view->subwnd = sgui_window_create( parent, width, height, 0, backend );
+    desc.parent     = parent;
+    desc.width      = width;
+    desc.height     = height;
+    desc.resizeable = SGUI_FIXED_SIZE;
+    desc.backend    = backend;
+
+    view->subwnd = sgui_window_create_desc( &desc );
 
     if( !view->subwnd )
     {

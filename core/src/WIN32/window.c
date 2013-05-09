@@ -318,20 +318,18 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
 
 /****************************************************************************/
 
-sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
-                                 unsigned int height, int resizeable,
-                                 int backend )
+sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 {
     sgui_window_w32* wnd;
     HWND parent_hnd = 0;
     DWORD style;
     RECT r;
 
-    if( !width || !height )
+    if( !desc || !desc->width || !desc->height )
         return NULL;
 
 #ifdef SGUI_NO_OPENGL
-    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
         return NULL;
 #endif
 
@@ -352,16 +350,17 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     add_window( wnd );
 
     /*************************** create a window ***************************/
-    SetRect( &r, 0, 0, width, height );
+    SetRect( &r, 0, 0, desc->width, desc->height );
 
-    if( parent )
+    if( desc->parent )
     {
-        parent_hnd = TO_W32(parent)->hWnd;
+        parent_hnd = TO_W32(desc->parent)->hWnd;
         style = WS_CHILD;
     }
     else
     {
-        style = resizeable ? WS_OVERLAPPEDWINDOW : (WS_CAPTION | WS_SYSMENU);
+        style = desc->resizeable ? WS_OVERLAPPEDWINDOW :
+                                   (WS_CAPTION | WS_SYSMENU);
         AdjustWindowRect( &r, style, FALSE );
     }
 
@@ -379,20 +378,22 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     SET_USER_PTR( wnd->hWnd, wnd );
 
     /**************************** create canvas ****************************/
-    if( backend==SGUI_OPENGL_CORE || backend==SGUI_OPENGL_COMPAT )
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-        if( !create_gl_context( wnd, backend==SGUI_OPENGL_COMPAT ) )
+        if( !create_gl_context( wnd, desc->backend==SGUI_OPENGL_COMPAT ) )
         {
             w32_window_destroy( (sgui_window*)wnd );
             return NULL;
         }
 
-        wnd->base.back_buffer = sgui_opengl_canvas_create( width, height );
+        wnd->base.back_buffer = sgui_opengl_canvas_create( desc->width,
+                                                           desc->height );
         wnd->base.swap_buffers = gl_swap_buffers;
     }
     else
     {
-        wnd->base.back_buffer = canvas_gdi_create( width, height );
+        wnd->base.back_buffer = canvas_gdi_create( desc->width,
+                                                   desc->height );
     }
 
     if( !wnd->base.back_buffer )
@@ -401,7 +402,9 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
         return NULL;
     }
 
-    sgui_internal_window_post_init((sgui_window*)wnd, width, height, backend);
+    sgui_internal_window_post_init( (sgui_window*)wnd,
+                                     desc->width, desc->height,
+                                     desc->backend );
 
     /* store entry points */
     wnd->base.get_mouse_position = w32_window_get_mouse_position;

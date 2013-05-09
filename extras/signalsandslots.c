@@ -159,7 +159,7 @@ int main( void )
     /* initialize and create window */
     sgui_init( );
 
-    wnd = sgui_window_create( NULL, 200, 130, SGUI_FIXED_SIZE, SGUI_NATIVE );
+    wnd = sgui_window_create( NULL, 200, 130, SGUI_FIXED_SIZE );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
     sgui_window_set_title( wnd, "Signals & Slots" );
 
