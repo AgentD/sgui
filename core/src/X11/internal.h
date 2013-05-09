@@ -107,9 +107,6 @@ void add_window( sgui_window_xlib* window );
 /* in platform.c: remove a window from the list */
 void remove_window( sgui_window_xlib* window );
 
-/* in platform.c: find the first window with an OpenGL context in the list */
-sgui_window_xlib* find_gl_window( void );
-
 /* in window.c: process an XEvent */
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 

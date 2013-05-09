@@ -67,15 +67,9 @@ static int set_pixel_format( HDC hDC )
 int create_gl_context( sgui_window_w32* wnd, int compatibillity )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-    sgui_window_w32* share_wnd;
     int attribs[10], major, minor;
-    HGLRC temp, oldctx, share;
+    HGLRC temp, oldctx;
     HDC olddc;
-
-    /* find an existing window with an OpenGL context */
-    share_wnd = find_gl_window( );
-
-    share = share_wnd ? share_wnd->hRC : 0;
 
     /* get a device context and set a pixel format */
     wnd->hDC = GetDC( wnd->hWnd );
@@ -132,8 +126,7 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity )
             {
                 attribs[1] = major;
                 attribs[3] = minor;
-                wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, share,
-                                                       attribs );
+                wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
             }
         }
 
@@ -142,7 +135,7 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity )
         {
             attribs[1] = 2;
             attribs[3] = minor;
-            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, share, attribs );
+            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
         }
 
         /* try to create 1.x context */
@@ -150,7 +143,7 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity )
         {
             attribs[1] = 1;
             attribs[3] = minor;
-            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, share, attribs );
+            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
         }
     }
 
@@ -165,9 +158,6 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity )
     else
     {
         wnd->hRC = temp;
-
-        if( share )
-            wglShareLists( wnd->hRC, share );
     }
 
     return 1;

@@ -138,8 +138,7 @@ GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     int attribs[10], major, minor;
-    sgui_window_xlib* share_wnd = find_gl_window( );
-    GLXContext ctx = 0, share = share_wnd ? share_wnd->gl : 0;
+    GLXContext ctx = 0;
 
     if( core && cfg )
     {
@@ -167,7 +166,7 @@ GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core )
                 {
                     attribs[1] = major;
                     attribs[3] = minor;
-                    ctx = CreateContextAttribs(dpy,cfg,share,True,attribs);
+                    ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
                 }
             }
 
@@ -176,7 +175,7 @@ GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core )
             {
                 attribs[1] = 2;
                 attribs[3] = minor;
-                ctx = CreateContextAttribs( dpy, cfg, share, True, attribs );
+                ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
             }
 
             /* try to create 1.x context */
@@ -184,13 +183,13 @@ GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core )
             {
                 attribs[1] = 1;
                 attribs[3] = minor;
-                ctx = CreateContextAttribs( dpy, cfg, share, True, attribs );
+                ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
             }
         }
     }
 
     if( !ctx && vi )
-        ctx = glXCreateContext( dpy, vi, share, GL_TRUE );
+        ctx = glXCreateContext( dpy, vi, 0, GL_TRUE );
 
     return ctx;
 }

@@ -107,9 +107,6 @@ void add_window( sgui_window_w32* wnd );
 /* in platform.c: remove a window */
 void remove_window( sgui_window_w32* wnd );
 
-/* in platform.c: find the first window in the list with an OpenGL context */
-sgui_window_w32* find_gl_window( void );
-
 /* in window.c: handle window messages */
 int handle_window_events( sgui_window_w32* wnd, UINT msg,
                           WPARAM wp, LPARAM lp );

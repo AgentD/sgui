@@ -68,22 +68,6 @@ void remove_window( sgui_window_w32* wnd )
     SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
-sgui_window_w32* find_gl_window( void )
-{
-    sgui_window_w32* i;
-
-    for( i=list; i; i=i->next )
-    {
-        if( i->base.backend==SGUI_OPENGL_CORE ||
-            i->base.backend==SGUI_OPENGL_COMPAT )
-        {
-            return i;
-        }
-    }
-
-    return NULL;
-}
-
 /****************************************************************************/
 
 int sgui_init( void )
