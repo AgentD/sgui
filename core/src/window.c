@@ -89,11 +89,15 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 {
     sgui_window_description desc;
 
-    desc.parent     = parent;
-    desc.width      = width;
-    desc.height     = height;
-    desc.resizeable = resizeable;
-    desc.backend    = SGUI_NATIVE;
+    desc.parent         = parent;
+    desc.width          = width;
+    desc.height         = height;
+    desc.resizeable     = resizeable;
+    desc.backend        = SGUI_NATIVE;
+    desc.doublebuffer   = SGUI_DOUBLEBUFFERED;
+    desc.bits_per_pixel = 32;
+    desc.depth_bits     = 24;
+    desc.stencil_bits   = 8;
 
     return sgui_window_create_desc( &desc );
 }

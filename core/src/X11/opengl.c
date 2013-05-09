@@ -60,40 +60,93 @@ typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
                                                     const int* );
 
 
-int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap )
+int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
+                         sgui_window_description* desc )
 {
     GLXFBConfig* fbl;
     CHOOSEFBCFGPROC ChooseFBConfig;
     GETVISUALFROMFBCPROC GetVisualFromFBConfig;
-    int fbcount;
+    int fbcount, i;
 
-    int attr[] =
+    int attr[20] =
     {
-        GLX_X_RENDERABLE,   True,
-        GLX_X_VISUAL_TYPE,  GLX_TRUE_COLOR,
-        GLX_RED_SIZE,       8,
-        GLX_GREEN_SIZE,     8,
-        GLX_BLUE_SIZE,      8,
-        GLX_ALPHA_SIZE,     8,
-        GLX_DEPTH_SIZE,     24,
-        GLX_STENCIL_SIZE,   8,
-        GLX_DOUBLEBUFFER,   True,
-        None
+        GLX_X_RENDERABLE, True,
+        GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+        None, 0
     };
 
-    int attr_old[] =
-    {
-        GLX_RGBA,
-        GLX_DOUBLEBUFFER,
-        GLX_RED_SIZE,     8,
-        GLX_GREEN_SIZE,   8,
-        GLX_BLUE_SIZE,    8,
-        GLX_ALPHA_SIZE,   8,
-        GLX_DEPTH_SIZE,  24,
-        GLX_STENCIL_SIZE, 8,
-        None
-    };
+    int attr_old[20] = { GLX_RGBA, None, 0 };
 
+    /* set up new descriptor */
+    for( i=0; attr[i]!=None; ++i );
+
+    attr[ i++ ] = GLX_RED_SIZE;
+    attr[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+    attr[ i++ ] = GLX_GREEN_SIZE;
+    attr[ i++ ] = desc->bits_per_pixel==16 ? 6 : 8;
+    attr[ i++ ] = GLX_BLUE_SIZE;
+    attr[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+
+    if( desc->bits_per_pixel>24 )
+    {
+        attr[ i++ ] = GLX_ALPHA_SIZE;
+        attr[ i++ ] = 8;
+    }
+
+    if( desc->depth_bits )
+    {
+        attr[ i++ ] = GLX_DEPTH_SIZE;
+        attr[ i++ ] = desc->depth_bits;
+    }
+
+    if( desc->stencil_bits )
+    {
+        attr[ i++ ] = GLX_STENCIL_SIZE;
+        attr[ i++ ] = desc->stencil_bits;
+    }
+
+    if( desc->doublebuffer )
+    {
+        attr[ i++ ] = GLX_DOUBLEBUFFER;
+        attr[ i++ ] = True;
+    }
+
+    attr[ i++ ] = None;
+
+    /* set up old descriptor */
+    for( i=0; attr_old[i]!=None; ++i );
+
+    if( desc->doublebuffer )
+        attr_old[ i++ ] = GLX_DOUBLEBUFFER;
+
+    attr_old[ i++ ] = GLX_RED_SIZE;
+    attr_old[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+    attr_old[ i++ ] = GLX_GREEN_SIZE;
+    attr_old[ i++ ] = desc->bits_per_pixel==16 ? 6 : 8;
+    attr_old[ i++ ] = GLX_BLUE_SIZE;
+    attr_old[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+
+    if( desc->bits_per_pixel>24 )
+    {
+        attr_old[ i++ ] = GLX_ALPHA_SIZE;
+        attr_old[ i++ ] = 8;
+    }
+
+    if( desc->depth_bits )
+    {
+        attr_old[ i++ ] = GLX_DEPTH_SIZE;
+        attr_old[ i++ ] = desc->depth_bits;
+    }
+
+    if( desc->stencil_bits )
+    {
+        attr_old[ i++ ] = GLX_STENCIL_SIZE;
+        attr_old[ i++ ] = desc->stencil_bits;
+    }
+
+    attr_old[ i++ ] = None;
+
+    /* */
     ChooseFBConfig = (CHOOSEFBCFGPROC)LOAD_GLFUN( "glXChooseFBConfig" );
     GetVisualFromFBConfig = (GETVISUALFROMFBCPROC)
                             LOAD_GLFUN( "glXGetVisualFromFBConfig" );

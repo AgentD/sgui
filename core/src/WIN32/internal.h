@@ -113,7 +113,7 @@ int handle_window_events( sgui_window_w32* wnd, UINT msg,
 
 /* in opengl.c: create OpenGL context with maximum version,
    return non-zero on success, zero on failure */
-int create_gl_context( sgui_window_w32* wnd, int compatibillity );
+int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc );
 
 /* in opengl.c: destroy OpenGL context of a window */
 void destroy_gl_context( sgui_window_w32* wnd );

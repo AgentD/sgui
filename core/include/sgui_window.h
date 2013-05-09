@@ -41,6 +41,9 @@ extern "C" {
 #define SGUI_RESIZEABLE 1
 #define SGUI_FIXED_SIZE 0
 
+#define SGUI_DOUBLEBUFFERED 1
+#define SGUI_SINGLEBUFFERED 0
+
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
 
@@ -86,6 +89,18 @@ typedef struct
      * version available on the current system.
      */
     int backend;
+
+    /**
+     * \brief Non-zero if the window should use double buffering
+     *
+     * The symbolic constants SGUI_SINGLEBUFFERED and SGUI_SINGLEBUFFERED can
+     * be used to generate more readable code.
+     */
+    int doublebuffer;
+
+    int bits_per_pixel; /**< \brief The desired number of bits per pixel */
+    int depth_bits;   /**< \brief The number of bits for the depth buffer */
+    int stencil_bits; /**< \brief The number of bits for the stencil buffer */
 }
 sgui_window_description;
 

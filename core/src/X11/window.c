@@ -387,7 +387,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     {
 #ifndef SGUI_NO_OPENGL
         /* Get an fbc (optional), a visual and a Colormap */
-        if( !get_fbc_visual_cmap( &fbc, &vi, &swa.colormap ) )
+        if( !get_fbc_visual_cmap( &fbc, &vi, &swa.colormap, desc ) )
         {
             xlib_window_destroy( (sgui_window*)wnd );
             return NULL;

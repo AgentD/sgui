@@ -122,7 +122,8 @@ void canvas_xlib_display( sgui_canvas* cv, int x, int y,
 /* in OpenGL.c: get a framebuffer configuration, visual and colormap
    creating an framebuffer configuration may fail, returns non-zero on
    success, zero if creating a visual or colormap failed */
-int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap );
+int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
+                         sgui_window_description* desc );
 
 /* in OpenGL.c: try to create an OpenGL context */
 GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core );

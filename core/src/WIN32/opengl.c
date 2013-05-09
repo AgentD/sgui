@@ -44,27 +44,31 @@ typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
 
 
 
-static int set_pixel_format( HDC hDC )
+static int set_pixel_format( HDC hDC, sgui_window_description* desc )
 {
     PIXELFORMATDESCRIPTOR pfd;
     int format;
 
     memset( &pfd, 0, sizeof( pfd ) );
 
-    pfd.nSize      = sizeof( pfd );
-    pfd.nVersion   = 1;
-    pfd.dwFlags    = PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cDepthBits = 24;
-    pfd.iLayerType = PFD_MAIN_PLANE;
+    pfd.nSize        = sizeof( pfd );
+    pfd.nVersion     = 1;
+    pfd.dwFlags      = PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL;
+    pfd.iPixelType   = PFD_TYPE_RGBA;
+    pfd.cColorBits   = desc->bits_per_pixel;
+    pfd.cDepthBits   = desc->depth_bits;
+    pfd.cStencilBits = desc->stencil_bits;
+    pfd.iLayerType   = PFD_MAIN_PLANE;
+
+    if( desc->doublebuffer )
+        pfd.dwFlags |= PFD_DOUBLEBUFFER;
 
     format = ChoosePixelFormat( hDC, &pfd );
 
     return SetPixelFormat( hDC, format, &pfd );
 }
 
-int create_gl_context( sgui_window_w32* wnd, int compatibillity )
+int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
     int attribs[10], major, minor;
@@ -74,7 +78,7 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity )
     /* get a device context and set a pixel format */
     wnd->hDC = GetDC( wnd->hWnd );
 
-    if( !wnd->hDC || !set_pixel_format( wnd->hDC ) )
+    if( !wnd->hDC || !set_pixel_format( wnd->hDC, desc ) )
         return 0;
 
     /* create an old fashioned OpenGL temporary context */
@@ -106,7 +110,7 @@ int create_gl_context( sgui_window_w32* wnd, int compatibillity )
         attribs[3] = 0;
         attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
 
-        if( compatibillity )
+        if( desc->backend==SGUI_OPENGL_COMPAT )
         {
             attribs[5] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
             attribs[6] = 0;
@@ -185,10 +189,10 @@ void gl_make_current( sgui_window_w32* wnd )
         wglMakeCurrent( NULL, NULL );
 }
 #else
-int create_gl_context( sgui_window_w32* wnd, int compatibillity )
+int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
 {
     (void)wnd;
-    (void)compatibillity;
+    (void)desc;
     return 0;
 }
 

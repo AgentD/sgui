@@ -380,7 +380,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     /**************************** create canvas ****************************/
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-        if( !create_gl_context( wnd, desc->backend==SGUI_OPENGL_COMPAT ) )
+        if( !create_gl_context( wnd, desc ) )
         {
             w32_window_destroy( (sgui_window*)wnd );
             return NULL;
