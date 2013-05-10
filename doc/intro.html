@@ -2,6 +2,7 @@
 <head>
     <title>SGUI - introduction</title>
 </head>
+<body>
 
 <h1>SGUI</h1>
 
@@ -31,38 +32,30 @@ planning and its design may change in the future.
 
 <h3>Supported platforms</h3>
 
-So far, SGUI has a Windows&reg; and an Xlib back end. It has been confirmed to
-work on the following platforms:
+So far, SGUI has a Windows&reg; and an Xlib back end. Because there are no
+users and developers besides me, I tested it on every system available to me
+and "documented" both the systems and the results:
 
 <br>
 <br>
 Test Hardware:
 <table border="1">
-<tr><td>Machine number</td><td>CPU</td><td>RAM</td><td>HDD</td><td>Mainboard</td><td>GFX Card</td></tr>
-<tr><td>1</td><td>AMD Athlon 64 3000+</td><td>512 MB DDR</td><td>200 GB IDE</td><td>ASUS K8V SE Deluxe</td><td>NVIDIA GeForce FX 5700</td></tr>
-<tr><td>2</td><td>Inel Core 2 Quad Q9550</td><td>4096 MB DDR3</td><td>500 GB SATA II</td><td>ASUS P5E3 Pro</td><td>NVIDIA GeForce GTX 285</td></tr>
-<tr><td>3</td><td>Intel Core i7-2630QM Sandy Bridge</td><td>4096 MB DDR3</td><td>500 GB SATA II</td><td>CLEVO CO. W150HNM/W170HN</td><td>NVIDIA GeForce GT 540M<br>Intel Sandy Bridge</td></tr>
-
-<tr><td>4</td><td></td><td></td><td></td><td></td><td>ATI Radeon HD 5750</td></tr>
-
-<tr><td>5</td><td>ARM1176JZF-S @ 700 MHz</td><td>512 MB</td><td>16 GB SDHC card</td><td>Raspberry Pi Model B</td><td>Broadcom VideoCore IV</td></tr>
+<tr><td>Operating System</td><td>CPU</td><td>RAM</td><td>HDD</td><td>Mainboard</td><td>GFX Card</td><td>Status</td></tr>
+<tr><td>Windows 98 SE</td><td>AMD Athlon 64 3000+</td><td>512 MB DDR</td><td>200 GB IDE</td><td>ASUS K8V SE Deluxe</td><td>NVIDIA GeForce FX 5700</td><td bgcolor="#00FF00">Works</td></tr>
+<tr><td>Arch GNU/Linux 64 bit<br>Windows 7 32 bit<br>Wine</td><td>Inel Core 2 Quad Q9550</td><td>4096 MB DDR3</td><td>500 GB SATA II</td><td>ASUS P5E3 Pro</td><td>NVIDIA GeForce GTX 285</td><td bgcolor="#00FF00">Works</td></tr>
+<tr><td>Arch GNU/Linux 64 bit<br>Windows 7 64 bit<br>Wine</td><td>Intel Core i7-2630QM Sandy Bridge</td><td>4096 MB DDR3</td><td>500 GB SATA II</td><td>CLEVO CO. W150HNM/W170HN</td><td>NVIDIA GeForce GT 540M<br>Intel Sandy Bridge</td><td bgcolor="#00FF00">Works</td></tr>
+<tr><td>Cent OS 64 bit</td><td>Intel Core i7-2600 @ 3.40GHz</td><td>7829 MB</td><td>UNKNOWN</td><td>UNKNOWN</td><td>ATI Radeon HD 5750</td><td bgcolor="#00FF00">Works</td></tr>
+<tr><td>Arch ARM 32 bit</td><td>ARM1176JZF-S @ 700 MHz</td><td>512 MB</td><td>16 GB SDHC card</td><td>Raspberry Pi Model B</td><td>Broadcom VideoCore IV</td><td bgcolor="#FFFF00">Untested</td></tr>
 </table>
 
 <br>
-<br>
-
-Results:
-<table border="1">
-<tr><td></td><td>Arch GNU/Linux 64 bit</td><td>Cent OS 64 bit</td><td>Windows 7 32 bit</td><td>Windows 7 64 bit</td><td>Windows 98 SE</td><td>Wine 32 bit</td><td>Wine 64 bit</td><td>Arch ARM 32 bit</td>
-<tr><td>Machine 1</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td bgcolor="#00FF00">Works</td><td>NA</td><td>NA</td><td>NA</td></tr>
-<tr><td>Machine 2</td><td bgcolor="#00FF00">Works</td><td>NA</td><td bgcolor="#00FF00">Works</td><td>NA</td><td>NA</td><td bgcolor="#00FF00">Works</td><td bgcolor="#00FF00">Works</td><td>NA</td></tr>
-<tr><td>Machine 3</td><td bgcolor="#00FF00">Works</td><td>NA</td><td>NA</td><td bgcolor="#00FF00">Works</td><td>NA</td><td bgcolor="#00FF00">Works</td><td bgcolor="#00FF00">Works</td><td>NA</td></tr>
-<tr><td>Machine 4</td><td>NA</td><td bgcolor="#00FF00">Works</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td></tr>
-
-<tr><td>Machine 5</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td bgcolor="#FFFF00">untested</td></tr>
-</table>
-
-
+The Raspberry Pi test was conducted by compiling and running the normal Xlib
+port on the Pi. There is no specialized OpenVG&reg; framebuffer backend for
+the Raspberry Pi (yet). The windows were created propperly but they had a
+strange greenish background color and the widgets weren't visible at all, but
+the test is already months ago and a lot has changed in the code since then
+(the Xlib port used XImages back than, now it uses the XRender extension), so
+I flaged it as "Untested".
 
 <h3>People involved</h3>
 
@@ -96,5 +89,6 @@ Currently, I, David Oberhollenzer, do everything around here. Suggestions for im
 <a href="index.html">Back to index</a>
 <a href="using.html">Next</a>
 
+</body>
 </html>
 
