@@ -45,129 +45,84 @@
     #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
 
-#ifndef GLX_VERSION_1_3
-    typedef struct GLXFBConfigRec* GLXFBConfig;
 
-    #define GLX_X_RENDERABLE  0x8012
-    #define GLX_X_VISUAL_TYPE 0x22
-    #define GLX_TRUE_COLOR    0x8002
-#endif
-
-typedef GLXFBConfig* (* CHOOSEFBCFGPROC )(Display*,int,const int*,int*);
-typedef XVisualInfo* (* GETVISUALFROMFBCPROC )(Display*, GLXFBConfig);
-typedef GLXContext   (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
-                                                    GLXContext, Bool,
-                                                    const int* );
+typedef GLXContext (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
+                                                  GLXContext, Bool,
+                                                  const int* );
 
 
-int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
-                         sgui_window_description* desc )
+void set_attributes( int* attr, int bpp, int depth, int stencil,
+                     int doublebuffer, int samples )
 {
-    GLXFBConfig* fbl;
-    CHOOSEFBCFGPROC ChooseFBConfig;
-    GETVISUALFROMFBCPROC GetVisualFromFBConfig;
-    int fbcount, i;
+    int i=0;
 
-    int attr[20] =
-    {
-        GLX_X_RENDERABLE, True,
-        GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
-        None, 0
-    };
+    if( bpp!=16 || bpp!=24 || bpp!=32 )
+        bpp = 32;
 
-    int attr_old[20] = { GLX_RGBA, None, 0 };
-
-    /* set up new descriptor */
-    for( i=0; attr[i]!=None; ++i );
-
+    attr[ i++ ] = GLX_BUFFER_SIZE;
+    attr[ i++ ] = bpp;
     attr[ i++ ] = GLX_RED_SIZE;
-    attr[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+    attr[ i++ ] = bpp==16 ? 5 : 8;
     attr[ i++ ] = GLX_GREEN_SIZE;
-    attr[ i++ ] = desc->bits_per_pixel==16 ? 6 : 8;
+    attr[ i++ ] = bpp==16 ? 6 : 8;
     attr[ i++ ] = GLX_BLUE_SIZE;
-    attr[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+    attr[ i++ ] = bpp==16 ? 5 : 8;
 
-    if( desc->bits_per_pixel>24 )
+    if( bpp==32 )
     {
         attr[ i++ ] = GLX_ALPHA_SIZE;
         attr[ i++ ] = 8;
     }
 
-    if( desc->depth_bits )
+    if( depth )
     {
         attr[ i++ ] = GLX_DEPTH_SIZE;
-        attr[ i++ ] = desc->depth_bits;
+        attr[ i++ ] = depth;
     }
 
-    if( desc->stencil_bits )
+    if( stencil )
     {
         attr[ i++ ] = GLX_STENCIL_SIZE;
-        attr[ i++ ] = desc->stencil_bits;
+        attr[ i++ ] = stencil;
     }
 
-    if( desc->doublebuffer )
+    if( doublebuffer )
     {
         attr[ i++ ] = GLX_DOUBLEBUFFER;
         attr[ i++ ] = True;
     }
 
+    if( samples )
+    {
+        attr[ i++ ] = GLX_SAMPLE_BUFFERS;
+        attr[ i++ ] = 1;
+        attr[ i++ ] = GLX_SAMPLES;
+        attr[ i++ ] = samples;
+    }
+
     attr[ i++ ] = None;
+}
 
-    /* set up old descriptor */
-    for( i=0; attr_old[i]!=None; ++i );
+int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
+                         sgui_window_description* desc )
+{
+    GLXFBConfig* fbl;
+    int fbcount, attr[20];
 
-    if( desc->doublebuffer )
-        attr_old[ i++ ] = GLX_DOUBLEBUFFER;
+    set_attributes( attr, desc->bits_per_pixel, desc->depth_bits,
+                    desc->stencil_bits, desc->doublebuffer, 0 );
 
-    attr_old[ i++ ] = GLX_RED_SIZE;
-    attr_old[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
-    attr_old[ i++ ] = GLX_GREEN_SIZE;
-    attr_old[ i++ ] = desc->bits_per_pixel==16 ? 6 : 8;
-    attr_old[ i++ ] = GLX_BLUE_SIZE;
-    attr_old[ i++ ] = desc->bits_per_pixel==16 ? 5 : 8;
+    *fbc  = NULL;
+    *vi   = NULL;
+    *cmap = 0;
 
-    if( desc->bits_per_pixel>24 )
+    fbl = glXChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
+
+    if( fbl && fbcount )
     {
-        attr_old[ i++ ] = GLX_ALPHA_SIZE;
-        attr_old[ i++ ] = 8;
-    }
-
-    if( desc->depth_bits )
-    {
-        attr_old[ i++ ] = GLX_DEPTH_SIZE;
-        attr_old[ i++ ] = desc->depth_bits;
-    }
-
-    if( desc->stencil_bits )
-    {
-        attr_old[ i++ ] = GLX_STENCIL_SIZE;
-        attr_old[ i++ ] = desc->stencil_bits;
-    }
-
-    attr_old[ i++ ] = None;
-
-    /* */
-    ChooseFBConfig = (CHOOSEFBCFGPROC)LOAD_GLFUN( "glXChooseFBConfig" );
-    GetVisualFromFBConfig = (GETVISUALFROMFBCPROC)
-                            LOAD_GLFUN( "glXGetVisualFromFBConfig" );
-
-    *fbc = NULL;
-    *vi  = NULL;
-
-    if( ChooseFBConfig && GetVisualFromFBConfig )
-    {
-        fbl = ChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
-
-        if( fbl )
-        {
-            *fbc = fbl[0];
-            *vi = GetVisualFromFBConfig( dpy, fbl[0] );
-            XFree( fbl );
-        }
-    }
-    else
-    {
-        *vi = glXChooseVisual( dpy, DefaultScreen(dpy), attr_old );
+        *fbc = fbl[0];
+        *vi = glXGetVisualFromFBConfig( dpy, fbl[0] );
+        XFree( fbl );
     }
 
     if( !(*vi) )
@@ -187,13 +142,24 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
     return 1;
 }
 
-GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core )
+int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     int attribs[10], major, minor;
-    GLXContext ctx = 0;
 
-    if( core && cfg )
+    /* try to create a glx window */
+    wnd->glx_wnd = glXCreateWindow( dpy, cfg, wnd->wnd, NULL );
+    wnd->gl      = 0;
+
+    if( !wnd->glx_wnd )
+        return 0;
+
+    /* try to load context creation function */
+    CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
+    LOAD_GLFUN( "glXCreateContextAttribsARB" );
+
+    /* try to create core context */
+    if( core && CreateContextAttribs )
     {
         /* fill attribute array */
         attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
@@ -206,50 +172,28 @@ GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core )
         attribs[7] = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
         attribs[8] = None;
 
-        /* try to load context creation function */
-        CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
-        LOAD_GLFUN( "glXCreateContextAttribsARB" );
-
-        if( CreateContextAttribs )
+        /* try to create 4.x down to 3.x context */
+        for( major=4; !wnd->gl && major>=3; --major )
         {
-            /* try to create 4.x down to 3.x context */
-            for( major=4; !ctx && major>=3; --major )
+            for( minor=3; !wnd->gl && minor>=0; --minor )
             {
-                for( minor=3; !ctx && minor>=0; --minor )
-                {
-                    attribs[1] = major;
-                    attribs[3] = minor;
-                    ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
-                }
-            }
-
-            /* try to create 2.x context */
-            for( minor=1; !ctx && minor>=0; --minor )
-            {
-                attribs[1] = 2;
+                attribs[1] = major;
                 attribs[3] = minor;
-                ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
-            }
-
-            /* try to create 1.x context */
-            for( minor=5; !ctx && minor>=0; --minor )
-            {
-                attribs[1] = 1;
-                attribs[3] = minor;
-                ctx = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+                wnd->gl = CreateContextAttribs( dpy, cfg, 0, True, attribs );
             }
         }
     }
 
-    if( !ctx && vi )
-        ctx = glXCreateContext( dpy, vi, 0, GL_TRUE );
+    /* fallback: old context creation function */
+    if( !wnd->gl )
+        wnd->gl = glXCreateNewContext(dpy, cfg, GLX_RGBA_TYPE, NULL, GL_TRUE);
 
-    return ctx;
+    return (wnd->gl!=0);
 }
 
 void gl_swap_buffers( sgui_window* wnd )
 {
-    glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
+    glXSwapBuffers( dpy, TO_X11(wnd)->glx_wnd );
 }
 #endif
 

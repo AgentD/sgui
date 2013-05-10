@@ -50,11 +50,7 @@
 #ifdef SGUI_NO_OPENGL
     typedef void* GLXFBConfig;
 #else
-#include <GL/glx.h>
-
-#ifndef GLX_VERSION_1_3
-    typedef struct GLXFBConfigRec* GLXFBConfig;
-#endif
+    #include <GL/glx.h>
 #endif /* !SGUI_NO_OPENGL */
 
 
@@ -81,6 +77,7 @@ typedef struct _sgui_window_xlib
 
 #ifndef SGUI_NO_OPENGL
     GLXContext gl;
+    GLXWindow glx_wnd;
 #endif
 
     struct _sgui_window_xlib* next;  /* linked list stuff */
@@ -126,7 +123,7 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
                          sgui_window_description* desc );
 
 /* in OpenGL.c: try to create an OpenGL context */
-GLXContext create_context( GLXFBConfig cfg, XVisualInfo* vi, int core );
+int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd );
 
 /* in OpenGL.c: sgui_window_swap_buffers implementation */
 void gl_swap_buffers( sgui_window* wnd );

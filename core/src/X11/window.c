@@ -112,6 +112,9 @@ static void xlib_window_destroy( sgui_window* wnd )
     {
         if( TO_X11(wnd)->gl )
             glXDestroyContext( dpy, TO_X11(wnd)->gl );
+
+        if( TO_X11(wnd)->glx_wnd )
+            glXDestroyWindow( dpy, TO_X11(wnd)->glx_wnd );
     }
 #endif
 
@@ -402,8 +405,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                                   vi->depth, InputOutput, vi->visual,
                                   CWBorderPixel|CWColormap, &swa );
 
-        if( !wnd->wnd )
-            XFree( vi );
+        XFree( vi );
 #endif
     }
     else
@@ -457,10 +459,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
-        wnd->gl = create_context( fbc, vi, desc->backend==SGUI_OPENGL_CORE );
-        XFree( vi );
-
-        if( !wnd->gl )
+        if( !create_context( fbc, desc->backend==SGUI_OPENGL_CORE, wnd ) )
         {
             xlib_window_destroy( (sgui_window*)wnd );
             return NULL;
@@ -518,11 +517,12 @@ void sgui_window_make_current( sgui_window* wnd )
     if( wnd && (wnd->backend==SGUI_OPENGL_CORE ||
                 wnd->backend==SGUI_OPENGL_COMPAT) )
     {
-        glXMakeCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->gl );
+        glXMakeContextCurrent( dpy, TO_X11(wnd)->glx_wnd,
+                               TO_X11(wnd)->glx_wnd, TO_X11(wnd)->gl );
     }
     else
     {
-        glXMakeCurrent( dpy, 0, 0 );
+        glXMakeContextCurrent( dpy, 0, 0, 0 );
     }
 #endif
 }
