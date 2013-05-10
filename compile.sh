@@ -93,5 +93,8 @@ else
     #gcc $FLAGS -lGL test/test_gl.c -o build/bin/unix/test_gl
 
     gcc $FLAGS extras/signalsandslots.c -o build/bin/unix/signalsandslots
+    gcc $FLAGS extras/simple.c -o build/bin/unix/simple
+    gcc $FLAGS -lGL extras/gl0.c -o build/bin/unix/gl0
+    gcc $FLAGS -lGL extras/gl1.c -o build/bin/unix/gl1
 fi
 
