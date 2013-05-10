@@ -425,7 +425,7 @@ void destroy_gl_context( sgui_window_w32* wnd )
     (void)wnd;
 }
 
-void gl_swap_buffers( sgui_window_w32* wnd )
+void gl_swap_buffers( sgui_window* wnd )
 {
     (void)wnd;
 }

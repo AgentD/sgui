@@ -27,12 +27,11 @@
 
 
 
-#ifndef SGUI_NO_OPENGL
-
-
-
 #include <stdlib.h>
 
+
+
+#ifndef SGUI_NO_OPENGL
 /* Operating system check */
 #ifndef MACHINE_OS_WINDOWS
     #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
