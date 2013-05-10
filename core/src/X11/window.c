@@ -527,3 +527,21 @@ void sgui_window_make_current( sgui_window* wnd )
 #endif
 }
 
+void sgui_window_set_vsync( sgui_window* wnd, int vsync_on )
+{
+#ifdef SGUI_NO_OPENGL
+    (void)wnd; (void)vsync_on;
+#else
+    if( wnd && (wnd->backend==SGUI_OPENGL_CORE ||
+                wnd->backend==SGUI_OPENGL_COMPAT) )
+    {
+        void(* SwapIntervalEXT )( Display*, GLXDrawable, int );
+
+        SwapIntervalEXT = (void(*)(Display*,GLXDrawable,int))
+                          LOAD_GLFUN( "glXSwapIntervalEXT" );
+
+        SwapIntervalEXT( dpy, TO_X11(wnd)->glx_wnd, vsync_on ? 1 : 0 );
+    }
+#endif
+}
+

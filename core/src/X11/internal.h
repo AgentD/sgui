@@ -51,6 +51,8 @@
     typedef void* GLXFBConfig;
 #else
     #include <GL/glx.h>
+
+    #define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
 #endif /* !SGUI_NO_OPENGL */
 
 

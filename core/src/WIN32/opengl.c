@@ -31,6 +31,8 @@
 typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
 typedef int   (* WGLCHOOSEPIXELFORMATARBPROC )( HDC, const int*, const FLOAT*,
                                                 UINT, int*, UINT* );
+typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
+
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB   0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB   0x2092
@@ -412,6 +414,18 @@ void gl_make_current( sgui_window_w32* wnd )
     else
         wglMakeCurrent( NULL, NULL );
 }
+
+void gl_set_vsync( sgui_window_w32* wnd, int vsync_on )
+{
+    WGLSWAPINTERVALEXT wglSwapIntervalEXT;
+    (void)wnd;
+
+    wglSwapIntervalEXT = (WGLSWAPINTERVALEXT)
+                         wglGetProcAddress( "wglSwapIntervalEXT" );
+
+    if( wglSwapIntervalEXT )
+        wglSwapIntervalEXT( vsync_on ? 1 : 0 );
+}
 #else
 int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
 {
@@ -433,6 +447,12 @@ void gl_swap_buffers( sgui_window* wnd )
 void gl_make_current( sgui_window_w32* wnd )
 {
     (void)wnd;
+}
+
+void gl_set_vsync( sgui_window_w32* wnd, int vsync_on )
+{
+    (void)wnd;
+    (void)vsync_on;
 }
 #endif
 

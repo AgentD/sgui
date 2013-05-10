@@ -186,6 +186,18 @@ SGUI_DLL void sgui_window_make_current( sgui_window* window );
 SGUI_DLL void sgui_window_swap_buffers( sgui_window* window );
 
 /**
+ * \brief Force synchronisation of buffer swapping with vertical rectrace
+ *
+ * For windows with OpenGL or other rendering API backends, this can turn
+ * synchronisation of buffer swapping with vertical rectrace of the monitor
+ * on or off.
+ *
+ * \param window   A pointer to a window
+ * \param vsync_on Non-zero to turn vsync on, zero to turn it off
+ */
+SGUI_DLL void sgui_window_set_vsync( sgui_window* window, int vsync_on );
+
+/**
  * \brief Destroy a previously created window
  *
  * The window is closed and all it's resources are freed up, so the window

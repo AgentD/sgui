@@ -28,8 +28,6 @@
 #include "sgui_event.h"
 
 #ifndef SGUI_NO_OPENGL
-#define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
-
 #ifndef GLX_ARB_create_context
     #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
     #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092

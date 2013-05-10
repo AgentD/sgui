@@ -430,3 +430,14 @@ void sgui_window_make_current( sgui_window* wnd )
         gl_make_current( NULL );
 }
 
+void sgui_window_set_vsync( sgui_window* wnd, int vsync_on )
+{
+    if( wnd && (wnd->backend==SGUI_OPENGL_COMPAT ||
+                wnd->backend==SGUI_OPENGL_CORE) )
+    {
+        gl_set_vsync( TO_W32(wnd), vsync_on );
+    }
+    else
+        gl_make_current( NULL );
+}
+

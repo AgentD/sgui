@@ -124,6 +124,9 @@ void gl_swap_buffers( sgui_window* wnd );
 /* in opengl.c: make the OpenGL context of a window current */
 void gl_make_current( sgui_window_w32* wnd );
 
+/* in opengl.c: turn vsync on or off */
+void gl_set_vsync( sgui_window_w32* wnd, int vsync_on );
+
 /* in canvas.c: create a gdi canvas */
 sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
 
