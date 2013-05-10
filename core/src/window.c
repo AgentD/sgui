@@ -79,7 +79,8 @@ void sgui_internal_window_fire_event( sgui_window* wnd, int event,
         if( wnd->event_fun )
             wnd->event_fun( wnd, event, e );
 
-        sgui_canvas_send_window_event( wnd->back_buffer, event, e );
+        if( !(wnd->override_canvas & SGUI_OVERRIDE_EVENTS) )
+            sgui_canvas_send_window_event( wnd->back_buffer, event, e );
     }
 }
 
@@ -168,8 +169,11 @@ void sgui_window_set_size( sgui_window* wnd,
         /* resize the canvas */
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
-        if( wnd->backend==SGUI_NATIVE && !wnd->override_canvas )
+        if( wnd->backend==SGUI_NATIVE &&
+            !(wnd->override_canvas & SGUI_OVERRIDE_DRAW) )
+        {
             sgui_canvas_draw_widgets( wnd->back_buffer, 1 );
+        }
     }
 }
 

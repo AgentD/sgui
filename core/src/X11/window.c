@@ -243,8 +243,11 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
         /* redraw everything */
-        if( wnd->base.backend==SGUI_NATIVE && !wnd->base.override_canvas )
+        if( wnd->base.backend==SGUI_NATIVE &&
+            !(wnd->base.override_canvas & SGUI_OVERRIDE_DRAW) )
+        {
             sgui_canvas_draw_widgets( wnd->base.back_buffer, 1 );
+        }
         break;
     case DestroyNotify:
         wnd->base.visible = 0;
@@ -267,7 +270,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
-        if( !wnd->base.override_canvas )
+        if( !(wnd->base.override_canvas & SGUI_OVERRIDE_DRAW) )
         {
             if( wnd->base.backend==SGUI_NATIVE )
             {
@@ -286,9 +289,12 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
             {
                 sgui_window_make_current( (sgui_window*)wnd );
 
-                sgui_canvas_begin( wnd->base.back_buffer, NULL );
-                sgui_canvas_clear( wnd->base.back_buffer, NULL );
-                sgui_canvas_end( wnd->base.back_buffer );
+                if( !(wnd->base.override_canvas & SGUI_OVERRIDE_CLEAR) )
+                {
+                    sgui_canvas_begin( wnd->base.back_buffer, NULL );
+                    sgui_canvas_clear( wnd->base.back_buffer, NULL );
+                    sgui_canvas_end( wnd->base.back_buffer );
+                }
 
                 SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
 
@@ -301,7 +307,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
     };
 
     /* generate expose events for dirty rectangles */
-    if( !wnd->base.override_canvas )
+    if( !(wnd->base.override_canvas & SGUI_OVERRIDE_DRAW) )
     {
         num = sgui_canvas_num_dirty_rects( wnd->base.back_buffer );
 

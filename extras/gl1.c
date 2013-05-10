@@ -31,7 +31,7 @@ int main( )
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
     /* main loop with continuos redrawing: */
-    sgui_window_override_drawing( wnd, 1 );
+    sgui_window_override_drawing( wnd, SGUI_OVERRIDE_ALL );
     sgui_window_make_current( wnd );
     sgui_window_set_vsync( wnd, 1 );
 

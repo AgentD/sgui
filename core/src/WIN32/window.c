@@ -251,15 +251,18 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         /* resize canvas and redraw everything */
         sgui_canvas_resize( base->back_buffer, base->w, base->h );
 
-        if( wnd->base.backend==SGUI_NATIVE && !base->override_canvas )
+        if( wnd->base.backend==SGUI_NATIVE &&
+            !(base->override_canvas & SGUI_OVERRIDE_DRAW) )
+        {
             sgui_canvas_draw_widgets( base->back_buffer, 1 );
+        }
         break;
     case WM_MOVE:
         base->x = LOWORD( lp );
         base->y = HIWORD( lp );
         break;
     case WM_PAINT:
-        if( !base->override_canvas )
+        if( !(base->override_canvas & SGUI_OVERRIDE_DRAW) )
         {
             sgui_rect_set_size( &e.expose_event, 0, 0, base->w, base->h );
 
@@ -275,9 +278,12 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
             {
                 sgui_window_make_current( (sgui_window*)wnd );
 
-                sgui_canvas_begin( wnd->base.back_buffer, NULL );
-                sgui_canvas_clear( wnd->base.back_buffer, NULL );
-                sgui_canvas_end( wnd->base.back_buffer );
+                if( !(base->override_canvas & SGUI_OVERRIDE_CLEAR) )
+                {
+                    sgui_canvas_begin( wnd->base.back_buffer, NULL );
+                    sgui_canvas_clear( wnd->base.back_buffer, NULL );
+                    sgui_canvas_end( wnd->base.back_buffer );
+                }
 
                 sgui_internal_window_fire_event(base, SGUI_EXPOSE_EVENT, &e);
 
@@ -291,7 +297,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
     }
 
     /* invalidate all dirty rects of the canvas */
-    if( !base->override_canvas )
+    if( !(base->override_canvas & SGUI_OVERRIDE_DRAW) )
     {
         num = sgui_canvas_num_dirty_rects( base->back_buffer );
 
