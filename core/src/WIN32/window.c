@@ -251,7 +251,7 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         /* resize canvas and redraw everything */
         sgui_canvas_resize( base->back_buffer, base->w, base->h );
 
-        if( wnd->base.backend==SGUI_NATIVE )
+        if( wnd->base.backend==SGUI_NATIVE && !base->override_canvas )
             sgui_canvas_draw_widgets( base->back_buffer, 1 );
         break;
     case WM_MOVE:
@@ -259,57 +259,63 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         base->y = HIWORD( lp );
         break;
     case WM_PAINT:
-        sgui_rect_set_size( &e.expose_event, 0, 0, base->w, base->h );
-
-        if( wnd->base.backend==SGUI_NATIVE )
+        if( !base->override_canvas )
         {
-            sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
-            hDC = BeginPaint( wnd->hWnd, &ps );
-            canvas_gdi_display(hDC,base->back_buffer,0,0,base->w,base->h);
-            EndPaint( wnd->hWnd, &ps );
-        }
-        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-                 wnd->base.backend==SGUI_OPENGL_COMPAT )
-        {
-            sgui_window_make_current( (sgui_window*)wnd );
+            sgui_rect_set_size( &e.expose_event, 0, 0, base->w, base->h );
 
-            sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_canvas_clear( wnd->base.back_buffer, NULL );
-            sgui_canvas_end( wnd->base.back_buffer );
+            if( wnd->base.backend==SGUI_NATIVE )
+            {
+                sgui_internal_window_fire_event(base, SGUI_EXPOSE_EVENT, &e);
+                hDC = BeginPaint( wnd->hWnd, &ps );
+                canvas_gdi_display(hDC,base->back_buffer,0,0,base->w,base->h);
+                EndPaint( wnd->hWnd, &ps );
+            }
+            else if( wnd->base.backend==SGUI_OPENGL_CORE ||
+                     wnd->base.backend==SGUI_OPENGL_COMPAT )
+            {
+                sgui_window_make_current( (sgui_window*)wnd );
 
-            sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
+                sgui_canvas_begin( wnd->base.back_buffer, NULL );
+                sgui_canvas_clear( wnd->base.back_buffer, NULL );
+                sgui_canvas_end( wnd->base.back_buffer );
 
-            sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
-            sgui_window_swap_buffers( (sgui_window*)wnd );
-            sgui_window_make_current( NULL );
+                sgui_internal_window_fire_event(base, SGUI_EXPOSE_EVENT, &e);
+
+                sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
+                sgui_window_swap_buffers( (sgui_window*)wnd );
+                sgui_window_make_current( NULL );
+            }
         }
     default:
         return -1;
     }
 
     /* invalidate all dirty rects of the canvas */
-    num = sgui_canvas_num_dirty_rects( base->back_buffer );
-
-    if( wnd->base.backend==SGUI_NATIVE )
+    if( !base->override_canvas )
     {
-        for( i=0; i<num; ++i )
-        {
-            sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &sr, i );
+        num = sgui_canvas_num_dirty_rects( base->back_buffer );
 
-            SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
-            InvalidateRect( wnd->hWnd, &r, TRUE );
+        if( wnd->base.backend==SGUI_NATIVE )
+        {
+            for( i=0; i<num; ++i )
+            {
+                sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &sr, i );
+
+                SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
+                InvalidateRect( wnd->hWnd, &r, TRUE );
+            }
+
+            sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
         }
-
-        sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
-    }
-    else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-             wnd->base.backend==SGUI_OPENGL_COMPAT )
-    {
-        if( num )
+        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
+                 wnd->base.backend==SGUI_OPENGL_COMPAT )
         {
-            SetRect( &r, 0, 0, wnd->base.w-1, wnd->base.h-1 );
-            InvalidateRect( wnd->hWnd, &r, TRUE );
-            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
+            if( num )
+            {
+                SetRect( &r, 0, 0, wnd->base.w-1, wnd->base.h-1 );
+                InvalidateRect( wnd->hWnd, &r, TRUE );
+                sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
+            }
         }
     }
 

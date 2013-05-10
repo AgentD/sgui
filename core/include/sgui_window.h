@@ -375,6 +375,21 @@ SGUI_DLL void sgui_window_on_widget_event( sgui_window* wnd,
 /** \brief Get a pointer to the back buffer canvas object of the window */
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 
+/**
+ * \brief This function can be used to completely disable widget rendering
+ *        for a window
+ *
+ * When maually managing a window with, e.g. an OpenGL rendering context, it
+ * may be required to completely disable widget rendering and implement it
+ * outside the window code in different ways.
+ * The canvas still receives window events and gets resized after a call to
+ * this function. Only drawing is disabled.
+ *
+ * \param wnd      A pointer to the window.
+ * \param override Non-zero to override, zero to restore original state.
+ */
+SGUI_DLL void sgui_window_override_drawing( sgui_window* wnd, int override );
+
 
 
 #ifdef __cplusplus

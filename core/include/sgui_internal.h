@@ -312,7 +312,9 @@ struct sgui_window
 
     int visible;                /**< \brief Window visibility */
 
-    int backend;                /**< \breif Window backend used */
+    int backend;                /**< \brief Window backend used */
+
+    int override_canvas;        /**< \brief Override regular canvas usage */
 
     void* userptr;
 

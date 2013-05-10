@@ -243,7 +243,7 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
         /* redraw everything */
-        if( wnd->base.backend==SGUI_NATIVE )
+        if( wnd->base.backend==SGUI_NATIVE && !wnd->base.override_canvas )
             sgui_canvas_draw_widgets( wnd->base.back_buffer, 1 );
         break;
     case DestroyNotify:
@@ -267,74 +267,81 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
-        if( wnd->base.backend==SGUI_NATIVE )
+        if( !wnd->base.override_canvas )
         {
-            sgui_rect_set_size( &se.expose_event, e->xexpose.x, e->xexpose.y,
-                                e->xexpose.width, e->xexpose.height );
+            if( wnd->base.backend==SGUI_NATIVE )
+            {
+                sgui_rect_set_size( &se.expose_event, e->xexpose.x,
+                                    e->xexpose.y, e->xexpose.width,
+                                    e->xexpose.height );
 
-            SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+                SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
 
-            canvas_xlib_display( wnd->base.back_buffer,
-                                 e->xexpose.x, e->xexpose.y,
-                                 e->xexpose.width, e->xexpose.height );
-        }
-        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-                 wnd->base.backend==SGUI_OPENGL_COMPAT )
-        {
-            sgui_window_make_current( (sgui_window*)wnd );
+                canvas_xlib_display( wnd->base.back_buffer,
+                                     e->xexpose.x, e->xexpose.y,
+                                     e->xexpose.width, e->xexpose.height );
+            }
+            else if( wnd->base.backend==SGUI_OPENGL_CORE ||
+                     wnd->base.backend==SGUI_OPENGL_COMPAT )
+            {
+                sgui_window_make_current( (sgui_window*)wnd );
 
-            sgui_canvas_begin( wnd->base.back_buffer, NULL );
-            sgui_canvas_clear( wnd->base.back_buffer, NULL );
-            sgui_canvas_end( wnd->base.back_buffer );
+                sgui_canvas_begin( wnd->base.back_buffer, NULL );
+                sgui_canvas_clear( wnd->base.back_buffer, NULL );
+                sgui_canvas_end( wnd->base.back_buffer );
 
-            SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+                SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
 
-            sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
-            sgui_window_swap_buffers( (sgui_window*)wnd );
-            sgui_window_make_current( NULL );
+                sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
+                sgui_window_swap_buffers( (sgui_window*)wnd );
+                sgui_window_make_current( NULL );
+            }
         }
         break;
     };
 
     /* generate expose events for dirty rectangles */
-    num = sgui_canvas_num_dirty_rects( wnd->base.back_buffer );
-
-    exp.type       = Expose;
-    exp.serial     = 0;
-    exp.send_event = 1;
-    exp.display    = dpy;
-    exp.window     = wnd->wnd;
-    exp.count      = 0;
-
-    if( wnd->base.backend==SGUI_NATIVE )
+    if( !wnd->base.override_canvas )
     {
-        for( i=0; i<num; ++i )
+        num = sgui_canvas_num_dirty_rects( wnd->base.back_buffer );
+
+        exp.type       = Expose;
+        exp.serial     = 0;
+        exp.send_event = 1;
+        exp.display    = dpy;
+        exp.window     = wnd->wnd;
+        exp.count      = 0;
+
+        if( wnd->base.backend==SGUI_NATIVE )
         {
-            sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &r, i );
+            for( i=0; i<num; ++i )
+            {
+                sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &r, i );
 
-            exp.x      = r.left;
-            exp.y      = r.top;
-            exp.width  = r.right  - r.left + 1;
-            exp.height = r.bottom - r.top  + 1;
+                exp.x      = r.left;
+                exp.y      = r.top;
+                exp.width  = r.right  - r.left + 1;
+                exp.height = r.bottom - r.top  + 1;
 
-            XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
+                XSendEvent(dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp);
 
+            }
+
+            sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
         }
-
-        sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
-    }
-    else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-             wnd->base.backend==SGUI_OPENGL_COMPAT )
-    {
-        if( num )
+        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
+                 wnd->base.backend==SGUI_OPENGL_COMPAT )
         {
-            exp.x      = 0;
-            exp.y      = 0;
-            exp.width  = wnd->base.w;
-            exp.height = wnd->base.h;
+            if( num )
+            {
+                exp.x      = 0;
+                exp.y      = 0;
+                exp.width  = wnd->base.w;
+                exp.height = wnd->base.h;
 
-            XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
-            sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
+                XSendEvent(dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp);
+                sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
+            }
         }
     }
 }
@@ -540,7 +547,8 @@ void sgui_window_set_vsync( sgui_window* wnd, int vsync_on )
         SwapIntervalEXT = (void(*)(Display*,GLXDrawable,int))
                           LOAD_GLFUN( "glXSwapIntervalEXT" );
 
-        SwapIntervalEXT( dpy, TO_X11(wnd)->glx_wnd, vsync_on ? 1 : 0 );
+        if( SwapIntervalEXT )
+            SwapIntervalEXT( dpy, TO_X11(wnd)->glx_wnd, vsync_on ? 1 : 0 );
     }
 #endif
 }

@@ -47,9 +47,10 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
 
     if( window )
     {
-        window->w       = width;
-        window->h       = height;
-        window->backend = backend;
+        window->w               = width;
+        window->h               = height;
+        window->backend         = backend;
+        window->override_canvas = 0;
 
         sgui_skin_get_window_background_color( rgb );
         sgui_canvas_set_background_color( window->back_buffer, rgb );
@@ -167,7 +168,7 @@ void sgui_window_set_size( sgui_window* wnd,
         /* resize the canvas */
         sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
 
-        if( wnd->backend==SGUI_NATIVE )
+        if( wnd->backend==SGUI_NATIVE && !wnd->override_canvas )
             sgui_canvas_draw_widgets( wnd->back_buffer, 1 );
     }
 }
@@ -273,5 +274,11 @@ void sgui_window_set_userptr( sgui_window* wnd, void* ptr )
 void* sgui_window_get_userptr( sgui_window* wnd )
 {
     return wnd ? wnd->userptr : NULL;
+}
+
+void sgui_window_override_drawing( sgui_window* wnd, int override )
+{
+    if( wnd )
+        wnd->override_canvas = override;
 }
 
