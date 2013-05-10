@@ -69,35 +69,42 @@
   What are your plans?
   ********************
 
-  Short term:
-    - Tidy and simplify code
-        - Mainly backend cleans
-        - Utilize backend API for drawing
-        - Reduce memory hogging
+  Current milestone:
+    - Revamp text rendering (prerender text to server side buffer)
     - Complete OpenGL backend
-        - Complete method stubs
-        - OpenGL sub windows (no difference to normal windows for users)
-        - Keep abstract and reusable (think of possible OpenGL ES and
-          Direct3D expansions)
+        - Get text rendering to work
+        - Add core profile implementation
+        - Frame buffer configuration for sub view widget
+        - Implement context sharing & windowless resource loading context
+    - Implement horizontal scrolling for frame widget
+    - Implement continuos redrawing mode for sub view widget
     - Complete documentation
         - Internal structure in hacking chapter once settled
-    - Add more useful widgets
-    - Outline thread safety
-        - How can the library be used/benefit in a multithreaded program?
-        - Single GUI thread only?
-        - What functions can be used in seperate threads?
-        - Add mutices where needed (e.g. backend code)?
+        - Chapter on using OpenGL
+        - Add chapter on working with sgui in multithreaded programs
 
-  Mid term:
-    - Loadable GUI skin
-    - Built in dialog boxes like message box, file open and file safe
+  Next milestone:
+    - Add tab focus switching for mouseless usage
+    - Add list box widget
+    - Add combo box widget
+    - Add spinner widget
+    - Add slider widget
+    - Add icon view widget
+    - Add tree view widget
+    - Add directory view widget
+    - Add tooltips
+    - Add context menues
+    - Add window manager for managing and decorating sub windows
 
+  Next milestone:
+    - Add message box
+    - Add file select dialog
+    - Add font select dialog
+    - Add color select dialog
 
-  At all times:
-    - Keep at least the Xlib port stable, safe and leak free
-    - Don't produce compiler warnings
-    - Pass through valgrind flawlessly
-
+  Next milestone:
+    - Add OpenGL ES port similart to OpenGL port
+    - Add Direct3D port similart to OpenGL port
 
   This is shit!
   *************
