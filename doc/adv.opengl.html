@@ -1,0 +1,178 @@
+<html>
+<head>
+    <title>SGUI - Advanced usage</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>SGUI</h1>
+
+<h2>Advanced usage</h2>
+
+<h3>SGUI & OpenGL&reg;</h3>
+
+The SGUI library has native support for OpenGL&reg; rendering, both using the
+older 1.x and 2.x versions, as well as using the 3.x and above core profile
+versions.<br>
+<br>
+This means that SGUI can be used for creating a window with an OpenGL&reg;
+context to use for rendering, render widgets inside such a window without
+additional overhead and creating a widget that can be used to render to a sub
+area inside a window using OpenGL&reg; functions.
+
+<h4>Creating a managed OpenGL&reg; window</h4>
+
+The code for a small example program can be found in the file <b>extras/gl0.c</b>.
+For the sake of simplicity, compatibillity profile has been used.<br>
+<br>
+To create a window with an OpenGL&reg; context, the
+<a href="../doxydoc/html/sgui__window_8h.html#ab264918fbb46cefa0927ad3596b6c424">sgui_window_create_desc</a>
+function has to be used instead of the regular sgui_window_create function.
+The sgui_window_create_desc function uses a pointer to an
+<a href="../doxydoc/html/structsgui__window__description.html">sgui_window_description</a>
+structure that can hold advanced parameters.<br>
+<br>
+In the case of OpenGL&reg; windows, the following fields are of interest
+to us:
+<ul>
+<li><b>backend</b> This field specifies what backend the window should use. To use the plain, normal
+    window system, specify <b>SGUI_NATIVE</b>. For OpenGL&reg; rendering, specify either
+    <b>SGUI_OPENGL_CORE</b> or <b>SGUI_OPENGL_COMPAT</b>. The former uses a core profile context
+    while the later uses compatibillity profile.</li>
+<li><b>doublebuffer</b> Set this to a non-zero value (or <b>SGUI_DOUBLEBUFFERED</b>)
+    to request a context with a distinct front and back buffer.</li>
+<li><b>bits_per_pixel</b> This specifies the number of color bits per pixel (valid values: 16, 24 or 32)</li>
+<li><b>depth_bits</b> This specifies the number of depth bits per pixel, 0 means don't create a depth buffer</li>
+<li><b>stencil_bits</b> This specifies the number of stencil bits per pixel, 0 means don't create a stencil buffer</li>
+<li><b>samples</b> This specifies the number of samples per pixel for multisample anti aliasing, 0 means don't use
+    MSAA</li></li>
+</ul>
+
+When creating the window with the description structure pointer, an OpenGL&reg;
+context is created automatically. The window behaves like a regular SGUI
+window. Widgets can be attached to it and it handles events. The are only a 
+few differences:
+<ul>
+<li>The widgets are drawn using the OpenGL&reg; API</li>
+<li>When something has to be redrawn, the entire window is redrawn</li>
+<li>An <b>SGUI_EXPOSE_EVENT</b> event is generated after clearing and
+    <i>right before</i> the widgets are drawn</li>
+</ul>
+
+In order to draw to the window, just <a href="using.events.html">hook a window
+event callback</a> to the window that uses regular OpenGL&reg; function to
+draw the window background when an <b>SGUI_EXPOSE_EVENT</b> is generated.
+You don't need to worry about making the context current, clearing the
+color buffer to the background color, swapping buffers once drawing is done,
+or even adjusting the viewport to the window size. Everything is done
+automatically. You can even have multiple OpenGL&reg; windows and it will just
+work.<br>
+<br>
+The window can be used just like every other normal SGUI window, however it
+is not suited for interactive OpenGL&reg; rendering demands (i.e. pumping out
+frame after frame at interactive frame rates), since the window is only
+redrawn when it has to.<br>
+<br>
+We will address that issue in the next section.
+
+<h4>Creating a manually managed OpenGL&reg; window</h4>
+
+The code for a small example program can be found in the file <b>extras/gl1.c</b>.
+For the sake of simplicity, compatibillity profile has been used.<br>
+<br>
+To render at interactive frame rates, the behaviour of the SGUI main loop has
+to be altered and, since normal widget rendering would come in the way, you
+also need to override the widget rendering of the window itself. But with
+SGUI, this is way easier than it sounds.<br>
+<br>
+The window is created in the very same way as in the section above. The major
+difference here is, that rendering is done inside the main loop instead of
+an event function. After creating the window and before entering the main
+loop, automatic widget drawing has to be disabled and the rendering context
+has to be made current.<br>
+<br>
+Widget rendering can be disabled by a call to
+<a href="../doxydoc/html/sgui__window_8h.html#a958c9c7d2c6eff74eb9138571cfdaab9">sgui_window_override_drawing</a>,
+passing <b>SGUI_OVERRIDE_ALL</b> as a second parameter, to disable widget
+rendering, background clearing and event processing for the widgets.
+Making the rendering context current just requires a call to
+<a href="../doxydoc/html/sgui__window_8h.html#a8760950071f69d126579127c1af6fbe7">sgui_window_make_current</a>.<br>
+<br>
+The major difference is the main loop:
+
+<p class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">while</font>( <a href="../doxydoc/html/sgui_8h.html#a7a1935c5b1a578a076e8d3122882886d">sgui_main_loop_step</a>( ) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.opengl.org/sdk/docs/man3/xhtml/glClear.xml">glClear</a>( <font class="number">GL_COLOR_BUFFER_BIT</font> );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font class="comment">/* OpenGL rendering commands go here */</font><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#aee86b2e52c44ac1b68ec281ac555de3c">sgui_window_swap_buffers</a>( wnd );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+</p>
+Instead of calling the regular <a href="../doxydoc/html/sgui_8h.html#aef80e5a681dbca01d09855ebb1e3e797">sgui_main_loop</a>,
+the <a href="../doxydoc/html/sgui_8h.html#a7a1935c5b1a578a076e8d3122882886d">sgui_main_loop_step</a> function is used.
+This function just receives <i>one</i> window system message, processes it,
+and returns immediately. If there are no messsages, it returns immediately.
+The return value is non-zero if there are still visible windows. After every
+main loop step, rendering to the window is performed. At the end of the loop,
+when rendering is done, the
+<a href="../doxydoc/html/sgui__window_8h.html#aee86b2e52c44ac1b68ec281ac555de3c">sgui_window_swap_buffers</a>
+function is called to swap the front and the back buffer (in case of double
+buffering). This way, rendering at interactive frame rates can be achived.<br>
+<br>
+In some applications, it might be of interesst to occasionally enable normal
+user interface rendering (widgets and what not) ontop of the interactive
+OpenGL&reg; rendering. This can be achieved easily using the handy 
+<a href="../doxydoc/html/sgui__window_8h.html#a958c9c7d2c6eff74eb9138571cfdaab9">sgui_window_override_drawing</a>
+function. To renable UI drawing, pass <b>SGUI_OVERRIDE_CLEAR</b> as second
+argument. This re-enables internal event processing for widgets and widget
+rendering, but prevents the window from clearing the background. All that's
+left to do, is get the canvas object from the window (more on that in the
+<a href="hacking.html">hacking chapter</a>), using the
+<a href="../doxydoc/html/sgui__window_8h.html#a6bc04db9deec270669e52d798f12f92d">sgui_window_get_canvas</a>
+function and then, force drawing of all widgets using the
+<a href="../doxydoc/html/sgui__canvas_8h.html#a605aff9a40116164979088f1a3259a1d">sgui_canvas_draw_widgets</a>
+function after drawing to the window.
+
+<h4>Creating an OpenGL&reg; subwindow</h4>
+
+Normally, when an application needs OpenGL&reg; rendering to display
+something, but does not neccessarily need interactive rendering, something
+like a small display area inside a normal window is desired. Of course, SGUI
+supports just that too.<br>
+<br>
+If you read the doxygen documentation on the <a href="../doxydoc/html/structsgui__window__description.html">sgui_window_description</a>
+structure (or read the header), you may have noticed, that the structure has a
+<b>parent</b> attribute. Using this attribute, a window (may be with an
+OpenGL&reg; rendering context) can be created that resides undecorated,
+untouched by the window manager inside a regular window.<br>
+<br>
+To make your life easier, SGUI provides you with a nice widget that
+encapsulates just that in a simple interface and behaves like a normal widget.
+<br>
+<br>
+The widget in question is called
+<a href="../doxydoc/html/sgui__subview_8h.html">subview widget</a>. It can be
+created like a normal widget, attached to a window, or even as a child widget
+to another widget, and so on.<br>
+<br>
+To draw to the widget, a callback can be registered that is called as soon as
+the underlying window requires redrawing. Again, making the context current,
+setting the viewport, clearing the background and swapping the buffers is
+already taken care off.<br>
+<br>
+In addition, a callback can be registered that receives events from the
+underlying window (mouse movements, keyboard actions, etc...) and the window
+itself can be obtained to, for instance, attach widgets to the subwindow or
+do other fancy stuff.
+
+<hr>
+<a href="using.children.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.html">Next</a>
+
+</body>
+</html>
+
