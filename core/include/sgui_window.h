@@ -101,6 +101,7 @@ typedef struct
     int bits_per_pixel; /**< \brief The desired number of bits per pixel */
     int depth_bits;   /**< \brief The number of bits for the depth buffer */
     int stencil_bits; /**< \brief The number of bits for the stencil buffer */
+    int samples;    /**< \brief Desired number of multisampling samples */
 }
 sgui_window_description;
 

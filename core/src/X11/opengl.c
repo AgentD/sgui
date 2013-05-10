@@ -107,16 +107,22 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
                          sgui_window_description* desc )
 {
     GLXFBConfig* fbl;
-    int fbcount, attr[20];
-
-    set_attributes( attr, desc->bits_per_pixel, desc->depth_bits,
-                    desc->stencil_bits, desc->doublebuffer, 0 );
+    int fbcount, attr[20], samples;
 
     *fbc  = NULL;
     *vi   = NULL;
     *cmap = 0;
 
-    fbl = glXChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
+    samples = desc->samples;
+
+    do
+    {
+        set_attributes( attr, desc->bits_per_pixel, desc->depth_bits,
+                        desc->stencil_bits, desc->doublebuffer, samples-- );
+
+        fbl = glXChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
+    }
+    while( !fbl && samples>=0 );
 
     if( fbl && fbcount )
     {

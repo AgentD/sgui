@@ -72,7 +72,7 @@ int main( int argc, char** argv )
     sgui_font* font_bold;
     sgui_font* font_ital;
     sgui_font* font_boit;
-    sgui_window_description desc = { NULL, 100, 100, 1, 0, 1, 32, 24, 8 };
+    sgui_window_description desc = { NULL, 100, 100, 1, 0, 1, 32, 24, 8, 4 };
 
     for( x=1; x<argc; ++x )
     {

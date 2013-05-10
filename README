@@ -77,7 +77,6 @@
     - Complete OpenGL backend
         - Complete method stubs
         - OpenGL sub windows (no difference to normal windows for users)
-        - Anti aliasing
         - Keep abstract and reusable (think of possible OpenGL ES and
           Direct3D expansions)
     - Complete documentation

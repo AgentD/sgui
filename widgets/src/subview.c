@@ -155,6 +155,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     desc.bits_per_pixel = 32;
     desc.depth_bits     = 16;
     desc.stencil_bits   = 0;
+    desc.samples        = 0;
 
     view->subwnd = sgui_window_create_desc( &desc );
 

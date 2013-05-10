@@ -37,6 +37,7 @@
 #define DEPTH_ENABLE 0x02
 #define DEPTH_WRITE  0x04
 #define BLEND_ENABLE 0x08
+#define MS_ENABLE    0x10
 
 
 
@@ -107,6 +108,10 @@ void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     glDisable( GL_DEPTH_TEST );
     glDepthMask( GL_FALSE );
 
+    /* disable multisampling */
+    cv->state |= glIsEnabled( GL_MULTISAMPLE ) ? MS_ENABLE : 0;
+    glDisable( GL_MULTISAMPLE );
+
     /* start rendering rectangles */
     glBegin( GL_QUADS );
 
@@ -118,6 +123,10 @@ void canvas_gl_end( sgui_canvas* canvas )
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
 
     glEnd( );
+
+    /* restore multisampling */
+    if( cv->state & MS_ENABLE )
+        glEnable( GL_MULTISAMPLE );
 
     /* restore depth test and depth write mask */
     glDepthMask( (cv->state & DEPTH_WRITE)!=0 );
