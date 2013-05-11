@@ -126,9 +126,8 @@ In some applications, it might be of interesst to occasionally enable normal
 user interface rendering (widgets and what not) ontop of the interactive
 OpenGL&reg; rendering. This can be achieved easily using the handy 
 <a href="../doxydoc/html/sgui__window_8h.html#a958c9c7d2c6eff74eb9138571cfdaab9">sgui_window_override_drawing</a>
-function. To renable UI drawing, pass <b>SGUI_OVERRIDE_CLEAR</b> as second
-argument. This re-enables internal event processing for widgets and widget
-rendering, but prevents the window from clearing the background. All that's
+function. To renable UI drawing, pass <b>SGUI_OVERRIDE_DRAW</b> as second
+argument. This re-enables internal event processing for widgets. All that's
 left to do, is get the canvas object from the window (more on that in the
 <a href="hacking.html">hacking chapter</a>), using the
 <a href="../doxydoc/html/sgui__window_8h.html#a6bc04db9deec270669e52d798f12f92d">sgui_window_get_canvas</a>
