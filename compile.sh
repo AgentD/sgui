@@ -96,5 +96,6 @@ else
     gcc $FLAGS extras/simple.c -o build/bin/unix/simple
     gcc $FLAGS -lGL extras/gl0.c -o build/bin/unix/gl0
     gcc $FLAGS -lGL extras/gl1.c -o build/bin/unix/gl1
+    gcc $FLAGS -lGL extras/gl2.c -o build/bin/unix/gl2
 fi
 

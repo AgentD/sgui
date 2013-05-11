@@ -106,6 +106,7 @@ do_build( )
         "$3"gcc extras/simple.c $FLAGS -o build/bin/$1/simple.exe
         "$3"gcc extras/gl0.c $FLAGS -lopengl32 -o build/bin/$1/gl0.exe
         "$3"gcc extras/gl1.c $FLAGS -lopengl32 -o build/bin/$1/gl1.exe
+        "$3"gcc extras/gl2.c $FLAGS -lopengl32 -o build/bin/$1/gl2.exe
     fi
 }
 
