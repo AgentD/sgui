@@ -141,6 +141,14 @@ void init_keycodes( );
 /* in keycode_translate.c: convert KeySym to an sgui key code */
 int key_entries_translate( KeySym key );
 
+
+
+void create_font_map( void );
+
+void destroy_font_map( void );
+
+/* in font_cache.c: draw a glyph onto a destination picture using a given
+   pen picture. Load the glyph into the cache if required. */
 int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
                 Picture dst, Picture pen );
 
