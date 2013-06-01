@@ -141,5 +141,8 @@ void init_keycodes( );
 /* in keycode_translate.c: convert KeySym to an sgui key code */
 int key_entries_translate( KeySym key );
 
+int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
+                Picture dst, Picture pen );
+
 #endif /* INTERNAL_H */
 
