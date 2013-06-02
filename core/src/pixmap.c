@@ -45,8 +45,8 @@ void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
 
 void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
                        const unsigned char* data, int srcx, int srcy,
-                       unsigned int scan, unsigned int width,
-                       unsigned int height, int format )
+                       unsigned int width, unsigned int height,
+                       unsigned int scan, int format )
 {
     int bpp =  format==SGUI_RGBA8 ? 4 :
               (format==SGUI_RGB8  ? 3 : 1);
@@ -58,7 +58,7 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
         return;
 
     if( (srcx+width)>=scan )
-        width = scan - dstx;
+        width = scan - srcx;
 
     if( (dstx+width)>=pixmap->width )
         width = pixmap->width - dstx;
