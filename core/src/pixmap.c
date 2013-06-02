@@ -48,7 +48,8 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
                        unsigned int scan, unsigned int width,
                        unsigned int height, int format )
 {
-    int bpp = format==SGUI_RGBA8 ? 4 : 3;
+    int bpp =  format==SGUI_RGBA8 ? 4 :
+              (format==SGUI_RGB8  ? 3 : 1);
 
     if( !pixmap || !data || !width || !height || srcx>=(int)scan )
         return;

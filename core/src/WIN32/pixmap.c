@@ -35,8 +35,13 @@ static void gdi_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
 {
     unsigned char *dst, *dstrow;
     const unsigned char *src, *row;
-    unsigned int i, j, alpha, srcbpp = format==SGUI_RGBA8 ? 4 : 3;
-    int bpp = ((gdi_pixmap*)pixmap)->format==SGUI_RGBA8 ? 4 : 3;
+    unsigned int i, j, alpha, srcbpp;
+    int bpp;
+
+    srcbpp = format==SGUI_RGBA8 ? 4 : (format==SGUI_RGB8 ? 3 : 1);
+
+    bpp = ((gdi_pixmap*)pixmap)->format==SGUI_RGBA8 ? 4 :
+          (((gdi_pixmap*)pixmap)->format==SGUI_RGB8 ? 3 : 1);
 
     dst = ((gdi_pixmap*)pixmap)->ptr + (dstx + dsty*pixmap->width)*srcbpp;
 
@@ -46,14 +51,24 @@ static void gdi_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
         for( dstrow=dst, row=src, i=0; i<width; ++i, row+=srcbpp,
                                                      dstrow+=bpp )
         {
-            alpha = bpp==4 ? row[3] : 0xFF;
+            if( srcbpp>=3 )
+            {
+                alpha = srcbpp==4 ? row[3] : 0xFF;
 
-            dstrow[0] = row[2]*alpha >> 8;
-            dstrow[1] = row[1]*alpha >> 8;
-            dstrow[2] = row[0]*alpha >> 8;
+                dstrow[0] = row[2]*alpha >> 8;
+                dstrow[1] = row[1]*alpha >> 8;
+                dstrow[2] = row[0]*alpha >> 8;
 
-            if( srcbpp==4 )
-                dstrow[3] = alpha;
+                if( bpp==4 )
+                    dstrow[3] = alpha;
+            }
+            else
+            {
+                dstrow[0] = dstrow[1] = dstrow[2] = *row;
+
+                if( bpp==4 )
+                    dstrow[3] = *row;
+            }
         }
     }
 }
@@ -81,11 +96,12 @@ sgui_pixmap* gdi_pixmap_create( unsigned int width, unsigned int height,
     pix->pm.load    = gdi_pixmap_load;
 
     info.bmiHeader.biSize        = sizeof(info.bmiHeader);
-    info.bmiHeader.biBitCount    = format==SGUI_RGBA8 ? 32 : 24;
-    info.bmiHeader.biCompression = BI_RGB;
     info.bmiHeader.biPlanes      = 1;
     info.bmiHeader.biWidth       = width;
     info.bmiHeader.biHeight      = -((int)height);
+    info.bmiHeader.biCompression = BI_RGB;
+    info.bmiHeader.biBitCount    = format==SGUI_RGBA8 ? 32 :
+                                   format==SGUI_RGB8 ? 24 : 8;
 
     pix->hDC = CreateCompatibleDC( NULL );
 

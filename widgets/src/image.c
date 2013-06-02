@@ -110,7 +110,8 @@ sgui_widget* sgui_image_create( int x, int y,
 
     if( !useptr )
     {
-        num_bytes = width*height*(format==SGUI_RGBA8 ? 4 : 3);
+        num_bytes = width*height*(format==SGUI_RGBA8 ? 4 :
+                                  (format==SGUI_RGB8 ? 3 : 1));
         img->data = malloc( num_bytes );
 
         if( !img->data )

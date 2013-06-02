@@ -50,8 +50,9 @@ typedef void (* sgui_widget_callback ) ( sgui_widget* widget, int type,
 
 
 
-#define SGUI_RGB8  0
-#define SGUI_RGBA8 1
+#define SGUI_A8    0
+#define SGUI_RGB8  1
+#define SGUI_RGBA8 2
 
 
 

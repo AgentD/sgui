@@ -39,24 +39,57 @@ void xlib_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
                        const unsigned char* data, unsigned int scan,
                        unsigned int width, unsigned int height, int format )
 {
-    XRenderColor c;
     const unsigned char *src, *row;
-    unsigned int i, j, alpha, bpp = format==SGUI_RGB8 ? 3 : 4;
+    unsigned int i, j;
+    XRenderColor c;
+    Picture pic;
 
-    for( src=data, j=0; j<height; ++j, src+=scan*bpp )
+    pic = ((xlib_pixmap*)pixmap)->pic;
+
+    if( format==SGUI_RGBA8 )
     {
-        for( row=src, i=0; i<width; ++i, row+=bpp )
+        for( src=data, j=0; j<height; ++j, src+=scan*4 )
         {
-            alpha = bpp==4 ? row[3] : 0xFF;
+            for( row=src, i=0; i<width; ++i, row+=4 )
+            {
+                /* Xrender expects premultiplied alpha! */
+                c.red   = row[0]*row[3];
+                c.green = row[1]*row[3];
+                c.blue  = row[2]*row[3];
+                c.alpha = row[3]<<8;
 
-            /* Xrender expects premultiplied alpha! */
-            c.red   = row[0]*alpha;
-            c.green = row[1]*alpha;
-            c.blue  = row[2]*alpha;
-            c.alpha = alpha<<8;
+                XRenderFillRectangle( dpy, PictOpSrc, pic, &c,
+                                      dstx+i, dsty+j, 1, 1 );
+            }
+        }
+    }
+    else if( format==SGUI_RGB8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan*3 )
+        {
+            for( row=src, i=0; i<width; ++i, row+=3 )
+            {
+                c.red   = row[0]<<8;
+                c.green = row[1]<<8;
+                c.blue  = row[2]<<8;
+                c.alpha = 0xFFFF;
 
-            XRenderFillRectangle( dpy, PictOpSrc, ((xlib_pixmap*)pixmap)->pic,
-                                  &c, dstx+i, dsty+j, 1, 1 );
+                XRenderFillRectangle( dpy, PictOpSrc, pic, &c,
+                                      dstx+i, dsty+j, 1, 1 );
+            }
+        }
+    }
+    else
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan )
+        {
+            for( row=src, i=0; i<width; ++i, ++row )
+            {
+                c.red = c.green = c.blue = c.alpha = (*row)<<8;
+
+                XRenderFillRectangle( dpy, PictOpSrc, pic, &c,
+                                      dstx+i, dsty+j, 1, 1 );
+            }
         }
     }
 }
@@ -82,7 +115,8 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
 
     /* try to create an X11 Pixmap */
     pixmap->pix = XCreatePixmap( dpy, wnd, width, height,
-                                 format==SGUI_RGB8 ? 24 : 32 );
+                                 format==SGUI_RGBA8 ? 32 :
+                                  format==SGUI_RGB8 ? 24 : 8 );
 
     if( !pixmap->pix )
     {
@@ -91,10 +125,12 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
     }
 
     /* try to create XRender picture */
-    if( format==SGUI_RGB8 )
+    if( format==SGUI_RGBA8 )
+        fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
+    else if( format==SGUI_RGB8 )
         fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
     else
-        fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
+        fmt = XRenderFindStandardFormat( dpy, PictStandardA8 );
 
     pixmap->pic = XRenderCreatePicture( dpy, pixmap->pix, fmt, 0, NULL );
 

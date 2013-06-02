@@ -48,7 +48,8 @@ void gl_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     glPixelStorei( GL_UNPACK_ROW_LENGTH, scan );
 
     glTexSubImage2D( GL_TEXTURE_2D, 0, dstx, dsty, width, height,
-                     format==SGUI_RGB8 ? GL_RGB : GL_RGBA,
+                      format==SGUI_RGB8 ? GL_RGB :
+                     (format==SGUI_RGBA8 ? GL_RGBA : GL_ALPHA),
                      GL_UNSIGNED_BYTE, data );
 
     glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
@@ -98,10 +99,15 @@ sgui_pixmap* gl_pixmap_create( unsigned int width, unsigned int height,
         glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
                       GL_RGBA, GL_UNSIGNED_BYTE, NULL );
     }
-    else
+    else if( format==SGUI_RGB8 )
     {
         glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0,
                       GL_RGB, GL_UNSIGNED_BYTE, NULL );
+    }
+    else
+    {
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA8, width, height, 0,
+                      GL_RED, GL_UNSIGNED_BYTE, NULL );
     }
 
     /* disable mipmapping */

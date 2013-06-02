@@ -151,7 +151,7 @@ static void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
             }
         }
     }
-    else
+    else if( format==SGUI_RGB8 )
     {
         for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
         {
@@ -160,6 +160,16 @@ static void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
                 row[0] = color[2];
                 row[1] = color[1];
                 row[2] = color[0];
+            }
+        }
+    }
+    else
+    {
+        for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
+        {
+            for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
+            {
+                row[0] = row[1] = row[2] = *color;
             }
         }
     }
