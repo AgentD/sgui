@@ -61,12 +61,15 @@ void xlib_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     }
 }
 
+/****************************************************************************/
+
 sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
-                                 int format )
+                                 int format, Window wnd )
 {
     xlib_pixmap* pixmap = NULL;
     XRenderPictFormat* fmt;
 
+    /* create pixmap structure */
     pixmap = malloc( sizeof(xlib_pixmap) ); 
 
     if( !pixmap )
@@ -78,7 +81,7 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
     pixmap->pm.load    = xlib_pixmap_load;
 
     /* try to create an X11 Pixmap */
-    pixmap->pix = XCreatePixmap( dpy, DefaultRootWindow(dpy), width, height,
+    pixmap->pix = XCreatePixmap( dpy, wnd, width, height,
                                  format==SGUI_RGB8 ? 24 : 32 );
 
     if( !pixmap->pix )
@@ -87,6 +90,7 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
         return NULL;
     }
 
+    /* try to create XRender picture */
     if( format==SGUI_RGB8 )
         fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
     else

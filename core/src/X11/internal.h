@@ -133,7 +133,7 @@ void gl_swap_buffers( sgui_window* wnd );
 
 /* pixmap.c: create an xlib pixmap */
 sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
-                                 int format );
+                                 int format, Window wnd );
 
 /* in keycode_translate.c: initialise keycode symbol lookup table */
 void init_keycodes( );

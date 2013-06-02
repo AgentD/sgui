@@ -184,9 +184,9 @@ sgui_pixmap* canvas_xlib_create_pixmap( sgui_canvas* canvas,
                                         unsigned int width,
                                         unsigned int height, int format )
 {
-    (void)canvas;
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
 
-    return xlib_pixmap_create( width, height, format );
+    return xlib_pixmap_create( width, height, format, cv->wnd );
 }
 
 /************************ internal canvas functions ************************/
