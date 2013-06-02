@@ -49,7 +49,6 @@ static Pixmap font_pixmap = 0;
 static Picture font_pic = 0;
 static int next_x = 0, next_y = 0;
 static unsigned int row_height = 0;
-static int refcount = 0;
 
 static GLYPH* root = NULL;
 
@@ -64,43 +63,40 @@ static GLYPH* root = NULL;
 
 
 
-void create_font_map( void )
+int create_font_cache( void )
 {
     XRenderPictFormat* fmt;
     XRenderColor c;
 
-    if( !refcount )
+    root = NULL;
+    next_x = 0;
+    next_y = 0;
+    row_height = 0;
+
+    /* create pixmap and picture */
+    font_pixmap = XCreatePixmap( dpy, DefaultRootWindow(dpy),
+                                 FONT_MAP_WIDTH, FONT_MAP_HEIGHT, 8 );
+
+    if( !font_pixmap )
+        return 0;
+
+    fmt = XRenderFindStandardFormat( dpy, PictStandardA8 );
+    font_pic = XRenderCreatePicture( dpy, font_pixmap, fmt, 0, NULL );
+
+    if( !font_pic )
     {
-        root = NULL;
-        next_x = 0;
-        next_y = 0;
-        row_height = 0;
-
-        /* create pixmap and picture */
-        font_pixmap = XCreatePixmap( dpy, DefaultRootWindow(dpy),
-                                     FONT_MAP_WIDTH, FONT_MAP_HEIGHT, 8 );
-
-        if( !font_pixmap )
-            return;
-
-        fmt = XRenderFindStandardFormat( dpy, PictStandardA8 );
-        font_pic = XRenderCreatePicture( dpy, font_pixmap, fmt, 0, NULL );
-
-        if( !font_pic )
-        {
-            XFreePixmap( dpy, font_pixmap );
-            font_pixmap = 0;
-            return;        
-        }
-
-        /* "initialise" the font pixmap */
-        c.red = c.green = c.blue = c.alpha = 0x0000;
-
-        XRenderFillRectangle( dpy, PictOpSrc, font_pic, &c,
-                              0, 0, FONT_MAP_WIDTH, FONT_MAP_HEIGHT );
+        XFreePixmap( dpy, font_pixmap );
+        font_pixmap = 0;
+        return 0;
     }
 
-    ++refcount;
+    /* "initialise" the font pixmap */
+    c.red = c.green = c.blue = c.alpha = 0x0000;
+
+    XRenderFillRectangle( dpy, PictOpSrc, font_pic, &c,
+                          0, 0, FONT_MAP_WIDTH, FONT_MAP_HEIGHT );
+
+    return 1;
 }
 
 static void destroy_tree( GLYPH* g )
@@ -114,27 +110,22 @@ static void destroy_tree( GLYPH* g )
     free( g );
 }
 
-void destroy_font_map( void )
+void destroy_font_cache( void )
 {
-    --refcount;
+    if( font_pic )
+        XRenderFreePicture( dpy, font_pic );
 
-    if( !refcount )
-    {
-        if( font_pic )
-            XRenderFreePicture( dpy, font_pic );
+    if( font_pixmap )
+        XFreePixmap( dpy, font_pixmap );
 
-        if( font_pixmap )
-            XFreePixmap( dpy, font_pixmap );
+    destroy_tree( root );
 
-        destroy_tree( root );
-
-        root = NULL;
-        next_x = 0;
-        next_y = 0;
-        font_pic = 0;
-        font_pixmap = 0;
-        row_height = 0;
-    }
+    root = NULL;
+    next_x = 0;
+    next_y = 0;
+    font_pic = 0;
+    font_pixmap = 0;
+    row_height = 0;
 }
 
 /****************************************************************************/

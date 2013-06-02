@@ -87,6 +87,13 @@ int sgui_init( void )
 
     XSetErrorHandler( xlib_swallow_errors );
 
+    /* try to initialise the font cache */
+    if( !create_font_cache( ) )
+    {
+        XCloseDisplay( dpy );
+        return 0;
+    }
+
     /* create input method */
     im = XOpenIM( dpy, NULL, NULL, NULL );
 
@@ -107,6 +114,8 @@ int sgui_init( void )
 
 void sgui_deinit( void )
 {
+    destroy_font_cache( );
+
     if( im )
         XCloseIM( im );
 

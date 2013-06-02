@@ -39,8 +39,6 @@ static sgui_font* sgui_font_load_common( unsigned int pixel_height )
 {
     sgui_font* font;
 
-    create_font_map( );
-
     /* allocate font structure */
     font = malloc( sizeof(sgui_font) );
 
@@ -122,8 +120,6 @@ void sgui_font_destroy( sgui_font* font )
 {
     if( font )
     {
-        destroy_font_map( );
-
         FT_Done_Face( font->face );
 
         free( font->buffer );

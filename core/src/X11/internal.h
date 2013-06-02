@@ -143,9 +143,9 @@ int key_entries_translate( KeySym key );
 
 
 
-void create_font_map( void );
+int create_font_cache( void );
 
-void destroy_font_map( void );
+void destroy_font_cache( void );
 
 /* in font_cache.c: draw a glyph onto a destination picture using a given
    pen picture. Load the glyph into the cache if required. */
