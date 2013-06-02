@@ -116,6 +116,25 @@ static void canvas_xlib_blend( sgui_canvas* canvas, int x, int y,
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
+static void canvas_xlib_blend_glyph( sgui_canvas* canvas, int x, int y,
+                                     sgui_pixmap* pixmap, sgui_rect* r,
+                                     unsigned char* color )
+{
+    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    XRenderColor c;
+
+    c.red   = color[0]<<8;
+    c.green = color[1]<<8;
+    c.blue  = color[2]<<8;
+    c.alpha = 0xFFFF;
+
+    XRenderFillRectangle( dpy, PictOpSrc, cv->pen, &c, 0, 0, 1, 1 );
+
+    XRenderComposite( dpy, PictOpOver, cv->pen, ((xlib_pixmap*)pixmap)->pic,
+                      cv->pic, 0, 0, r->left, r->top, x, y,
+                      SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
+}
+
 static void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
                                   unsigned char* color, int format )
 {
@@ -147,20 +166,12 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
     unsigned int i, len = 0;
     unsigned long character, previous=0;
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderColor c;
     XRectangle r;
-
-    c.red   = color[0]<<8;
-    c.green = color[1]<<8;
-    c.blue  = color[2]<<8;
-    c.alpha = 0xFFFF;
 
     r.x = canvas->sc.left;
     r.y = canvas->sc.top;
     r.width = SGUI_RECT_WIDTH( canvas->sc );
     r.height = SGUI_RECT_HEIGHT( canvas->sc );
-
-    XRenderFillRectangle( dpy, PictOpSrc, cv->pen, &c, 0, 0, 1, 1 );
     XRenderSetPictureClipRectangles( dpy, cv->pic, 0, 0, &r, 1 );
 
     /* for each character */
@@ -173,7 +184,7 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
         x += sgui_font_get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
-        x += draw_glyph( font, character, x, y, cv->pic, cv->pen ) + 1;
+        x += draw_glyph( font, character, x, y, canvas, color ) + 1;
 
         /* store previous glyph index for kerning */
         previous = character;
@@ -271,6 +282,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.resize        = canvas_xlib_resize;
     cv->canvas.blit          = canvas_xlib_blit;
     cv->canvas.blend         = canvas_xlib_blend;
+    cv->canvas.blend_glyph   = canvas_xlib_blend_glyph;
     cv->canvas.clear         = canvas_xlib_clear;
     cv->canvas.draw_box      = canvas_xlib_draw_box;
     cv->canvas.draw_string   = canvas_xlib_draw_string;

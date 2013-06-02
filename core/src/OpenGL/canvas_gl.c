@@ -260,6 +260,13 @@ void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
     glVertex2i( r->left,    r->bottom+1 );
 }
 
+void canvas_gl_blend_glyph( sgui_canvas* canvas, int x, int y,
+                            sgui_pixmap* pixmap, sgui_rect* r,
+                            unsigned char* color )
+{
+    (void)canvas; (void)x; (void)y; (void)pixmap; (void)r; (void)color;
+}
+
 int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
                            sgui_font* font, unsigned char* color,
                            const char* text, unsigned int length )
@@ -287,6 +294,7 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
     cv->canvas.clear = canvas_gl_clear;
     cv->canvas.blit = canvas_gl_blit;
     cv->canvas.blend = canvas_gl_blend;
+    cv->canvas.blend_glyph = canvas_gl_blend_glyph;
     cv->canvas.draw_box = canvas_gl_draw_box;
     cv->canvas.draw_string = canvas_gl_draw_string;
     cv->canvas.create_pixmap = canvas_gl_create_pixmap;

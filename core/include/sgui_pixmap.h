@@ -40,6 +40,8 @@
  * \param dsty     Offset from the top of the destination.
  * \param dstrect  A subrect within the pixmap to draw to.
  * \param data     A pointer to the data buffer of which to upload a portion.
+ *                 Passing NULL clears the specified portion of a pixmap to
+ *                 all 0.
  * \param srcx     Offset from the left of the source buffer to start reading.
  * \param srcy     Offset from the top of the source buffer to start reading.
  * \param width    The width of the source buffer.

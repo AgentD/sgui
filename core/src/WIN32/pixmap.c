@@ -45,6 +45,22 @@ static void gdi_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
 
     dst = ((gdi_pixmap*)pixmap)->ptr + (dstx + dsty*pixmap->width)*srcbpp;
 
+    if( !data )
+    {
+        for( j=0; j<height; ++j, dst+=pixmap->width*bpp )
+        {
+            for( dstrow=dst, i=0; i<width; ++i, dstrow+=bpp )
+            {
+                dstrow[0] = dstrow[1] = dstrow[2] = 0x00;
+
+                if( bpp==4 )
+                    dstrow[3] = 0x00;
+            }
+        }
+
+        return;
+    }
+
     for( src=data, j=0; j<height; ++j, src+=scan*srcbpp,
                                        dst+=pixmap->width*bpp )
     {

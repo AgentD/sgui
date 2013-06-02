@@ -244,15 +244,11 @@ struct sgui_canvas
     /**
      * \brief Blit onto a canvas
      *
-     * \param canvas          A pointer to the canvas.
-     * \param x               Distance from the left of the canvas
-     * \param y               Distance from the top of the canvas
-     * \param width           The number of pixels per scanline after clipping
-     * \param height          The number of scanlines to blit after clipping
-     * \param scanline_length The actual length of one scanline of the image
-     * \param format          The color format of the pixels
-     * \param data            The data to blit. Already advanced to the actual
-     *                        first pixel after clipping.
+     * \param canvas  A pointer to the canvas.
+     * \param x       Distance from the left of the canvas
+     * \param y       Distance from the top of the canvas
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blit.
      */
     void(* blit )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
                    sgui_rect* srcrect );
@@ -260,17 +256,30 @@ struct sgui_canvas
     /**
      * \brief Blend onto a canvas
      *
-     * \param canvas          A pointer to the canvas.
-     * \param x               Distance from the left of the canvas
-     * \param y               Distance from the top of the canvas
-     * \param width           The number of pixels per scanline after clipping
-     * \param height          The number of scanlines to blit after clipping
-     * \param scanline_length The actual length of one scanline of the image
-     * \param data            The data to blit. Already advanced to the actual
-     *                        first pixel after clipping.
+     * \param canvas  A pointer to the canvas.
+     * \param x       Distance from the left of the canvas
+     * \param y       Distance from the top of the canvas
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blend.
      */
     void(* blend )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
                     sgui_rect* srcrect );
+
+    /**
+     * \brief Blend a constant color onto a canvas, use alpha from pixmap
+     *
+     * This method is only used internally by the glyph cache.
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param x       Distance from the left of the canvas
+     * \param y       Distance from the top of the canvas
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blend.
+     * \param color   The constant RGB color.
+     */
+    void (* blend_glyph )( sgui_canvas* canvas, int x, int y,
+                           sgui_pixmap* pixmap, sgui_rect* r,
+                           unsigned char* color );
 
     /**
      * \brief Draw a box onto a canvas

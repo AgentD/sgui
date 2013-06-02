@@ -150,7 +150,7 @@ void destroy_font_cache( void );
 /* in font_cache.c: draw a glyph onto a destination picture using a given
    pen picture. Load the glyph into the cache if required. */
 int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
-                Picture dst, Picture pen );
+                sgui_canvas* cv, unsigned char* color );
 
 #endif /* INTERNAL_H */
 

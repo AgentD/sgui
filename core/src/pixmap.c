@@ -51,7 +51,7 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     int bpp =  format==SGUI_RGBA8 ? 4 :
               (format==SGUI_RGB8  ? 3 : 1);
 
-    if( !pixmap || !data || !width || !height || srcx>=(int)scan )
+    if( !pixmap || !width || !height || srcx>=(int)scan )
         return;
 
     if( dstx>=(int)pixmap->width || dsty>=(int)pixmap->height )
@@ -66,7 +66,8 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     if( (dsty+height)>=pixmap->height )
         height = pixmap->height - dsty;
 
-    data += (srcy*scan + srcx) * bpp;
+    if( data )
+        data += (srcy*scan + srcx) * bpp;
 
     pixmap->load( pixmap, dstx, dsty, data, scan, width, height, format );
 }

@@ -46,6 +46,15 @@ void xlib_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
 
     pic = ((xlib_pixmap*)pixmap)->pic;
 
+    if( !data )
+    {
+        c.red = c.green = c.blue = c.alpha = 0x0000;
+
+        XRenderFillRectangle( dpy, PictOpSrc, pic, &c, dstx, dsty,
+                              width, height );
+        return;
+    }
+
     if( format==SGUI_RGBA8 )
     {
         for( src=data, j=0; j<height; ++j, src+=scan*4 )

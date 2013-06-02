@@ -22,7 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define SGUI_BUILDING_DLL
 #include "internal.h"
+#include "sgui_pixmap.h"
 
 
 
@@ -32,23 +34,22 @@ typedef struct GLYPH GLYPH;
 
 struct GLYPH
 {
-    int x, y, bearing;
-    unsigned int width, height, codepoint;
+    unsigned int codepoint; /* unicode codepoint of the glyph */
+    sgui_rect area;         /* area of the glyph on the font pixmap */
+    int bearing;            /* bearing of the glyph */
+    int red;                /* non zero if red (red-black tree color ) */
 
-    int red;
+    sgui_font* font;        /* the font used by the glyph */
 
-    sgui_font* font;
-
-    GLYPH* left;
-    GLYPH* right;
+    GLYPH* left;            /* left hand tree node */
+    GLYPH* right;           /* right hand tree node */
 };
 
 
 
-static Pixmap font_pixmap = 0;
-static Picture font_pic = 0;
 static int next_x = 0, next_y = 0;
 static unsigned int row_height = 0;
+static sgui_pixmap* font_map = NULL;
 
 static GLYPH* root = NULL;
 
@@ -65,37 +66,20 @@ static GLYPH* root = NULL;
 
 int create_font_cache( void )
 {
-    XRenderPictFormat* fmt;
-    XRenderColor c;
-
     root = NULL;
     next_x = 0;
     next_y = 0;
     row_height = 0;
 
     /* create pixmap and picture */
-    font_pixmap = XCreatePixmap( dpy, DefaultRootWindow(dpy),
-                                 FONT_MAP_WIDTH, FONT_MAP_HEIGHT, 8 );
+    font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT, SGUI_A8,
+                                   DefaultRootWindow(dpy) );
 
-    if( !font_pixmap )
+    if( !font_map )
         return 0;
 
-    fmt = XRenderFindStandardFormat( dpy, PictStandardA8 );
-    font_pic = XRenderCreatePicture( dpy, font_pixmap, fmt, 0, NULL );
-
-    if( !font_pic )
-    {
-        XFreePixmap( dpy, font_pixmap );
-        font_pixmap = 0;
-        return 0;
-    }
-
-    /* "initialise" the font pixmap */
-    c.red = c.green = c.blue = c.alpha = 0x0000;
-
-    XRenderFillRectangle( dpy, PictOpSrc, font_pic, &c,
-                          0, 0, FONT_MAP_WIDTH, FONT_MAP_HEIGHT );
-
+    sgui_pixmap_load( font_map, 0, 0, NULL, 0, 0, FONT_MAP_WIDTH,
+                      FONT_MAP_HEIGHT, FONT_MAP_WIDTH, SGUI_A8 );
     return 1;
 }
 
@@ -112,19 +96,14 @@ static void destroy_tree( GLYPH* g )
 
 void destroy_font_cache( void )
 {
-    if( font_pic )
-        XRenderFreePicture( dpy, font_pic );
-
-    if( font_pixmap )
-        XFreePixmap( dpy, font_pixmap );
+    sgui_pixmap_destroy( font_map );
 
     destroy_tree( root );
 
+    font_map = NULL;
     root = NULL;
     next_x = 0;
     next_y = 0;
-    font_pic = 0;
-    font_pixmap = 0;
     row_height = 0;
 }
 
@@ -133,8 +112,7 @@ void destroy_font_cache( void )
 static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
 {
     const unsigned char* src;
-    unsigned int w, h, i, j;
-    XRenderColor c;
+    unsigned int w, h;
     GLYPH* g;
     int b;
 
@@ -160,26 +138,18 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
     g->right = NULL;
     g->red = 1;
     g->codepoint = codepoint;
-    g->x = next_x;
-    g->y = next_y;
-    g->width = w;
-    g->height = h;
+    g->area.left = next_x;
+    g->area.top = next_y;
+    g->area.right = next_x + w-1;
+    g->area.bottom = next_y + h-1;
     g->bearing = b;
     g->font = font;
 
     /* copy glyph to pixmap */
     if( src )
     {
-        for( j=0; j<h; ++j )
-        {
-            for( i=0; i<w; ++i, ++src )
-            {
-                c.red = c.green = c.blue = c.alpha = (*src)<<8;
-
-                XRenderFillRectangle( dpy, PictOpSrc, font_pic, &c,
-                                      g->x+i, g->y+j, 1, 1 );
-            }
-        }
+        sgui_pixmap_load( font_map, g->area.left, g->area.top, src, 0, 0,
+                          w, h, w, SGUI_A8 );
     }
 
     /* advance next glyph position */
@@ -276,7 +246,7 @@ static GLYPH* find_glyph( sgui_font* font, unsigned int codepoint )
 /****************************************************************************/
 
 int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
-                Picture dst, Picture pen )
+                sgui_canvas* cv, unsigned char* color )
 {
     GLYPH* g;
 
@@ -292,11 +262,8 @@ int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
 
         if( g )
         {
-            XRenderComposite( dpy, PictOpOver, pen, font_pic, dst,
-                              0, 0, g->x, g->y, x, y + g->bearing,
-                              g->width, g->height );
-
-            return g->width;
+            cv->blend_glyph( cv, x, y+g->bearing, font_map, &g->area, color );
+            return SGUI_RECT_WIDTH( g->area );
         }
     }
 
