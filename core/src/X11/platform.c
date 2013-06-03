@@ -69,6 +69,8 @@ void remove_window( sgui_window_xlib* wnd )
 
 int sgui_init( void )
 {
+    sgui_pixmap* font_map;
+
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
     {
@@ -88,7 +90,17 @@ int sgui_init( void )
     XSetErrorHandler( xlib_swallow_errors );
 
     /* try to initialise the font cache */
-    if( !create_font_cache( ) )
+    font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT, SGUI_A8,
+                                   DefaultRootWindow(dpy) );
+
+    if( !font_map )
+    {
+        sgui_pixmap_destroy( font_map );
+        XCloseDisplay( dpy );
+        return 0;
+    }
+
+    if( !create_font_cache( font_map ) )
     {
         XCloseDisplay( dpy );
         return 0;

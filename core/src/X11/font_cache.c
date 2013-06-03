@@ -23,8 +23,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
+#include "sgui_internal.h"
 #include "sgui_pixmap.h"
+#include "sgui_font.h"
+
+#include <stddef.h>
+#include <stdlib.h>
 
 
 
@@ -55,16 +59,11 @@ static GLYPH* root = NULL;
 
 
 
-#define FONT_MAP_WIDTH 256
-#define FONT_MAP_HEIGHT 256
-
-
-
 #define IS_RED( g ) ((g) && (g)->red)
 
 
 
-int create_font_cache( void )
+int create_font_cache( sgui_pixmap* cache )
 {
     root = NULL;
     next_x = 0;
@@ -72,14 +71,11 @@ int create_font_cache( void )
     row_height = 0;
 
     /* create pixmap and picture */
-    font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT, SGUI_A8,
-                                   DefaultRootWindow(dpy) );
+    font_map = cache;
 
     if( !font_map )
         return 0;
 
-    sgui_pixmap_load( font_map, 0, 0, NULL, 0, 0, FONT_MAP_WIDTH,
-                      FONT_MAP_HEIGHT, FONT_MAP_WIDTH, SGUI_A8 );
     return 1;
 }
 
@@ -112,7 +108,7 @@ void destroy_font_cache( void )
 static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
 {
     const unsigned char* src;
-    unsigned int w, h;
+    unsigned int w, h, pw, ph;
     GLYPH* g;
     int b;
 
@@ -133,8 +129,10 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
     /* copy glyph to pixmap */
     if( src )
     {
+        sgui_pixmap_get_size( font_map, &pw, &ph );
+
         /* calculate position for new glyph */
-        if( (next_x + w) >= FONT_MAP_WIDTH )
+        if( (next_x + w) >= pw )
         {
             next_x  = 0;
             next_y += row_height;
@@ -143,6 +141,13 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
 
         if( h > row_height )
             row_height = h;
+
+        /* TODO: pixmap full!! How should we handle this case? */
+        if( (next_y + h) >= ph )
+        {
+            free( g );
+            return NULL;
+        }
 
         /* calculate glyph area */
         g->area.left = next_x;

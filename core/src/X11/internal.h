@@ -59,6 +59,10 @@
 #define DPY_WIDTH DisplayWidth( dpy, DefaultScreen(dpy) )
 #define DPY_HEIGHT DisplayHeight( dpy, DefaultScreen(dpy) )
 
+/* default size of the font cache pixmap */
+#define FONT_MAP_WIDTH 256
+#define FONT_MAP_HEIGHT 256
+
 
 #define TO_X11( window ) ((sgui_window_xlib*)window)
 #define SEND_EVENT( WND, ID, E )\
@@ -143,7 +147,7 @@ int key_entries_translate( KeySym key );
 
 
 
-int create_font_cache( void );
+int create_font_cache( sgui_pixmap* cache );
 
 void destroy_font_cache( void );
 
