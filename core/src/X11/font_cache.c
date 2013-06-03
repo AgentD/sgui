@@ -121,39 +121,50 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
     sgui_font_get_glyph_metrics( font, &w, &h, &b );
     src = sgui_font_get_glyph( font );
 
-    /* calculate position for new glyph */
-    if( (next_x + w) >= FONT_MAP_WIDTH )
-    {
-        next_x  = 0;
-        next_y += row_height;
-        row_height = 0;
-    }
-
-    if( h > row_height )
-        row_height = h;
-
     /* create glyph */
     g = malloc( sizeof(GLYPH) );
     g->left = NULL;
     g->right = NULL;
     g->red = 1;
     g->codepoint = codepoint;
-    g->area.left = next_x;
-    g->area.top = next_y;
-    g->area.right = next_x + w-1;
-    g->area.bottom = next_y + h-1;
     g->bearing = b;
     g->font = font;
 
     /* copy glyph to pixmap */
     if( src )
     {
+        /* calculate position for new glyph */
+        if( (next_x + w) >= FONT_MAP_WIDTH )
+        {
+            next_x  = 0;
+            next_y += row_height;
+            row_height = 0;
+        }
+
+        if( h > row_height )
+            row_height = h;
+
+        /* calculate glyph area */
+        g->area.left = next_x;
+        g->area.top = next_y;
+        g->area.right = next_x + w-1;
+        g->area.bottom = next_y + h-1;
+
+        /* load glyph to pixmap */
         sgui_pixmap_load( font_map, g->area.left, g->area.top, src, 0, 0,
                           w, h, w, SGUI_A8 );
-    }
 
-    /* advance next glyph position */
-    next_x += w;
+        /* advance next glyph position */
+        next_x += w;
+    }
+    else
+    {
+        /* create dummy glyph area, do not alter font pixmap */
+        g->area.left = 0;
+        g->area.top = 0;
+        g->area.right = w-1;
+        g->area.bottom = 0;
+    }
 
     return g;
 }
@@ -262,7 +273,13 @@ int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
 
         if( g )
         {
-            cv->blend_glyph( cv, x, y+g->bearing, font_map, &g->area, color );
+            /* only render glyphs with a non zero area (skip) dummies */
+            if( g->area.top != g->area.bottom )
+            {
+                cv->blend_glyph( cv, x, y+g->bearing, font_map,
+                                 &g->area, color );
+            }
+
             return SGUI_RECT_WIDTH( g->area );
         }
     }
