@@ -48,13 +48,14 @@ SOURCE_OPENGL="core/src/OpenGL/canvas_gl.c core/src/OpenGL/pixmap_gl.c"
 
 SOURCE_COMMON="core/src/widget.c core/src/rect.c core/src/skin.c
                core/src/canvas.c core/src/window.c core/src/utf8.c
-               core/src/pixmap.c $SOURCE_WIDGETS $SOURCE_OPENGL"
+               core/src/pixmap.c core/src/font_cache.c
+               $SOURCE_WIDGETS $SOURCE_OPENGL"
 
 # Platform specific stuff
 SOURCE_X11="core/src/X11/window.c core/src/X11/keycode_translate.c
             core/src/X11/canvas.c core/src/X11/platform.c
             core/src/X11/font.c core/src/X11/opengl.c
-            core/src/X11/pixmap.c core/src/X11/font_cache.c"
+            core/src/X11/pixmap.c"
 
 LIBS_X11="-lXrender -lX11 -lGL -lfreetype"
 

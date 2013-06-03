@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
+#include "sgui_font_cache.h"
 #include "sgui_internal.h"
 #include "sgui_pixmap.h"
 #include "sgui_font.h"
@@ -236,7 +237,7 @@ static GLYPH* find_glyph( GLYPH* g, sgui_font* font, unsigned int codepoint )
 
 /****************************************************************************/
 
-sgui_font_cache* create_font_cache( sgui_pixmap* map )
+sgui_font_cache* sgui_font_cache_create( sgui_pixmap* map )
 {
     sgui_font_cache* cache;
 
@@ -251,7 +252,7 @@ sgui_font_cache* create_font_cache( sgui_pixmap* map )
     return cache;
 }
 
-void destroy_font_cache( sgui_font_cache* cache )
+void sgui_font_cache_destroy( sgui_font_cache* cache )
 {
     if( cache )
     {
@@ -261,9 +262,9 @@ void destroy_font_cache( sgui_font_cache* cache )
     }
 }
 
-int draw_glyph( sgui_font_cache* cache, sgui_font* font,
-                unsigned int codepoint, int x, int y,
-                sgui_canvas* cv, unsigned char* color )
+int sgui_font_cache_draw_glyph( sgui_font_cache* cache, sgui_font* font,
+                                unsigned int codepoint, int x, int y,
+                                sgui_canvas* cv, unsigned char* color )
 {
     GLYPH* g;
 

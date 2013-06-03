@@ -101,7 +101,7 @@ int sgui_init( void )
         return 0;
     }
 
-    if( !(glyph_cache = create_font_cache( font_map )) )
+    if( !(glyph_cache = sgui_font_cache_create( font_map )) )
     {
         XCloseDisplay( dpy );
         return 0;
@@ -128,7 +128,7 @@ int sgui_init( void )
 void sgui_deinit( void )
 {
     if( glyph_cache )
-        destroy_font_cache( glyph_cache );
+        sgui_font_cache_destroy( glyph_cache );
 
     if( im )
         XCloseIM( im );
