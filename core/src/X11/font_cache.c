@@ -29,6 +29,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 
@@ -49,13 +50,16 @@ struct GLYPH
     GLYPH* right;           /* right hand tree node */
 };
 
+struct sgui_font_cache
+{
+    int next_x, next_y;
+    unsigned int row_height;
+    sgui_pixmap* font_map;
 
+    GLYPH* root;
+};
 
-static int next_x = 0, next_y = 0;
-static unsigned int row_height = 0;
-static sgui_pixmap* font_map = NULL;
-
-static GLYPH* root = NULL;
+static sgui_font_cache cache;
 
 
 
@@ -63,18 +67,12 @@ static GLYPH* root = NULL;
 
 
 
-int create_font_cache( sgui_pixmap* cache )
+int create_font_cache( sgui_pixmap* map )
 {
-    root = NULL;
-    next_x = 0;
-    next_y = 0;
-    row_height = 0;
+    memset( &cache, 0, sizeof(cache) );
 
     /* create pixmap and picture */
-    font_map = cache;
-
-    if( !font_map )
-        return 0;
+    cache.font_map = map;
 
     return 1;
 }
@@ -92,15 +90,11 @@ static void destroy_tree( GLYPH* g )
 
 void destroy_font_cache( void )
 {
-    sgui_pixmap_destroy( font_map );
+    sgui_pixmap_destroy( cache.font_map );
 
-    destroy_tree( root );
+    destroy_tree( cache.root );
 
-    font_map = NULL;
-    root = NULL;
-    next_x = 0;
-    next_y = 0;
-    row_height = 0;
+    memset( &cache, 0, sizeof(cache) );
 }
 
 /****************************************************************************/
@@ -129,38 +123,38 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
     /* copy glyph to pixmap */
     if( src )
     {
-        sgui_pixmap_get_size( font_map, &pw, &ph );
+        sgui_pixmap_get_size( cache.font_map, &pw, &ph );
 
         /* calculate position for new glyph */
-        if( (next_x + w) >= pw )
+        if( (cache.next_x + w) >= pw )
         {
-            next_x  = 0;
-            next_y += row_height;
-            row_height = 0;
+            cache.next_x  = 0;
+            cache.next_y += cache.row_height;
+            cache.row_height = 0;
         }
 
-        if( h > row_height )
-            row_height = h;
+        if( h > cache.row_height )
+            cache.row_height = h;
 
         /* TODO: pixmap full!! How should we handle this case? */
-        if( (next_y + h) >= ph )
+        if( (cache.next_y + h) >= ph )
         {
             free( g );
             return NULL;
         }
 
         /* calculate glyph area */
-        g->area.left = next_x;
-        g->area.top = next_y;
-        g->area.right = next_x + w-1;
-        g->area.bottom = next_y + h-1;
+        g->area.left = cache.next_x;
+        g->area.top = cache.next_y;
+        g->area.right = cache.next_x + w-1;
+        g->area.bottom = cache.next_y + h-1;
 
         /* load glyph to pixmap */
-        sgui_pixmap_load( font_map, g->area.left, g->area.top, src, 0, 0,
-                          w, h, w, SGUI_A8 );
+        sgui_pixmap_load( cache.font_map, g->area.left, g->area.top, src,
+                          0, 0, w, h, w, SGUI_A8 );
 
         /* advance next glyph position */
-        next_x += w;
+        cache.next_x += w;
     }
     else
     {
@@ -233,13 +227,13 @@ static GLYPH* insert( sgui_font* font, GLYPH* g, unsigned int codepoint )
 
 static void insert_glyph( sgui_font* font, unsigned int codepoint )
 {
-    root = insert( font, root, codepoint );
-    root->red = 0;
+    cache.root = insert( font, cache.root, codepoint );
+    cache.root->red = 0;
 }
 
 static GLYPH* find_glyph( sgui_font* font, unsigned int codepoint )
 {
-    GLYPH* g = root;
+    GLYPH* g = cache.root;
 
     while( g )
     {
@@ -281,7 +275,7 @@ int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
             /* only render glyphs with a non zero area (skip) dummies */
             if( g->area.top != g->area.bottom )
             {
-                cv->blend_glyph( cv, x, y+g->bearing, font_map,
+                cv->blend_glyph( cv, x, y+g->bearing, cache.font_map,
                                  &g->area, color );
             }
 

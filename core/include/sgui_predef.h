@@ -31,7 +31,7 @@
 
 
 
-typedef struct sgui_filesystem sgui_filesystem;
+typedef struct sgui_font_cache sgui_font_cache;
 
 typedef struct sgui_font sgui_font;
 
