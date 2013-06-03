@@ -32,6 +32,7 @@ Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
 FT_Library freetype = 0;
+sgui_font_cache* glyph_cache = NULL;
 
 static sgui_window_xlib* list = NULL;
 
@@ -100,7 +101,7 @@ int sgui_init( void )
         return 0;
     }
 
-    if( !create_font_cache( font_map ) )
+    if( !(glyph_cache = create_font_cache( font_map )) )
     {
         XCloseDisplay( dpy );
         return 0;
@@ -126,7 +127,8 @@ int sgui_init( void )
 
 void sgui_deinit( void )
 {
-    destroy_font_cache( );
+    if( glyph_cache )
+        destroy_font_cache( glyph_cache );
 
     if( im )
         XCloseIM( im );

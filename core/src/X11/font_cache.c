@@ -59,23 +59,11 @@ struct sgui_font_cache
     GLYPH* root;
 };
 
-static sgui_font_cache cache;
-
 
 
 #define IS_RED( g ) ((g) && (g)->red)
 
 
-
-int create_font_cache( sgui_pixmap* map )
-{
-    memset( &cache, 0, sizeof(cache) );
-
-    /* create pixmap and picture */
-    cache.font_map = map;
-
-    return 1;
-}
 
 static void destroy_tree( GLYPH* g )
 {
@@ -88,18 +76,8 @@ static void destroy_tree( GLYPH* g )
     free( g );
 }
 
-void destroy_font_cache( void )
-{
-    sgui_pixmap_destroy( cache.font_map );
-
-    destroy_tree( cache.root );
-
-    memset( &cache, 0, sizeof(cache) );
-}
-
-/****************************************************************************/
-
-static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
+static GLYPH* create_glyph( sgui_font_cache* cache, sgui_font* font,
+                            unsigned int codepoint )
 {
     const unsigned char* src;
     unsigned int w, h, pw, ph;
@@ -123,38 +101,38 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
     /* copy glyph to pixmap */
     if( src )
     {
-        sgui_pixmap_get_size( cache.font_map, &pw, &ph );
+        sgui_pixmap_get_size( cache->font_map, &pw, &ph );
 
         /* calculate position for new glyph */
-        if( (cache.next_x + w) >= pw )
+        if( (cache->next_x + w) >= pw )
         {
-            cache.next_x  = 0;
-            cache.next_y += cache.row_height;
-            cache.row_height = 0;
+            cache->next_x  = 0;
+            cache->next_y += cache->row_height;
+            cache->row_height = 0;
         }
 
-        if( h > cache.row_height )
-            cache.row_height = h;
+        if( h > cache->row_height )
+            cache->row_height = h;
 
         /* TODO: pixmap full!! How should we handle this case? */
-        if( (cache.next_y + h) >= ph )
+        if( (cache->next_y + h) >= ph )
         {
             free( g );
             return NULL;
         }
 
         /* calculate glyph area */
-        g->area.left = cache.next_x;
-        g->area.top = cache.next_y;
-        g->area.right = cache.next_x + w-1;
-        g->area.bottom = cache.next_y + h-1;
+        g->area.left = cache->next_x;
+        g->area.top = cache->next_y;
+        g->area.right = cache->next_x + w-1;
+        g->area.bottom = cache->next_y + h-1;
 
         /* load glyph to pixmap */
-        sgui_pixmap_load( cache.font_map, g->area.left, g->area.top, src,
+        sgui_pixmap_load( cache->font_map, g->area.left, g->area.top, src,
                           0, 0, w, h, w, SGUI_A8 );
 
         /* advance next glyph position */
-        cache.next_x += w;
+        cache->next_x += w;
     }
     else
     {
@@ -168,28 +146,29 @@ static GLYPH* create_glyph( sgui_font* font, unsigned int codepoint )
     return g;
 }
 
-static GLYPH* insert( sgui_font* font, GLYPH* g, unsigned int codepoint )
+static GLYPH* insert( sgui_font_cache* cache, sgui_font* font, GLYPH* g,
+                      unsigned int codepoint )
 { 
     GLYPH* x;
 
     /* Reached a NULL node? Create a new node. */
     if( !g )
-        return create_glyph( font, codepoint );
+        return create_glyph( cache, font, codepoint );
 
     /* continue traversing down the tree */
     if( codepoint == g->codepoint )
     {
         if( font < g->font )
-            g->left = insert( font, g->left, codepoint ); 
+            g->left = insert( cache, font, g->left, codepoint ); 
         else if( font > g->font )
-            g->right = insert( font, g->right, codepoint ); 
+            g->right = insert( cache, font, g->right, codepoint ); 
     }
     else
     {
         if( codepoint < g->codepoint )
-            g->left = insert( font, g->left, codepoint ); 
+            g->left = insert( cache, font, g->left, codepoint ); 
         else
-            g->right = insert( font, g->right, codepoint ); 
+            g->right = insert( cache, font, g->right, codepoint ); 
     }
 
     /* rotate left */
@@ -225,16 +204,15 @@ static GLYPH* insert( sgui_font* font, GLYPH* g, unsigned int codepoint )
     return g;
 }
 
-static void insert_glyph( sgui_font* font, unsigned int codepoint )
+static void insert_glyph( sgui_font_cache* cache, sgui_font* font,
+                          unsigned int codepoint )
 {
-    cache.root = insert( font, cache.root, codepoint );
-    cache.root->red = 0;
+    cache->root = insert( cache, font, cache->root, codepoint );
+    cache->root->red = 0;
 }
 
-static GLYPH* find_glyph( sgui_font* font, unsigned int codepoint )
+static GLYPH* find_glyph( GLYPH* g, sgui_font* font, unsigned int codepoint )
 {
-    GLYPH* g = cache.root;
-
     while( g )
     {
         if( g->codepoint == codepoint )
@@ -255,19 +233,45 @@ static GLYPH* find_glyph( sgui_font* font, unsigned int codepoint )
 
 /****************************************************************************/
 
-int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
+sgui_font_cache* create_font_cache( sgui_pixmap* map )
+{
+    sgui_font_cache* cache;
+
+    cache = malloc( sizeof(sgui_font_cache) );
+
+    if( cache )
+    {
+        memset( cache, 0, sizeof(sgui_font_cache) );
+        cache->font_map = map;
+    }
+
+    return cache;
+}
+
+void destroy_font_cache( sgui_font_cache* cache )
+{
+    if( cache )
+    {
+        sgui_pixmap_destroy( cache->font_map );
+        destroy_tree( cache->root );
+        free( cache );
+    }
+}
+
+int draw_glyph( sgui_font_cache* cache, sgui_font* font,
+                unsigned int codepoint, int x, int y,
                 sgui_canvas* cv, unsigned char* color )
 {
     GLYPH* g;
 
     if( font )
     {
-        g = find_glyph( font, codepoint );
+        g = find_glyph( cache->root, font, codepoint );
 
         if( !g )
         {
-            insert_glyph( font, codepoint );
-            g = find_glyph( font, codepoint );
+            insert_glyph( cache, font, codepoint );
+            g = find_glyph( cache->root, font, codepoint );
         }
 
         if( g )
@@ -275,7 +279,7 @@ int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
             /* only render glyphs with a non zero area (skip) dummies */
             if( g->area.top != g->area.bottom )
             {
-                cv->blend_glyph( cv, x, y+g->bearing, cache.font_map,
+                cv->blend_glyph( cv, x, y+g->bearing, cache->font_map,
                                  &g->area, color );
             }
 

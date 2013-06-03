@@ -103,6 +103,7 @@ extern XIM im;
 extern Display* dpy;
 extern Atom atom_wm_delete;
 extern FT_Library freetype;
+extern sgui_font_cache* glyph_cache;
 
 /* in platform.c: add a window to the list for the main loop */
 void add_window( sgui_window_xlib* window );
@@ -147,13 +148,14 @@ int key_entries_translate( KeySym key );
 
 
 
-int create_font_cache( sgui_pixmap* cache );
+sgui_font_cache* create_font_cache( sgui_pixmap* map );
 
-void destroy_font_cache( void );
+void destroy_font_cache( sgui_font_cache* cache );
 
 /* in font_cache.c: draw a glyph onto a destination picture using a given
    pen picture. Load the glyph into the cache if required. */
-int draw_glyph( sgui_font* font, unsigned int codepoint, int x, int y,
+int draw_glyph( sgui_font_cache* cache, sgui_font* font,
+                unsigned int codepoint, int x, int y,
                 sgui_canvas* cv, unsigned char* color );
 
 #endif /* INTERNAL_H */

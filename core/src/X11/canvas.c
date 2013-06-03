@@ -184,7 +184,8 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
         x += sgui_font_get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
-        x += draw_glyph( font, character, x, y, canvas, color ) + 1;
+        x += draw_glyph( glyph_cache, font, character,
+                         x, y, canvas, color ) + 1;
 
         /* store previous glyph index for kerning */
         previous = character;
