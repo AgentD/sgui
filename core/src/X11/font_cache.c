@@ -65,17 +65,6 @@ struct sgui_font_cache
 
 
 
-static void destroy_tree( GLYPH* g )
-{
-    if( g )
-    {
-        destroy_tree( g->left );
-        destroy_tree( g->right );
-    }
-
-    free( g );
-}
-
 static GLYPH* create_glyph( sgui_font_cache* cache, sgui_font* font,
                             unsigned int codepoint )
 {
@@ -146,30 +135,20 @@ static GLYPH* create_glyph( sgui_font_cache* cache, sgui_font* font,
     return g;
 }
 
-static GLYPH* insert( sgui_font_cache* cache, sgui_font* font, GLYPH* g,
-                      unsigned int codepoint )
-{ 
+static void tree_destroy( GLYPH* g )
+{
+    if( g )
+    {
+        tree_destroy( g->left );
+        tree_destroy( g->right );
+    }
+
+    free( g );
+}
+
+static GLYPH* tree_balance( GLYPH* g )
+{
     GLYPH* x;
-
-    /* Reached a NULL node? Create a new node. */
-    if( !g )
-        return create_glyph( cache, font, codepoint );
-
-    /* continue traversing down the tree */
-    if( codepoint == g->codepoint )
-    {
-        if( font < g->font )
-            g->left = insert( cache, font, g->left, codepoint ); 
-        else if( font > g->font )
-            g->right = insert( cache, font, g->right, codepoint ); 
-    }
-    else
-    {
-        if( codepoint < g->codepoint )
-            g->left = insert( cache, font, g->left, codepoint ); 
-        else
-            g->right = insert( cache, font, g->right, codepoint ); 
-    }
 
     /* rotate left */
     if( IS_RED(g->right) && !IS_RED(g->left) )
@@ -204,10 +183,34 @@ static GLYPH* insert( sgui_font_cache* cache, sgui_font* font, GLYPH* g,
     return g;
 }
 
-static void insert_glyph( sgui_font_cache* cache, sgui_font* font,
-                          unsigned int codepoint )
+static GLYPH* tree_insert( GLYPH* g, GLYPH* new_glyph )
+{ 
+    /* Reached a NULL node? Create a new node. */
+    if( !g )
+        return new_glyph;
+
+    /* continue traversing down the tree */
+    if( new_glyph->codepoint == g->codepoint )
+    {
+        if( new_glyph->font < g->font )
+            g->left = tree_insert( g->left, new_glyph );
+        else if( new_glyph->font > g->font )
+            g->right = tree_insert( g->right, new_glyph );
+    }
+    else if( new_glyph->codepoint < g->codepoint )
+        g->left = tree_insert( g->left, new_glyph );
+    else
+        g->right = tree_insert( g->right, new_glyph );
+
+    /* balance current subtree */
+    g = tree_balance( g );
+
+    return g;
+}
+
+static void insert_glyph( sgui_font_cache* cache, GLYPH* new_glyph )
 {
-    cache->root = insert( cache, font, cache->root, codepoint );
+    cache->root = tree_insert( cache->root, new_glyph );
     cache->root->red = 0;
 }
 
@@ -253,7 +256,7 @@ void destroy_font_cache( sgui_font_cache* cache )
     if( cache )
     {
         sgui_pixmap_destroy( cache->font_map );
-        destroy_tree( cache->root );
+        tree_destroy( cache->root );
         free( cache );
     }
 }
@@ -270,8 +273,8 @@ int draw_glyph( sgui_font_cache* cache, sgui_font* font,
 
         if( !g )
         {
-            insert_glyph( cache, font, codepoint );
-            g = find_glyph( cache->root, font, codepoint );
+            g = create_glyph( cache, font, codepoint );
+            insert_glyph( cache, g );
         }
 
         if( g )
