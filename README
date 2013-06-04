@@ -70,9 +70,7 @@
   ********************
 
   Current milestone:
-    - Revamp text rendering (prerender text to server side buffer)
     - Complete OpenGL backend
-        - Get text rendering to work
         - Add core profile implementation
         - Frame buffer configuration for sub view widget
         - Implement context sharing & windowless resource loading context

@@ -30,7 +30,6 @@
 #include "internal_gl.h"
 
 #include <string.h>
-#include <stdio.h>
 
 
 
@@ -55,21 +54,6 @@ void gl_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
                      GL_UNSIGNED_BYTE, data );
 
     glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
-
-    if( format == SGUI_A8 )
-    {
-        unsigned char* buffer = malloc( 256*256 );
-        FILE* file;
-
-        glGetTexImage( GL_TEXTURE_2D, 0, GL_ALPHA, GL_UNSIGNED_BYTE, buffer );
-
-        file = fopen( "test.pbm", "wb" );
-        fprintf( file, "P5\n256 256\n255\n" );
-        fwrite( buffer, 1, 256*256, file );
-        fclose( file );
-
-        free( buffer );
-    }
 
     /* rebind the previous texture */
     glBindTexture( GL_TEXTURE_2D, current );
