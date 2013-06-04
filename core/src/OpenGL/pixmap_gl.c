@@ -30,6 +30,7 @@
 #include "internal_gl.h"
 
 #include <string.h>
+#include <stdio.h>
 
 
 
@@ -46,6 +47,7 @@ void gl_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
 
     /* upload the image */
     glPixelStorei( GL_UNPACK_ROW_LENGTH, scan );
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 
     glTexSubImage2D( GL_TEXTURE_2D, 0, dstx, dsty, width, height,
                       format==SGUI_RGB8 ? GL_RGB :
@@ -53,6 +55,21 @@ void gl_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
                      GL_UNSIGNED_BYTE, data );
 
     glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
+
+    if( format == SGUI_A8 )
+    {
+        unsigned char* buffer = malloc( 256*256 );
+        FILE* file;
+
+        glGetTexImage( GL_TEXTURE_2D, 0, GL_ALPHA, GL_UNSIGNED_BYTE, buffer );
+
+        file = fopen( "test.pbm", "wb" );
+        fprintf( file, "P5\n256 256\n255\n" );
+        fwrite( buffer, 1, 256*256, file );
+        fclose( file );
+
+        free( buffer );
+    }
 
     /* rebind the previous texture */
     glBindTexture( GL_TEXTURE_2D, current );
@@ -107,12 +124,12 @@ sgui_pixmap* gl_pixmap_create( unsigned int width, unsigned int height,
     else
     {
         glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA8, width, height, 0,
-                      GL_RED, GL_UNSIGNED_BYTE, NULL );
+                      GL_ALPHA, GL_UNSIGNED_BYTE, NULL );
     }
 
     /* disable mipmapping */
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 
     /* disable wrapping */
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );

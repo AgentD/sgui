@@ -268,7 +268,7 @@ int sgui_font_cache_draw_glyph( sgui_font_cache* cache, sgui_font* font,
 {
     GLYPH* g;
 
-    if( font )
+    if( cache && font && cv && color )
     {
         g = find_glyph( cache->root, font, codepoint );
 
@@ -292,5 +292,27 @@ int sgui_font_cache_draw_glyph( sgui_font_cache* cache, sgui_font* font,
     }
 
     return 0;
+}
+
+void sgui_font_cache_load_glyph( sgui_font_cache* cache, sgui_font* font,
+                                 unsigned int codepoint )
+{
+    GLYPH* g;
+
+    if( cache && font )
+    {
+        g = find_glyph( cache->root, font, codepoint );
+
+        if( !g )
+        {
+            g = create_glyph( cache, font, codepoint );
+            insert_glyph( cache, g );
+        }
+    }
+}
+
+sgui_pixmap* sgui_font_cache_get_pixmap( sgui_font_cache* cache )
+{
+    return cache ? cache->font_map : NULL;
 }
 

@@ -71,9 +71,31 @@ SGUI_DLL void sgui_font_cache_destroy( sgui_font_cache* cache );
  *
  * \return The width of the given glyph in pixels
  */
-int sgui_font_cache_draw_glyph( sgui_font_cache* cache, sgui_font* font,
-                                unsigned int codepoint, int x, int y,
-                                sgui_canvas* canvas, unsigned char* color );
+SGUI_DLL int sgui_font_cache_draw_glyph( sgui_font_cache* cache,
+                                         sgui_font* font,
+                                         unsigned int codepoint,
+                                         int x, int y, sgui_canvas* canvas,
+                                         unsigned char* color );
+
+/**
+ * \brief Make sure a certain glyph is loaded into a font cache
+ *
+ * \param cache     A pointer to a font cache object
+ * \param font      A pointer to a font object to use for glyh rendering
+ * \param codepoint The unicode codepoint of the glyph to load
+ */
+SGUI_DLL void sgui_font_cache_load_glyph( sgui_font_cache* cache,
+                                          sgui_font* font,
+                                          unsigned int codepoint );
+
+/**
+ * \brief Get a pointer to the pixmap used by a font cache object
+ *
+ * \param cache A pointer to a font cache object
+ *
+ * \return A pointer to a pixmap object on success, NULL otherwise.
+ */
+SGUI_DLL sgui_pixmap* sgui_font_cache_get_pixmap( sgui_font_cache* cache );
 
 #ifdef __cplusplus
 }

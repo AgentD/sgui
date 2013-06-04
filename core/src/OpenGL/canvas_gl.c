@@ -28,8 +28,11 @@
 #include "sgui_font.h"
 #include "sgui_utf8.h"
 #include "sgui_pixmap.h"
+#include "sgui_font_cache.h"
 
 #include "internal_gl.h"
+
+#include <stdio.h>
 
 #ifndef SGUI_NO_OPENGL
 
@@ -47,6 +50,8 @@ typedef struct
 
     int state;
     GLint blend_src, blend_dst;
+
+    sgui_font_cache* font_cache;
 }
 sgui_canvas_gl;
 
@@ -55,6 +60,7 @@ sgui_canvas_gl;
 
 void canvas_gl_destroy( sgui_canvas* canvas )
 {
+    sgui_font_cache_destroy( ((sgui_canvas_gl*)canvas)->font_cache );
     free( canvas );
 }
 
@@ -112,6 +118,10 @@ void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     cv->state |= glIsEnabled( GL_MULTISAMPLE ) ? MS_ENABLE : 0;
     glDisable( GL_MULTISAMPLE );
 
+    /* */
+    glEnable( GL_SCISSOR_TEST );
+    glScissor( 0, 0, canvas->width, canvas->height );
+
     /* start rendering rectangles */
     glBegin( GL_QUADS );
 
@@ -123,6 +133,8 @@ void canvas_gl_end( sgui_canvas* canvas )
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
 
     glEnd( );
+
+    glDisable( GL_SCISSOR_TEST );
 
     /* restore multisampling */
     if( cv->state & MS_ENABLE )
@@ -264,17 +276,111 @@ void canvas_gl_blend_glyph( sgui_canvas* canvas, int x, int y,
                             sgui_pixmap* pixmap, sgui_rect* r,
                             unsigned char* color )
 {
-    (void)canvas; (void)x; (void)y; (void)pixmap; (void)r; (void)color;
+    unsigned int w, h;
+    sgui_rect test;
+    (void)canvas; (void)pixmap;
+
+    w = SGUI_RECT_WIDTH_V( r );
+    h = SGUI_RECT_HEIGHT_V( r );
+
+    sgui_rect_set_size( &test, x, y, w, h );
+
+    if( !sgui_rect_get_intersection( NULL, &canvas->sc, &test ) )
+        return;
+
+    glColor4ub( color[0], color[1], color[2], 0xFF );
+    glTexCoord2i( r->left, r->top );
+    glVertex2i( x, y );
+    glTexCoord2i( r->right+1, r->top );
+    glVertex2i( x+w, y );
+    glTexCoord2i( r->right+1, r->bottom+1 );
+    glVertex2i( x+w, y+h );
+    glTexCoord2i( r->left, r->bottom+1 );
+    glVertex2i( x, y+h );
 }
 
 int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
                            sgui_font* font, unsigned char* color,
                            const char* text, unsigned int length )
 {
-    (void)canvas; (void)x; (void)y; (void)font; (void)color, (void)text;
-    (void)length;
+    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
+    unsigned long character, previous=0;
+    unsigned int i, len = 0;
+    sgui_pixmap* pixmap;
+    const char* temp;
+    int oldx = x;
 
-    return 60;
+    /* texture cannot be altered during begin/end cycle */
+    glEnd( );
+
+    /* make sure we actually have a font cache and the caching texture */
+    if( cv->font_cache )
+    {
+        pixmap = sgui_font_cache_get_pixmap( cv->font_cache );
+    }
+    else
+    {
+        pixmap = gl_pixmap_create( 256, 256, SGUI_A8 );
+
+        if( !pixmap )
+        {
+            glBegin( GL_QUADS );
+            return 0;
+        }
+
+        cv->font_cache = sgui_font_cache_create( pixmap );
+
+        if( !cv->font_cache )
+        {
+            sgui_pixmap_destroy( pixmap );
+            glBegin( GL_QUADS );
+            return 0;
+        }
+    }
+
+    /* make sure all characters are loaded to the texture */
+    for( i=0, temp=text; i<length && (*temp) && (*temp!='\n');
+         temp+=len, i+=len )
+    {
+        character = sgui_utf8_decode( temp, &len );
+
+        sgui_font_cache_load_glyph( cv->font_cache, font, character );
+    }
+
+    /* bind the texture and begin rendering */
+    glBindTexture( GL_TEXTURE_2D, ((pixmap_gl*)pixmap)->texture );
+    glMatrixMode( GL_TEXTURE );
+    glLoadIdentity( );
+    glScalef( 1.0f/256.0f, 1.0f/256.0f, 1.0f );
+    glScissor( canvas->sc.left, canvas->height - canvas->sc.bottom,
+               SGUI_RECT_WIDTH(canvas->sc), SGUI_RECT_HEIGHT(canvas->sc) );
+    glBegin( GL_QUADS );
+
+    /* for each character */
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        /* load the next glyph */
+        character = sgui_utf8_decode( text, &len );
+
+        /* apply kerning */
+        x += sgui_font_get_kerning_distance( font, previous, character );
+
+        /* blend onto destination buffer */
+        x += sgui_font_cache_draw_glyph( cv->font_cache, font, character,
+                                         x, y, canvas, color ) + 1;
+
+        /* store previous glyph index for kerning */
+        previous = character;
+    }
+
+    /* restore texture state */
+    glEnd( );
+    glBindTexture( GL_TEXTURE_2D, 0 );
+    glLoadIdentity( );
+    glScissor( 0, 0, canvas->width, canvas->height );
+    glBegin( GL_QUADS );
+
+    return x - oldx;
 }
 
 /****************************************************************************/
@@ -287,6 +393,8 @@ sgui_canvas* sgui_opengl_canvas_create( unsigned int width,
         return NULL;
 
     sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
+
+    cv->font_cache = NULL;
 
     cv->canvas.destroy = canvas_gl_destroy;
     cv->canvas.begin = canvas_gl_begin;
