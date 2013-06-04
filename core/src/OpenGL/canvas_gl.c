@@ -42,6 +42,7 @@
 #define BLEND_ENABLE   0x08
 #define MS_ENABLE      0x10
 #define SCISSOR_ENABLE 0x20
+#define CULL_ENABLE    0x40
 
 
 
@@ -127,8 +128,12 @@ void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     glEnable( GL_SCISSOR_TEST );
     glScissor( 0, 0, canvas->width, canvas->height );
 
+    /* disable culling */
+    cv->state |= glIsEnabled( GL_CULL_FACE ) ? CULL_ENABLE : 0;
+    glDisable( GL_CULL_FACE );
+
     /* start rendering rectangles */
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 
     (void)r;
 }
@@ -138,6 +143,10 @@ void canvas_gl_end( sgui_canvas* canvas )
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
 
     glEnd( );
+
+    /* restore culling */
+    if( cv->state & CULL_ENABLE )
+        glEnable( GL_CULL_FACE );
 
     /* restore scissor test */
     glScissor( cv->old_scissor[0], cv->old_scissor[1],
@@ -180,6 +189,9 @@ void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )
     glColor3ub(canvas->bg_color[0], canvas->bg_color[1], canvas->bg_color[2]);
     glVertex2i( r->left,  r->top    );
     glVertex2i( r->right, r->top    );
+    glVertex2i( r->left,  r->bottom );
+
+    glVertex2i( r->right, r->top    );
     glVertex2i( r->right, r->bottom );
     glVertex2i( r->left,  r->bottom );
 }
@@ -207,11 +219,17 @@ void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     glLoadIdentity( );
     glScalef( 1.0f/((float)tex_w), 1.0f/((float)tex_h), 1.0f );
     glBlendFunc( GL_SRC_ALPHA, GL_ZERO );
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 
     glColor4ub( 0xFF, 0xFF, 0xFF, 0xFF );
+
     glTexCoord2i( srcrect->left, srcrect->top );
     glVertex2i( x, y );
+    glTexCoord2i( srcrect->right, srcrect->top );
+    glVertex2i( x+w-1, y );
+    glTexCoord2i( srcrect->left, srcrect->bottom );
+    glVertex2i( x, y+h-1 );
+
     glTexCoord2i( srcrect->right, srcrect->top );
     glVertex2i( x+w-1, y );
     glTexCoord2i( srcrect->right, srcrect->bottom );
@@ -223,7 +241,7 @@ void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     glBindTexture( GL_TEXTURE_2D, 0 );
     glLoadIdentity( );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 }
 
 void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
@@ -248,11 +266,17 @@ void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
     glMatrixMode( GL_TEXTURE );
     glLoadIdentity( );
     glScalef( 1.0f/((float)tex_w), 1.0f/((float)tex_h), 1.0f );
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 
     glColor4ub( 0xFF, 0xFF, 0xFF, 0xFF );
+
     glTexCoord2i( srcrect->left, srcrect->top );
     glVertex2i( x, y );
+    glTexCoord2i( srcrect->right, srcrect->top );
+    glVertex2i( x+w-1, y );
+    glTexCoord2i( srcrect->left, srcrect->bottom );
+    glVertex2i( x, y+h-1 );
+
     glTexCoord2i( srcrect->right, srcrect->top );
     glVertex2i( x+w-1, y );
     glTexCoord2i( srcrect->right, srcrect->bottom );
@@ -263,7 +287,7 @@ void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, 0 );
     glLoadIdentity( );
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 }
 
 void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
@@ -283,7 +307,11 @@ void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
         R = G = B = A = color[0];
 
     glColor4ub( R, G, B, A );
+
     glVertex2i( r->left,    r->top      );
+    glVertex2i( r->right+1, r->top      );
+    glVertex2i( r->left,    r->bottom+1 );
+
     glVertex2i( r->right+1, r->top      );
     glVertex2i( r->right+1, r->bottom+1 );
     glVertex2i( r->left,    r->bottom+1 );
@@ -306,8 +334,14 @@ void canvas_gl_blend_glyph( sgui_canvas* canvas, int x, int y,
         return;
 
     glColor4ub( color[0], color[1], color[2], 0xFF );
+
     glTexCoord2i( r->left, r->top );
     glVertex2i( x, y );
+    glTexCoord2i( r->right+1, r->top );
+    glVertex2i( x+w, y );
+    glTexCoord2i( r->left, r->bottom+1 );
+    glVertex2i( x, y+h );
+
     glTexCoord2i( r->right+1, r->top );
     glVertex2i( x+w, y );
     glTexCoord2i( r->right+1, r->bottom+1 );
@@ -341,7 +375,7 @@ int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
 
         if( !pixmap )
         {
-            glBegin( GL_QUADS );
+            glBegin( GL_TRIANGLES );
             return 0;
         }
 
@@ -350,7 +384,7 @@ int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
         if( !cv->font_cache )
         {
             sgui_pixmap_destroy( pixmap );
-            glBegin( GL_QUADS );
+            glBegin( GL_TRIANGLES );
             return 0;
         }
     }
@@ -371,7 +405,7 @@ int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
     glScalef( 1.0f/256.0f, 1.0f/256.0f, 1.0f );
     glScissor( canvas->sc.left, canvas->height - canvas->sc.bottom,
                SGUI_RECT_WIDTH(canvas->sc), SGUI_RECT_HEIGHT(canvas->sc) );
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 
     /* for each character */
     for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
@@ -395,7 +429,7 @@ int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
     glBindTexture( GL_TEXTURE_2D, 0 );
     glLoadIdentity( );
     glScissor( 0, 0, canvas->width, canvas->height );
-    glBegin( GL_QUADS );
+    glBegin( GL_TRIANGLES );
 
     return x - oldx;
 }
