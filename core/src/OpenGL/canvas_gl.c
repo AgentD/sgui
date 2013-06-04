@@ -36,11 +36,12 @@
 
 #ifndef SGUI_NO_OPENGL
 
-#define TEX_ENABLE   0x01
-#define DEPTH_ENABLE 0x02
-#define DEPTH_WRITE  0x04
-#define BLEND_ENABLE 0x08
-#define MS_ENABLE    0x10
+#define TEX_ENABLE     0x01
+#define DEPTH_ENABLE   0x02
+#define DEPTH_WRITE    0x04
+#define BLEND_ENABLE   0x08
+#define MS_ENABLE      0x10
+#define SCISSOR_ENABLE 0x20
 
 
 
@@ -50,6 +51,7 @@ typedef struct
 
     int state;
     GLint blend_src, blend_dst;
+    GLint old_scissor[4];
 
     sgui_font_cache* font_cache;
 }
@@ -118,7 +120,10 @@ void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     cv->state |= glIsEnabled( GL_MULTISAMPLE ) ? MS_ENABLE : 0;
     glDisable( GL_MULTISAMPLE );
 
-    /* */
+    /* enable scissor test */
+    cv->state |= glIsEnabled( GL_SCISSOR_TEST ) ? SCISSOR_ENABLE : 0;
+    glGetIntegerv( GL_SCISSOR_BOX, cv->old_scissor );
+
     glEnable( GL_SCISSOR_TEST );
     glScissor( 0, 0, canvas->width, canvas->height );
 
@@ -134,7 +139,12 @@ void canvas_gl_end( sgui_canvas* canvas )
 
     glEnd( );
 
-    glDisable( GL_SCISSOR_TEST );
+    /* restore scissor test */
+    glScissor( cv->old_scissor[0], cv->old_scissor[1],
+               cv->old_scissor[2], cv->old_scissor[3] );
+
+    if( cv->state & SCISSOR_ENABLE )
+        glDisable( GL_SCISSOR_TEST );
 
     /* restore multisampling */
     if( cv->state & MS_ENABLE )
@@ -259,13 +269,20 @@ void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
 void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
                          unsigned char* color, int format )
 {
-    GLubyte alpha = 0xFF;
+    GLubyte A, R, G, B;
     (void)canvas;
 
-    if( format==SGUI_RGBA8 )
-        alpha = color[3];
+    if( format==SGUI_RGB8 || format==SGUI_RGBA8 )
+    {
+        R = color[0];
+        G = color[1];
+        B = color[2];
+        A = format==SGUI_RGBA8 ? color[3] : 0xFF;
+    }
+    else if( format==SGUI_A8 )
+        R = G = B = A = color[0];
 
-    glColor4ub( color[0], color[1], color[2], alpha );
+    glColor4ub( R, G, B, A );
     glVertex2i( r->left,    r->top      );
     glVertex2i( r->right+1, r->top      );
     glVertex2i( r->right+1, r->bottom+1 );
