@@ -11,7 +11,7 @@
 
 <h3>SGUI & OpenGL&reg;</h3>
 
-<img src="images/glsample.png">
+<img src="images/gldemo.png">
 <img src="images/glwidget.png">
 <br><br>
 
@@ -19,10 +19,16 @@ The SGUI library has native support for OpenGL&reg; rendering, both using the
 older 1.x and 2.x versions, as well as using the 3.x and above core profile
 versions.<br>
 <br>
-This means that SGUI can be used for creating a window with an OpenGL&reg;
-context to use for rendering, render widgets inside such a window without
-additional overhead and creating a widget that can be used to render to a sub
-area inside a window using OpenGL&reg; functions.
+This means that not only can SGUI create a window with an OpenGL&reg; context,
+it can treat it just like a normal window and add widgets to it, without the
+any additional care taking after the backend change (try to run the demo
+program with "--glcompat" or "--glcore"). The window can either be entirely
+managed by SGUI, or the program can take control over event processing and
+rendering, to allow real time rendering in the same window with full controll
+over how and when the GUI is to be rendered.
+<br><br>
+Also, SGUI offers an OpenGL&reg; widget, allowing easy creation of dedicated
+areas within a window to use for OpenGL&reg; rendering.
 
 <h4>Creating a managed OpenGL&reg; window</h4>
 
