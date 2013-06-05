@@ -479,7 +479,8 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
         }
 
         wnd->base.back_buffer = sgui_opengl_canvas_create( attr.width,
-                                                           attr.height );
+                                       attr.height,
+                                       desc->backend==SGUI_OPENGL_COMPAT );
         wnd->base.swap_buffers = gl_swap_buffers;
 #endif
     }

@@ -29,9 +29,16 @@
 
 #include <stdlib.h>
 
+#include "sgui_internal.h"
+#include "sgui_opengl.h"
+#include "sgui_internal.h"
+#include "sgui_font.h"
+#include "sgui_utf8.h"
+#include "sgui_pixmap.h"
+#include "sgui_font_cache.h"
 
 
-#ifndef SGUI_NO_OPENGL
+
 /* Operating system check */
 #ifndef MACHINE_OS_WINDOWS
     #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
@@ -47,30 +54,53 @@
     #endif
 #endif
 
+#if !defined(MACHINE_OS_WINDOWS) && !defined(MACHINE_OS_X)
+    #define MACHINE_OS_UNIX
+#endif
+
+
+
+#ifndef SGUI_NO_OPENGL
+
 /* include required system headers */
-#ifdef MACHINE_OS_WINDOWS
+#if defined(MACHINE_OS_WINDOWS)
     #include <windows.h>
-#endif
-
-#ifdef MACHINE_OS_X
-    #include <OpenGL/gl.h>
-#else
     #include <GL/gl.h>
+
+    #define GL_LOAD_FUN( f ) wglGetProcAddress( f )
+#elif defined(MACHINE_OS_X)
+    #include <OpenGL/gl.h>
+#elif defined(MACHINE_OS_UNIX)
+    #include <GL/gl.h>
+    #include <GL/glx.h>
+
+    #define GL_LOAD_FUN( f ) glXGetProcAddress( (const GLubyte*)(f) )
 #endif
 
-#include "sgui_internal.h"
-
-
+/* function pointer types and defines for OpenGL version>1.1 or extensions */
+typedef void(* GLGENBUFFERSPROC )( GLsizei, GLuint* );
+typedef void(* GLDELETEBUFFERSPROC )( GLsizei, GLuint* );
+typedef void(* GLBINDBUFFERPROC )( GLenum, GLuint );
 
 #ifndef GL_MULTISAMPLE
     #define GL_MULTISAMPLE 0x809D
 #endif
 
+/* font cache texture size */
 #define FONT_MAP_WIDTH  256
 #define FONT_MAP_HEIGHT 256
 
+/* OpenGL state flags */
+#define TEX_ENABLE     0x01
+#define DEPTH_ENABLE   0x02
+#define DEPTH_WRITE    0x04
+#define BLEND_ENABLE   0x08
+#define MS_ENABLE      0x10
+#define SCISSOR_ENABLE 0x20
+#define CULL_ENABLE    0x40
 
 
+/* an OpenGL pixmap */
 typedef struct
 {
     sgui_pixmap pm;
@@ -79,8 +109,14 @@ typedef struct
 }
 pixmap_gl;
 
+/* in canvas_gl_core.c: create OpenGL canvas for core profile rendering */
+sgui_canvas* gl_canvas_create_core( unsigned int width, unsigned int height );
 
+/* in canvas_gl_compat.c: create OpenGL canvas for compatibillity profile */
+sgui_canvas* gl_canvas_create_compat( unsigned int width,
+                                      unsigned int height );
 
+/* in pixmap_gl.c: create OpenGL pixmap */
 sgui_pixmap* gl_pixmap_create( unsigned int width, unsigned int height,
                                int format );
 

@@ -44,7 +44,9 @@ SOURCE_WIDGETS="widgets/src/progress_bar.c widgets/src/static_text.c
                 widgets/src/scroll_bar.c widgets/src/group_box.c
                 widgets/src/tab.c widgets/src/subview.c"
 
-SOURCE_OPENGL="core/src/OpenGL/canvas_gl.c core/src/OpenGL/pixmap_gl.c"
+SOURCE_OPENGL="core/src/OpenGL/canvas_gl.c core/src/OpenGL/pixmap_gl.c
+               core/src/OpenGL/canvas_gl_compat.c
+               core/src/OpenGL/canvas_gl_core.c"
 
 SOURCE_COMMON="core/src/widget.c core/src/rect.c core/src/skin.c
                core/src/canvas.c core/src/window.c core/src/utf8.c
