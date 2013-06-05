@@ -66,6 +66,9 @@
     #define GL_MULTISAMPLE 0x809D
 #endif
 
+#define FONT_MAP_WIDTH  256
+#define FONT_MAP_HEIGHT 256
+
 
 
 typedef struct

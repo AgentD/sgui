@@ -371,7 +371,7 @@ int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
     }
     else
     {
-        pixmap = gl_pixmap_create( 256, 256, SGUI_A8 );
+        pixmap = gl_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT, SGUI_A8 );
 
         if( !pixmap )
         {
@@ -402,7 +402,8 @@ int canvas_gl_draw_string( sgui_canvas* canvas, int x, int y,
     glBindTexture( GL_TEXTURE_2D, ((pixmap_gl*)pixmap)->texture );
     glMatrixMode( GL_TEXTURE );
     glLoadIdentity( );
-    glScalef( 1.0f/256.0f, 1.0f/256.0f, 1.0f );
+    glScalef( 1.0f/((float)FONT_MAP_WIDTH), 1.0f/((float)FONT_MAP_HEIGHT),
+              1.0f );
     glScissor( canvas->sc.left, canvas->height - canvas->sc.bottom,
                SGUI_RECT_WIDTH(canvas->sc), SGUI_RECT_HEIGHT(canvas->sc) );
     glBegin( GL_TRIANGLES );
