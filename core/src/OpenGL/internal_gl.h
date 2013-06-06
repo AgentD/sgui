@@ -28,6 +28,9 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
 
 #include "sgui_internal.h"
 #include "sgui_opengl.h"
@@ -78,13 +81,55 @@
 #endif
 
 /* function pointer types and defines for OpenGL version>1.1 or extensions */
-typedef void(* GLGENBUFFERSPROC )( GLsizei, GLuint* );
-typedef void(* GLDELETEBUFFERSPROC )( GLsizei, GLuint* );
-typedef void(* GLBINDBUFFERPROC )( GLenum, GLuint );
+#ifndef GL_VERSION_1_5
+    typedef ptrdiff_t GLintptr;
+    typedef ptrdiff_t GLsizeiptr;
+
+    #define GL_ARRAY_BUFFER 0x8892
+    #define GL_ARRAY_BUFFER_BINDING 0x8894
+
+    #define GL_STREAM_DRAW 0x88E0
+    #define GL_STREAM_READ 0x88E1
+    #define GL_STREAM_COPY 0x88E2
+    #define GL_STATIC_DRAW 0x88E4
+    #define GL_STATIC_READ 0x88E5
+    #define GL_STATIC_COPY 0x88E6
+    #define GL_DYNAMIC_DRAW 0x88E8
+    #define GL_DYNAMIC_READ 0x88E9
+    #define GL_DYNAMIC_COPY 0x88EA
+#endif
+
+#ifndef GL_VERSION_2_0
+    #define GL_FRAGMENT_SHADER 0x8B30
+    #define GL_VERTEX_SHADER 0x8B31
+#endif
 
 #ifndef GL_MULTISAMPLE
     #define GL_MULTISAMPLE 0x809D
 #endif
+
+typedef void(* GLGENBUFFERSPROC )( GLsizei, GLuint* );
+typedef void(* GLDELETEBUFFERSPROC )( GLsizei, GLuint* );
+typedef void(* GLBINDBUFFERPROC )( GLenum, GLuint );
+typedef void(* GLBUFFERDATAPROC )(GLenum, GLsizeiptr, const GLvoid*, GLenum);
+typedef void(* GLDRAWARRAYSPROC )( GLenum, GLint, GLsizei );
+typedef void(* GLBUFFERSUBDATAPROC )( GLenum, GLintptr, GLsizeiptr,
+                                      const GLvoid* );
+
+typedef GLuint (* GLCREATESHADERPROC )( GLenum );
+typedef void (* GLDELETESHADERPROC )( GLuint );
+typedef void (* GLSHADERSOURCEPROC )( GLuint, GLsizei,
+                                      const GLchar**, const GLint* );
+typedef void (* GLCOMPILESHADERPROC )( GLuint );
+typedef void (* GLATTACHSHADERPROC )( GLuint, GLuint );
+typedef void (* GLDETACHSHADERPROC )( GLuint, GLuint );
+typedef GLuint (* GLCREATEPROGRAMPROC )( void );
+typedef void (* GLDELETEPROGRAMPROC )( GLuint );
+typedef void (* GLLINKPROGRAMPROC )( GLuint );
+typedef void (* GLUSEPROGRAMPROC )( GLuint );
+
+typedef void(* GLGETSHADERINFOLOG )( GLuint, GLsizei, GLsizei*, GLchar* );
+typedef void(* GLGETPROGRAMINFOLOG )( GLuint, GLsizei, GLsizei*, GLchar* );
 
 /* font cache texture size */
 #define FONT_MAP_WIDTH  256
