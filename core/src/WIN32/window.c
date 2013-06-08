@@ -454,3 +454,31 @@ void sgui_window_set_vsync( sgui_window* wnd, int vsync_on )
         gl_make_current( NULL );
 }
 
+void sgui_window_get_platform_data( sgui_window* wnd,
+                                    void* window, void* context )
+{
+    HWND* phWnd;
+    HGLRC* phRC;
+
+    if( wnd )
+    {
+        if( window )
+        {
+            phWnd = window;
+            *phWnd = TO_W32(wnd)->hWnd;
+        }
+
+        if( context )
+        {
+        #ifndef SGUI_NO_OPENGL
+            if( wnd->backend==SGUI_OPENGL_COMPAT ||
+                wnd->backend==SGUI_OPENGL_CORE )
+            {
+                phRC = context;
+                *phRC = TO_W32(wnd)->hRC;
+            }
+        #endif
+        }
+    }
+}
+

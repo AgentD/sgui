@@ -397,6 +397,25 @@ SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
  */
 SGUI_DLL void sgui_window_override_drawing( sgui_window* wnd, int override );
 
+/**
+ * \brief This function returns the platform specific objects of a window
+ *
+ * Using this function, it is possible to perform some advanced techniques
+ * with a window, like creating an OpenGL context that shares resources, or
+ * letting 3rd party libraries work with sgui (sub)windows. (For instance,
+ * irrlicht supports using an arbitrary window handle).
+ *
+ * \param window  On MS Windows, this is asumed to be a pointer to a HWND
+ *                and receives the value of the windows HWND. When using the
+ *                Xlib backend, this is assumed to be a pointer to a "Window".
+ * \param context When using native windows, this pointer is ignored, when
+ *                using OpenGL windows, this is assumed to be a pointer to an
+ *                OpenGL context and receives the value of the internal
+ *                context field. (HGLRC on Windows, GLXContext for Xlib).
+ */
+SGUI_DLL void sgui_window_get_platform_data( sgui_window* wnd,
+                                             void* window, void* context );
+
 
 
 #ifdef __cplusplus

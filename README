@@ -73,7 +73,6 @@
     - Complete OpenGL backend
         - Add core profile implementation
         - Frame buffer configuration for sub view widget
-        - Implement context sharing & windowless resource loading context
     - Implement horizontal scrolling for frame widget
     - Implement continuos redrawing mode for sub view widget
     - Complete documentation

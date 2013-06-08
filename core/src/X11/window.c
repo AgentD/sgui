@@ -560,3 +560,34 @@ void sgui_window_set_vsync( sgui_window* wnd, int vsync_on )
 #endif
 }
 
+
+void sgui_window_get_platform_data( sgui_window* wnd,
+                                    void* window, void* context )
+{
+    Window* wnd_ptr;
+#ifndef SGUI_NO_OPENGL
+    GLXContext* glx_ptr;
+#endif
+
+    if( wnd )
+    {
+        if( window )
+        {
+            wnd_ptr = window;
+            *wnd_ptr = TO_X11(wnd)->wnd;
+        }
+
+        if( context )
+        {
+        #ifndef SGUI_NO_OPENGL
+            if( wnd->backend==SGUI_OPENGL_COMPAT ||
+                wnd->backend==SGUI_OPENGL_CORE )
+            {
+                glx_ptr = context;
+                *glx_ptr = TO_X11(wnd)->gl;
+            }
+        #endif
+        }
+    }
+}
+
