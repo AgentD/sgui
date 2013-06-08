@@ -35,7 +35,7 @@ typedef struct
     int state;
     GLint blend_src, blend_dst;
     GLint old_scissor[4];
-    GLuint vbo, vsh, fsh, program;
+    GLuint vao, vbo, vsh, fsh, u_pmatrix, program;
 
     sgui_font_cache* font_cache;
 
@@ -57,6 +57,16 @@ typedef struct
     GLCREATEPROGRAMPROC glCreateProgram;
     GLATTACHSHADERPROC glAttachShader;
     GLDETACHSHADERPROC glDetachShader;
+    GLBINDATTRIBLOCATION glBindAttribLocation;
+    GLBINDFRAGDATALOCATION glBindFragDataLocation;
+
+    GLGENVERTEXARRAYSPROC glGenVertexArrays;
+    GLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+    GLBINDVERTEXARRAYPROC glBindVertexArray;
+    GLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+    GLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+    GLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+    GLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
     GLGETPROGRAMINFOLOG glGetProgramInfoLog;
     GLGETSHADERINFOLOG glGetShaderInfoLog;
@@ -119,12 +129,29 @@ static void canvas_gl_destroy( sgui_canvas* canvas )
 static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-    GLint buffer;
-    GLboolean v;
 
+    /* load VAO functions */
+    if( !cv->vao )
+    {
+        cv->glGenVertexArrays =
+        (GLGENVERTEXARRAYSPROC)GL_LOAD_FUN("glGenVertexArrays");
+        cv->glDeleteVertexArrays =
+        (GLDELETEVERTEXARRAYSPROC)GL_LOAD_FUN("glDeleteVertexArrays");
+        cv->glBindVertexArray =
+        (GLBINDVERTEXARRAYPROC)GL_LOAD_FUN("glBindVertexArray");
+        cv->glEnableVertexAttribArray =
+        (GLENABLEVERTEXATTRIBARRAYPROC)GL_LOAD_FUN("glEnableVertexAttribArray");
+        cv->glVertexAttribPointer =
+        (GLVERTEXATTRIBPOINTERPROC)GL_LOAD_FUN("glVertexAttribPointer");
+
+        BAIL_IF( !cv->glGenVertexArrays || !cv->glDeleteVertexArrays ||
+                 !cv->glBindVertexArray || !cv->glEnableVertexAttribArray ||
+                 !cv->glVertexAttribPointer );
+    }
+
+    /* load VBO functions */
     if( !cv->vbo )
     {
-        /* load VBO functions */
         cv->glBindBuffer = (GLBINDBUFFERPROC)GL_LOAD_FUN( "glBindBuffer" );
         cv->glGenBuffers = (GLGENBUFFERSPROC)GL_LOAD_FUN( "glGenBuffers" );
         cv->glBufferData = (GLBUFFERDATAPROC)GL_LOAD_FUN( "glBufferData" );
@@ -138,19 +165,9 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
                  !cv->glGenBuffers || !cv->glBufferData ||
                  !cv->glDrawArrays || !cv->glBufferSubData ||
                  !cv->glDeleteBuffers );
-
-        /* create and initialise VBO */
-        cv->glGenBuffers( 1, &cv->vbo );
-
-        BAIL_IF( !cv->vbo );
-
-        glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &buffer );
-        cv->glBindBuffer( GL_ARRAY_BUFFER, cv->vbo );
-        cv->glBufferData( GL_ARRAY_BUFFER, 1024,
-                          NULL, GL_STREAM_DRAW );
-        cv->glBindBuffer( GL_ARRAY_BUFFER, buffer );
     }
 
+    /* load shader & program functions */
     if( !cv->program )
     {
         /* load shader functions */
@@ -178,17 +195,28 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
         (GLDETACHSHADERPROC)GL_LOAD_FUN( "glDetachShader" );
         cv->glGetProgramInfoLog =
         (GLGETPROGRAMINFOLOG)GL_LOAD_FUN("glGetProgramInfoLog");
+        cv->glBindAttribLocation =
+        (GLBINDATTRIBLOCATION)GL_LOAD_FUN("glBindAttribLocation");
+        cv->glBindFragDataLocation =
+        (GLBINDFRAGDATALOCATION)GL_LOAD_FUN("glBindFragDataLocation");
+        cv->glGetUniformLocation =
+        (GLGETUNIFORMLOCATIONPROC)GL_LOAD_FUN("glGetUniformLocation");
+        cv->glUniformMatrix4fv =
+        (GLUNIFORMMATRIX4FVPROC)GL_LOAD_FUN("glUniformMatrix4fv");
 
         BAIL_IF( !cv->glUseProgram || !cv->glLinkProgram ||
                  !cv->glDeleteProgram || !cv->glCreateProgram ||
-                 !cv->glAttachShader || !cv->glDetachShader );
+                 !cv->glAttachShader || !cv->glDetachShader ||
+                 !cv->glBindAttribLocation || !cv->glBindFragDataLocation ||
+                 !cv->glGetUniformLocation || !cv->glUniformMatrix4fv );
+    }
 
-        /* create shaders */
+    /* create shaders and program if required */
+    if( !cv->program )
+    {
         if( !cv->vsh )
         {
             cv->vsh = cv->glCreateShader( GL_VERTEX_SHADER );
-            BAIL_IF( !cv->vsh );
-
             cv->glShaderSource( cv->vsh, 1, &vsh, NULL );
             cv->glCompileShader( cv->vsh );
         }
@@ -196,23 +224,56 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
         if( !cv->fsh )
         {
             cv->fsh = cv->glCreateShader( GL_FRAGMENT_SHADER );
-            BAIL_IF( !cv->fsh );
-
             cv->glShaderSource( cv->fsh, 1, &fsh, NULL );
             cv->glCompileShader( cv->fsh );
         }
 
-        /* create program */
         cv->program = cv->glCreateProgram( );
-        BAIL_IF( !cv->program );
-
+        cv->glBindAttribLocation( cv->program, 0, "v_position" );
+        cv->glBindAttribLocation( cv->program, 1, "v_color" );
+        cv->glBindFragDataLocation( cv->program, 0, "COLOR0" );
         cv->glAttachShader( cv->program, cv->vsh );
         cv->glAttachShader( cv->program, cv->fsh );
         cv->glLinkProgram( cv->program );
+
+        cv->u_pmatrix = cv->glGetUniformLocation( cv->program, "projection" );
     }
 
-    /* configure the viewport to canvas size */
-    glViewport( 0, 0, canvas->width, canvas->height );
+    /* create VAO and VBO if requried */
+    if( !cv->vao )
+    {
+        cv->glGenVertexArrays( 1, &cv->vao );
+        cv->glBindVertexArray( cv->vao );
+
+        if( !cv->vbo )
+        {
+            cv->glGenBuffers( 1, &cv->vbo );
+            cv->glBindBuffer( GL_ARRAY_BUFFER, cv->vbo );
+            cv->glBufferData( GL_ARRAY_BUFFER, VERTEX_SIZE * MAX_VERTICES,
+                              NULL, GL_STREAM_DRAW );
+        }
+
+        cv->glEnableVertexAttribArray( 0 );
+        cv->glEnableVertexAttribArray( 1 );
+
+        cv->glVertexAttribPointer( 0, 4, GL_UNSIGNED_BYTE, GL_FALSE, 8, 0 );
+        cv->glVertexAttribPointer( 1, 2, GL_UNSIGNED_SHORT, GL_FALSE, 8,
+                                   (GLvoid*)4 );
+
+        cv->glBindVertexArray( 0 );
+    }
+
+    (void)r;
+}
+
+static void canvas_gl_end( sgui_canvas* canvas )
+{
+    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
+    GLfloat iRL, iTB, m[4];
+    GLboolean v;
+
+    if( !cv->vao || !cv->vbo || !cv->program )
+        return;
 
     /* save current state */
     glGetBooleanv( GL_DEPTH_WRITEMASK, &v );
@@ -221,7 +282,6 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     glGetIntegerv( GL_SCISSOR_BOX, cv->old_scissor );
 
     cv->state  = 0;
-    cv->state |= glIsEnabled( GL_TEXTURE_2D ) ? TEX_ENABLE : 0;
     cv->state |= glIsEnabled( GL_BLEND ) ? BLEND_ENABLE : 0;
     cv->state |= v ? DEPTH_WRITE : 0;
     cv->state |= glIsEnabled( GL_DEPTH_TEST ) ? DEPTH_ENABLE : 0;
@@ -229,8 +289,24 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     cv->state |= glIsEnabled( GL_SCISSOR_TEST ) ? SCISSOR_ENABLE : 0;
     cv->state |= glIsEnabled( GL_CULL_FACE ) ? CULL_ENABLE : 0;
 
+    /* update projection matrix */
+    iRL = 1.0f/((float)(canvas->width - 1) - 0.0f);
+    iTB = 1.0f/(0.0f - (float)(canvas->height - 1));
+
+    m[0] = 2.0f*iRL; m[4] = 0.0f;     m[ 8] = 0.0f; m[12] = -1.0f;
+    m[1] = 0.0f;     m[5] = 2.0f*iTB; m[ 9] = 0.0f; m[13] =  1.0f;
+    m[2] = 0.0f;     m[6] = 0.0f;     m[10] = 0.0f; m[14] =  0.0f;
+    m[3] = 0.0f;     m[7] = 0.0f;     m[11] = 0.0f; m[15] =  1.0f;
+
+    /* configure viewport size */
+    glViewport( 0, 0, canvas->width, canvas->height );
+
+    /* bind our VAO and program */
+    cv->glBindVertexArray( cv->vao );
+    cv->glUseProgram( cv->program );
+    cv->glUniformMatrix4fv( cv->u_pmatrix, 1, GL_FALSE, m );
+
     /* configure state for widget rendering */
-    glEnable( GL_TEXTURE_2D );
     glEnable( GL_BLEND );
     glEnable( GL_SCISSOR_TEST );
     glDisable( GL_DEPTH_TEST );
@@ -238,18 +314,13 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     glDisable( GL_CULL_FACE );
     glDepthMask( GL_FALSE );
 
-    glBindTexture( GL_TEXTURE_2D, 0 );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glScissor( 0, 0, canvas->width, canvas->height );
 
-    (void)r;
-}
-
-static void canvas_gl_end( sgui_canvas* canvas )
-{
-    sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-
     /* restore state */
+    cv->glUseProgram( 0 );
+    cv->glBindVertexArray( 0 );
+
     glDepthMask( (cv->state & DEPTH_WRITE)!=0 );
     glBlendFunc( cv->blend_src, cv->blend_dst );
     glScissor( cv->old_scissor[0], cv->old_scissor[1],
@@ -260,7 +331,6 @@ static void canvas_gl_end( sgui_canvas* canvas )
     if(   cv->state & MS_ENABLE      ) glEnable( GL_MULTISAMPLE );
     if(   cv->state & DEPTH_ENABLE   ) glEnable( GL_DEPTH_TEST );
     if( !(cv->state & BLEND_ENABLE)  ) glDisable( GL_BLEND );
-    if( !(cv->state & TEX_ENABLE)    ) glDisable( GL_TEXTURE_2D );
 }
 
 static void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )

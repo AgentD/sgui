@@ -102,6 +102,8 @@
 #ifndef GL_VERSION_2_0
     #define GL_FRAGMENT_SHADER 0x8B30
     #define GL_VERTEX_SHADER 0x8B31
+
+    typedef char GLchar;
 #endif
 
 #ifndef GL_MULTISAMPLE
@@ -128,12 +130,29 @@ typedef void (* GLDELETEPROGRAMPROC )( GLuint );
 typedef void (* GLLINKPROGRAMPROC )( GLuint );
 typedef void (* GLUSEPROGRAMPROC )( GLuint );
 
+typedef void (* GLBINDATTRIBLOCATION )( GLuint, GLuint, const GLchar* );
+typedef void (* GLBINDFRAGDATALOCATION )( GLuint, GLuint, const GLchar* );
+
+typedef void (* GLGENVERTEXARRAYSPROC )( GLsizei, GLuint* );
+typedef void (* GLDELETEVERTEXARRAYSPROC )( GLsizei, const GLuint* );
+typedef void (* GLBINDVERTEXARRAYPROC )( GLuint );
+typedef void (* GLENABLEVERTEXATTRIBARRAYPROC )( GLuint );
+typedef void (* GLVERTEXATTRIBPOINTERPROC )( GLuint, GLint, GLenum, GLboolean,
+                                             GLsizei, const GLvoid* );
+typedef GLint (* GLGETUNIFORMLOCATIONPROC )( GLuint, const GLchar* );
+typedef void (* GLUNIFORMMATRIX4FVPROC )( GLint, GLsizei, GLboolean,
+                                          const GLfloat* );
+
 typedef void(* GLGETSHADERINFOLOG )( GLuint, GLsizei, GLsizei*, GLchar* );
 typedef void(* GLGETPROGRAMINFOLOG )( GLuint, GLsizei, GLsizei*, GLchar* );
 
 /* font cache texture size */
 #define FONT_MAP_WIDTH  256
 #define FONT_MAP_HEIGHT 256
+
+/* vertex buffer details */
+#define VERTEX_SIZE 8
+#define MAX_VERTICES 2048
 
 /* OpenGL state flags */
 #define TEX_ENABLE     0x01
