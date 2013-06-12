@@ -52,6 +52,16 @@ extern "C"
 SGUI_DLL sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                          unsigned int height );
 
+/**
+ * \brief Override dynamic internal scrollbar enabling/disabling of a frame
+ *
+ * \param frame       A pointer to a frame widget
+ * \param always_draw If non-zero, the scroll bars of a frame are always
+ *                    drawn, even if they aren't required
+ */
+SGUI_DLL void sgui_frame_override_scrollbars( sgui_widget* frame,
+                                              int always_draw );
+
 #ifdef __cplusplus
 }
 #endif

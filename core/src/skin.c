@@ -543,7 +543,7 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
 
     if( horizontal )
     {
-        sgui_rect_set_size( &r, x+20, y, length-40, 20 );
+        sgui_rect_set_size( &r, x, y, length, 20 );
         sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
 
         color[0] = color[1] = color[2] = 0xFF;
@@ -578,7 +578,7 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
     }
     else
     {
-        sgui_rect_set_size( &r, x, y+20, 20, length-40 );
+        sgui_rect_set_size( &r, x, y, 20, length );
         sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
 
         color[0] = color[1] = color[2] = 0xFF;
