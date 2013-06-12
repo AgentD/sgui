@@ -75,11 +75,14 @@ extern "C"
  * \param backend The rendering backend to create for the subwindow.
  *                (SGUI_NATIVE, SGUI_OPENGL_CORE, etc... see
  *                sgui_window_create).
+ * \param cfg     A frame buffer configuration for the window, or NULL to use
+ *                a default RGBA32, depth16 singlebuffer configuration.
  */
 SGUI_DLL sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
                                            unsigned int width,
                                            unsigned int height,
-                                           int backend );
+                                           int backend,
+                                           sgui_window_description* cfg );
 
 /**
  * \brief Change the background color of a subview widget

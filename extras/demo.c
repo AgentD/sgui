@@ -210,7 +210,7 @@ int main( int argc, char** argv )
 
         sgui_tab_group_add_tab( tab, "OpenGL" );
 
-        gl_view = sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT);
+        gl_view=sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT,NULL);
         gl_sub0 = sgui_static_text_create( 45, 175, "Redraw on demand" );
         gl_sub1 = sgui_static_text_create( 275, 175, "Redraw continuous" );
 

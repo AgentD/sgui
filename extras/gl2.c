@@ -48,7 +48,8 @@ int main( void )
     /* create some widgets */
     text = sgui_static_text_create(10, 130, "OpenGL\302\256 subview widget");
     button = sgui_button_create( 10, 155, 75, 30, "Refresh" );
-    gl_view = sgui_subview_create(wnd, 10, 10, 180, 120, SGUI_OPENGL_COMPAT);
+    gl_view = sgui_subview_create( wnd, 10, 10, 180, 120,
+                                   SGUI_OPENGL_COMPAT, NULL );
 
     sgui_subview_set_background_color( gl_view, bg_color );
 

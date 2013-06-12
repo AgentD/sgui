@@ -122,7 +122,7 @@ static void subview_destroy( sgui_widget* widget )
 
 sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
                                   unsigned int width, unsigned int height,
-                                  int backend )
+                                  int backend, sgui_window_description* cfg )
 {
     sgui_window_description desc;
     sgui_subview* view;
@@ -146,18 +146,23 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     view->draw_fun = NULL;
 
     /* create the OpenGL subwindow */
-    desc.parent         = parent;
-    desc.width          = width;
-    desc.height         = height;
-    desc.resizeable     = SGUI_FIXED_SIZE;
-    desc.backend        = backend;
-    desc.doublebuffer   = SGUI_SINGLEBUFFERED;
-    desc.bits_per_pixel = 32;
-    desc.depth_bits     = 16;
-    desc.stencil_bits   = 0;
-    desc.samples        = 0;
+    if( !cfg )
+    {
+        desc.parent         = parent;
+        desc.width          = width;
+        desc.height         = height;
+        desc.resizeable     = SGUI_FIXED_SIZE;
+        desc.backend        = backend;
+        desc.doublebuffer   = SGUI_SINGLEBUFFERED;
+        desc.bits_per_pixel = 32;
+        desc.depth_bits     = 16;
+        desc.stencil_bits   = 0;
+        desc.samples        = 0;
 
-    view->subwnd = sgui_window_create_desc( &desc );
+        cfg = &desc;
+    }
+
+    view->subwnd = sgui_window_create_desc( cfg );
 
     if( !view->subwnd )
     {
