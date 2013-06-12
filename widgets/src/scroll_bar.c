@@ -375,3 +375,47 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
     }
 }
 
+void sgui_scroll_bar_set_length( sgui_widget* bar, unsigned int length )
+{
+    sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    unsigned int w, h;
+    sgui_rect r;
+
+    if( b && length!=b->length )
+    {
+        /* if the bar is shrinked, add old area as dirty rect */
+        if( b->length < length )
+        {
+            sgui_widget_get_absolute_rect( bar, &r );
+            sgui_canvas_add_dirty_rect( bar->canvas, &r );
+        }
+
+        /* update length and pane dimension */
+        b->length = length;
+        b->p_length = ((b->v_length<<8) / b->v_max) *
+                       (b->length - 2*(b->horizontal ? b->bw : b->bh));
+
+        b->p_length >>= 8;
+
+        /* update widget area */
+        sgui_skin_get_scroll_bar_extents( b->horizontal, length, &w, &h,
+                                          &b->bw, &b->bh );
+
+        if( b->horizontal )
+        {
+            bar->area.right = bar->area.left + w;
+        }
+        else
+        {
+            bar->area.bottom = bar->area.top + h;
+        }
+
+        /* if the bar is enlarged, add new area as dirty rect */
+        if( b->length > length )
+        {
+            sgui_widget_get_absolute_rect( bar, &r );
+            sgui_canvas_add_dirty_rect( bar->canvas, &r );
+        }
+    }
+}
+

@@ -106,6 +106,19 @@ SGUI_DLL void sgui_scroll_bar_set_area( sgui_widget* bar,
                                         unsigned int scroll_area_length,
                                         unsigned int disp_area_length );
 
+/**
+ * \brief Resize a scrollbar
+ *
+ * \note This does not adjust the pane length of the scrollbar, this adjusts
+ *       the length of the scrollbar itself. (The pane length is adjusted
+ *       automatically). To adjust the pane area, use sgui_scrollbar_set_area.
+ *
+ * \param bar    The scroll bar
+ * \param length The new length of the scroll bar
+ */
+SGUI_DLL void sgui_scroll_bar_set_length( sgui_widget* bar,
+                                          unsigned int length );
+
 #ifdef __cplusplus
 }
 #endif

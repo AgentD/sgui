@@ -162,6 +162,14 @@ static void frame_on_state_change( sgui_widget* frame, int change )
                 sgui_skin_get_scroll_bar_extents( 0, height, &w, &h,
                                                   &ww, &wh );
                 new_width += ww;
+
+                w = SGUI_RECT_WIDTH(frame->area);
+                sgui_scroll_bar_set_length( f->h_bar, w-2*f->border-ww );
+            }
+            else
+            {
+                w = SGUI_RECT_WIDTH(frame->area);
+                sgui_scroll_bar_set_length( f->h_bar, w-2*f->border );
             }
 
             sgui_scroll_bar_set_area( f->h_bar, new_width+10, width );
