@@ -136,7 +136,7 @@ static void frame_on_state_change( sgui_widget* frame, int change )
         if( new_height > height )
         {
             /* if the horizontal scroll bar is drawn, take it into account */
-            if( new_height > height )
+            if( new_width > width )
             {
                 sgui_skin_get_scroll_bar_extents( 1, width, &w, &h,
                                                   &ww, &wh );
