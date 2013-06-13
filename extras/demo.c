@@ -204,7 +204,30 @@ int main( int argc, char** argv )
     sgui_tab_group_add_widget( tab, 2, p3 );
 
     /* OpenGL widget tab */
-    if( !nogl )
+    if( nogl )
+    {
+#ifndef SGUI_NO_OPENGL
+        if(desc.backend==SGUI_OPENGL_COMPAT || desc.backend==SGUI_OPENGL_CORE)
+        {
+            char buffer[ 128 ];
+
+            sgui_tab_group_add_tab( tab, "OpenGL" );
+
+            sgui_window_make_current( a );
+
+            sprintf( buffer, "OpenGL %s %s\n%s\n%s",
+                     glGetString( GL_VERSION ),
+                     desc.backend==SGUI_OPENGL_COMPAT ?
+                     "compatibillity" : "core",
+                     glGetString( GL_RENDERER ),
+                     glGetString( GL_VENDOR ) );
+
+            gl_sub0 = sgui_static_text_create( 20, 20, buffer );
+            sgui_tab_group_add_widget( tab, 3, gl_sub0 );
+        }
+#endif
+    }
+    else
     {
         unsigned char color[3] = { 0, 0, 0 };
 
