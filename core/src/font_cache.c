@@ -117,6 +117,12 @@ static GLYPH* create_glyph( sgui_font_cache* cache, sgui_font* font,
         g->area.right = cache->next_x + w-1;
         g->area.bottom = cache->next_y + h-1;
 
+        if( g->area.bottom==g->area.top )
+            ++g->area.bottom;
+
+        if( g->area.right==g->area.left )
+            ++g->area.right;
+
         /* load glyph to pixmap */
         sgui_pixmap_load( cache->font_map, g->area.left, g->area.top, src,
                           0, 0, w, h, w, SGUI_A8 );
