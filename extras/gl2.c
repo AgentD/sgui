@@ -34,7 +34,7 @@ int main( void )
     sgui_init( );
 
     /* Load a fon for text drawing */
-    font = sgui_font_load( "../../font/SourceSansPro-Regular.ttf", 16 );
+    font = sgui_font_load( "../font/SourceSansPro-Regular.ttf", 16 );
 
     sgui_skin_set_default_font( font, NULL, NULL, NULL );
 

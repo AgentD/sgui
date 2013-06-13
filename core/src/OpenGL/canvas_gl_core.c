@@ -269,7 +269,7 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 static void canvas_gl_end( sgui_canvas* canvas )
 {
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-    GLfloat iRL, iTB, m[4];
+    GLfloat iRL, iTB, m[16];
     GLboolean v;
 
     if( !cv->vao || !cv->vbo || !cv->program )

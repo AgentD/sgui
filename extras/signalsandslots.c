@@ -164,7 +164,7 @@ int main( void )
     sgui_window_set_title( wnd, "Signals & Slots" );
 
     /* load font */
-    font = sgui_font_load( "../../font/SourceSansPro-Regular.ttf", 16 );
+    font = sgui_font_load( "../font/SourceSansPro-Regular.ttf", 16 );
 
     sgui_skin_set_default_font( font, NULL, NULL, NULL );
 

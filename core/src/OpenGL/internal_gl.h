@@ -43,26 +43,6 @@
 
 
 /* Operating system check */
-#ifndef MACHINE_OS_WINDOWS
-    #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-        #define MACHINE_OS_WINDOWS
-    #elif defined(__TOS_WIN__) || defined(__WINDOWS__) || defined(__WIN32__)
-        #define MACHINE_OS_WINDOWS
-    #endif
-#endif
-
-#ifndef MACHINE_OS_X
-    #if defined(__APPLE__) && defined(__MACH__)
-        #define MACHINE_OS_X
-    #endif
-#endif
-
-#if !defined(MACHINE_OS_WINDOWS) && !defined(MACHINE_OS_X)
-    #define MACHINE_OS_UNIX
-#endif
-
-
-
 #ifndef SGUI_NO_OPENGL
 
 /* include required system headers */

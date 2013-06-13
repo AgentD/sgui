@@ -238,7 +238,7 @@ static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
 static void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
                                 unsigned char* color, int format )
 {
-    GLubyte A, R, G, B;
+    GLubyte A=0x00, R=0x00, G=0x00, B=0x00;
     (void)canvas;
 
     if( format==SGUI_RGB8 || format==SGUI_RGBA8 )

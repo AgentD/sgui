@@ -1,0 +1,19 @@
+#--------------------------------------------------------------------
+# This file is part of the sgui buildsystem. I, David Oberhollenzer,
+# author of this file hereby place the contents of this file into
+# the public domain.
+#--------------------------------------------------------------------
+
+set( WIDGETS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/button.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/edit_box.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/frame.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/group_box.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/progress_bar.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/scroll_bar.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/static_text.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/subview.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/tab.c
+
+     PARENT_SCOPE )
+
