@@ -18,7 +18,7 @@ endif( )
 #----------------------------------------------------------------------
 # Compiler detection and configuration
 #----------------------------------------------------------------------
-if( CMAKE_COMPILER_IS_GNUC OR MINGW )
+if( CMAKE_COMPILER_IS_GNUCC OR MINGW )
   message( STATUS "Compiling with gcc" )
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic"          )
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow -Wwrite-strings" )
