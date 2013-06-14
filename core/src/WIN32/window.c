@@ -268,6 +268,11 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
 
             if( wnd->base.backend==SGUI_NATIVE )
             {
+                num = sgui_canvas_num_dirty_rects( base->back_buffer );
+
+                if( num )
+                    sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
+
                 sgui_internal_window_fire_event(base, SGUI_EXPOSE_EVENT, &e);
                 hDC = BeginPaint( wnd->hWnd, &ps );
                 canvas_gdi_display(hDC,base->back_buffer,0,0,base->w,base->h);
