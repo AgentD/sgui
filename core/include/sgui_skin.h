@@ -31,6 +31,22 @@
 
 
 
+#define SGUI_CHECKBOX                    1
+#define SGUI_RADIO_BUTTON                2
+#define SGUI_PROGRESS_BAR_V_STIPPLED     3
+#define SGUI_PROGRESS_BAR_V_FILLED       4
+#define SGUI_PROGRESS_BAR_H_STIPPLED     5
+#define SGUI_PROGRESS_BAR_H_FILLED       6
+#define SGUI_EDIT_BOX                    7
+#define SGUI_SCROLL_BAR_V                8
+#define SGUI_SCROLL_BAR_H                9
+#define SGUI_SCROLL_BAR_V_BUTTON        10
+#define SGUI_SCROLL_BAR_H_BUTTON        11
+#define SGUI_TAB_CAPTION                12
+#define SGUI_FRAME_BORDER               13
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -84,70 +100,6 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
                                                       int bold, int italic );
 
 /**
- * \brief Predict the size of a checkbox when rendered
- *
- * \param width  Returns the width of the checkbox.
- * \param height Returns the height of the checkbox.
- */
-SGUI_DLL void sgui_skin_get_checkbox_extents( unsigned int* width,
-                                              unsigned int* height );
-
-/**
- * \brief Predict the size of a radio button when rendered
- *
- * \param width  Returns the width of the radio button.
- * \param height Returns the height of the radio button.
- */
-SGUI_DLL void sgui_skin_get_radio_button_extents( unsigned int* width,
-                                                  unsigned int* height );
-
-/**
- * \brief Predict the size of a radio menu when rendered
- *
- * \param length    The proposed length of the bar.
- * \param style     The style of the bar (either SGUI_PROGRESS_BAR_CONTINUOUS,
- *                  or SGUI_PROGRESS_BAR_STIPPLED).
- * \param vertical  Non-zero if the bar is vertical.
- * \param width     Returns the width of the bar.
- * \param height    Returns the height of the bar.
- */
-SGUI_DLL void sgui_skin_get_progress_bar_extents( unsigned int length,
-                                                  int style, int vertical,
-                                                  unsigned int* width,
-                                                  unsigned int* height );
-
-/** \brief Get the default height of an edit box */
-SGUI_DLL unsigned int sgui_skin_get_edit_box_height( void );
-
-/**
- * \brief Get the dimensions of a scroll bar
- *
- * \param horizontal Whether the bar is horizontal (non-zero) or
- *                   vertical (zero).
- * \param length     The length of the scroll bar in pixels.
- * \param width      Returns the width of the bar
- * \param height     Returns the height of the bar
- * \param bw         Returns the width of the buttons attached to the bar
- * \param bh         Returns the height of the buttons attached to the bar
- */
-SGUI_DLL void sgui_skin_get_scroll_bar_extents( int horizontal,
-                                                unsigned int length,
-                                                unsigned int* width,
-                                                unsigned int* height,
-                                                unsigned int* bw,
-                                                unsigned int* bh );
-
-/** \brief Get the width of the border around a frame */
-SGUI_DLL unsigned int sgui_skin_get_frame_border_width( void );
-
-
-/** \brief Get the width of a tab caption */
-SGUI_DLL unsigned int sgui_skin_get_tab_caption_width( const char* caption );
-
-/** \brief Get the default height of a tab caption */
-SGUI_DLL unsigned int sgui_skin_get_tab_caption_height( void );
-
-/**
  * \brief Get the with and height of a multi line text that uses html like
  *        tags to determine color and font face
  *
@@ -159,10 +111,15 @@ SGUI_DLL unsigned int sgui_skin_get_tab_caption_height( void );
  * \param width       Returns the width of the rendered text
  * \param height      Returns the height of the rendererd text
  */
-SGUI_DLL void sgui_skin_get_text_extents( const char* text,
-                                          unsigned int* width,
-                                          unsigned int* height );
+SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
 
+/**
+ * \brief Get the dimensions of a widget type
+ *
+ * \param type The type of widget
+ * \param r    Returns the dimensions of the widget
+ */
+SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
 
 /**
  * \brief Draw a progress bar onto a canvas

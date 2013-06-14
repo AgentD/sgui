@@ -51,7 +51,7 @@ typedef struct
     sgui_widget widget;
 
     sgui_tab* tabs;
-    unsigned int tab_cap_height;
+    unsigned int tab_cap_width, tab_cap_height;
 }
 sgui_tab_group;
 
@@ -153,17 +153,20 @@ sgui_widget* sgui_tab_group_create( int x, int y,
                                     unsigned int width, unsigned int height )
 {
     sgui_tab_group* g = malloc( sizeof(sgui_tab_group) );
+    sgui_rect r;
 
     if( !g )
         return NULL;
 
     sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
+    sgui_skin_get_widget_extents( SGUI_TAB_CAPTION, &r );
 
     g->widget.draw_callback         = tab_group_draw;
     g->widget.window_event_callback = tab_group_on_event;
     g->widget.destroy               = tab_group_destroy;
     g->tabs                         = NULL;
-    g->tab_cap_height               = sgui_skin_get_tab_caption_height( );
+    g->tab_cap_height               = SGUI_RECT_HEIGHT( r );
+    g->tab_cap_width                = SGUI_RECT_WIDTH( r );
 
     return (sgui_widget*)g;
 }
@@ -196,7 +199,8 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     }
 
     strcpy( t->caption, caption );
-    t->caption_width = sgui_skin_get_tab_caption_width( caption );
+    t->caption_width = g->tab_cap_width +
+                       sgui_skin_default_font_extents( caption, -1, 0, 0 );
 
     t->dummy.area.top = g->tab_cap_height;
     t->dummy.area.right = tab->area.right - tab->area.left;

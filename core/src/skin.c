@@ -116,87 +116,13 @@ unsigned int sgui_skin_default_font_extents( const char* text,
     return x;
 }
 
-void sgui_skin_get_checkbox_extents( unsigned int* width,
-                                     unsigned int* height )
-{
-    *width  = 20;
-    *height = 12;
-}
-
-void sgui_skin_get_radio_button_extents( unsigned int* width,
-                                         unsigned int* height )
-{
-    *width  = 20;
-    *height = 12;
-}
-
-void sgui_skin_get_progress_bar_extents( unsigned int length, int style,
-                                         int vertical, unsigned int* width,
-                                         unsigned int* height )
-{
-    (void)style;
-
-    if( vertical )
-    {
-        *width  = 30;
-        *height = length;
-    }
-    else
-    {
-        *width  = length;
-        *height = 30;
-    }
-}
-
-unsigned int sgui_skin_get_edit_box_height( void )
-{
-    return (font_height + (font_height / 2) + 4);
-}
-
-void sgui_skin_get_scroll_bar_extents( int horizontal, unsigned int length,
-                                       unsigned int* width,
-                                       unsigned int* height,
-                                       unsigned int* bw, unsigned int* bh )
-{
-    *bw = *bh = 20;
-
-    if( horizontal )
-    {
-        *width = length;
-        *height = 20;
-    }
-    else
-    {
-        *width = 20;
-        *height = length;
-    }
-}
-
-unsigned int sgui_skin_get_frame_border_width( void )
-{
-    return 1;
-}
-
-unsigned int sgui_skin_get_tab_caption_width( const char* caption )
-{
-    unsigned int w = sgui_skin_default_font_extents( caption, -1, 0, 0 );
-
-    return w + 20;
-}
-
-unsigned int sgui_skin_get_tab_caption_height( void )
-{
-    return font_height + font_height / 2;
-}
-
-void sgui_skin_get_text_extents( const char* text,
-                                 unsigned int* width, unsigned int* height )
+void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
 {
     unsigned int X = 0, longest = 0, lines = 1, i = 0, font_stack_index = 0;
     char font_stack[10], f = 0;
 
     /* sanity check */
-    if( !text || (!width && !height) )
+    if( !text || !r )
         return;
 
     for( ; text && text[ i ]; ++i )
@@ -253,15 +179,61 @@ void sgui_skin_get_text_extents( const char* text,
     if( X > longest )
         longest = X;
 
-    /* store width and height */
-    if( width  ) *width  = longest;
-    if( height ) *height = lines * font_height;
-
     /* Add font height/2 as fudge factor to the height, because our crude
        computation here does not take into account that characters can peek
        out below the line */
-    if( height && *height )
-        *height += font_height/2;
+    r->left   = 0;
+    r->top    = 0;
+    r->right  = longest - 1;
+    r->bottom = lines * font_height + font_height/2 - 1;
+}
+
+void sgui_skin_get_widget_extents( int type, sgui_rect* r )
+{
+    if( r )
+    {
+        r->left = r->right = r->top = r->bottom = 0;
+
+        switch( type )
+        {
+        case SGUI_CHECKBOX:
+            r->right = 19;
+            r->bottom = 11;
+            break;
+        case SGUI_RADIO_BUTTON:
+            r->right = 19;
+            r->bottom = 11;
+            break;
+        case SGUI_PROGRESS_BAR_V_STIPPLED:
+        case SGUI_PROGRESS_BAR_V_FILLED:
+            r->right = 29;
+            break;
+        case SGUI_PROGRESS_BAR_H_STIPPLED:
+        case SGUI_PROGRESS_BAR_H_FILLED:
+            r->bottom = 29;
+            break;
+        case SGUI_EDIT_BOX:
+            r->bottom = (font_height + (font_height / 2) + 4);
+            break;
+        case SGUI_SCROLL_BAR_V:
+            r->right = 19;
+            break;
+        case SGUI_SCROLL_BAR_H:
+            r->bottom = 19;
+            break;
+        case SGUI_SCROLL_BAR_V_BUTTON:
+        case SGUI_SCROLL_BAR_H_BUTTON:
+            r->right = r->bottom = 19;
+            break;
+        case SGUI_TAB_CAPTION:
+            r->right = 19;
+            r->bottom = font_height + font_height / 2 - 1;
+            break;
+        case SGUI_FRAME_BORDER:
+            r->left = r->right = r->top = r->bottom = 1;
+            break;
+        }
+    }
 }
 
 /***************************************************************************/

@@ -108,8 +108,9 @@ static void frame_destroy( sgui_widget* frame )
 static void frame_on_state_change( sgui_widget* frame, int change )
 {
     sgui_frame* f = (sgui_frame*)frame;
-    unsigned int w, h, ww, wh, width, height, new_height, new_width;
+    unsigned int w, ww, wh, width, height, new_height, new_width;
     sgui_widget* i;
+    sgui_rect r;
     int wx, wy;
 
     if( change & (WIDGET_CHILD_ADDED|WIDGET_CHILD_REMOVED) )
@@ -138,9 +139,8 @@ static void frame_on_state_change( sgui_widget* frame, int change )
             /* if the horizontal scroll bar is drawn, take it into account */
             if( new_width > width )
             {
-                sgui_skin_get_scroll_bar_extents( 1, width, &w, &h,
-                                                  &ww, &wh );
-                new_height += wh;
+                sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_H_BUTTON, &r );
+                new_height += SGUI_RECT_HEIGHT( r );
             }
 
             sgui_scroll_bar_set_area( f->v_bar, new_height+10, height );
@@ -159,9 +159,9 @@ static void frame_on_state_change( sgui_widget* frame, int change )
             /* if the vertical scroll bar is drawn, take it into account */
             if( new_height > height )
             {
-                sgui_skin_get_scroll_bar_extents( 0, height, &w, &h,
-                                                  &ww, &wh );
-                new_width += ww;
+                sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_V_BUTTON, &r );
+                new_width += SGUI_RECT_WIDTH( r );
+                ww = SGUI_RECT_WIDTH( r );
 
                 w = SGUI_RECT_WIDTH(frame->area);
                 sgui_scroll_bar_set_length( f->h_bar, w-2*f->border-ww );
@@ -189,8 +189,9 @@ static void frame_on_state_change( sgui_widget* frame, int change )
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                 unsigned int height )
 {
-    unsigned int w, h, bw, bh;
     sgui_frame* f = malloc( sizeof(sgui_frame) );
+    unsigned int w, h;
+    sgui_rect r;
 
     if( !f )
         return NULL;
@@ -198,9 +199,12 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     sgui_internal_widget_init( (sgui_widget*)f, x, y, width, height );
 
     /* try to create a vertical scroll bar */
-    sgui_skin_get_scroll_bar_extents( 0, height, &w, &h, &bw, &bh );
+    sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_V, &r );
+    w = SGUI_RECT_WIDTH( r );
+    h = SGUI_RECT_HEIGHT( r ) + height;
 
-    f->border = sgui_skin_get_frame_border_width( );
+    sgui_skin_get_widget_extents( SGUI_FRAME_BORDER, &r );
+    f->border = r.right;
     f->v_bar_dist = width - w - f->border;
     f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->border, 0,
                                        height-2*f->border, height-2*f->border,
@@ -213,12 +217,14 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     }
 
     /* try to create a horizontal scroll bar */
-    sgui_skin_get_scroll_bar_extents( 1, width, &w, &h, &bw, &bh );
+    sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_H, &r );
+    w = SGUI_RECT_WIDTH( r ) + width;
+    h = SGUI_RECT_HEIGHT( r );
+
     f->h_bar_dist = height - h - f->border;
     f->h_bar = sgui_scroll_bar_create( f->border, f->h_bar_dist, 1,
-                                       width-2*f->border-bw,
-                                       width-2*f->border-bw,
-                                       width-2*f->border-bw );
+                                       width-2*f->border, width-2*f->border,
+                                       width-2*f->border );
 
     if( !f->h_bar )
     {

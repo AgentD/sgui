@@ -328,6 +328,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                    unsigned int max_chars )
 {
     sgui_edit_box* b;
+    sgui_rect r;
 
     /* allocate structure */
     b = malloc( sizeof(sgui_edit_box) );
@@ -347,8 +348,10 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     }
 
     /* initialise and store state */
+    sgui_skin_get_widget_extents( SGUI_EDIT_BOX, &r );
+
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width,
-                               sgui_skin_get_edit_box_height( ) );
+                               SGUI_RECT_HEIGHT( r ) );
 
     b->widget.window_event_callback = edit_box_on_event;
     b->widget.destroy               = edit_box_destroy;

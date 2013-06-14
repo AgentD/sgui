@@ -64,6 +64,7 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
 {
     sgui_static_text* t;
     unsigned int w, h;
+    sgui_rect r;
 
     /* create widget */
     t = malloc( sizeof(sgui_static_text) );
@@ -84,7 +85,9 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
     strcpy( t->text, text );
 
     /* compute width and height of the text */
-    sgui_skin_get_text_extents( text, &w, &h );
+    sgui_skin_get_text_extents( text, &r );
+    w = SGUI_RECT_WIDTH( r );
+    h = SGUI_RECT_HEIGHT( r );
 
     /* store results */
     sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h );

@@ -282,14 +282,33 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 {
     sgui_scroll_bar* b = malloc( sizeof(sgui_scroll_bar) );
     unsigned int w, h;
+    sgui_rect r;
 
     if( !b )
         return NULL;
 
     memset( b, 0, sizeof(sgui_scroll_bar) );
 
-    sgui_skin_get_scroll_bar_extents( horizontal, length, &w, &h,
-                                      &b->bw, &b->bh );
+    if( horizontal )
+    {
+        sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_H, &r );
+        w = SGUI_RECT_WIDTH( r ) + length;
+        h = SGUI_RECT_HEIGHT( r );
+
+        sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_H_BUTTON, &r );
+        b->bw = SGUI_RECT_WIDTH( r );
+        b->bh = SGUI_RECT_HEIGHT( r );
+    }
+    else
+    {
+        sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_V, &r );
+        w = SGUI_RECT_WIDTH( r );
+        h = SGUI_RECT_HEIGHT( r ) + length;
+
+        sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_V_BUTTON, &r );
+        b->bw = SGUI_RECT_WIDTH( r );
+        b->bh = SGUI_RECT_HEIGHT( r );
+    }
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
 
@@ -378,7 +397,6 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
 void sgui_scroll_bar_set_length( sgui_widget* bar, unsigned int length )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
-    unsigned int w, h;
     sgui_rect r;
 
     if( b && length!=b->length )
@@ -398,16 +416,15 @@ void sgui_scroll_bar_set_length( sgui_widget* bar, unsigned int length )
         b->p_length >>= 8;
 
         /* update widget area */
-        sgui_skin_get_scroll_bar_extents( b->horizontal, length, &w, &h,
-                                          &b->bw, &b->bh );
-
         if( b->horizontal )
         {
-            bar->area.right = bar->area.left + w;
+            sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_H, &r );
+            bar->area.right = bar->area.left + SGUI_RECT_WIDTH( r ) + length;
         }
         else
         {
-            bar->area.bottom = bar->area.top + h;
+            sgui_skin_get_widget_extents( SGUI_SCROLL_BAR_V, &r );
+            bar->area.bottom = bar->area.top + SGUI_RECT_HEIGHT( r ) + length;
         }
 
         /* if the bar is enlarged, add new area as dirty rect */

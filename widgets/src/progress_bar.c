@@ -69,6 +69,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 {
     sgui_progress_bar* b;
     unsigned int w, h;
+    sgui_rect r;
 
     /* sanity check */
     if( progress > 100 )
@@ -81,7 +82,27 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
         return NULL;
 
     /* get the size of the progress bar */
-    sgui_skin_get_progress_bar_extents( length, style, vertical, &w, &h );
+    if( vertical )
+    {
+        if( style==SGUI_PROGRESS_BAR_STIPPLED )
+            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_V_STIPPLED, &r );
+        else
+            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_V_FILLED, &r );
+
+        r.bottom += length;
+    }
+    else
+    {
+        if( style==SGUI_PROGRESS_BAR_STIPPLED )
+            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_H_STIPPLED, &r );
+        else
+            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_H_FILLED, &r );
+
+        r.right += length;
+    }
+
+    w = SGUI_RECT_WIDTH( r );
+    h = SGUI_RECT_HEIGHT( r );
 
     /* initialise and store results */
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );

@@ -105,6 +105,7 @@ static sgui_button* button_create_common( const char* text, int type )
 {
     unsigned int len;
     sgui_button* b = malloc( sizeof(sgui_button) );
+    sgui_rect r;
 
     if( b )
     {
@@ -121,7 +122,8 @@ static sgui_button* button_create_common( const char* text, int type )
             b->state = 0;
             b->type  = type;
 
-            sgui_skin_get_text_extents( text, &b->text_width, NULL );
+            sgui_skin_get_text_extents( text, &r );
+            b->text_width = SGUI_RECT_WIDTH( r );
         }
         else
         {
@@ -192,6 +194,7 @@ sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
 {
     unsigned int width, height, h = sgui_skin_get_default_font_height( );
     sgui_button* b = button_create_common( text, BUTTON_RADIO );
+    sgui_rect r;
 
     if( b )
     {
@@ -199,7 +202,10 @@ sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
         b->next = NULL;
 
         /* compute size */
-        sgui_skin_get_radio_button_extents( &b->cx, &b->cy );
+        sgui_skin_get_widget_extents( SGUI_RADIO_BUTTON, &r );
+
+        b->cx = SGUI_RECT_WIDTH( r );
+        b->cy = SGUI_RECT_HEIGHT( r );
         width  = b->cx + b->text_width;
         height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
 
@@ -263,11 +269,15 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 {
     unsigned int width, height, h = sgui_skin_get_default_font_height( );
     sgui_button* b = button_create_common( text, BUTTON_CHECKBOX );
+    sgui_rect r;
 
     if( b )
     {
         /* compute widget size */
-        sgui_skin_get_checkbox_extents( &b->cx, &b->cy );
+        sgui_skin_get_widget_extents( SGUI_CHECKBOX, &r );
+
+        b->cx = SGUI_RECT_WIDTH( r );
+        b->cy = SGUI_RECT_HEIGHT( r );
         width  = b->cx + b->text_width;
         height = b->cy < (h+h/2) ? (h+h/2) : b->cy;
 
@@ -346,6 +356,7 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
 {
     sgui_button* b = (sgui_button*)button;
     unsigned int len, h;
+    sgui_rect r;
 
     /* sanity check */
     if( !button || !text )
@@ -353,7 +364,9 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
 
     len = strlen( text );
 
-    sgui_skin_get_text_extents( text, &b->text_width, &h );
+    sgui_skin_get_text_extents( text, &r );
+    b->text_width = SGUI_RECT_WIDTH( r );
+    h = SGUI_RECT_HEIGHT( r );
 
     /* determine text position */
     if( b->type == BUTTON_NORMAL )
@@ -366,10 +379,11 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
     }
     else
     {
-        if( b->type == BUTTON_CHECKBOX )
-            sgui_skin_get_checkbox_extents( &b->cx, &b->cy );
-        else
-            sgui_skin_get_radio_button_extents( &b->cx, &b->cy );
+        sgui_skin_get_widget_extents( b->type==BUTTON_CHECKBOX ?
+                                      SGUI_CHECKBOX : SGUI_RADIO_BUTTON, &r );
+
+        b->cx = SGUI_RECT_WIDTH( r );
+        b->cy = SGUI_RECT_HEIGHT( r );
 
         button->area.right = button->area.left + b->cx + b->text_width;
     }
