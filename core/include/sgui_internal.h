@@ -183,6 +183,8 @@ struct sgui_canvas
     sgui_widget_callback fun;
     void* fun_user;
 
+    sgui_pixmap* skin_pixmap;       /**< \brief The skin pixmap */
+
     /**
      * \brief Gets called by sgui_canvas_destroy
      *

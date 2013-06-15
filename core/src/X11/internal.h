@@ -104,6 +104,7 @@ extern XIM im;
 extern Display* dpy;
 extern Atom atom_wm_delete;
 extern FT_Library freetype;
+extern sgui_pixmap* skin_pixmap;
 extern sgui_font_cache* glyph_cache;
 
 /* in platform.c: add a window to the list for the main loop */

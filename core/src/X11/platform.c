@@ -32,6 +32,7 @@ Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
 FT_Library freetype = 0;
+sgui_pixmap* skin_pixmap = NULL;
 sgui_font_cache* glyph_cache = NULL;
 
 static sgui_window_xlib* list = NULL;
@@ -70,6 +71,7 @@ void remove_window( sgui_window_xlib* wnd )
 
 int sgui_init( void )
 {
+    unsigned int width, height;
     sgui_pixmap* font_map;
 
     /* initialise freetype library */
@@ -90,20 +92,34 @@ int sgui_init( void )
 
     XSetErrorHandler( xlib_swallow_errors );
 
+    /* try to initialise the skin pixmap */
+    sgui_skin_get_pixmap_size( &width, &height );
+
+    skin_pixmap = xlib_pixmap_create( width, height, SGUI_RGBA8,
+                                      DefaultRootWindow(dpy) );
+
+    if( !skin_pixmap )
+    {
+        sgui_deinit( );
+        return 0;
+    }
+
+    sgui_skin_to_pixmap( skin_pixmap );
+
     /* try to initialise the font cache */
     font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT, SGUI_A8,
                                    DefaultRootWindow(dpy) );
 
     if( !font_map )
     {
-        sgui_pixmap_destroy( font_map );
-        XCloseDisplay( dpy );
+        sgui_deinit( );
         return 0;
     }
 
     if( !(glyph_cache = sgui_font_cache_create( font_map )) )
     {
-        XCloseDisplay( dpy );
+        sgui_pixmap_destroy( font_map );
+        sgui_deinit( );
         return 0;
     }
 
@@ -112,6 +128,7 @@ int sgui_init( void )
 
     if( !im )
     {
+        sgui_pixmap_destroy( font_map );
         sgui_deinit( );
         return 0;
     }
@@ -127,6 +144,9 @@ int sgui_init( void )
 
 void sgui_deinit( void )
 {
+    if( skin_pixmap )
+        sgui_pixmap_destroy( skin_pixmap );
+
     if( glyph_cache )
         sgui_font_cache_destroy( glyph_cache );
 
@@ -142,7 +162,7 @@ void sgui_deinit( void )
     dpy = NULL;
     im = 0;
     freetype = 0;
-
+    skin_pixmap = NULL;
     list = NULL;
 }
 

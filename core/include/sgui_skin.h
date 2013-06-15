@@ -56,7 +56,17 @@ extern "C"
 {
 #endif
 
+/**
+ * \brief Get the minum size a pixmap needs to hold the current skin elements
+ *
+ * \param width  Returns the width of the pixmap
+ * \param height Returns the height of the pixmap
+ */
+SGUI_DLL void sgui_skin_get_pixmap_size( unsigned int* width,
+                                         unsigned int* height );
 
+/** \brief Fill a given pixmap with the default GUI skin */
+SGUI_DLL void sgui_skin_to_pixmap( sgui_pixmap* pixmap );
 
 /**
  * \brief Override the default font for the skin

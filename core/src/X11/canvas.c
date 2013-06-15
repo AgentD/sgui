@@ -99,7 +99,7 @@ static void canvas_xlib_blit( sgui_canvas* canvas, int x, int y,
 
     XRenderComposite( dpy, PictOpSrc, ((xlib_pixmap*)pixmap)->pic, 0, cv->pic,
                       srcrect->left, srcrect->top, 0, 0,
-                      x+srcrect->left, y+srcrect->top,
+                      x, y,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
@@ -111,7 +111,7 @@ static void canvas_xlib_blend( sgui_canvas* canvas, int x, int y,
 
     XRenderComposite( dpy, PictOpOver, ((xlib_pixmap*)pixmap)->pic, 0,
                       cv->pic, srcrect->left, srcrect->top, 0, 0,
-                      x+srcrect->left, y+srcrect->top,
+                      x, y,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
@@ -288,6 +288,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.draw_box      = canvas_xlib_draw_box;
     cv->canvas.draw_string   = canvas_xlib_draw_string;
     cv->canvas.create_pixmap = canvas_xlib_create_pixmap;
+    cv->canvas.skin_pixmap   = skin_pixmap;
 
     return (sgui_canvas*)cv;
 }

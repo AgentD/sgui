@@ -493,13 +493,21 @@ void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
     if( srcrect )
         sgui_rect_get_intersection( &r, &r, srcrect );
 
-    /* get the scissor clipping rectangle in image local coordinates */
-    clip = canvas->sc;
-    clip.left -= x; clip.right  -= x;
-    clip.top  -= y; clip.bottom -= y;
+    /* clip the against the scissor rectangle */
+    clip.left   = x;
+    clip.top    = y;
+    clip.right  = x + r.right  - r.left;
+    clip.bottom = y + r.bottom - r.top;
 
-    /* clip the source rect against the image local scissor rectangle */
-    sgui_rect_get_intersection( &r, &r, &clip );
+    sgui_rect_get_intersection( &clip, &clip, &canvas->sc );
+
+    r.left  += clip.left - x;
+    r.top   += clip.top  - y;
+    r.right  = r.left + clip.right-clip.left;
+    r.bottom = r.top  + clip.bottom-clip.top;
+
+    x = clip.left;
+    y = clip.top;
 
     /* do the blitting */
     canvas->blit( canvas, x, y, pixmap, &r );
@@ -524,13 +532,21 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
     if( srcrect )
         sgui_rect_get_intersection( &r, &r, srcrect );
 
-    /* get the scissor clipping rectangle in image local coordinates */
-    clip = canvas->sc;
-    clip.left -= x; clip.right  -= x;
-    clip.top  -= y; clip.bottom -= y;
+    /* clip the against the scissor rectangle */
+    clip.left   = x;
+    clip.top    = y;
+    clip.right  = x + r.right  - r.left;
+    clip.bottom = y + r.bottom - r.top;
 
-    /* clip the source rect against the image local scissor rectangle */
-    sgui_rect_get_intersection( &r, &r, &clip );
+    sgui_rect_get_intersection( &clip, &clip, &canvas->sc );
+
+    r.left  += clip.left - x;
+    r.top   += clip.top  - y;
+    r.right  = r.left + clip.right-clip.left;
+    r.bottom = r.top  + clip.bottom-clip.top;
+
+    x = clip.left;
+    y = clip.top;
 
     /* do the blending */
     canvas->blend( canvas, x, y, pixmap, &r );
@@ -669,5 +685,10 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
 
     /* draw what is still left */
     sgui_canvas_draw_text_plain(canvas, x+X, y, f&0x02, f&0x01, col, text, i);
+}
+
+sgui_pixmap* sgui_canvas_get_skin_pixmap( sgui_canvas* canvas )
+{
+    return canvas ? canvas->skin_pixmap : NULL;
 }
 
