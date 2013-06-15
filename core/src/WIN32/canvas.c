@@ -308,6 +308,7 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     cv->canvas.draw_box = canvas_gdi_draw_box;
     cv->canvas.draw_string = canvas_gdi_draw_string;
     cv->canvas.create_pixmap = canvas_gdi_create_pixmap;
+    cv->canvas.skin_pixmap = skin_pixmap;
 
     return (sgui_canvas*)cv;
 }

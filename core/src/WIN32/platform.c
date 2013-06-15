@@ -31,6 +31,7 @@ static sgui_window_w32* list = NULL;
 
 FT_Library freetype;
 HINSTANCE hInstance;
+sgui_pixmap* skin_pixmap = NULL;
 const char* wndclass = "sgui_wnd_class";
 
 
@@ -72,7 +73,18 @@ void remove_window( sgui_window_w32* wnd )
 
 int sgui_init( void )
 {
+    unsigned int width, height;
     WNDCLASSEX wc;
+
+    /* try to initialise the skin pixmap */
+    sgui_skin_get_pixmap_size( &width, &height );
+
+    skin_pixmap = gdi_pixmap_create( width, height, SGUI_RGBA8 );
+
+    if( !skin_pixmap )
+        return 0;
+
+    sgui_skin_to_pixmap( skin_pixmap );
 
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
@@ -85,7 +97,10 @@ int sgui_init( void )
     hInstance = GetModuleHandle( NULL );
 
     if( !hInstance )
+    {
+        sgui_deinit( );
         return 0;
+    }
 
     /* Register window class */
     memset( &wc, 0, sizeof(WNDCLASSEX) );
@@ -99,7 +114,7 @@ int sgui_init( void )
 
     if( RegisterClassEx( &wc ) == 0 )
     {
-        hInstance = 0;
+        sgui_deinit( );
         return 0;
     }
 
@@ -108,6 +123,10 @@ int sgui_init( void )
 
 void sgui_deinit( void )
 {
+    /* destroy skin pixmap */
+    if( skin_pixmap )
+        sgui_pixmap_destroy( skin_pixmap );
+
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 
@@ -115,6 +134,7 @@ void sgui_deinit( void )
         FT_Done_FreeType( freetype );
 
     /* reset values */
+    skin_pixmap = NULL;
     freetype = 0;
     hInstance = 0;
     list = NULL;
