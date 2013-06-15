@@ -53,7 +53,18 @@ static void canvas_gl_destroy( sgui_canvas* canvas )
 static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 {
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
+    unsigned int w, h;
     GLboolean v;
+
+    if( !canvas->skin_pixmap )
+    {
+        sgui_skin_get_pixmap_size( &w, &h );
+
+        canvas->skin_pixmap = gl_pixmap_create( w, h, SGUI_RGBA8 );
+
+        if( canvas->skin_pixmap )
+            sgui_skin_to_pixmap( canvas->skin_pixmap );
+    }
 
     /* configure the viewport to canvas size */
     glViewport( 0, 0, canvas->width, canvas->height );
@@ -170,17 +181,17 @@ static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
 
     glTexCoord2i( srcrect->left, srcrect->top );
     glVertex2i( x, y );
-    glTexCoord2i( srcrect->right, srcrect->top );
-    glVertex2i( x+w-1, y );
-    glTexCoord2i( srcrect->left, srcrect->bottom );
-    glVertex2i( x, y+h-1 );
+    glTexCoord2i( srcrect->right+1, srcrect->top );
+    glVertex2i( x+w, y );
+    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
+    glVertex2i( x, y+h );
 
-    glTexCoord2i( srcrect->right, srcrect->top );
-    glVertex2i( x+w-1, y );
-    glTexCoord2i( srcrect->right, srcrect->bottom );
-    glVertex2i( x+w-1, y+h-1 );
-    glTexCoord2i( srcrect->left, srcrect->bottom );
-    glVertex2i( x, y+h-1 );
+    glTexCoord2i( srcrect->right+1, srcrect->top );
+    glVertex2i( x+w, y );
+    glTexCoord2i( srcrect->right+1, srcrect->bottom+1 );
+    glVertex2i( x+w, y+h );
+    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
+    glVertex2i( x, y+h );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, 0 );
@@ -217,17 +228,17 @@ static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
 
     glTexCoord2i( srcrect->left, srcrect->top );
     glVertex2i( x, y );
-    glTexCoord2i( srcrect->right, srcrect->top );
-    glVertex2i( x+w-1, y );
-    glTexCoord2i( srcrect->left, srcrect->bottom );
-    glVertex2i( x, y+h-1 );
+    glTexCoord2i( srcrect->right+1, srcrect->top );
+    glVertex2i( x+w, y );
+    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
+    glVertex2i( x, y+h );
 
-    glTexCoord2i( srcrect->right, srcrect->top );
-    glVertex2i( x+w-1, y );
-    glTexCoord2i( srcrect->right, srcrect->bottom );
-    glVertex2i( x+w-1, y+h-1 );
-    glTexCoord2i( srcrect->left, srcrect->bottom );
-    glVertex2i( x, y+h-1 );
+    glTexCoord2i( srcrect->right+1, srcrect->top );
+    glVertex2i( x+w, y );
+    glTexCoord2i( srcrect->right+1, srcrect->bottom+1 );
+    glVertex2i( x+w, y+h );
+    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
+    glVertex2i( x, y+h );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, 0 );

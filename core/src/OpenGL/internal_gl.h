@@ -39,6 +39,7 @@
 #include "sgui_utf8.h"
 #include "sgui_pixmap.h"
 #include "sgui_font_cache.h"
+#include "sgui_skin.h"
 
 
 
