@@ -32,18 +32,22 @@
 
 
 #define SGUI_CHECKBOX                    1
-#define SGUI_RADIO_BUTTON                2
-#define SGUI_PROGRESS_BAR_V_STIPPLED     3
-#define SGUI_PROGRESS_BAR_V_FILLED       4
-#define SGUI_PROGRESS_BAR_H_STIPPLED     5
-#define SGUI_PROGRESS_BAR_H_FILLED       6
-#define SGUI_EDIT_BOX                    7
-#define SGUI_SCROLL_BAR_V                8
-#define SGUI_SCROLL_BAR_H                9
-#define SGUI_SCROLL_BAR_V_BUTTON        10
-#define SGUI_SCROLL_BAR_H_BUTTON        11
-#define SGUI_TAB_CAPTION                12
-#define SGUI_FRAME_BORDER               13
+#define SGUI_CHECKBOX_SELECTED           2
+#define SGUI_RADIO_BUTTON                3
+#define SGUI_RADIO_BUTTON_SELECTED       4
+#define SGUI_BUTTON                      5
+#define SGUI_BUTTON_SELECTED             6
+#define SGUI_PROGRESS_BAR_V_STIPPLED     7
+#define SGUI_PROGRESS_BAR_V_FILLED       8
+#define SGUI_PROGRESS_BAR_H_STIPPLED     9
+#define SGUI_PROGRESS_BAR_H_FILLED      10
+#define SGUI_EDIT_BOX                   11
+#define SGUI_SCROLL_BAR_V               12
+#define SGUI_SCROLL_BAR_H               13
+#define SGUI_SCROLL_BAR_V_BUTTON        14
+#define SGUI_SCROLL_BAR_H_BUTTON        15
+#define SGUI_TAB_CAPTION                16
+#define SGUI_FRAME_BORDER               17
 
 
 
@@ -124,81 +128,44 @@ SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
 /**
  * \brief Draw a progress bar onto a canvas
  *
- * \param cv       The canvas to draw to.
- * \param x        The distance from the left side of the bar to the left of
- *                 the window.
- * \param y        The distance from the top of the bar to the top of
- *                 the window.
- * \param length   The length of the bar.
- * \param vertical Non-zero for vertical bars, zero for horizontal.
- * \param style    The style of the bar (stippled or continuous).
- * \param value    The progress value to indicate (value between 0 and 100).
+ * \param cv    The canvas to draw to.
+ * \param area  The widget area.
+ * \param type  The type of progress bar.
+ * \param value The progress value to indicate (value between 0 and 100).
  */
-SGUI_DLL void sgui_skin_draw_progress_bar( sgui_canvas* cv, int x, int y,
-                                           unsigned int length, int vertical,
-                                           int style, unsigned int value );
+SGUI_DLL void sgui_skin_draw_progress_bar( sgui_canvas* cv, sgui_rect* area,
+                                           int type, unsigned int value );
 
 /**
  * \brief Draw a button widget onto a canvas
  *
  * \param cv     The canvas to draw to.
- * \param r      The button area.
+ * \param area   The area occupied by the button.
  * \param state  Zero if the button is in default state, non-zero if it is
  *               pressed.
  */
-SGUI_DLL void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* r,
-                                     int state );
-
-/**
- * \brief Draw a checkbox onto a canvas
- *
- * \param cv     The canvas to draw to.
- * \param x      Distance from the left of the box to the left of the window.
- * \param y      Distance from the top of the box to the top of the window.
- * \param state  Non-zero if the checkbox is checked.
- */
-SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* cv, int x, int y,
-                                       int state );
-
-/**
- * \brief Draw a radio menu onto a canvas
- *
- * \param cv       The canvas to draw to.
- * \param x        Distance from the left of the radio button to the left of
- *                 the canvas.
- * \param y        Distance from the top of the radio button to the top of
- *                 the canvas.
- * \param selected Whether the radio button is selected or not
- */
-SGUI_DLL void sgui_skin_draw_radio_button( sgui_canvas* cv, int x, int y,
-                                           int selected );
+SGUI_DLL void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* area,
+                                     int type );
 
 /**
  * \brief Draw an edit box onto a canvas
  *
  * \param cv     The canvas to draw to.
- * \param x      Distance from the left of the box to the left of the window.
- * \param y      Distance from the top of the box to the top of the window.
- * \param text   The text to render into the edit box
- * \param width  The width of the edit box.
+ * \param area   The area occupied by the edit box.
+ * \param text   The text to render into the edit box.
  * \param cursor Character index (UTF8!!) of the cursor or -1 to not draw a
  *               cursor at all.
  */
-SGUI_DLL void sgui_skin_draw_edit_box( sgui_canvas* cv, int x, int y,
-                                       const char* text,
-                                       unsigned int width, int cursor );
+SGUI_DLL void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,
+                                       const char* text, int cursor );
 
 /**
  * \brief Draw a frame onto a canvas
  *
- * \param cv     The canvas to draw to
- * \param x      Distance from the left of the frame to the left of the canvas
- * \param y      Distance from the top of the frame to the top of the canvas
- * \param width  The width of the frame
- * \param height The height of the frame
+ * \param cv   The canvas to draw to
+ * \param area The area covered by the frame
  */
-SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* cv, int x, int y, unsigned int width,
-                                    unsigned int height );
+SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* cv, sgui_rect* area );
 
 /**
  * \brief Draw a scroll bar onto a canvas
@@ -230,9 +197,7 @@ SGUI_DLL void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
  * \param height  The height of the group box
  * \param caption The caption of the group box
  */
-SGUI_DLL void sgui_skin_draw_group_box( sgui_canvas* cv, int x, int y,
-                                        unsigned int width,
-                                        unsigned int height,
+SGUI_DLL void sgui_skin_draw_group_box( sgui_canvas* cv, sgui_rect* area,
                                         const char* caption );
 
 /**

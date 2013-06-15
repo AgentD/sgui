@@ -45,10 +45,7 @@ sgui_group_box;
 
 static void group_box_draw( sgui_widget* widget )
 {
-    sgui_skin_draw_group_box( widget->canvas,
-                              widget->area.left, widget->area.top,
-                              SGUI_RECT_WIDTH(widget->area),
-                              SGUI_RECT_HEIGHT(widget->area),
+    sgui_skin_draw_group_box( widget->canvas, &widget->area,
                               ((sgui_group_box*)widget)->caption );
 }
 

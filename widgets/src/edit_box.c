@@ -151,10 +151,8 @@ static void edit_box_draw( sgui_widget* widget )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
 
-    sgui_skin_draw_edit_box( widget->canvas,
-                             widget->area.left, widget->area.top,
+    sgui_skin_draw_edit_box( widget->canvas, &widget->area,
                              b->buffer + b->offset,
-                             SGUI_RECT_WIDTH(widget->area),
                              b->draw_cursor ?
                              (int)(b->cursor-b->offset) : -1 );
 }

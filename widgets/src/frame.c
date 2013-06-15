@@ -91,9 +91,7 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
 
 static void frame_draw( sgui_widget* widget )
 {
-    sgui_skin_draw_frame( widget->canvas, widget->area.left, widget->area.top,
-                          SGUI_RECT_WIDTH(widget->area),
-                          SGUI_RECT_HEIGHT(widget->area) );
+    sgui_skin_draw_frame( widget->canvas, &widget->area );
 }
 
 static void frame_destroy( sgui_widget* frame )
@@ -123,14 +121,14 @@ static void frame_on_state_change( sgui_widget* frame, int change )
         /* determine the required frame size */
         for( i=frame->children; i!=NULL; i=i->next )
         {
-            if( i==f->v_bar || i==f->h_bar )
-                continue;
+            if( i!=f->v_bar && i!=f->h_bar )
+            {
+                sgui_widget_get_position( i, &wx, &wy );
+                sgui_widget_get_size( i, &ww, &wh );
 
-            sgui_widget_get_position( i, &wx, &wy );
-            sgui_widget_get_size( i, &ww, &wh );
-
-            new_height = MAX( new_height, wy+wh );
-            new_width = MAX( new_width, wx+ww );
+                new_height = MAX( new_height, wy+wh );
+                new_width = MAX( new_width, wx+ww );
+            }
         }
 
         /* draw the vertical scroll bar if the required height is larger */

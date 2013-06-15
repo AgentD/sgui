@@ -88,6 +88,14 @@ SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
                              int bottom );
 
 /**
+ * \brief Reposition a given rect
+ *
+ * \param left The horizontal distance of the left edge from the origin
+ * \param top  The vertical distance of the top edge from the origin
+ */
+SGUI_DLL void sgui_rect_set_position( sgui_rect* r, int left, int top );
+
+/**
  * \brief Copy the data of one rectangle into another
  *
  * \param dst The rectangle to copy to

@@ -63,8 +63,6 @@ static void static_text_destroy( sgui_widget* widget )
 sgui_widget* sgui_static_text_create( int x, int y, const char* text )
 {
     sgui_static_text* t;
-    unsigned int w, h;
-    sgui_rect r;
 
     /* create widget */
     t = malloc( sizeof(sgui_static_text) );
@@ -81,19 +79,18 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
         return NULL;
     }
 
-    /* copy the text */
-    strcpy( t->text, text );
-
-    /* compute width and height of the text */
-    sgui_skin_get_text_extents( text, &r );
-    w = SGUI_RECT_WIDTH( r );
-    h = SGUI_RECT_HEIGHT( r );
-
-    /* store results */
-    sgui_internal_widget_init( (sgui_widget*)t, x, y, w, h );
+    /* initialise the base widget */
+    sgui_internal_widget_init( (sgui_widget*)t, 0, 0, 0, 0 );
 
     t->widget.draw_callback = static_text_draw;
     t->widget.destroy       = static_text_destroy;
+
+    /* copy the text */
+    strcpy( t->text, text );
+
+    /* compute the text area */
+    sgui_skin_get_text_extents( text, &t->widget.area );
+    sgui_rect_set_position( &t->widget.area, x, y );
 
     return (sgui_widget*)t;
 }

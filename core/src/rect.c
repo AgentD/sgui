@@ -58,6 +58,17 @@ void sgui_rect_set( sgui_rect* r, int left, int top, int right, int bottom )
     }
 }
 
+void sgui_rect_set_position( sgui_rect* r, int left, int top )
+{
+    if( r )
+    {
+        r->right  = r->right  - r->left + left;
+        r->bottom = r->bottom - r->top  + top;
+        r->left   = left;
+        r->top    = top;
+    }
+}
+
 void sgui_rect_copy( sgui_rect* dst, sgui_rect* src )
 {
     if( dst && src )

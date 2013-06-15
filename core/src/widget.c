@@ -77,24 +77,25 @@ void sgui_widget_destroy( sgui_widget* widget )
 
 void sgui_widget_set_position( sgui_widget* w, int x, int y )
 {
-    int dx, dy;
     sgui_rect r;
+    int visible;
 
     if( w )
     {
+        visible = sgui_widget_is_absolute_visible( w );
+
         /* flag the old area dirty */
-        sgui_widget_get_absolute_rect( w, &r );
-        sgui_canvas_add_dirty_rect( w->canvas, &r );
+        if( visible )
+        {
+            sgui_widget_get_absolute_rect( w, &r );
+            sgui_canvas_add_dirty_rect( w->canvas, &r );
+        }
 
         /* move the widget area */
-        dx = x - w->area.left;
-        dy = y - w->area.top;
+        sgui_rect_set_position( &w->area, x, y );
 
-        w->area.left += dx; w->area.right  += dx;
-        w->area.top  += dy; w->area.bottom += dy;
-
-        /* flag the old area dirty */
-        if( sgui_widget_is_absolute_visible( w ) )
+        /* flag the new area dirty */
+        if( visible )
         {
             sgui_widget_get_absolute_rect( w, &r );
             sgui_canvas_add_dirty_rect( w->canvas, &r );

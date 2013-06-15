@@ -37,10 +37,7 @@ typedef struct
 {
     sgui_widget widget;
 
-    unsigned int progress;
-    int style;
-    int vertical;
-    unsigned int length;
+    unsigned int type, progress;
 }
 sgui_progress_bar;
 
@@ -50,10 +47,8 @@ static void progress_draw( sgui_widget* widget )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)widget;
 
-    sgui_skin_draw_progress_bar( widget->canvas,
-                                 widget->area.left, widget->area.top,
-                                 b->length, b->vertical, b->style,
-                                 b->progress );
+    sgui_skin_draw_progress_bar( widget->canvas, &widget->area, 
+                                 b->type, b->progress );
 }
 
 static void progress_bar_destroy( sgui_widget* bar )
@@ -68,8 +63,6 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
                                        unsigned int length )
 {
     sgui_progress_bar* b;
-    unsigned int w, h;
-    sgui_rect r;
 
     /* sanity check */
     if( progress > 100 )
@@ -81,60 +74,51 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     if( !b )
         return NULL;
 
-    /* get the size of the progress bar */
-    if( vertical )
-    {
-        if( style==SGUI_PROGRESS_BAR_STIPPLED )
-            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_V_STIPPLED, &r );
-        else
-            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_V_FILLED, &r );
-
-        r.bottom += length;
-    }
-    else
-    {
-        if( style==SGUI_PROGRESS_BAR_STIPPLED )
-            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_H_STIPPLED, &r );
-        else
-            sgui_skin_get_widget_extents( SGUI_PROGRESS_BAR_H_FILLED, &r );
-
-        r.right += length;
-    }
-
-    w = SGUI_RECT_WIDTH( r );
-    h = SGUI_RECT_HEIGHT( r );
-
-    /* initialise and store results */
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
+    /* initialise the base widget */
+    sgui_internal_widget_init( (sgui_widget*)b, 0, 0, 0, 0 );
 
     b->widget.draw_callback = progress_draw;
     b->widget.destroy       = progress_bar_destroy;
-    b->vertical             = vertical;
     b->progress             = progress;
-    b->style                = style;
-    b->length               = length;
+
+    /* get the size of the progress bar */
+    if( style==SGUI_PROGRESS_BAR_STIPPLED )
+    {
+        b->type = vertical ? SGUI_PROGRESS_BAR_V_STIPPLED :
+                             SGUI_PROGRESS_BAR_H_STIPPLED;
+    }
+    else
+    {
+        b->type = vertical ? SGUI_PROGRESS_BAR_V_FILLED :
+                             SGUI_PROGRESS_BAR_H_FILLED;
+    }
+
+    sgui_skin_get_widget_extents( b->type, &b->widget.area );
+    sgui_rect_set_position( &b->widget.area, x, y );
+
+    if( vertical )
+        b->widget.area.bottom += length;
+    else
+        b->widget.area.right += length;
 
     return (sgui_widget*)b;
 }
 
 void sgui_progress_bar_set_progress( sgui_widget* bar, unsigned int progress )
 {
-    sgui_progress_bar* b = (sgui_progress_bar*)bar;
     sgui_rect r;
 
-    if( b )
+    if( bar )
     {
         sgui_widget_get_absolute_rect( bar, &r );
         sgui_canvas_add_dirty_rect( bar->canvas, &r );
 
-        b->progress = progress > 100 ? 100 : progress;
+        ((sgui_progress_bar*)bar)->progress = progress > 100 ? 100 : progress;
     }
 }
 
 unsigned int sgui_progress_bar_get_progress( sgui_widget* bar )
 {
-    sgui_progress_bar* b = (sgui_progress_bar*)bar;
-
-    return b ? b->progress : 0;
+    return bar ? ((sgui_progress_bar*)bar)->progress : 0;
 }
 
