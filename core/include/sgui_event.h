@@ -48,18 +48,18 @@
 #define SGUI_MOUSE_PRESS_EVENT          0x0005
 #define SGUI_MOUSE_RELEASE_EVENT        0x0006
 #define SGUI_MOUSE_WHEEL_EVENT          0x0007
-#define SGUI_MOUSE_ENTER_EVENT          0x0008
-#define SGUI_MOUSE_LEAVE_EVENT          0x0009
 
-#define SGUI_KEY_PRESSED_EVENT          0x000A
-#define SGUI_KEY_RELEASED_EVENT         0x000B
-#define SGUI_CHAR_EVENT                 0x000C
+#define SGUI_KEY_PRESSED_EVENT          0x0008
+#define SGUI_KEY_RELEASED_EVENT         0x0009
+#define SGUI_CHAR_EVENT                 0x000A
 
-#define SGUI_EXPOSE_EVENT               0x000D
+#define SGUI_EXPOSE_EVENT               0x000B
 
 /**************** canvas events ****************/
-#define SGUI_FOCUS_EVENT                0x0010
-#define SGUI_FOCUS_LOSE_EVENT           0x0011
+#define SGUI_MOUSE_ENTER_EVENT          0x0010
+#define SGUI_MOUSE_LEAVE_EVENT          0x0011
+#define SGUI_FOCUS_EVENT                0x0012
+#define SGUI_FOCUS_LOSE_EVENT           0x0013
 
 /**************** button events ****************/
 #define SGUI_BUTTON_CLICK_EVENT         0x0020
