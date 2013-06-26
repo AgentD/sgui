@@ -28,10 +28,10 @@
 
 
 static sgui_window_w32* list = NULL;
+static sgui_pixmap* skin_pixmap = NULL;
 
 FT_Library freetype;
 HINSTANCE hInstance;
-sgui_pixmap* skin_pixmap = NULL;
 const char* wndclass = "sgui_wnd_class";
 
 
@@ -69,22 +69,28 @@ void remove_window( sgui_window_w32* wnd )
     SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
+sgui_pixmap* get_skin_pixmap( void )
+{
+    unsigned int width, height;
+
+    if( !skin_pixmap )
+    {
+        sgui_skin_get_pixmap_size( &width, &height );
+
+        skin_pixmap = gdi_pixmap_create( width, height, SGUI_RGBA8 );
+
+        if( skin_pixmap )
+            sgui_skin_to_pixmap( skin_pixmap );
+    }
+
+    return skin_pixmap;
+}
+
 /****************************************************************************/
 
 int sgui_init( void )
 {
-    unsigned int width, height;
     WNDCLASSEX wc;
-
-    /* try to initialise the skin pixmap */
-    sgui_skin_get_pixmap_size( &width, &height );
-
-    skin_pixmap = gdi_pixmap_create( width, height, SGUI_RGBA8 );
-
-    if( !skin_pixmap )
-        return 0;
-
-    sgui_skin_to_pixmap( skin_pixmap );
 
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )

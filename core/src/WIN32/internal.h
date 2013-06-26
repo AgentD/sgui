@@ -100,7 +100,8 @@ gdi_pixmap;
 extern HINSTANCE hInstance;
 extern const char* wndclass;
 extern FT_Library freetype;
-extern sgui_pixmap* skin_pixmap;
+
+sgui_pixmap* get_skin_pixmap( void );
 
 /* in platform.c: add a window to the list used by the main loop */
 void add_window( sgui_window_w32* wnd );

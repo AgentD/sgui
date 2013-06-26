@@ -166,6 +166,7 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
     unsigned int i, len = 0;
     unsigned long character, previous=0;
     sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_font_cache* cache = get_glyph_cache( );
     XRectangle r;
 
     r.x = canvas->sc.left;
@@ -184,7 +185,7 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
         x += sgui_font_get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
-        x += sgui_font_cache_draw_glyph( glyph_cache, font, character,
+        x += sgui_font_cache_draw_glyph( cache, font, character,
                                          x, y, canvas, color ) + 1;
 
         /* store previous glyph index for kerning */
@@ -288,7 +289,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.draw_box      = canvas_xlib_draw_box;
     cv->canvas.draw_string   = canvas_xlib_draw_string;
     cv->canvas.create_pixmap = canvas_xlib_create_pixmap;
-    cv->canvas.skin_pixmap   = skin_pixmap;
+    cv->canvas.skin_pixmap   = get_skin_pixmap( );
 
     return (sgui_canvas*)cv;
 }

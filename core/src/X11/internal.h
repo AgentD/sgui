@@ -104,8 +104,12 @@ extern XIM im;
 extern Display* dpy;
 extern Atom atom_wm_delete;
 extern FT_Library freetype;
-extern sgui_pixmap* skin_pixmap;
-extern sgui_font_cache* glyph_cache;
+
+/* in platform.c: returns a pointer to the global skin pixmap */
+sgui_pixmap* get_skin_pixmap( void );
+
+/* in platform.c: returns a pointer to the global font cache */
+sgui_font_cache* get_glyph_cache( void );
 
 /* in platform.c: add a window to the list for the main loop */
 void add_window( sgui_window_xlib* window );

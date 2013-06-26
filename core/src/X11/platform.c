@@ -32,8 +32,8 @@ Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
 FT_Library freetype = 0;
-sgui_pixmap* skin_pixmap = NULL;
-sgui_font_cache* glyph_cache = NULL;
+static sgui_pixmap* skin_pixmap = NULL;
+static sgui_font_cache* glyph_cache = NULL;
 
 static sgui_window_xlib* list = NULL;
 
@@ -67,13 +67,49 @@ void remove_window( sgui_window_xlib* wnd )
     SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
+sgui_pixmap* get_skin_pixmap( void )
+{
+    unsigned int width, height;
+
+    if( !skin_pixmap )
+    {
+        sgui_skin_get_pixmap_size( &width, &height );
+
+        skin_pixmap = xlib_pixmap_create( width, height, SGUI_RGBA8,
+                                          DefaultRootWindow(dpy) );
+
+        if( skin_pixmap )
+            sgui_skin_to_pixmap( skin_pixmap );
+    }
+
+    return skin_pixmap;
+}
+
+sgui_font_cache* get_glyph_cache( void )
+{
+    sgui_pixmap* font_map;
+
+    if( !glyph_cache )
+    {
+        font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
+                                       SGUI_A8, DefaultRootWindow(dpy) );
+
+        if( font_map )
+        {
+            glyph_cache = sgui_font_cache_create( font_map );
+
+            if( !glyph_cache )
+                sgui_pixmap_destroy( font_map );
+        }
+    }
+
+    return glyph_cache;
+}
+
 /****************************************************************************/
 
 int sgui_init( void )
 {
-    unsigned int width, height;
-    sgui_pixmap* font_map;
-
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
     {
@@ -92,43 +128,11 @@ int sgui_init( void )
 
     XSetErrorHandler( xlib_swallow_errors );
 
-    /* try to initialise the skin pixmap */
-    sgui_skin_get_pixmap_size( &width, &height );
-
-    skin_pixmap = xlib_pixmap_create( width, height, SGUI_RGBA8,
-                                      DefaultRootWindow(dpy) );
-
-    if( !skin_pixmap )
-    {
-        sgui_deinit( );
-        return 0;
-    }
-
-    sgui_skin_to_pixmap( skin_pixmap );
-
-    /* try to initialise the font cache */
-    font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT, SGUI_A8,
-                                   DefaultRootWindow(dpy) );
-
-    if( !font_map )
-    {
-        sgui_deinit( );
-        return 0;
-    }
-
-    if( !(glyph_cache = sgui_font_cache_create( font_map )) )
-    {
-        sgui_pixmap_destroy( font_map );
-        sgui_deinit( );
-        return 0;
-    }
-
     /* create input method */
     im = XOpenIM( dpy, NULL, NULL, NULL );
 
     if( !im )
     {
-        sgui_pixmap_destroy( font_map );
         sgui_deinit( );
         return 0;
     }
