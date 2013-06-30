@@ -133,7 +133,7 @@ typedef void(* GLGETPROGRAMINFOLOG )( GLuint, GLsizei, GLsizei*, GLchar* );
 
 /* vertex buffer details */
 #define VERTEX_SIZE 8
-#define MAX_VERTICES 2048
+#define MAX_VERTICES 1024
 
 /* OpenGL state flags */
 #define TEX_ENABLE     0x01

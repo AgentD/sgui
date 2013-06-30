@@ -305,6 +305,8 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     cv->canvas.clear = canvas_gdi_clear;
     cv->canvas.blit = canvas_gdi_blit;
     cv->canvas.blend = canvas_gdi_blend;
+    cv->canvas.stretch_blit = NULL;
+    cv->canvas.stretch_blend = NULL;
     cv->canvas.draw_box = canvas_gdi_draw_box;
     cv->canvas.draw_string = canvas_gdi_draw_string;
     cv->canvas.create_pixmap = canvas_gdi_create_pixmap;

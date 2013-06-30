@@ -32,10 +32,7 @@ typedef struct
 {
     sgui_canvas canvas;
 
-    int state;
-    GLint blend_src, blend_dst;
-    GLint old_scissor[4];
-    GLuint vao, vbo, vsh, fsh, u_pmatrix, program;
+    GLuint vao, vbo, vsh, fsh, u_pmatrix, program, have_clear;
 
     sgui_font_cache* font_cache;
 
@@ -70,6 +67,9 @@ typedef struct
 
     GLGETPROGRAMINFOLOG glGetProgramInfoLog;
     GLGETSHADERINFOLOG glGetShaderInfoLog;
+
+    GLubyte vertices[ VERTEX_SIZE * MAX_VERTICES ];
+    GLuint vertex;
 }
 sgui_canvas_gl;
 
@@ -98,6 +98,47 @@ static const char* fsh =
 "{\n"
 "   COLOR0 = color;\n"
 "}";
+/****************************************************************************/
+static void gl_ortho( GLfloat* m, GLfloat left, GLfloat right,
+                      GLfloat bottom, GLfloat top, GLfloat Near, GLfloat Far )
+{
+    GLfloat iRL = 1.0f / (right - left);
+    GLfloat iTB = 1.0f / (top - bottom);
+    GLfloat iFN = 1.0f / (Far - Near);
+
+    GLfloat tx = -(right + left) * iRL;
+    GLfloat ty = -(top + bottom) * iTB;
+    GLfloat tz = -(Far + Near) * iFN;
+
+    m[0] = 2.0f*iRL; m[4] = 0.0f;     m[ 8] = 0.0f;     m[12] = tx;
+    m[1] = 0.0f;     m[5] = 2.0f*iTB; m[ 9] = 0.0f;     m[13] = ty;
+    m[2] = 0.0f;     m[6] = 0.0f;     m[10] =-2.0f*iFN; m[14] = tz;
+    m[3] = 0.0f;     m[7] = 0.0f;     m[11] = 0.0f;     m[15] = 1.0f;
+}
+
+static void vertex( sgui_canvas_gl* cv, GLuint x, GLuint y,
+                    GLubyte r, GLubyte g, GLubyte b, GLubyte a )
+{
+    union
+    {
+        GLushort s;
+        GLubyte b[2];
+    }
+    u;
+
+    u.s = x;
+    cv->vertices[ cv->vertex++ ] = u.b[0];
+    cv->vertices[ cv->vertex++ ] = u.b[1];
+
+    u.s = y;
+    cv->vertices[ cv->vertex++ ] = u.b[0];
+    cv->vertices[ cv->vertex++ ] = u.b[1];
+
+    cv->vertices[ cv->vertex++ ] = r;
+    cv->vertices[ cv->vertex++ ] = g;
+    cv->vertices[ cv->vertex++ ] = b;
+    cv->vertices[ cv->vertex++ ] = a;
+}
 /****************************************************************************/
 
 static void canvas_gl_destroy( sgui_canvas* canvas )
@@ -240,6 +281,8 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
     }
 
     /* create VAO and VBO if requried */
+    cv->vertex = 0;
+
     if( !cv->vao )
     {
         cv->glGenVertexArrays( 1, &cv->vao );
@@ -247,10 +290,14 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
 
         if( !cv->vbo )
         {
+            vertex( cv, 0,                              0, 0xFF, 0, 0, 0 );
+            vertex( cv, canvas->width-1,                0, 0xFF, 0, 0, 0 );
+            vertex( cv, canvas->width-1, canvas->height-1, 0xFF, 0, 0, 0 );
+
             cv->glGenBuffers( 1, &cv->vbo );
             cv->glBindBuffer( GL_ARRAY_BUFFER, cv->vbo );
             cv->glBufferData( GL_ARRAY_BUFFER, VERTEX_SIZE * MAX_VERTICES,
-                              NULL, GL_STREAM_DRAW );
+                              cv->vertices, GL_STREAM_DRAW );
         }
 
         cv->glEnableVertexAttribArray( 0 );
@@ -263,48 +310,58 @@ static void canvas_gl_begin( sgui_canvas* canvas, sgui_rect* r )
         cv->glBindVertexArray( 0 );
     }
 
+    cv->have_clear = 0;
     (void)r;
 }
 
 static void canvas_gl_end( sgui_canvas* canvas )
 {
     sgui_canvas_gl* cv = (sgui_canvas_gl*)canvas;
-    GLfloat iRL, iTB, m[16];
+    GLint blend_src, blend_dst;
+    GLint old_scissor[4];
+    GLfloat matrix[16], old[4];
     GLboolean v;
+    int state;
 
     if( !cv->vao || !cv->vbo || !cv->program )
         return;
 
     /* save current state */
     glGetBooleanv( GL_DEPTH_WRITEMASK, &v );
-    glGetIntegerv( GL_BLEND_SRC, &cv->blend_src );
-    glGetIntegerv( GL_BLEND_DST, &cv->blend_dst );
-    glGetIntegerv( GL_SCISSOR_BOX, cv->old_scissor );
+    glGetIntegerv( GL_BLEND_SRC, &blend_src );
+    glGetIntegerv( GL_BLEND_DST, &blend_dst );
+    glGetIntegerv( GL_SCISSOR_BOX, old_scissor );
 
-    cv->state  = 0;
-    cv->state |= glIsEnabled( GL_BLEND ) ? BLEND_ENABLE : 0;
-    cv->state |= v ? DEPTH_WRITE : 0;
-    cv->state |= glIsEnabled( GL_DEPTH_TEST ) ? DEPTH_ENABLE : 0;
-    cv->state |= glIsEnabled( GL_MULTISAMPLE ) ? MS_ENABLE : 0;
-    cv->state |= glIsEnabled( GL_SCISSOR_TEST ) ? SCISSOR_ENABLE : 0;
-    cv->state |= glIsEnabled( GL_CULL_FACE ) ? CULL_ENABLE : 0;
+    state  = 0;
+    state |= glIsEnabled( GL_BLEND ) ? BLEND_ENABLE : 0;
+    state |= v ? DEPTH_WRITE : 0;
+    state |= glIsEnabled( GL_DEPTH_TEST ) ? DEPTH_ENABLE : 0;
+    state |= glIsEnabled( GL_MULTISAMPLE ) ? MS_ENABLE : 0;
+    state |= glIsEnabled( GL_SCISSOR_TEST ) ? SCISSOR_ENABLE : 0;
+    state |= glIsEnabled( GL_CULL_FACE ) ? CULL_ENABLE : 0;
 
     /* update projection matrix */
-    iRL = 1.0f/((float)(canvas->width - 1) - 0.0f);
-    iTB = 1.0f/(0.0f - (float)(canvas->height - 1));
-
-    m[0] = 2.0f*iRL; m[4] = 0.0f;     m[ 8] = 0.0f; m[12] = -1.0f;
-    m[1] = 0.0f;     m[5] = 2.0f*iTB; m[ 9] = 0.0f; m[13] =  1.0f;
-    m[2] = 0.0f;     m[6] = 0.0f;     m[10] = 0.0f; m[14] =  0.0f;
-    m[3] = 0.0f;     m[7] = 0.0f;     m[11] = 0.0f; m[15] =  1.0f;
+    gl_ortho( matrix, 0, canvas->width-1, canvas->height-1, 0, -1, 1 );
 
     /* configure viewport size */
     glViewport( 0, 0, canvas->width, canvas->height );
 
-    /* bind our VAO and program */
-    cv->glBindVertexArray( cv->vao );
-    cv->glUseProgram( cv->program );
-    cv->glUniformMatrix4fv( cv->u_pmatrix, 1, GL_FALSE, m );
+    if( cv->have_clear )
+    {
+        glGetFloatv( GL_COLOR_CLEAR_VALUE, old );
+        glClearColor( ((float)canvas->bg_color[0])/255.0f,
+                      ((float)canvas->bg_color[1])/255.0f,
+                      ((float)canvas->bg_color[2])/255.0f,
+                      1.0f );
+
+        glClear( GL_COLOR_BUFFER_BIT );
+        glClearColor( old[0], old[1], old[2], old[3] );
+    }
+
+    /* update VBO */
+    /*cv->glBindBuffer( GL_ARRAY_BUFFER, cv->vbo );
+    cv->glBufferSubData( GL_ARRAY_BUFFER, 0, cv->vertex, cv->vertices );
+    cv->glBindBuffer( GL_ARRAY_BUFFER, 0 );*/
 
     /* configure state for widget rendering */
     glEnable( GL_BLEND );
@@ -317,25 +374,33 @@ static void canvas_gl_end( sgui_canvas* canvas )
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glScissor( 0, 0, canvas->width, canvas->height );
 
+    /* draw */
+    cv->glBindVertexArray( cv->vao );
+    cv->glUseProgram( cv->program );
+    cv->glUniformMatrix4fv( cv->u_pmatrix, 1, GL_FALSE, matrix );
+    cv->glDrawArrays( GL_TRIANGLES, 0, 3 );
+
     /* restore state */
     cv->glUseProgram( 0 );
     cv->glBindVertexArray( 0 );
 
-    glDepthMask( (cv->state & DEPTH_WRITE)!=0 );
-    glBlendFunc( cv->blend_src, cv->blend_dst );
-    glScissor( cv->old_scissor[0], cv->old_scissor[1],
-               cv->old_scissor[2], cv->old_scissor[3] );
+    glDepthMask( (state & DEPTH_WRITE)!=0 );
+    glBlendFunc( blend_src, blend_dst );
+    glScissor( old_scissor[0], old_scissor[1],
+               old_scissor[2], old_scissor[3] );
 
-    if(   cv->state & CULL_ENABLE    ) glEnable( GL_CULL_FACE );
-    if(   cv->state & SCISSOR_ENABLE ) glDisable( GL_SCISSOR_TEST );
-    if(   cv->state & MS_ENABLE      ) glEnable( GL_MULTISAMPLE );
-    if(   cv->state & DEPTH_ENABLE   ) glEnable( GL_DEPTH_TEST );
-    if( !(cv->state & BLEND_ENABLE)  ) glDisable( GL_BLEND );
+    if(   state & CULL_ENABLE    ) glEnable( GL_CULL_FACE );
+    if(   state & SCISSOR_ENABLE ) glDisable( GL_SCISSOR_TEST );
+    if(   state & MS_ENABLE      ) glEnable( GL_MULTISAMPLE );
+    if(   state & DEPTH_ENABLE   ) glEnable( GL_DEPTH_TEST );
+    if( !(state & BLEND_ENABLE)  ) glDisable( GL_BLEND );
 }
 
 static void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )
 {
-    (void)canvas; (void)r;
+    (void)r;
+
+    ((sgui_canvas_gl*)canvas)->have_clear = 1;
 }
 
 static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,

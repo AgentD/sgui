@@ -289,6 +289,8 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.draw_box      = canvas_xlib_draw_box;
     cv->canvas.draw_string   = canvas_xlib_draw_string;
     cv->canvas.create_pixmap = canvas_xlib_create_pixmap;
+    cv->canvas.stretch_blend = NULL;
+    cv->canvas.stretch_blit  = NULL;
     cv->canvas.skin_pixmap   = get_skin_pixmap( );
 
     return (sgui_canvas*)cv;

@@ -401,7 +401,7 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
         }
     }
 
-    sgui_pixmap_load( pixmap, 0, 12, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 48, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
 
     /* scroll bar left button pressed */
     for( y=0; y<20; ++y )
@@ -442,7 +442,7 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
         }
     }
 
-    sgui_pixmap_load( pixmap, 20, 12, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 68, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
 
     /* scroll bar right button */
     for( y=0; y<20; ++y )
@@ -483,7 +483,7 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
         }
     }
 
-    sgui_pixmap_load( pixmap, 40, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 88, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
 
     /* scroll bar right button pressed */
     for( y=0; y<20; ++y )
@@ -524,7 +524,138 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
         }
     }
 
-    sgui_pixmap_load( pixmap, 60, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 108, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
+
+    /* horizontal progress bar */
+    for( y=0; y<29; ++y )
+    {
+        buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0x00;
+        buffer[ y*4+3 ] = 0xFF;
+    }
+
+    buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0xFF;
+    buffer[ y*4+3 ] = 0xFF;
+
+    sgui_pixmap_load( pixmap, 0, 12, buffer, 0, 0, 1, 30, 1, SGUI_RGBA8 );
+
+    for( x=0; x<12; ++x )
+    {
+        for( y=0; y<30; ++y )
+        {
+            buffer[(y*12+x)*4]=buffer[(y*12+x)*4+1]=buffer[(y*12+x)*4+2]=0x00;
+            buffer[ (y*12 + x)*4 + 3 ] = 0x80;
+        }
+    }
+
+    for( x=0; x<12; ++x )
+    {
+        buffer[ x*4 ] = buffer[ x*4 + 1 ] = buffer[ x*4 + 2 ] = 0x00;
+        buffer[ x*4 + 3 ] = 0xFF;
+    }
+
+    for( x=0; x<12; ++x )
+    {
+        buffer[(29*12+x)*4]=buffer[(29*12+x)*4+1]=buffer[(29*12+x)*4+2]=0xFF;
+        buffer[(29*12+x)*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 1, 12, buffer, 0, 0, 12, 30, 12, SGUI_RGBA8 );
+
+    for( x=0; x<7; ++x )
+    {
+        for( y=0; y<20; ++y )
+        {
+            buffer[((y+5)*12+x)*4  ] = buffer[((y+5)*12+x)*4+1] = 0xFF;
+            buffer[((y+5)*12+x)*4+2] = 0xFF;
+            buffer[((y+5)*12+x)*4+3] = 0xFF;
+        }
+    }
+
+    sgui_pixmap_load( pixmap, 13, 12, buffer, 0, 0, 12, 30, 12, SGUI_RGBA8 );
+
+    for( x=0; x<12; ++x )
+    {
+        for( y=0; y<28; ++y )
+        {
+            buffer[((y+1)*12+x)*4]=buffer[((y+1)*12+x)*4+1]=0xFF;
+            buffer[((y+1)*12+x)*4+2]=0x00;
+            buffer[((y+1)*12+x)*4+3]=0xFF;
+        }
+    }
+
+    sgui_pixmap_load( pixmap, 26, 12, buffer, 0, 0, 12, 30, 12, SGUI_RGBA8 );
+
+    for( y=0; y<30; ++y )
+    {
+        buffer[y*4] = buffer[y*4+1] = buffer[y*4+2] = buffer[y*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 25, 12, buffer, 0, 0, 1, 30, 1, SGUI_RGBA8 );
+
+    /* vertical progress bar */
+    for( y=0; y<29; ++y )
+    {
+        buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0x00;
+        buffer[ y*4+3 ] = 0xFF;
+    }
+
+    buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0xFF;
+    buffer[ y*4+3 ] = 0xFF;
+
+    sgui_pixmap_load( pixmap, 0, 42, buffer, 0, 0, 30, 1, 30, SGUI_RGBA8 );
+
+    for( x=0; x<30; ++x )
+    {
+        for( y=0; y<12; ++y )
+        {
+            buffer[(y*30+x)*4]=buffer[(y*30+x)*4+1]=buffer[(y*30+x)*4+2]=0x00;
+            buffer[ (y*30 + x)*4 + 3 ] = 0x80;
+        }
+    }
+
+    for( y=0; y<12; ++y )
+    {
+        buffer[ y*30*4 ] = buffer[ y*30*4 + 1 ] = buffer[ y*30*4 + 2 ] = 0x00;
+        buffer[ y*30*4 + 3 ] = 0xFF;
+    }
+
+    for( y=0; y<12; ++y )
+    {
+        buffer[(y*30+29)*4]=buffer[(y*30+29)*4+1]=buffer[(y*30+29)*4+2]=0xFF;
+        buffer[ (y*30+29)*4 + 3 ] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 0, 43, buffer, 0, 0, 30, 12, 30, SGUI_RGBA8 );
+
+    for( y=0; y<7; ++y )
+    {
+        for( x=0; x<20; ++x )
+        {
+            buffer[(y*30+x+5)*4  ] = buffer[(y*30+x+5)*4+1] = 0xFF;
+            buffer[(y*30+x+5)*4+2] = buffer[(y*30+x+5)*4+3] = 0xFF;
+        }
+    }
+
+    sgui_pixmap_load( pixmap, 0, 55, buffer, 0, 0, 30, 12, 30, SGUI_RGBA8 );
+
+    for( x=0; x<28; ++x )
+    {
+        for( y=0; y<12; ++y )
+        {
+            buffer[(y*30+x+1)*4]=buffer[(y*30+x+1)*4+1]=0xFF;
+            buffer[(y*30+x+1)*4+2]=0x00;
+            buffer[(y*30+x+1)*4+3]=0xFF;
+        }
+    }
+
+    sgui_pixmap_load( pixmap, 0, 68, buffer, 0, 0, 30, 12, 30, SGUI_RGBA8 );
+
+    for( x=0; x<30; ++x )
+    {
+        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 0, 67, buffer, 0, 0, 30, 1, 30, SGUI_RGBA8 );
 }
 
 void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
@@ -724,9 +855,9 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 void sgui_skin_draw_progress_bar( sgui_canvas* cv, sgui_rect* area,
                                   int type, unsigned int value )
 {
-    int w, h, stippled, vertical;
-    unsigned char c[4];
-    sgui_rect r;
+    sgui_pixmap* skin_pixmap;
+    sgui_rect r, stretch;
+    int w, h;
 
     if( !cv || !area )
         return;
@@ -734,60 +865,113 @@ void sgui_skin_draw_progress_bar( sgui_canvas* cv, sgui_rect* area,
     w = SGUI_RECT_WIDTH_V( area );
     h = SGUI_RECT_HEIGHT_V( area );
 
-    /* draw background box */
-    c[0] = c[1] = c[2] = 0x00; c[3] = 0x80;
-    sgui_canvas_draw_box( cv, area, c, SGUI_RGBA8 );
-
-    c[0] = c[1] = c[2] = 0x00; c[3] = 0xFF;
-    sgui_canvas_draw_line( cv, area->left, area->top, w, 1, c, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, area->left, area->top, h, 0, c, SGUI_RGB8 );
-
-    c[0] = c[1] = c[2] = 0xFF;
-    sgui_canvas_draw_line(cv, area->left,  area->bottom, w, 1, c, SGUI_RGB8);
-    sgui_canvas_draw_line(cv, area->right, area->top,    h, 0, c, SGUI_RGB8);
+    skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
+    sgui_rect_copy( &stretch, area );
 
     /* draw bar */
-    stippled = (type==SGUI_PROGRESS_BAR_V_STIPPLED ||
-                type==SGUI_PROGRESS_BAR_H_STIPPLED);
-    vertical = (type==SGUI_PROGRESS_BAR_V_STIPPLED ||
-                type==SGUI_PROGRESS_BAR_V_FILLED);
-
-    if( !stippled )
-        c[2] = 0x00;
-
-    sgui_rect_copy( &r, area );
-    r.left   += stippled ? 5 : 1;
-    r.right  -= stippled ? 5 : 1;
-    r.top    += stippled ? 5 : 1;
-    r.bottom -= stippled ? 5 : 1;
-
-    if( vertical )
-        r.top += (h*(100-value)) / 100;
-    else
-        r.right -= (w*(100-value)) / 100;
-
-    if( stippled )
+    if( type==SGUI_PROGRESS_BAR_V_STIPPLED )
     {
-        if( vertical )
-        {
-            h = SGUI_RECT_HEIGHT( r );
-            r.bottom = r.top + 6;
+        h = ((h-10)*(100-value)) / 100;
 
-            for( ; h>=0; h-=12, r.top+=12, r.bottom+=12 )
-                sgui_canvas_draw_box( cv, &r, c, SGUI_RGBA8 );
-        }
-        else
-        {
-            w = SGUI_RECT_WIDTH( r );
-            r.right = r.left + 6;
+        /* draw top end of progress bar */
+        sgui_rect_set_size( &r, 0, 42, 30, 5 );
+        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
 
-            for( ; w>=0; w-=12, r.left+=12, r.right+=12 )
-                sgui_canvas_draw_box( cv, &r, c, SGUI_RGBA8 );
+        /* draw stipples */
+        if( h >= 12 )
+        {
+            sgui_rect_set_size( &r, 0, 50, 30, 12 );
+            stretch.bottom -= 5;
+            stretch.top = stretch.bottom - h + h%12;
+            sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 1 );
         }
+
+        /* draw remaining empty section */
+        sgui_rect_set_size( &r, 0, 43, 30, 12 );
+        stretch.bottom = stretch.top - 1;
+        stretch.top = area->top + 5;
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+        /* draw right end of progress bar */
+        sgui_rect_set_size( &r, 0, 63, 30, 5 );
+        sgui_canvas_blend(cv, area->left, area->bottom-5,
+                          skin_pixmap, &r);
+    }
+    else if( type==SGUI_PROGRESS_BAR_V_FILLED )
+    {
+        h = ((h-2)*(100-value)) / 100;
+
+        /* draw top end of progress bar */
+        sgui_rect_set_size( &r, 0, 42, 30, 1 );
+        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
+
+        /* draw filled area */
+        sgui_rect_set_size( &r, 0, 68, 30, 12 );
+        stretch.bottom -= 2;
+        stretch.top = stretch.bottom - h;
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+        /* draw remaining empty section */
+        sgui_rect_set_size( &r, 0, 43, 30, 12 );
+        stretch.bottom = stretch.top - 1;
+        stretch.top = area->top + 1;
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+        /* draw right end of progress bar */
+        sgui_rect_set_size( &r, 0, 67, 30, 1 );
+        sgui_canvas_blend(cv, area->left, area->bottom-1,
+                          skin_pixmap, &r);
+    }
+    else if( type==SGUI_PROGRESS_BAR_H_STIPPLED )
+    {
+        w = ((w-10)*(100-value)) / 100;
+
+        /* draw left end of progress bar */
+        sgui_rect_set_size( &r, 0, 12, 5, 30 );
+        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
+
+        /* draw stipples */
+        if( w >= 12 )
+        {
+            sgui_rect_set_size( &r, 13, 12, 12, 30 );
+            stretch.left += 5;
+            stretch.right = stretch.left + w - w%12;
+            sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 1 );
+        }
+
+        /* draw remaining empty section */
+        sgui_rect_set_size( &r, 1, 12, 12, 30 );
+        stretch.left = stretch.right;
+        stretch.right = area->right - 6;
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+        /* draw right end of progress bar */
+        sgui_rect_set_size( &r, 21, 12, 5, 30 );
+        sgui_canvas_blend(cv, area->right-5, area->top, skin_pixmap, &r);
     }
     else
     {
-        sgui_canvas_draw_box( cv, &r, c, SGUI_RGBA8 );
+        w = ((w-2)*(100-value)) / 100;
+
+        /* draw left end of progress bar */
+        sgui_rect_set_size( &r, 0, 12, 1, 30 );
+        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
+
+        /* draw filled area */
+        sgui_rect_set_size( &r, 26, 12, 12, 30 );
+        stretch.left += 1;
+        stretch.right = stretch.left + w;
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+        /* draw empty area */
+        sgui_rect_set_size( &r, 1, 12, 12, 30 );
+        stretch.left = stretch.right+1;
+        stretch.right = area->right-1;
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+        /* draw right end of progress bar */
+        sgui_rect_set_size( &r, 25, 12, 1, 30 );
+        sgui_canvas_blend(cv, area->right-1, area->top, skin_pixmap, &r);
     }
 }
 
@@ -926,11 +1110,11 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
         sgui_skin_draw_button( cv, &r, SGUI_BUTTON );
 
         /* left button */
-        sgui_rect_set_size( &r, dec_button_state ? 20 : 0, 12, 20, 20 );
+        sgui_rect_set_size( &r, dec_button_state ? 68 : 48, 20, 20, 20 );
         sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
 
         /* right button */
-        sgui_rect_set_size( &r, inc_button_state ? 60 : 40, 20, 20, 20 );
+        sgui_rect_set_size( &r, inc_button_state ? 108 : 88, 20, 20, 20 );
         sgui_canvas_blend( cv, x+length-20, y, skin_pixmap, &r );
     }
     else

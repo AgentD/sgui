@@ -268,6 +268,34 @@ struct sgui_canvas
                     sgui_rect* srcrect );
 
     /**
+     * \brief Blend onto a canvas but stretch the source image
+     *
+     * This function does not have to be implemented. Set to NULL to use
+     * the default implementation.
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blend.
+     * \param dstrect The destination rectangle on the canvas.
+     */
+    void(* stretch_blend )( sgui_canvas* canvas, sgui_pixmap* pixmap,
+                            sgui_rect* srcrect, sgui_rect* dstrect );
+
+    /**
+     * \brief Blit onto a canvas but stretch the source image
+     *
+     * This function does not have to be implemented. Set to NULL to use
+     * the default implementation.
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param pixmap  The pixmap to blit.
+     * \param srcrect A subrectangle of the pixmap to blit.
+     * \param dstrect The destination rectangle on the canvas.
+     */
+    void(* stretch_blit )( sgui_canvas* canvas, sgui_pixmap* pixmap,
+                           sgui_rect* srcrect, sgui_rect* dstrect );
+
+    /**
      * \brief Blend a constant color onto a canvas, use alpha from pixmap
      *
      * This method is only used internally by the glyph cache.

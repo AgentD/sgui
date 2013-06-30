@@ -552,6 +552,124 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
     canvas->blend( canvas, x, y, pixmap, &r );
 }
 
+void sgui_canvas_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
+                               sgui_rect* srcrect, sgui_rect* dstrect,
+                               int repeate )
+{
+    unsigned int w, h;
+    sgui_rect src, dst;
+    int x, oldr;
+
+    if( !canvas || !pixmap || !dstrect || !canvas->began )
+        return;
+
+    sgui_pixmap_get_size( pixmap, &w, &h );
+    sgui_rect_set_size( &src, 0, 0, w, h );
+
+    if( srcrect )
+        sgui_rect_get_intersection( &src, &src, srcrect );
+
+    dst.left   = dstrect->left   + canvas->ox;
+    dst.right  = dstrect->right  + canvas->ox;
+    dst.top    = dstrect->top    + canvas->oy;
+    dst.bottom = dstrect->bottom + canvas->oy;
+
+    if( !sgui_rect_get_intersection( &dst, &canvas->sc, &dst ) )
+        return;
+
+    if( canvas->stretch_blit && !repeate )
+    {
+        canvas->stretch_blit( canvas, pixmap, &src, &dst );
+    }
+    else
+    {
+        w = SGUI_RECT_WIDTH(src);
+        h = SGUI_RECT_HEIGHT(src);
+
+        while( dst.top < dst.bottom )
+        {
+            if( (unsigned int)(dst.bottom - dst.top) < h )
+                src.bottom = src.top + dst.bottom - dst.top;
+
+            x = dst.left;
+
+            while( x < dst.right )
+            {
+                oldr = src.right;
+
+                if( (unsigned int)(dst.right - x) < w )
+                    src.right = src.left + dst.right - x;
+
+                canvas->blit( canvas, x, dst.top, pixmap, &src );
+
+                x += w;
+                src.right = oldr;
+            }
+
+            dst.top += h;
+        }
+    }
+}
+
+void sgui_canvas_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
+                                sgui_rect* srcrect, sgui_rect* dstrect,
+                                int repeate )
+{
+    unsigned int w, h;
+    sgui_rect src, dst;
+    int x, oldr;
+
+    if( !canvas || !pixmap || !dstrect || !canvas->began )
+        return;
+
+    sgui_pixmap_get_size( pixmap, &w, &h );
+    sgui_rect_set_size( &src, 0, 0, w, h );
+
+    if( srcrect )
+        sgui_rect_get_intersection( &src, &src, srcrect );
+
+    dst.left   = dstrect->left   + canvas->ox;
+    dst.right  = dstrect->right  + canvas->ox;
+    dst.top    = dstrect->top    + canvas->oy;
+    dst.bottom = dstrect->bottom + canvas->oy;
+
+    if( !sgui_rect_get_intersection( &dst, &canvas->sc, &dst ) )
+        return;
+
+    if( canvas->stretch_blend && !repeate )
+    {
+        canvas->stretch_blend( canvas, pixmap, &src, &dst );
+    }
+    else
+    {
+        w = SGUI_RECT_WIDTH(src);
+        h = SGUI_RECT_HEIGHT(src);
+
+        while( dst.top < dst.bottom )
+        {
+            if( (unsigned int)(dst.bottom - dst.top) < h )
+                src.bottom = src.top + dst.bottom - dst.top;
+
+            x = dst.left;
+
+            while( x < dst.right )
+            {
+                oldr = src.right;
+
+                if( (unsigned int)(dst.right - x) < w )
+                    src.right = src.left + dst.right - x;
+
+                canvas->blend( canvas, x, dst.top, pixmap, &src );
+
+                x += w;
+                src.right = oldr;
+            }
+
+            dst.top += h;
+        }
+    }
+}
+
 void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
                            unsigned char* color, int format )
 {

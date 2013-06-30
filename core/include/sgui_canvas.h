@@ -273,6 +273,44 @@ SGUI_DLL void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
                                  sgui_pixmap* pixmap, sgui_rect* srcrect );
 
 /**
+ * \brief Blit an image onto a canvas
+ *
+ * \note The underlying implementation may not support image stretching. In
+ *       this case, this function falls back to repeating the given image.
+ *
+ * \param pixmap  The pixmap to blit onto the canvas
+ * \param srcrect A sub rect within the source image, or NULL to use the
+ *                uncropped source image.
+ * \param dstrect The rectangle on the canvas to blit the image to
+ * \param repeate If set to non-zero, the image will be repeated to fill the
+ *                the given space instead of stretching the image.
+ */
+SGUI_DLL void sgui_canvas_stretch_blit( sgui_canvas* canvas,
+                                        sgui_pixmap* pixmap,
+                                        sgui_rect* srcrect,
+                                        sgui_rect* dstrect,
+                                        int repeate );
+
+/**
+ * \brief Blend an image onto a canvas
+ *
+ * \note The underlying implementation may not support image stretching. In
+ *       this case, this function falls back to repeating the given image.
+ *
+ * \param pixmap  The pixmap to blend onto the canvas
+ * \param srcrect A sub rect within the source image, or NULL to use the
+ *                uncropped source image.
+ * \param dstrect The rectangle on the canvas to blend the image to
+ * \param repeate If set to non-zero, the image will be repeated to fill the
+ *                the given space instead of stretching the image.
+ */
+SGUI_DLL void sgui_canvas_stretch_blend( sgui_canvas* canvas,
+                                         sgui_pixmap* pixmap,
+                                         sgui_rect* srcrect,
+                                         sgui_rect* dstrect,
+                                         int repeate );
+
+/**
  * \brief Draw a rectangle onto a canvas
  *
  * \param r      The geometry of the box to draw

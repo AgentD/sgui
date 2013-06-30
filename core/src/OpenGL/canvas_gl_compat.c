@@ -152,10 +152,10 @@ static void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )
     glVertex2i( r->left,  r->bottom );
 }
 
-static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
-                            sgui_pixmap* pixmap, sgui_rect* srcrect )
+static void canvas_gl_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
+                                    sgui_rect* srcrect, sgui_rect* dstrect )
 {
-    unsigned int w, h, tex_w, tex_h;
+    unsigned int tex_w, tex_h;
     GLuint new_tex;
     (void)canvas;
 
@@ -165,9 +165,6 @@ static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
         return;
 
     sgui_pixmap_get_size( pixmap, &tex_w, &tex_h );
-
-    w = SGUI_RECT_WIDTH_V( srcrect );
-    h = SGUI_RECT_HEIGHT_V( srcrect );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, new_tex );
@@ -180,18 +177,18 @@ static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     glColor4ub( 0xFF, 0xFF, 0xFF, 0xFF );
 
     glTexCoord2i( srcrect->left, srcrect->top );
-    glVertex2i( x, y );
+    glVertex2i( dstrect->left, dstrect->top );
     glTexCoord2i( srcrect->right+1, srcrect->top );
-    glVertex2i( x+w, y );
+    glVertex2i( dstrect->right, dstrect->top );
     glTexCoord2i( srcrect->left, srcrect->bottom+1 );
-    glVertex2i( x, y+h );
+    glVertex2i( dstrect->left, dstrect->bottom );
 
     glTexCoord2i( srcrect->right+1, srcrect->top );
-    glVertex2i( x+w, y );
+    glVertex2i( dstrect->right, dstrect->top );
     glTexCoord2i( srcrect->right+1, srcrect->bottom+1 );
-    glVertex2i( x+w, y+h );
+    glVertex2i( dstrect->right, dstrect->bottom );
     glTexCoord2i( srcrect->left, srcrect->bottom+1 );
-    glVertex2i( x, y+h );
+    glVertex2i( dstrect->left, dstrect->bottom );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, 0 );
@@ -200,10 +197,10 @@ static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     glBegin( GL_TRIANGLES );
 }
 
-static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
-                             sgui_pixmap* pixmap, sgui_rect* srcrect )
+static void canvas_gl_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
+                                     sgui_rect* srcrect, sgui_rect* dstrect )
 {
-    unsigned int w, h, tex_w, tex_h;
+    unsigned int tex_w, tex_h;
     GLuint new_tex;
     (void)canvas;
 
@@ -213,9 +210,6 @@ static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
         return;
 
     sgui_pixmap_get_size( pixmap, &tex_w, &tex_h );
-
-    w = SGUI_RECT_WIDTH_V( srcrect );
-    h = SGUI_RECT_HEIGHT_V( srcrect );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, new_tex );
@@ -227,23 +221,47 @@ static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
     glColor4ub( 0xFF, 0xFF, 0xFF, 0xFF );
 
     glTexCoord2i( srcrect->left, srcrect->top );
-    glVertex2i( x, y );
+    glVertex2i( dstrect->left, dstrect->top );
     glTexCoord2i( srcrect->right+1, srcrect->top );
-    glVertex2i( x+w, y );
+    glVertex2i( dstrect->right+1, dstrect->top );
     glTexCoord2i( srcrect->left, srcrect->bottom+1 );
-    glVertex2i( x, y+h );
+    glVertex2i( dstrect->left, dstrect->bottom+1 );
 
     glTexCoord2i( srcrect->right+1, srcrect->top );
-    glVertex2i( x+w, y );
+    glVertex2i( dstrect->right+1, dstrect->top );
     glTexCoord2i( srcrect->right+1, srcrect->bottom+1 );
-    glVertex2i( x+w, y+h );
+    glVertex2i( dstrect->right+1, dstrect->bottom+1 );
     glTexCoord2i( srcrect->left, srcrect->bottom+1 );
-    glVertex2i( x, y+h );
+    glVertex2i( dstrect->left, dstrect->bottom+1 );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, 0 );
     glLoadIdentity( );
     glBegin( GL_TRIANGLES );
+}
+
+static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
+                             sgui_pixmap* pixmap, sgui_rect* srcrect )
+{
+    unsigned int w, h;
+    sgui_rect dstrect;
+
+    w = SGUI_RECT_WIDTH_V( srcrect );
+    h = SGUI_RECT_HEIGHT_V( srcrect );
+    sgui_rect_set_size( &dstrect, x, y, w, h );
+    canvas_gl_stretch_blend( canvas, pixmap, srcrect, &dstrect );
+}
+
+static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
+                            sgui_pixmap* pixmap, sgui_rect* srcrect )
+{
+    unsigned int w, h;
+    sgui_rect dstrect;
+
+    w = SGUI_RECT_WIDTH_V( srcrect );
+    h = SGUI_RECT_HEIGHT_V( srcrect );
+    sgui_rect_set_size( &dstrect, x, y, w, h );
+    canvas_gl_stretch_blit( canvas, pixmap, srcrect, &dstrect );
 }
 
 static void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
@@ -411,6 +429,8 @@ sgui_canvas* gl_canvas_create_compat( unsigned int width,
     cv->canvas.clear = canvas_gl_clear;
     cv->canvas.blit = canvas_gl_blit;
     cv->canvas.blend = canvas_gl_blend;
+    cv->canvas.stretch_blit = canvas_gl_stretch_blit;
+    cv->canvas.stretch_blend = canvas_gl_stretch_blend;
     cv->canvas.blend_glyph = canvas_gl_blend_glyph;
     cv->canvas.draw_box = canvas_gl_draw_box;
     cv->canvas.draw_string = canvas_gl_draw_string;
