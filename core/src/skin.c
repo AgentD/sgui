@@ -658,6 +658,36 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
     sgui_pixmap_load( pixmap, 0, 67, buffer, 0, 0, 30, 1, 30, SGUI_RGBA8 );
 }
 
+void sgui_skin_get_element( int element, sgui_rect* r )
+{
+    if( !r )
+        return;
+
+    switch( element )
+    {
+    case SGUI_PBAR_H_STIPPLED_START: sgui_rect_set_size(r, 0,12, 5,30);break;
+    case SGUI_PBAR_H_STIPPLED_EMPTY: sgui_rect_set_size(r, 1,12,12,30);break;
+    case SGUI_PBAR_H_STIPPLED_FILLED:sgui_rect_set_size(r,13,12,12,30);break;
+    case SGUI_PBAR_H_STIPPLED_END:   sgui_rect_set_size(r,21,12, 5,30);break;
+    case SGUI_PBAR_H_FILLED_START:   sgui_rect_set_size(r, 0,12, 1,30);break;
+    case SGUI_PBAR_H_FILLED_EMPTY:   sgui_rect_set_size(r, 1,12,12,30);break;
+    case SGUI_PBAR_H_FILLED_FILLED:  sgui_rect_set_size(r,26,12, 1,30);break;
+    case SGUI_PBAR_H_FILLED_END:     sgui_rect_set_size(r,25,12, 1,30);break;
+    case SGUI_PBAR_V_STIPPLED_START: sgui_rect_set_size(r, 0,42,30, 5);break;
+    case SGUI_PBAR_V_STIPPLED_EMPTY: sgui_rect_set_size(r, 0,43,30,12);break;
+    case SGUI_PBAR_V_STIPPLED_FILLED:sgui_rect_set_size(r, 0,50,30,12);break;
+    case SGUI_PBAR_V_STIPPLED_END:   sgui_rect_set_size(r, 0,63,30, 5);break;
+    case SGUI_PBAR_V_FILLED_START:   sgui_rect_set_size(r, 0,42,30, 1);break;
+    case SGUI_PBAR_V_FILLED_EMPTY:   sgui_rect_set_size(r, 0,43,30,12);break;
+    case SGUI_PBAR_V_FILLED_FILLED:  sgui_rect_set_size(r, 0,68,30,12);break;
+    case SGUI_PBAR_V_FILLED_END:     sgui_rect_set_size(r, 0,67,30, 1);break;
+    case SGUI_CHECKBOX:              sgui_rect_set_size(r, 0, 0,12,12);break;
+    case SGUI_CHECKBOX_SELECTED:     sgui_rect_set_size(r,12, 0,12,12);break;
+    case SGUI_RADIO_BUTTON:          sgui_rect_set_size(r,24, 0,12,12);break;
+    case SGUI_RADIO_BUTTON_SELECTED: sgui_rect_set_size(r,36, 0,12,12);break;
+    }
+}
+
 void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                  sgui_font* italic, sgui_font* bold_italic )
 {
@@ -808,24 +838,6 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 
         switch( type )
         {
-        case SGUI_CHECKBOX:
-        case SGUI_CHECKBOX_SELECTED:
-            r->right = 19;
-            r->bottom = 11;
-            break;
-        case SGUI_RADIO_BUTTON:
-        case SGUI_RADIO_BUTTON_SELECTED:
-            r->right = 19;
-            r->bottom = 11;
-            break;
-        case SGUI_PROGRESS_BAR_V_STIPPLED:
-        case SGUI_PROGRESS_BAR_V_FILLED:
-            r->right = 29;
-            break;
-        case SGUI_PROGRESS_BAR_H_STIPPLED:
-        case SGUI_PROGRESS_BAR_H_FILLED:
-            r->bottom = 29;
-            break;
         case SGUI_EDIT_BOX:
             r->bottom = (font_height + (font_height / 2) + 4);
             break;
@@ -852,174 +864,27 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 
 /***************************************************************************/
 
-void sgui_skin_draw_progress_bar( sgui_canvas* cv, sgui_rect* area,
-                                  int type, unsigned int value )
-{
-    sgui_pixmap* skin_pixmap;
-    sgui_rect r, stretch;
-    int w, h;
-
-    if( !cv || !area )
-        return;
-
-    w = SGUI_RECT_WIDTH_V( area );
-    h = SGUI_RECT_HEIGHT_V( area );
-
-    skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    sgui_rect_copy( &stretch, area );
-
-    /* draw bar */
-    if( type==SGUI_PROGRESS_BAR_V_STIPPLED )
-    {
-        h = ((h-10)*(100-value)) / 100;
-
-        /* draw top end of progress bar */
-        sgui_rect_set_size( &r, 0, 42, 30, 5 );
-        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
-
-        /* draw stipples */
-        if( h >= 12 )
-        {
-            sgui_rect_set_size( &r, 0, 50, 30, 12 );
-            stretch.bottom -= 5;
-            stretch.top = stretch.bottom - h + h%12;
-            sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 1 );
-        }
-
-        /* draw remaining empty section */
-        sgui_rect_set_size( &r, 0, 43, 30, 12 );
-        stretch.bottom = stretch.top - 1;
-        stretch.top = area->top + 5;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
-
-        /* draw right end of progress bar */
-        sgui_rect_set_size( &r, 0, 63, 30, 5 );
-        sgui_canvas_blend(cv, area->left, area->bottom-5,
-                          skin_pixmap, &r);
-    }
-    else if( type==SGUI_PROGRESS_BAR_V_FILLED )
-    {
-        h = ((h-2)*(100-value)) / 100;
-
-        /* draw top end of progress bar */
-        sgui_rect_set_size( &r, 0, 42, 30, 1 );
-        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
-
-        /* draw filled area */
-        sgui_rect_set_size( &r, 0, 68, 30, 12 );
-        stretch.bottom -= 2;
-        stretch.top = stretch.bottom - h;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
-
-        /* draw remaining empty section */
-        sgui_rect_set_size( &r, 0, 43, 30, 12 );
-        stretch.bottom = stretch.top - 1;
-        stretch.top = area->top + 1;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
-
-        /* draw right end of progress bar */
-        sgui_rect_set_size( &r, 0, 67, 30, 1 );
-        sgui_canvas_blend(cv, area->left, area->bottom-1,
-                          skin_pixmap, &r);
-    }
-    else if( type==SGUI_PROGRESS_BAR_H_STIPPLED )
-    {
-        w = ((w-10)*(100-value)) / 100;
-
-        /* draw left end of progress bar */
-        sgui_rect_set_size( &r, 0, 12, 5, 30 );
-        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
-
-        /* draw stipples */
-        if( w >= 12 )
-        {
-            sgui_rect_set_size( &r, 13, 12, 12, 30 );
-            stretch.left += 5;
-            stretch.right = stretch.left + w - w%12;
-            sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 1 );
-        }
-
-        /* draw remaining empty section */
-        sgui_rect_set_size( &r, 1, 12, 12, 30 );
-        stretch.left = stretch.right;
-        stretch.right = area->right - 6;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
-
-        /* draw right end of progress bar */
-        sgui_rect_set_size( &r, 21, 12, 5, 30 );
-        sgui_canvas_blend(cv, area->right-5, area->top, skin_pixmap, &r);
-    }
-    else
-    {
-        w = ((w-2)*(100-value)) / 100;
-
-        /* draw left end of progress bar */
-        sgui_rect_set_size( &r, 0, 12, 1, 30 );
-        sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &r );
-
-        /* draw filled area */
-        sgui_rect_set_size( &r, 26, 12, 12, 30 );
-        stretch.left += 1;
-        stretch.right = stretch.left + w;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
-
-        /* draw empty area */
-        sgui_rect_set_size( &r, 1, 12, 12, 30 );
-        stretch.left = stretch.right+1;
-        stretch.right = area->right-1;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
-
-        /* draw right end of progress bar */
-        sgui_rect_set_size( &r, 25, 12, 1, 30 );
-        sgui_canvas_blend(cv, area->right-1, area->top, skin_pixmap, &r);
-    }
-}
-
 void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* area, int type )
 {
-    sgui_pixmap* skin_pixmap;
     unsigned char c[4];
     unsigned int w, h;
     int x, y, x1, y1;
-    sgui_rect r;
 
     x = area->left;
     y = area->top;
     x1 = area->right;
     y1 = area->bottom;
-    skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
 
-    if( type==SGUI_CHECKBOX || type==SGUI_CHECKBOX_SELECTED )
-    {
-        if( type==SGUI_CHECKBOX_SELECTED )
-            sgui_rect_set_size( &r, 12, 0, 12, 12 );
-        else
-            sgui_rect_set_size( &r, 0, 0, 12, 12 );
+    w = SGUI_RECT_WIDTH_V( area );
+    h = SGUI_RECT_HEIGHT_V( area );
 
-        sgui_canvas_blend( cv, x, y + font_height/4, skin_pixmap, &r );
-    }
-    else if( type==SGUI_RADIO_BUTTON || type==SGUI_RADIO_BUTTON_SELECTED )
-    {
-        if( type==SGUI_RADIO_BUTTON_SELECTED )
-            sgui_rect_set_size( &r, 36, 0, 12, 12 );
-        else
-            sgui_rect_set_size( &r, 24, 0, 12, 12 );
+    c[0] = c[1] = c[2] = type==SGUI_BUTTON_SELECTED ? 0x00 : 0xFF;
+    sgui_canvas_draw_line( cv, x, y, w, 1, c, SGUI_RGB8 );
+    sgui_canvas_draw_line( cv, x, y, h, 0, c, SGUI_RGB8 );
 
-        sgui_canvas_blend( cv, x, y + font_height/4, skin_pixmap, &r );
-    }
-    else
-    {
-        w = SGUI_RECT_WIDTH_V( area );
-        h = SGUI_RECT_HEIGHT_V( area );
-
-        c[0] = c[1] = c[2] = type==SGUI_BUTTON_SELECTED ? 0x00 : 0xFF;
-        sgui_canvas_draw_line( cv, x, y, w, 1, c, SGUI_RGB8 );
-        sgui_canvas_draw_line( cv, x, y, h, 0, c, SGUI_RGB8 );
-
-        c[0] = c[1] = c[2] = type==SGUI_BUTTON_SELECTED ? 0xFF : 0x00;
-        sgui_canvas_draw_line( cv, x,  y1, w, 1, c, SGUI_RGB8 );
-        sgui_canvas_draw_line( cv, x1, y,  h, 0, c, SGUI_RGB8 );
-    }
+    c[0] = c[1] = c[2] = type==SGUI_BUTTON_SELECTED ? 0xFF : 0x00;
+    sgui_canvas_draw_line( cv, x,  y1, w, 1, c, SGUI_RGB8 );
+    sgui_canvas_draw_line( cv, x1, y,  h, 0, c, SGUI_RGB8 );
 }
 
 void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,

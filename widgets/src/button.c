@@ -55,19 +55,33 @@ sgui_button;
 static void button_draw( sgui_widget* w )
 {
     sgui_button* b = (sgui_button*)w;
+    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( w->canvas );
+    unsigned int delta = sgui_skin_get_default_font_height( ) / 4;
     int x = w->area.left + b->cx, y = w->area.top;
+    sgui_canvas* cv = w->canvas;
+    sgui_rect r;
 
-    if( b->type == SGUI_BUTTON )
+    if( b->type==SGUI_BUTTON )
     {
         y += b->cy;
     }
-    else if( b->type == SGUI_BUTTON_SELECTED )
+    else if( b->type==SGUI_BUTTON_SELECTED )
     {
         x -= 1;
         y += b->cy - 1;
     }
+    else
+    {
+        sgui_skin_get_element( b->type, &r );
+        x += b->cx/2;
+    }
 
-    sgui_skin_draw_button( w->canvas, &w->area, b->type );
+    if( b->type==SGUI_BUTTON || b->type==SGUI_BUTTON_SELECTED )
+        sgui_skin_draw_button( w->canvas, &w->area, b->type );
+    else
+        sgui_canvas_blend( cv, w->area.left, w->area.top+delta,
+                           skin_pixmap, &r );
+
     sgui_canvas_draw_text( w->canvas, x, y, b->text );
 }
 
@@ -113,12 +127,12 @@ static sgui_button* button_create_common( int x, int y, unsigned int width,
     /* compute size */
     if( type!=SGUI_BUTTON )
     {
-        sgui_skin_get_widget_extents( SGUI_RADIO_BUTTON, &r );
+        sgui_skin_get_element( type, &r );
 
         b->cx = SGUI_RECT_WIDTH( r );
         b->cy = SGUI_RECT_HEIGHT( r );
 
-        width  = b->cx + text_width;
+        width  = b->cx + text_width + b->cx/2;
         height = MAX(b->cy, text_height);
     }
     else
@@ -336,7 +350,7 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
     }
     else
     {
-        sgui_skin_get_widget_extents( b->type, &r );
+        sgui_skin_get_element( b->type, &r );
 
         b->cx = SGUI_RECT_WIDTH( r );
         b->cy = SGUI_RECT_HEIGHT( r );

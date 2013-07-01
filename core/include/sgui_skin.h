@@ -31,23 +31,38 @@
 
 
 
-#define SGUI_CHECKBOX                    1
-#define SGUI_CHECKBOX_SELECTED           2
-#define SGUI_RADIO_BUTTON                3
-#define SGUI_RADIO_BUTTON_SELECTED       4
-#define SGUI_BUTTON                      5
-#define SGUI_BUTTON_SELECTED             6
-#define SGUI_PROGRESS_BAR_V_STIPPLED     7
-#define SGUI_PROGRESS_BAR_V_FILLED       8
-#define SGUI_PROGRESS_BAR_H_STIPPLED     9
-#define SGUI_PROGRESS_BAR_H_FILLED      10
-#define SGUI_EDIT_BOX                   11
-#define SGUI_SCROLL_BAR_V               12
-#define SGUI_SCROLL_BAR_H               13
-#define SGUI_SCROLL_BAR_V_BUTTON        14
-#define SGUI_SCROLL_BAR_H_BUTTON        15
-#define SGUI_TAB_CAPTION                16
-#define SGUI_FRAME_BORDER               17
+#define SGUI_BUTTON                      1
+#define SGUI_BUTTON_SELECTED             2
+#define SGUI_EDIT_BOX                    7
+#define SGUI_SCROLL_BAR_V                8
+#define SGUI_SCROLL_BAR_H                9
+#define SGUI_SCROLL_BAR_V_BUTTON        10
+#define SGUI_SCROLL_BAR_H_BUTTON        11
+#define SGUI_TAB_CAPTION                12
+#define SGUI_FRAME_BORDER               13
+
+
+
+#define SGUI_PBAR_H_STIPPLED_START        0x00
+#define SGUI_PBAR_H_STIPPLED_EMPTY        0x01
+#define SGUI_PBAR_H_STIPPLED_FILLED       0x02
+#define SGUI_PBAR_H_STIPPLED_END          0x03
+#define SGUI_PBAR_V_STIPPLED_START        0x04
+#define SGUI_PBAR_V_STIPPLED_EMPTY        0x05
+#define SGUI_PBAR_V_STIPPLED_FILLED       0x06
+#define SGUI_PBAR_V_STIPPLED_END          0x07
+#define SGUI_PBAR_H_FILLED_START          0x08
+#define SGUI_PBAR_H_FILLED_EMPTY          0x09
+#define SGUI_PBAR_H_FILLED_FILLED         0x0A
+#define SGUI_PBAR_H_FILLED_END            0x0B
+#define SGUI_PBAR_V_FILLED_START          0x0C
+#define SGUI_PBAR_V_FILLED_EMPTY          0x0D
+#define SGUI_PBAR_V_FILLED_FILLED         0x0E
+#define SGUI_PBAR_V_FILLED_END            0x0F
+#define SGUI_CHECKBOX                     0x10
+#define SGUI_CHECKBOX_SELECTED            0x11
+#define SGUI_RADIO_BUTTON                 0x12
+#define SGUI_RADIO_BUTTON_SELECTED        0x13
 
 
 
@@ -67,6 +82,14 @@ SGUI_DLL void sgui_skin_get_pixmap_size( unsigned int* width,
 
 /** \brief Fill a given pixmap with the default GUI skin */
 SGUI_DLL void sgui_skin_to_pixmap( sgui_pixmap* pixmap );
+
+/**
+ * \brief Get the region on the skin pixmap where a given element is stored
+ *
+ * \param element The element in question (e.g SGUI_CHECKBOX_SELECTED)
+ * \param r       Returns the region of the element
+ */
+SGUI_DLL void sgui_skin_get_element( int element, sgui_rect* r );
 
 /**
  * \brief Override the default font for the skin
@@ -134,17 +157,6 @@ SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
  * \param r    Returns the dimensions of the widget
  */
 SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
-
-/**
- * \brief Draw a progress bar onto a canvas
- *
- * \param cv    The canvas to draw to.
- * \param area  The widget area.
- * \param type  The type of progress bar.
- * \param value The progress value to indicate (value between 0 and 100).
- */
-SGUI_DLL void sgui_skin_draw_progress_bar( sgui_canvas* cv, sgui_rect* area,
-                                           int type, unsigned int value );
 
 /**
  * \brief Draw a button widget onto a canvas
