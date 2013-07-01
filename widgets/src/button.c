@@ -36,6 +36,11 @@
 
 
 
+#define SGUI_BUTTON          1
+#define SGUI_BUTTON_SELECTED 2
+
+
+
 typedef struct sgui_button
 {
     sgui_widget widget;
@@ -52,7 +57,7 @@ sgui_button;
 
 
 
-static void button_draw( sgui_widget* w )
+static void checkbox_draw( sgui_widget* w )
 {
     sgui_button* b = (sgui_button*)w;
     sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( w->canvas );
@@ -61,28 +66,94 @@ static void button_draw( sgui_widget* w )
     sgui_canvas* cv = w->canvas;
     sgui_rect r;
 
-    if( b->type==SGUI_BUTTON )
-    {
-        y += b->cy;
-    }
-    else if( b->type==SGUI_BUTTON_SELECTED )
-    {
-        x -= 1;
-        y += b->cy - 1;
-    }
-    else
-    {
-        sgui_skin_get_element( b->type, &r );
-        x += b->cx/2;
-    }
+    sgui_skin_get_element( b->type, &r );
+    x += b->cx/2;
 
-    if( b->type==SGUI_BUTTON || b->type==SGUI_BUTTON_SELECTED )
-        sgui_skin_draw_button( w->canvas, &w->area, b->type );
-    else
-        sgui_canvas_blend( cv, w->area.left, w->area.top+delta,
-                           skin_pixmap, &r );
-
+    sgui_canvas_blend( cv, w->area.left, w->area.top+delta, skin_pixmap, &r );
     sgui_canvas_draw_text( w->canvas, x, y, b->text );
+}
+
+static void button_draw( sgui_widget* w )
+{
+    sgui_button* button = (sgui_button*)w;
+    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( w->canvas );
+    sgui_rect lt, rt, lb, rb, l, r, t, b, f, dst;
+    sgui_canvas* cv = w->canvas;
+
+    int x = w->area.left;
+    int y = w->area.top;
+    int x1 = w->area.right;
+    int y1 = w->area.bottom;
+
+    /* get required skin elements */
+    if( button->type==SGUI_BUTTON_SELECTED )
+    {
+        sgui_skin_get_element( SGUI_BUTTON_IN_LEFT_TOP, &lt );
+        sgui_skin_get_element( SGUI_BUTTON_IN_RIGHT_TOP, &rt );
+        sgui_skin_get_element( SGUI_BUTTON_IN_LEFT_BOTTOM, &lb );
+        sgui_skin_get_element( SGUI_BUTTON_IN_RIGHT_BOTTOM, &rb );
+        sgui_skin_get_element( SGUI_BUTTON_IN_LEFT, &l );
+        sgui_skin_get_element( SGUI_BUTTON_IN_RIGHT, &r );
+        sgui_skin_get_element( SGUI_BUTTON_IN_TOP, &t );
+        sgui_skin_get_element( SGUI_BUTTON_IN_BOTTOM, &b );
+        sgui_skin_get_element( SGUI_BUTTON_IN_FILL, &f );
+    }
+    else
+    {
+        sgui_skin_get_element( SGUI_BUTTON_LEFT_TOP, &lt );
+        sgui_skin_get_element( SGUI_BUTTON_RIGHT_TOP, &rt );
+        sgui_skin_get_element( SGUI_BUTTON_LEFT_BOTTOM, &lb );
+        sgui_skin_get_element( SGUI_BUTTON_RIGHT_BOTTOM, &rb );
+        sgui_skin_get_element( SGUI_BUTTON_LEFT, &l );
+        sgui_skin_get_element( SGUI_BUTTON_RIGHT, &r );
+        sgui_skin_get_element( SGUI_BUTTON_TOP, &t );
+        sgui_skin_get_element( SGUI_BUTTON_BOTTOM, &b );
+        sgui_skin_get_element( SGUI_BUTTON_FILL, &f );
+    }
+
+    /* draw corners */
+    sgui_canvas_blend( cv, x, y, skin_pixmap, &lt );
+    sgui_canvas_blend( cv, x1-SGUI_RECT_WIDTH(lt)+1, y, skin_pixmap, &rt );
+    sgui_canvas_blend( cv, x, y1-SGUI_RECT_HEIGHT(lb)+1, skin_pixmap, &lb );
+    sgui_canvas_blend( cv, x1-SGUI_RECT_WIDTH(rb)+1,
+                       y1-SGUI_RECT_HEIGHT(rb)+1, skin_pixmap, &rb );
+
+    /* draw borders */
+    dst.left   = x;
+    dst.right  = x  + l.right-l.left;
+    dst.top    = y  + lt.bottom-lt.top;
+    dst.bottom = y1 - (lb.bottom-lb.top);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &l, &dst, 0 );
+
+    dst.left   = x1 - (r.right-r.left);
+    dst.right  = x1;
+    dst.top    = y  + (rt.bottom-rt.top);
+    dst.bottom = y1 - (rb.bottom-rb.top);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
+
+    dst.left   = x  +  lt.right-lt.left;
+    dst.right  = x1 - (rt.right-rt.left);
+    dst.top    = y;
+    dst.bottom = y  +  t.bottom-t.top;
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &t, &dst, 0 );
+
+    dst.left   = x  +  lb.right-lb.left;
+    dst.right  = x1 - (rb.right-rb.left);
+    dst.top    = y1 - (b.bottom-b.top);
+    dst.bottom = y1;
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &b, &dst, 0 );
+
+    /* draw background */
+    dst.left   = x  +  lt.right-lt.left;
+    dst.right  = x1 - (rt.right-rt.left);
+    dst.top    = y  + (lt.bottom-lt.top);
+    dst.bottom = y1 - (lb.bottom-lb.top);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &f, &dst, 0 );
+
+    /* draw text */
+    x += button->cx - (button->type==SGUI_BUTTON_SELECTED ? 1 : 0);
+    y += button->cy - (button->type==SGUI_BUTTON_SELECTED ? 1 : 0);
+    sgui_canvas_draw_text( cv, x, y, button->text );
 }
 
 static void button_destroy( sgui_widget* button )
@@ -151,7 +222,7 @@ static sgui_button* button_create_common( int x, int y, unsigned int width,
     b->type = type;
 
     b->widget.destroy = button_destroy;
-    b->widget.draw_callback = button_draw;
+    b->widget.draw_callback = type==SGUI_BUTTON ? button_draw : checkbox_draw;
 
     return b;
 }

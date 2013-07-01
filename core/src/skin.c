@@ -526,6 +526,18 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
 
     sgui_pixmap_load( pixmap, 108, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
 
+    /* scroll bar background */
+    for( x=0; x<20; ++x )
+    {
+        for( y=0; y<20; ++y )
+        {
+            buffer[(y*20+x)*4]=buffer[(y*20+x)*4+1]=buffer[(y*20+x)*4+2]=0x64;
+            buffer[(y*20+x)*4+3] = 0xFF;
+        }
+    }
+
+    sgui_pixmap_load( pixmap, 30, 42, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
+
     /* horizontal progress bar */
     for( y=0; y<29; ++y )
     {
@@ -656,6 +668,49 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
     }
 
     sgui_pixmap_load( pixmap, 0, 67, buffer, 0, 0, 30, 1, 30, SGUI_RGBA8 );
+
+    /* button normal */
+    for( x=0; x<200; ++x )
+    {
+        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0;
+    }
+
+    sgui_pixmap_load( pixmap, 38, 12, buffer, 0, 0, 10, 20, 10, SGUI_RGBA8 );
+
+    for( x=0; x<10; ++x )
+    {
+        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 38, 12, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 38, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
+
+    for( x=0; x<10; ++x )
+    {
+        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = 0x00;
+        buffer[x*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 38, 21, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 47, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
+
+    /* button pressed */
+    for( x=0; x<10; ++x )
+    {
+        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = 0x00;
+        buffer[x*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 38, 22, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 38, 22, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
+
+    for( x=0; x<10; ++x )
+    {
+        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 38, 31, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 47, 22, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
 }
 
 void sgui_skin_get_element( int element, sgui_rect* r )
@@ -685,6 +740,48 @@ void sgui_skin_get_element( int element, sgui_rect* r )
     case SGUI_CHECKBOX_SELECTED:     sgui_rect_set_size(r,12, 0,12,12);break;
     case SGUI_RADIO_BUTTON:          sgui_rect_set_size(r,24, 0,12,12);break;
     case SGUI_RADIO_BUTTON_SELECTED: sgui_rect_set_size(r,36, 0,12,12);break;
+    case SGUI_BUTTON_LEFT_TOP:       sgui_rect_set_size(r,38,12, 5, 5);break;
+    case SGUI_BUTTON_RIGHT_TOP:      sgui_rect_set_size(r,43,12, 5, 5);break;
+    case SGUI_BUTTON_LEFT_BOTTOM:    sgui_rect_set_size(r,38,17, 5, 5);break;
+    case SGUI_BUTTON_RIGHT_BOTTOM:   sgui_rect_set_size(r,43,17, 5, 5);break;
+    case SGUI_BUTTON_LEFT:           sgui_rect_set_size(r,38,13, 5, 8);break;
+    case SGUI_BUTTON_RIGHT:          sgui_rect_set_size(r,43,13, 5, 8);break;
+    case SGUI_BUTTON_TOP:            sgui_rect_set_size(r,39,12, 8, 5);break;
+    case SGUI_BUTTON_BOTTOM:         sgui_rect_set_size(r,39,17, 8, 5);break;
+    case SGUI_BUTTON_FILL:           sgui_rect_set_size(r,39,13, 8, 8);break;
+    case SGUI_BUTTON_IN_LEFT_TOP:    sgui_rect_set_size(r,38,22, 5, 5);break;
+    case SGUI_BUTTON_IN_RIGHT_TOP:   sgui_rect_set_size(r,43,22, 5, 5);break;
+    case SGUI_BUTTON_IN_LEFT_BOTTOM: sgui_rect_set_size(r,38,27, 5, 5);break;
+    case SGUI_BUTTON_IN_RIGHT_BOTTOM:sgui_rect_set_size(r,43,27, 5, 5);break;
+    case SGUI_BUTTON_IN_LEFT:        sgui_rect_set_size(r,38,23, 5, 8);break;
+    case SGUI_BUTTON_IN_RIGHT:       sgui_rect_set_size(r,43,23, 5, 8);break;
+    case SGUI_BUTTON_IN_TOP:         sgui_rect_set_size(r,39,22, 8, 5);break;
+    case SGUI_BUTTON_IN_BOTTOM:      sgui_rect_set_size(r,39,27, 8, 5);break;
+    case SGUI_BUTTON_IN_FILL:        sgui_rect_set_size(r,39,23, 8, 8);break;
+    case SGUI_SCROLL_BAR_H_PANE_LEFT:  sgui_rect_set_size(r,48,20,7,20);break;
+    case SGUI_SCROLL_BAR_H_PANE_CENTER:sgui_rect_set_size(r,49,20,6,20);break;
+    case SGUI_SCROLL_BAR_H_PANE_RIGHT: sgui_rect_set_size(r,61,20,7,20);break;
+    case SGUI_SCROLL_BAR_V_PANE_TOP:   sgui_rect_set_size(r,48, 0,20,7);break;
+    case SGUI_SCROLL_BAR_V_PANE_CENTER:sgui_rect_set_size(r,48,13,20,6);break;
+    case SGUI_SCROLL_BAR_V_PANE_BOTTOM:sgui_rect_set_size(r,48,13,20,7);break;
+    case SGUI_SCROLL_BAR_V_BACKGROUND:sgui_rect_set_size(r,30,42,20,20);break;
+    case SGUI_SCROLL_BAR_H_BACKGROUND:sgui_rect_set_size(r,30,42,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_UP:
+        sgui_rect_set_size(r,88,0,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_DOWN:
+        sgui_rect_set_size(r,48,0,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_LEFT:
+        sgui_rect_set_size(r,48,20,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_RIGHT:
+        sgui_rect_set_size(r,88,20,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_UP_IN:
+        sgui_rect_set_size(r,108,0,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_DOWN_IN:
+        sgui_rect_set_size(r,68,0,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_LEFT_IN:
+        sgui_rect_set_size(r,68,20,20,20);break;
+    case SGUI_SCROLL_BAR_BUTTON_RIGHT_IN:
+        sgui_rect_set_size(r,108,20,20,20);break;
     }
 }
 
@@ -839,17 +936,7 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
         switch( type )
         {
         case SGUI_EDIT_BOX:
-            r->bottom = (font_height + (font_height / 2) + 4);
-            break;
-        case SGUI_SCROLL_BAR_V:
-            r->right = 19;
-            break;
-        case SGUI_SCROLL_BAR_H:
-            r->bottom = 19;
-            break;
-        case SGUI_SCROLL_BAR_V_BUTTON:
-        case SGUI_SCROLL_BAR_H_BUTTON:
-            r->right = r->bottom = 19;
+            r->bottom = 29;
             break;
         case SGUI_TAB_CAPTION:
             r->right = 19;
@@ -864,29 +951,6 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 
 /***************************************************************************/
 
-void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* area, int type )
-{
-    unsigned char c[4];
-    unsigned int w, h;
-    int x, y, x1, y1;
-
-    x = area->left;
-    y = area->top;
-    x1 = area->right;
-    y1 = area->bottom;
-
-    w = SGUI_RECT_WIDTH_V( area );
-    h = SGUI_RECT_HEIGHT_V( area );
-
-    c[0] = c[1] = c[2] = type==SGUI_BUTTON_SELECTED ? 0x00 : 0xFF;
-    sgui_canvas_draw_line( cv, x, y, w, 1, c, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x, y, h, 0, c, SGUI_RGB8 );
-
-    c[0] = c[1] = c[2] = type==SGUI_BUTTON_SELECTED ? 0xFF : 0x00;
-    sgui_canvas_draw_line( cv, x,  y1, w, 1, c, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x1, y,  h, 0, c, SGUI_RGB8 );
-}
-
 void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,
                               const char* text, int cursor )
 {
@@ -900,8 +964,8 @@ void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,
     height = SGUI_RECT_HEIGHT_V( area );
 
     /* draw background box */
-    c[0] = c[1] = c[2] = 0x00; c[3] = 0x80;
-    sgui_canvas_draw_box( cv, area, c, SGUI_RGBA8 );
+    
+
 
     /* draw text */
     c[0] = c[1] = c[2] = c[3] = 0xFF;
@@ -951,55 +1015,6 @@ void sgui_skin_draw_frame( sgui_canvas* cv, sgui_rect* area )
     c[0] = c[1] = c[2] = 0xFF;
     sgui_canvas_draw_line(cv, area->left,  area->bottom, w, 1, c, SGUI_RGB8);
     sgui_canvas_draw_line(cv, area->right, area->top,    h, 0, c, SGUI_RGB8);
-}
-
-void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
-                                int horizontal, unsigned int length,
-                                unsigned int p_offset, unsigned int p_length,
-                                int inc_button_state, int dec_button_state )
-{
-    sgui_pixmap* skin_pixmap;
-    unsigned char color[4] = { 0x64, 0x64, 0x64, 0xFF };
-    sgui_rect r;
-
-    skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-
-    if( horizontal )
-    {
-        sgui_rect_set_size( &r, x, y, length, 20 );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
-
-        /* pane */
-        color[0] = color[1] = color[2] = 0xFF;
-        sgui_rect_set_size( &r, x+20+p_offset, y, p_length, 20 );
-        sgui_skin_draw_button( cv, &r, SGUI_BUTTON );
-
-        /* left button */
-        sgui_rect_set_size( &r, dec_button_state ? 68 : 48, 20, 20, 20 );
-        sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
-
-        /* right button */
-        sgui_rect_set_size( &r, inc_button_state ? 108 : 88, 20, 20, 20 );
-        sgui_canvas_blend( cv, x+length-20, y, skin_pixmap, &r );
-    }
-    else
-    {
-        sgui_rect_set_size( &r, x, y, 20, length );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
-
-        /* pane */
-        color[0] = color[1] = color[2] = 0xFF;
-        sgui_rect_set_size( &r, x, y+20+p_offset, 20, p_length );
-        sgui_skin_draw_button( cv, &r, SGUI_BUTTON );
-
-        /* upper button */
-        sgui_rect_set_size( &r, dec_button_state ? 108 : 88, 0, 20, 20 );
-        sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
-
-        /* lower button */
-        sgui_rect_set_size( &r, inc_button_state ? 68 : 48, 0, 20, 20 );
-        sgui_canvas_blend( cv, x, y+length-20, skin_pixmap, &r );
-    }
 }
 
 void sgui_skin_draw_group_box( sgui_canvas* cv, sgui_rect* area,

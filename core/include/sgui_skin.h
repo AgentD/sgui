@@ -31,13 +31,8 @@
 
 
 
-#define SGUI_BUTTON                      1
-#define SGUI_BUTTON_SELECTED             2
+
 #define SGUI_EDIT_BOX                    7
-#define SGUI_SCROLL_BAR_V                8
-#define SGUI_SCROLL_BAR_H                9
-#define SGUI_SCROLL_BAR_V_BUTTON        10
-#define SGUI_SCROLL_BAR_H_BUTTON        11
 #define SGUI_TAB_CAPTION                12
 #define SGUI_FRAME_BORDER               13
 
@@ -63,6 +58,40 @@
 #define SGUI_CHECKBOX_SELECTED            0x11
 #define SGUI_RADIO_BUTTON                 0x12
 #define SGUI_RADIO_BUTTON_SELECTED        0x13
+#define SGUI_BUTTON_LEFT_TOP              0x14
+#define SGUI_BUTTON_RIGHT_TOP             0x15
+#define SGUI_BUTTON_LEFT_BOTTOM           0x16
+#define SGUI_BUTTON_RIGHT_BOTTOM          0x17
+#define SGUI_BUTTON_LEFT                  0x18
+#define SGUI_BUTTON_RIGHT                 0x19
+#define SGUI_BUTTON_TOP                   0x1A
+#define SGUI_BUTTON_BOTTOM                0x1B
+#define SGUI_BUTTON_FILL                  0x1C
+#define SGUI_BUTTON_IN_LEFT_TOP           0x1D
+#define SGUI_BUTTON_IN_RIGHT_TOP          0x1E
+#define SGUI_BUTTON_IN_LEFT_BOTTOM        0x1F
+#define SGUI_BUTTON_IN_RIGHT_BOTTOM       0x20
+#define SGUI_BUTTON_IN_LEFT               0x21
+#define SGUI_BUTTON_IN_RIGHT              0x22
+#define SGUI_BUTTON_IN_TOP                0x23
+#define SGUI_BUTTON_IN_BOTTOM             0x24
+#define SGUI_BUTTON_IN_FILL               0x25
+#define SGUI_SCROLL_BAR_H_PANE_LEFT       0x26
+#define SGUI_SCROLL_BAR_H_PANE_CENTER     0x27
+#define SGUI_SCROLL_BAR_H_PANE_RIGHT      0x28
+#define SGUI_SCROLL_BAR_V_PANE_TOP        0x29
+#define SGUI_SCROLL_BAR_V_PANE_CENTER     0x2A
+#define SGUI_SCROLL_BAR_V_PANE_BOTTOM     0x2B
+#define SGUI_SCROLL_BAR_V_BACKGROUND      0x2C
+#define SGUI_SCROLL_BAR_H_BACKGROUND      0x2D
+#define SGUI_SCROLL_BAR_BUTTON_UP         0x2E
+#define SGUI_SCROLL_BAR_BUTTON_DOWN       0x2F
+#define SGUI_SCROLL_BAR_BUTTON_LEFT       0x30
+#define SGUI_SCROLL_BAR_BUTTON_RIGHT      0x31
+#define SGUI_SCROLL_BAR_BUTTON_UP_IN      0x32
+#define SGUI_SCROLL_BAR_BUTTON_DOWN_IN    0x33
+#define SGUI_SCROLL_BAR_BUTTON_LEFT_IN    0x34
+#define SGUI_SCROLL_BAR_BUTTON_RIGHT_IN   0x35
 
 
 
@@ -159,17 +188,6 @@ SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
 SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
 
 /**
- * \brief Draw a button widget onto a canvas
- *
- * \param cv     The canvas to draw to.
- * \param area   The area occupied by the button.
- * \param state  Zero if the button is in default state, non-zero if it is
- *               pressed.
- */
-SGUI_DLL void sgui_skin_draw_button( sgui_canvas* cv, sgui_rect* area,
-                                     int type );
-
-/**
  * \brief Draw an edit box onto a canvas
  *
  * \param cv     The canvas to draw to.
@@ -188,26 +206,6 @@ SGUI_DLL void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,
  * \param area The area covered by the frame
  */
 SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* cv, sgui_rect* area );
-
-/**
- * \brief Draw a scroll bar onto a canvas
- *
- * \param cv               The canvas to draw to
- * \param x                Distance from the left of the canvas
- * \param y                Distance from the top of the canvas
- * \param horizontal       Whether the bar is a horizontal or vertical bar
- * \param length           Length of the scroll bar
- * \param p_offset         Offset of the scroll bar pane
- * \param p_length         Length of the scroll bar pane
- * \param inc_button_state State of the button that increments the bar value
- * \param dec_button_state State of the button that decrements the bar value
- */
-SGUI_DLL void sgui_skin_draw_scroll_bar( sgui_canvas* cv, int x, int y,
-                                         int horizontal, unsigned int length,
-                                         unsigned int p_offset,
-                                         unsigned int p_length,
-                                         int inc_button_state,
-                                         int dec_button_state );
 
 /**
  * \brief Draw a happy little group box onto a canvas
