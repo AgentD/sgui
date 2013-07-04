@@ -32,7 +32,6 @@
 
 
 
-#define SGUI_EDIT_BOX                    7
 #define SGUI_TAB_CAPTION                12
 #define SGUI_FRAME_BORDER               13
 
@@ -92,6 +91,10 @@
 #define SGUI_SCROLL_BAR_BUTTON_DOWN_IN    0x33
 #define SGUI_SCROLL_BAR_BUTTON_LEFT_IN    0x34
 #define SGUI_SCROLL_BAR_BUTTON_RIGHT_IN   0x35
+#define SGUI_EDIT_BOX_LEFT                0x36
+#define SGUI_EDIT_BOX_CENTER              0x37
+#define SGUI_EDIT_BOX_RIGHT               0x38
+#define SGUI_EDIT_BOX_CURSOR              0x39
 
 
 
@@ -186,18 +189,6 @@ SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
  * \param r    Returns the dimensions of the widget
  */
 SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
-
-/**
- * \brief Draw an edit box onto a canvas
- *
- * \param cv     The canvas to draw to.
- * \param area   The area occupied by the edit box.
- * \param text   The text to render into the edit box.
- * \param cursor Character index (UTF8!!) of the cursor or -1 to not draw a
- *               cursor at all.
- */
-SGUI_DLL void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,
-                                       const char* text, int cursor );
 
 /**
  * \brief Draw a frame onto a canvas

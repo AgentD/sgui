@@ -711,6 +711,15 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
 
     sgui_pixmap_load( pixmap, 38, 31, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
     sgui_pixmap_load( pixmap, 47, 22, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
+
+    /* edit box cursor */
+    for( x=0; x<20; ++x )
+    {
+        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=0x7F;
+        buffer[x*4+3] = 0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 50, 42, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
 }
 
 void sgui_skin_get_element( int element, sgui_rect* r )
@@ -758,6 +767,10 @@ void sgui_skin_get_element( int element, sgui_rect* r )
     case SGUI_BUTTON_IN_TOP:         sgui_rect_set_size(r,39,22, 8, 5);break;
     case SGUI_BUTTON_IN_BOTTOM:      sgui_rect_set_size(r,39,27, 8, 5);break;
     case SGUI_BUTTON_IN_FILL:        sgui_rect_set_size(r,39,23, 8, 8);break;
+    case SGUI_EDIT_BOX_LEFT:         sgui_rect_set_size(r, 0,12, 5,30);break;
+    case SGUI_EDIT_BOX_CENTER:       sgui_rect_set_size(r, 1,12,12,30);break;
+    case SGUI_EDIT_BOX_RIGHT:        sgui_rect_set_size(r,21,12, 5,30);break;
+    case SGUI_EDIT_BOX_CURSOR:       sgui_rect_set_size(r,50,42, 1,20);break;
     case SGUI_SCROLL_BAR_H_PANE_LEFT:  sgui_rect_set_size(r,48,20,7,20);break;
     case SGUI_SCROLL_BAR_H_PANE_CENTER:sgui_rect_set_size(r,49,20,6,20);break;
     case SGUI_SCROLL_BAR_H_PANE_RIGHT: sgui_rect_set_size(r,61,20,7,20);break;
@@ -935,9 +948,6 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 
         switch( type )
         {
-        case SGUI_EDIT_BOX:
-            r->bottom = 29;
-            break;
         case SGUI_TAB_CAPTION:
             r->right = 19;
             r->bottom = font_height + font_height / 2 - 1;
@@ -950,52 +960,6 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 }
 
 /***************************************************************************/
-
-void sgui_skin_draw_edit_box( sgui_canvas* cv, sgui_rect* area,
-                              const char* text, int cursor )
-{
-    unsigned int cx, width, height;
-    unsigned char c[4];
-
-    if( !cv || !area )
-        return;
-
-    width = SGUI_RECT_WIDTH_V( area );
-    height = SGUI_RECT_HEIGHT_V( area );
-
-    /* draw background box */
-    
-
-
-    /* draw text */
-    c[0] = c[1] = c[2] = c[3] = 0xFF;
-    sgui_canvas_draw_text_plain(cv,area->left+2,area->top+2,0,0,c,text,-1);
-
-    /* draw borders */
-    c[0] = c[1] = c[2] = 0x00;
-    sgui_canvas_draw_line(cv, area->left, area->top, width,  1, c, SGUI_RGB8);
-    sgui_canvas_draw_line(cv, area->left, area->top, height, 0, c, SGUI_RGB8);
-
-    c[0] = c[1] = c[2] = 0xFF;
-    sgui_canvas_draw_line(cv,area->left, area->bottom,width, 1,c,SGUI_RGB8);
-    sgui_canvas_draw_line(cv,area->right,area->top,   height,0,c,SGUI_RGB8);
-
-    /* draw cursor */
-    if( cursor >= 0 )
-    {
-        cx = sgui_skin_default_font_extents( text, cursor, 0, 0 );
-
-        if( cx == 0 )
-            cx = 3;
-
-        if( cx < (width-2) )
-        {
-            c[0] = c[1] = c[2] = 0x7F;
-            sgui_canvas_draw_line( cv, area->left+cx, area->top+5,
-                                   height-10, 0, c, SGUI_RGB8 );
-        }
-    }
-}
 
 void sgui_skin_draw_frame( sgui_canvas* cv, sgui_rect* area )
 {

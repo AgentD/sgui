@@ -78,12 +78,18 @@ sgui_edit_box;
 static void determine_offset( sgui_edit_box* b )
 {
     unsigned int cx, w;
+    sgui_rect r;
 
     /* only adjust if there are characters entered */
     if( !b->num_entered )
         return;
 
     w = SGUI_RECT_WIDTH( b->widget.area );
+
+    sgui_skin_get_element( SGUI_EDIT_BOX_LEFT, &r );
+    w -= SGUI_RECT_WIDTH(r);
+    sgui_skin_get_element( SGUI_EDIT_BOX_RIGHT, &r );
+    w -= SGUI_RECT_WIDTH(r);
 
     /* if the cursor moved out of the edit box to the left */
     if( b->offset && (b->cursor <= b->offset) )
@@ -130,6 +136,10 @@ static void determine_offset( sgui_edit_box* b )
 static unsigned int cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 {
     unsigned int len = 0, cur = b->offset;
+    sgui_rect r;
+
+    sgui_skin_get_element( SGUI_EDIT_BOX_LEFT, &r );
+    mouse_x -= SGUI_RECT_WIDTH(r);
 
     /* move 'cur' to the right until it the text extents from
        the beginning to 'cur' catch up with the mouse offset */
@@ -150,11 +160,56 @@ static unsigned int cursor_from_mouse( sgui_edit_box* b, int mouse_x )
 static void edit_box_draw( sgui_widget* widget )
 {
     sgui_edit_box* b = (sgui_edit_box*)widget;
+    const char* text = b->buffer + b->offset;
+    sgui_canvas* cv = widget->canvas;
+    sgui_pixmap* skin_pixmap;
+    sgui_rect r, stretch;
+    unsigned char c[4];
+    int cx, cy;
 
-    sgui_skin_draw_edit_box( widget->canvas, &widget->area,
-                             b->buffer + b->offset,
-                             b->draw_cursor ?
-                             (int)(b->cursor-b->offset) : -1 );
+    skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
+    stretch = widget->area;
+    cx = widget->area.left;
+    cy = widget->area.top;
+
+    /* draw left end */
+    sgui_skin_get_element( SGUI_EDIT_BOX_LEFT, &r );
+    sgui_canvas_blend( cv, cx, cy, skin_pixmap, &r );
+    stretch.left += SGUI_RECT_WIDTH(r);
+
+    /* draw right end */
+    cx = widget->area.right - (r.right - r.left);
+    sgui_skin_get_element( SGUI_EDIT_BOX_RIGHT, &r );
+    sgui_canvas_blend( cv, cx, cy, skin_pixmap, &r );
+    stretch.right -= SGUI_RECT_WIDTH(r);
+
+    /* draw center element */
+    sgui_skin_get_element( SGUI_EDIT_BOX_CENTER, &r );
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &stretch, 0 );
+
+    /* draw text */
+    cx = stretch.left;
+    cy = stretch.top;
+    cy += sgui_skin_get_default_font_height( ) >> 2;
+    sgui_skin_get_default_font_color( c );
+    sgui_canvas_draw_text_plain( cv, cx, cy, 0, 0, c, text, -1 );
+
+    /* draw cursor */
+    if( b->draw_cursor )
+    {
+        sgui_skin_get_element( SGUI_EDIT_BOX_CURSOR, &r );
+
+        cx = sgui_skin_default_font_extents(text, b->cursor-b->offset, 0, 0);
+        cx += stretch.left;
+        cx -= SGUI_RECT_WIDTH(r) >> 1;
+        cy = stretch.top;
+        cy += (SGUI_RECT_HEIGHT(stretch) - SGUI_RECT_HEIGHT(r)) >> 1;
+
+        if( cx>=stretch.left && cx<=stretch.right )
+        {
+            sgui_canvas_blend( cv, cx, cy, skin_pixmap, &r );
+        }
+    }
 }
 
 static void edit_box_on_event( sgui_widget* widget, int type,
@@ -346,7 +401,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     }
 
     /* initialise and store state */
-    sgui_skin_get_widget_extents( SGUI_EDIT_BOX, &r );
+    sgui_skin_get_element( SGUI_EDIT_BOX_CENTER, &r );
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, width,
                                SGUI_RECT_HEIGHT( r ) );
