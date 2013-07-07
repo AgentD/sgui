@@ -87,11 +87,14 @@ static void scroll_bar_on_event_h( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun && (b->v_offset!=old) )
-            b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
+        if( b->v_offset!=old )
+        {
+            if( b->scroll_fun )
+                b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
 
-        sgui_widget_get_absolute_rect( widget, &r );
-        sgui_canvas_add_dirty_rect( widget->canvas, &r );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        }
     }
     else if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
@@ -146,7 +149,7 @@ static void scroll_bar_on_event_h( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun && (b->v_offset==old) )
+        if( b->scroll_fun && (b->v_offset!=old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
     }
 }
@@ -191,11 +194,14 @@ static void scroll_bar_on_event_v( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun && (b->v_offset!=old) )
-            b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
+        if( b->v_offset!=old )
+        {
+            if( b->scroll_fun )
+                b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
 
-        sgui_widget_get_absolute_rect( widget, &r );
-        sgui_canvas_add_dirty_rect( widget->canvas, &r );
+            sgui_widget_get_absolute_rect( widget, &r );
+            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        }
     }
     else if( type==SGUI_MOUSE_RELEASE_EVENT || type==SGUI_MOUSE_LEAVE_EVENT )
     {
