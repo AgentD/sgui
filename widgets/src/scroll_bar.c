@@ -51,8 +51,7 @@ static void scroll_bar_on_event_h( sgui_widget* widget, int type,
                                    sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
-    unsigned int l = b->length - 2*b->bw;
-    int old;
+    unsigned int l = b->length - 2*b->bw, old;
     sgui_rect r;
 
     if( type==SGUI_MOUSE_WHEEL_EVENT )
@@ -88,7 +87,7 @@ static void scroll_bar_on_event_h( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun )
+        if( b->scroll_fun && (b->v_offset!=old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
 
         sgui_widget_get_absolute_rect( widget, &r );
@@ -147,7 +146,7 @@ static void scroll_bar_on_event_h( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun )
+        if( b->scroll_fun && (b->v_offset==old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
     }
 }
@@ -156,8 +155,7 @@ static void scroll_bar_on_event_v( sgui_widget* widget, int type,
                                    sgui_event* event )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
-    unsigned int l = b->length - 2*b->bh;
-    int old;
+    unsigned int l = b->length - 2*b->bh, old;
     sgui_rect r;
 
     if( type==SGUI_MOUSE_WHEEL_EVENT )
@@ -193,7 +191,7 @@ static void scroll_bar_on_event_v( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun )
+        if( b->scroll_fun && (b->v_offset!=old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
 
         sgui_widget_get_absolute_rect( widget, &r );
@@ -252,7 +250,7 @@ static void scroll_bar_on_event_v( sgui_widget* widget, int type,
             }
         }
 
-        if( b->scroll_fun )
+        if( b->scroll_fun && (b->v_offset!=old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
     }
 }

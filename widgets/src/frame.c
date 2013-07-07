@@ -47,7 +47,7 @@ typedef struct
         border width, distance to vertical scroll bar, distance to
         horizontal scrollbar and whether to override scroll bar drawing
      */
-    int border, v_bar_dist, h_bar_dist, override_scrollbars;
+    int v_border, h_border, v_bar_dist, h_bar_dist, override_scrollbars;
 }
 sgui_frame;
 
@@ -57,8 +57,12 @@ static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
 {
     sgui_widget* frame = userptr;
     sgui_widget* i;
+    sgui_rect r;
     int x, y;
     (void)new_offset;
+
+    sgui_widget_get_absolute_rect( frame, &r );
+    sgui_canvas_add_dirty_rect( frame->canvas, &r );
 
     for( i=frame->children; i!=NULL; i=i->next )
     {
@@ -75,8 +79,12 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
 {
     sgui_widget* frame = userptr;
     sgui_widget* i;
+    sgui_rect r;
     int x, y;
     (void)new_offset;
+
+    sgui_widget_get_absolute_rect( frame, &r );
+    sgui_canvas_add_dirty_rect( frame->canvas, &r );
 
     for( i=frame->children; i!=NULL; i=i->next )
     {
@@ -91,7 +99,64 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
 
 static void frame_draw( sgui_widget* widget )
 {
-    sgui_skin_draw_frame( widget->canvas, &widget->area );
+    sgui_rect lt, rt, lb, rb, l, r, t, b, f, dst;
+    sgui_canvas* cv = widget->canvas;
+    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
+
+    int x  = widget->area.left;
+    int y  = widget->area.top;
+    int x1 = widget->area.right;
+    int y1 = widget->area.bottom;
+
+    /* get required skin elements */
+    sgui_skin_get_element( SGUI_FRAME_LEFT_TOP, &lt );
+    sgui_skin_get_element( SGUI_FRAME_RIGHT_TOP, &rt );
+    sgui_skin_get_element( SGUI_FRAME_LEFT_BOTTOM, &lb );
+    sgui_skin_get_element( SGUI_FRAME_RIGHT_BOTTOM, &rb );
+    sgui_skin_get_element( SGUI_FRAME_LEFT, &l );
+    sgui_skin_get_element( SGUI_FRAME_RIGHT, &r );
+    sgui_skin_get_element( SGUI_FRAME_TOP, &t );
+    sgui_skin_get_element( SGUI_FRAME_BOTTOM, &b );
+    sgui_skin_get_element( SGUI_FRAME_CENTER, &f );
+
+    /* draw corners */
+    sgui_canvas_blend( cv, x, y, skin_pixmap, &lt );
+    sgui_canvas_blend( cv, x1-(rt.right-rt.left), y, skin_pixmap, &rt );
+    sgui_canvas_blend( cv, x, y1-(lb.bottom-lb.top), skin_pixmap, &lb );
+    sgui_canvas_blend( cv, x1-(rb.right-rb.left), y1-(rb.bottom-rb.top),
+                       skin_pixmap, &rb );
+
+    /* draw borders */
+    dst.left   = x;
+    dst.right  = x  + (l.right - l.left);
+    dst.top    = y  + SGUI_RECT_HEIGHT(lt);
+    dst.bottom = y1 - SGUI_RECT_HEIGHT(lb);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &l, &dst, 0 );
+
+    dst.left   = x1 - (r.right-r.left);
+    dst.right  = x1;
+    dst.top    = y  + SGUI_RECT_HEIGHT(rt);
+    dst.bottom = y1 - SGUI_RECT_HEIGHT(rb);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
+
+    dst.left   = x  + SGUI_RECT_WIDTH(lt);
+    dst.right  = x1 - SGUI_RECT_WIDTH(rt);
+    dst.top    = y;
+    dst.bottom = y  + (t.bottom-t.top);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &t, &dst, 0 );
+
+    dst.left   = x  + SGUI_RECT_WIDTH(lb);
+    dst.right  = x1 - SGUI_RECT_WIDTH(rb);
+    dst.top    = y1 - (b.bottom-b.top);
+    dst.bottom = y1;
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &b, &dst, 0 );
+
+    /* draw background */
+    dst.left   = x  + SGUI_RECT_WIDTH(l);
+    dst.right  = x1 - SGUI_RECT_WIDTH(r);
+    dst.top    = y  + SGUI_RECT_HEIGHT(t);
+    dst.bottom = y1 - SGUI_RECT_HEIGHT(b);
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &f, &dst, 0 );
 }
 
 static void frame_destroy( sgui_widget* frame )
@@ -162,12 +227,12 @@ static void frame_on_state_change( sgui_widget* frame, int change )
                 ww = SGUI_RECT_WIDTH( r );
 
                 w = SGUI_RECT_WIDTH(frame->area);
-                sgui_scroll_bar_set_length( f->h_bar, w-2*f->border-ww );
+                sgui_scroll_bar_set_length( f->h_bar, w-2*f->v_border-ww );
             }
             else
             {
                 w = SGUI_RECT_WIDTH(frame->area);
-                sgui_scroll_bar_set_length( f->h_bar, w-2*f->border );
+                sgui_scroll_bar_set_length( f->h_bar, w-2*f->h_border );
             }
 
             sgui_scroll_bar_set_area( f->h_bar, new_width+10, width );
@@ -201,12 +266,14 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     w = SGUI_RECT_WIDTH( r );
     h = SGUI_RECT_HEIGHT( r ) + height;
 
-    sgui_skin_get_widget_extents( SGUI_FRAME_BORDER, &r );
-    f->border = r.right;
-    f->v_bar_dist = width - w - f->border;
-    f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->border, 0,
-                                       height-2*f->border, height-2*f->border,
-                                       height-2*f->border );
+    sgui_skin_get_element( SGUI_FRAME_BORDER, &r );
+    f->h_border = SGUI_RECT_WIDTH(r);
+    f->v_border = SGUI_RECT_HEIGHT(r);
+    f->v_bar_dist = width - w - f->v_border;
+    f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->v_border, 0,
+                                       height-2*f->v_border,
+                                       height-2*f->v_border,
+                                       height-2*f->v_border );
 
     if( !f->v_bar )
     {
@@ -219,10 +286,11 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     w = SGUI_RECT_WIDTH( r ) + width;
     h = SGUI_RECT_HEIGHT( r );
 
-    f->h_bar_dist = height - h - f->border;
-    f->h_bar = sgui_scroll_bar_create( f->border, f->h_bar_dist, 1,
-                                       width-2*f->border, width-2*f->border,
-                                       width-2*f->border );
+    f->h_bar_dist = height - h - f->v_border;
+    f->h_bar = sgui_scroll_bar_create( f->h_border, f->h_bar_dist, 1,
+                                       width-2*f->h_border,
+                                       width-2*f->h_border,
+                                       width-2*f->h_border );
 
     if( !f->h_bar )
     {

@@ -33,7 +33,6 @@
 
 
 #define SGUI_TAB_CAPTION                12
-#define SGUI_FRAME_BORDER               13
 
 
 
@@ -95,6 +94,16 @@
 #define SGUI_EDIT_BOX_CENTER              0x37
 #define SGUI_EDIT_BOX_RIGHT               0x38
 #define SGUI_EDIT_BOX_CURSOR              0x39
+#define SGUI_FRAME_LEFT_TOP               0x3A
+#define SGUI_FRAME_RIGHT_TOP              0x3B
+#define SGUI_FRAME_LEFT_BOTTOM            0x3C
+#define SGUI_FRAME_RIGHT_BOTTOM           0x3D
+#define SGUI_FRAME_LEFT                   0x3E
+#define SGUI_FRAME_RIGHT                  0x3F
+#define SGUI_FRAME_TOP                    0x40
+#define SGUI_FRAME_BOTTOM                 0x41
+#define SGUI_FRAME_CENTER                 0x42
+#define SGUI_FRAME_BORDER                 0x43
 
 
 
@@ -189,14 +198,6 @@ SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
  * \param r    Returns the dimensions of the widget
  */
 SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
-
-/**
- * \brief Draw a frame onto a canvas
- *
- * \param cv   The canvas to draw to
- * \param area The area covered by the frame
- */
-SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* cv, sgui_rect* area );
 
 /**
  * \brief Draw a happy little group box onto a canvas
