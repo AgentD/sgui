@@ -77,7 +77,7 @@ static void progress_draw_h( sgui_widget* widget )
     w = SGUI_RECT_WIDTH( widget->area );
     w = ((w-border)*b->progress) / 100;
     stretch.left += SGUI_RECT_WIDTH(begin);
-    stretch.right = stretch.left + w;
+    stretch.right = stretch.left + w - 1;
 
     if( b->stippled )
     {
@@ -92,7 +92,7 @@ static void progress_draw_h( sgui_widget* widget )
     }
 
     /* draw remaining empty area */
-    stretch.left = stretch.right;
+    stretch.left = stretch.right + 1;
     stretch.right = widget->area.right - SGUI_RECT_WIDTH(end);
     sgui_canvas_stretch_blend( cv, skin_pixmap, &empty, &stretch, 0 );
 
