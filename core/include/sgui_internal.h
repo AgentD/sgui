@@ -277,9 +277,12 @@ struct sgui_canvas
      * \param pixmap  The pixmap to blend.
      * \param srcrect A subrectangle of the pixmap to blend.
      * \param dstrect The destination rectangle on the canvas.
+     * \param dx      Offset from the left on the pixmap
+     * \param dy      Offset from the top on the pixmap
      */
     void(* stretch_blend )( sgui_canvas* canvas, sgui_pixmap* pixmap,
-                            sgui_rect* srcrect, sgui_rect* dstrect );
+                            sgui_rect* srcrect, sgui_rect* dstrect,
+                            int dx, int dy );
 
     /**
      * \brief Blit onto a canvas but stretch the source image
@@ -291,9 +294,12 @@ struct sgui_canvas
      * \param pixmap  The pixmap to blit.
      * \param srcrect A subrectangle of the pixmap to blit.
      * \param dstrect The destination rectangle on the canvas.
+     * \param dx      Offset from the left on the pixmap
+     * \param dy      Offset from the top on the pixmap
      */
     void(* stretch_blit )( sgui_canvas* canvas, sgui_pixmap* pixmap,
-                           sgui_rect* srcrect, sgui_rect* dstrect );
+                           sgui_rect* srcrect, sgui_rect* dstrect,
+                           int dx, int dy );
 
     /**
      * \brief Blend a constant color onto a canvas, use alpha from pixmap

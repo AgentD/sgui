@@ -153,7 +153,8 @@ static void canvas_gl_clear( sgui_canvas* canvas, sgui_rect* r )
 }
 
 static void canvas_gl_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
-                                    sgui_rect* srcrect, sgui_rect* dstrect )
+                                    sgui_rect* srcrect, sgui_rect* dstrect,
+                                    int dx, int dy )
 {
     unsigned int tex_w, tex_h;
     GLuint new_tex;
@@ -176,19 +177,19 @@ static void canvas_gl_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
 
     glColor4ub( 0xFF, 0xFF, 0xFF, 0xFF );
 
-    glTexCoord2i( srcrect->left, srcrect->top );
+    glTexCoord2i( srcrect->left+dx, srcrect->top+dy );
     glVertex2i( dstrect->left, dstrect->top );
-    glTexCoord2i( srcrect->right+1, srcrect->top );
-    glVertex2i( dstrect->right, dstrect->top );
-    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
-    glVertex2i( dstrect->left, dstrect->bottom );
+    glTexCoord2i( srcrect->right+1, srcrect->top+dy );
+    glVertex2i( dstrect->right+1, dstrect->top );
+    glTexCoord2i( srcrect->left+dx, srcrect->bottom+1 );
+    glVertex2i( dstrect->left, dstrect->bottom+1 );
 
-    glTexCoord2i( srcrect->right+1, srcrect->top );
-    glVertex2i( dstrect->right, dstrect->top );
+    glTexCoord2i( srcrect->right+1, srcrect->top+dy );
+    glVertex2i( dstrect->right+1, dstrect->top );
     glTexCoord2i( srcrect->right+1, srcrect->bottom+1 );
-    glVertex2i( dstrect->right, dstrect->bottom );
-    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
-    glVertex2i( dstrect->left, dstrect->bottom );
+    glVertex2i( dstrect->right+1, dstrect->bottom+1 );
+    glTexCoord2i( srcrect->left+dx, srcrect->bottom+1 );
+    glVertex2i( dstrect->left, dstrect->bottom+1 );
 
     glEnd( );
     glBindTexture( GL_TEXTURE_2D, 0 );
@@ -198,7 +199,8 @@ static void canvas_gl_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
 }
 
 static void canvas_gl_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
-                                     sgui_rect* srcrect, sgui_rect* dstrect )
+                                     sgui_rect* srcrect, sgui_rect* dstrect,
+                                     int dx, int dy )
 {
     unsigned int tex_w, tex_h;
     GLuint new_tex;
@@ -220,18 +222,18 @@ static void canvas_gl_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
 
     glColor4ub( 0xFF, 0xFF, 0xFF, 0xFF );
 
-    glTexCoord2i( srcrect->left, srcrect->top );
+    glTexCoord2i( srcrect->left+dx, srcrect->top+dy );
     glVertex2i( dstrect->left, dstrect->top );
-    glTexCoord2i( srcrect->right+1, srcrect->top );
+    glTexCoord2i( srcrect->right+1, srcrect->top+dy );
     glVertex2i( dstrect->right+1, dstrect->top );
-    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
+    glTexCoord2i( srcrect->left+dx, srcrect->bottom+1 );
     glVertex2i( dstrect->left, dstrect->bottom+1 );
 
-    glTexCoord2i( srcrect->right+1, srcrect->top );
+    glTexCoord2i( srcrect->right+1, srcrect->top+dy );
     glVertex2i( dstrect->right+1, dstrect->top );
     glTexCoord2i( srcrect->right+1, srcrect->bottom+1 );
     glVertex2i( dstrect->right+1, dstrect->bottom+1 );
-    glTexCoord2i( srcrect->left, srcrect->bottom+1 );
+    glTexCoord2i( srcrect->left+dx, srcrect->bottom+1 );
     glVertex2i( dstrect->left, dstrect->bottom+1 );
 
     glEnd( );
@@ -249,7 +251,7 @@ static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
     w = SGUI_RECT_WIDTH_V( srcrect );
     h = SGUI_RECT_HEIGHT_V( srcrect );
     sgui_rect_set_size( &dstrect, x, y, w, h );
-    canvas_gl_stretch_blend( canvas, pixmap, srcrect, &dstrect );
+    canvas_gl_stretch_blend( canvas, pixmap, srcrect, &dstrect, 0, 0 );
 }
 
 static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
@@ -261,7 +263,7 @@ static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     w = SGUI_RECT_WIDTH_V( srcrect );
     h = SGUI_RECT_HEIGHT_V( srcrect );
     sgui_rect_set_size( &dstrect, x, y, w, h );
-    canvas_gl_stretch_blit( canvas, pixmap, srcrect, &dstrect );
+    canvas_gl_stretch_blit( canvas, pixmap, srcrect, &dstrect, 0, 0 );
 }
 
 static void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,

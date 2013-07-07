@@ -549,16 +549,16 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
     y = clip.top;
 
     /* do the blending */
-    canvas->blend( canvas, x, y, pixmap, &r );
+    canvas->blend( canvas, x, y, canvas->skin_pixmap, &r );
 }
 
 void sgui_canvas_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
                                sgui_rect* srcrect, sgui_rect* dstrect,
                                int repeate )
 {
+    sgui_rect src, old, dst;
+    int x, oldr, dx, dy;
     unsigned int w, h;
-    sgui_rect src, dst;
-    int x, oldr;
 
     if( !canvas || !pixmap || !dstrect || !canvas->began )
         return;
@@ -573,27 +573,51 @@ void sgui_canvas_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
     dst.right  = dstrect->right  + canvas->ox;
     dst.top    = dstrect->top    + canvas->oy;
     dst.bottom = dstrect->bottom + canvas->oy;
+    old = dst;
 
     if( !sgui_rect_get_intersection( &dst, &canvas->sc, &dst ) )
         return;
 
-    if( canvas->stretch_blit && !repeate )
+    /* calculate offsets due to clipping */
+    dx = dst.left - old.left;
+    dy = dst.top - old.top;
+
+    w = SGUI_RECT_WIDTH(src);
+    h = SGUI_RECT_HEIGHT(src);
+    dx %= w;
+    dy %= h;
+
+    if( canvas->stretch_blend && !repeate )
     {
-        canvas->stretch_blit( canvas, pixmap, &src, &dst );
+        canvas->stretch_blit( canvas, pixmap, &src, &dst, dx, dy );
     }
     else
     {
-        w = SGUI_RECT_WIDTH(src);
-        h = SGUI_RECT_HEIGHT(src);
-
-        while( dst.top < dst.bottom )
+        while( dst.top <= dst.bottom )
         {
+            src.top += dy;
+            h -= dy;
+
             if( (unsigned int)(dst.bottom - dst.top) < h )
                 src.bottom = src.top + dst.bottom - dst.top;
 
             x = dst.left;
 
-            while( x < dst.right )
+            if( dx )
+            {
+                src.left += dx;
+                w -= dx;
+
+                if( (unsigned int)(dst.right - x) < w )
+                    src.right = src.left + dst.right - x;
+
+                canvas->blit( canvas, x, dst.top, pixmap, &src );
+                src.left -= dx;
+                x += dx;
+                w += dx;
+            }
+
+            while( x <= dst.right )
             {
                 oldr = src.right;
 
@@ -607,6 +631,13 @@ void sgui_canvas_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
             }
 
             dst.top += h;
+
+            if( dy )
+            {
+                src.top -= dy;
+                h += dy;
+                dy = 0;
+            }
         }
     }
 }
@@ -615,9 +646,9 @@ void sgui_canvas_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
                                 sgui_rect* srcrect, sgui_rect* dstrect,
                                 int repeate )
 {
+    sgui_rect src, old, dst;
+    int x, oldr, dx, dy;
     unsigned int w, h;
-    sgui_rect src, dst;
-    int x, oldr;
 
     if( !canvas || !pixmap || !dstrect || !canvas->began )
         return;
@@ -632,27 +663,51 @@ void sgui_canvas_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
     dst.right  = dstrect->right  + canvas->ox;
     dst.top    = dstrect->top    + canvas->oy;
     dst.bottom = dstrect->bottom + canvas->oy;
+    old = dst;
 
     if( !sgui_rect_get_intersection( &dst, &canvas->sc, &dst ) )
         return;
 
+    /* calculate offsets due to clipping */
+    dx = dst.left - old.left;
+    dy = dst.top - old.top;
+
+    w = SGUI_RECT_WIDTH(src);
+    h = SGUI_RECT_HEIGHT(src);
+    dx %= w;
+    dy %= h;
+
     if( canvas->stretch_blend && !repeate )
     {
-        canvas->stretch_blend( canvas, pixmap, &src, &dst );
+        canvas->stretch_blend( canvas, pixmap, &src, &dst, dx, dy );
     }
     else
     {
-        w = SGUI_RECT_WIDTH(src);
-        h = SGUI_RECT_HEIGHT(src);
-
-        while( dst.top < dst.bottom )
+        while( dst.top <= dst.bottom )
         {
+            src.top += dy;
+            h -= dy;
+
             if( (unsigned int)(dst.bottom - dst.top) < h )
                 src.bottom = src.top + dst.bottom - dst.top;
 
             x = dst.left;
 
-            while( x < dst.right )
+            if( dx )
+            {
+                src.left += dx;
+                w -= dx;
+
+                if( (unsigned int)(dst.right - x) < w )
+                    src.right = src.left + dst.right - x;
+
+                canvas->blend( canvas, x, dst.top, pixmap, &src );
+                src.left -= dx;
+                x += dx;
+                w += dx;
+            }
+
+            while( x <= dst.right )
             {
                 oldr = src.right;
 
@@ -666,6 +721,13 @@ void sgui_canvas_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
             }
 
             dst.top += h;
+
+            if( dy )
+            {
+                src.top -= dy;
+                h += dy;
+                dy = 0;
+            }
         }
     }
 }
