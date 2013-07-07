@@ -311,17 +311,6 @@ SGUI_DLL void sgui_canvas_stretch_blend( sgui_canvas* canvas,
                                          int repeate );
 
 /**
- * \brief Draw a rectangle onto a canvas
- *
- * \param r      The geometry of the box to draw
- * \param color  The color to draw the box in
- * \param format The color format stored in the color array (SGUI_RGB8, ...)
- */
-SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                                    unsigned char* color,
-                                    int format );
-
-/**
  * \brief Draw a line onto a canvas
  *
  * \param x          Distance from the left of the canvas to the start of the
