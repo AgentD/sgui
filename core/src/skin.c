@@ -753,6 +753,23 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
     }
 
     sgui_pixmap_load( pixmap, 32, 64, buffer, 0, 0, 17, 17, 17, SGUI_RGBA8 );
+
+    /* tab caption */
+    for( y=0; y<4; ++y )
+    {
+        for( x=0; x<10; ++x )
+        {
+            buffer[(y*10+x)*4]=buffer[(y*10+x)*4+1]=buffer[(y*10+x)*4+2]=0x64;
+            buffer[(y*10+x)*4+3]=0xFF;
+        }
+    }
+
+    for( x=0; x<10; ++x )
+    {
+        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=buffer[x*4+3]=0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 38, 38, buffer, 0, 0, 10, 4, 10, SGUI_RGBA8 );
 }
 
 void sgui_skin_get_element( int element, sgui_rect* r )
@@ -815,13 +832,16 @@ void sgui_skin_get_element( int element, sgui_rect* r )
     case SGUI_FRAME_CENTER:          sgui_rect_set_size(r,1,1,10,10);  break;
     case SGUI_FRAME_BORDER:          sgui_rect_set_size(r,0,0,1,1);    break;
     case SGUI_GROUPBOX_LEFT_TOP:     sgui_rect_set_size(r,30,62,13,13);break;
-    case SGUI_GROUPBOX_RIGHT_TOP:    sgui_rect_set_size(r,38,62,13,13); break;
-    case SGUI_GROUPBOX_LEFT_BOTTOM:  sgui_rect_set_size(r,30,70,13,13); break;
-    case SGUI_GROUPBOX_RIGHT_BOTTOM: sgui_rect_set_size(r,38,70,13,13); break;
+    case SGUI_GROUPBOX_RIGHT_TOP:    sgui_rect_set_size(r,38,62,13,13);break;
+    case SGUI_GROUPBOX_LEFT_BOTTOM:  sgui_rect_set_size(r,30,70,13,13);break;
+    case SGUI_GROUPBOX_RIGHT_BOTTOM: sgui_rect_set_size(r,38,70,13,13);break;
     case SGUI_GROUPBOX_LEFT:         sgui_rect_set_size(r,30,64,2,13); break;
     case SGUI_GROUPBOX_RIGHT:        sgui_rect_set_size(r,49,64,2,13); break;
     case SGUI_GROUPBOX_TOP:          sgui_rect_set_size(r,32,62,13,2); break;
     case SGUI_GROUPBOX_BOTTOM:       sgui_rect_set_size(r,32,81,13,2); break;
+    case SGUI_TAB_CAP_LEFT:          sgui_rect_set_size(r,25,12,1,24); break;
+    case SGUI_TAB_CAP_CENTER:        sgui_rect_set_size(r,38,38,10,24);break;
+    case SGUI_TAB_CAP_RIGHT:         sgui_rect_set_size(r,0,12,1,24);  break;
     case SGUI_SCROLL_BAR_H_PANE_LEFT:  sgui_rect_set_size(r,48,20,7,20);break;
     case SGUI_SCROLL_BAR_H_PANE_CENTER:sgui_rect_set_size(r,49,20,6,20);break;
     case SGUI_SCROLL_BAR_H_PANE_RIGHT: sgui_rect_set_size(r,61,20,7,20);break;
@@ -991,39 +1011,7 @@ void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
     r->bottom = lines * font_height + font_height/2 - 1;
 }
 
-void sgui_skin_get_widget_extents( int type, sgui_rect* r )
-{
-    if( r )
-    {
-        r->left = r->right = r->top = r->bottom = 0;
-
-        switch( type )
-        {
-        case SGUI_TAB_CAPTION:
-            r->right = 19;
-            r->bottom = font_height + font_height / 2 - 1;
-            break;
-        }
-    }
-}
-
 /***************************************************************************/
-
-void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
-                                 unsigned int width, const char* caption )
-{
-    unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned int h = font_height + font_height / 2;
-
-    sgui_canvas_draw_line( cv, x, y, width, 1, color, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x, y, h,     0, color, SGUI_RGB8 );
-
-    color[0] = color[1] = color[2] = 0x00;
-    sgui_canvas_draw_line( cv, x+width-1, y, h, 0, color, SGUI_RGB8 );
-
-    color[0] = color[1] = color[2] = 0xFF;
-    sgui_canvas_draw_text_plain( cv, x+10, y, 0, 0, color, caption, -1 );
-}
 
 void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,
                          unsigned int height, unsigned int gap,

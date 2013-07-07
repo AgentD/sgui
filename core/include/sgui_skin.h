@@ -31,11 +31,6 @@
 
 
 
-
-#define SGUI_TAB_CAPTION                12
-
-
-
 #define SGUI_PBAR_H_STIPPLED_START        0x00
 #define SGUI_PBAR_H_STIPPLED_EMPTY        0x01
 #define SGUI_PBAR_H_STIPPLED_FILLED       0x02
@@ -112,6 +107,9 @@
 #define SGUI_GROUPBOX_RIGHT               0x49
 #define SGUI_GROUPBOX_TOP                 0x4A
 #define SGUI_GROUPBOX_BOTTOM              0x4B
+#define SGUI_TAB_CAP_LEFT                 0x4C
+#define SGUI_TAB_CAP_CENTER               0x4D
+#define SGUI_TAB_CAP_RIGHT                0x4E
 
 
 
@@ -198,27 +196,6 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  * \param height      Returns the height of the rendererd text
  */
 SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
-
-/**
- * \brief Get the dimensions of a widget type
- *
- * \param type The type of widget
- * \param r    Returns the dimensions of the widget
- */
-SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
-
-/**
- * \brief Draw the caption of a tab onto a canvas
- *
- * \param cv      The canvas to draw to
- * \param x       Distance from the left of the canvas
- * \param y       Distance from the top of the canvas
- * \param width   The width of the tab caption
- * \param caption The caption text
- */
-SGUI_DLL void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
-                                          unsigned int width,
-                                          const char* caption );
 
 /**
  * \brif Draw a tab onto onto a canvas

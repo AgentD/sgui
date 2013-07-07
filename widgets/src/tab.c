@@ -111,19 +111,48 @@ static void tab_group_on_event( sgui_widget* widget, int type,
     }
 }
 
+static void tab_group_draw_captions( sgui_tab_group* g )
+{
+    sgui_canvas* cv = g->widget.canvas;
+    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
+    int x = g->widget.area.left, y = g->widget.area.top;
+    sgui_rect L, R, C, dst;
+    unsigned char color[4];
+    sgui_tab* i;
+
+    sgui_skin_get_default_font_color( color );
+    sgui_skin_get_element( SGUI_TAB_CAP_LEFT, &L );
+    sgui_skin_get_element( SGUI_TAB_CAP_RIGHT, &R );
+    sgui_skin_get_element( SGUI_TAB_CAP_CENTER, &C );
+
+    dst.top = y;
+    dst.bottom = y + g->tab_cap_height - 1;
+
+    for( i=g->tabs; i!=NULL; i=i->next )
+    {
+        dst.left = x + SGUI_RECT_WIDTH(L);
+        dst.right = x + (i->caption_width-1) - SGUI_RECT_WIDTH(R);
+
+        /* draw caption */
+        sgui_canvas_blend( cv, x, y, skin_pixmap, &L );
+        sgui_canvas_blend( cv, dst.right+1, dst.top, skin_pixmap, &R );
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
+
+        /* draw text */
+        sgui_canvas_draw_text_plain( cv, x+(g->tab_cap_width>>1), y, 0, 0,
+                                     color, i->caption, -1 );
+        x += i->caption_width;
+    }
+}
+
 static void tab_group_draw( sgui_widget* widget )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int gap, gap_w;
-    int x = widget->area.left, y = widget->area.top;
     sgui_tab* i;
 
     /* draw tab captions */
-    for( i=g->tabs; i!=NULL; x += i->caption_width, i=i->next )
-    {
-        sgui_skin_draw_tab_caption( widget->canvas, x, y, i->caption_width,
-                                    i->caption );
-    }
+    tab_group_draw_captions( g );
 
     /* draw selected tab */
     for( i=g->tabs, gap=0; i!=NULL; i=i->next )
@@ -153,20 +182,21 @@ sgui_widget* sgui_tab_group_create( int x, int y,
                                     unsigned int width, unsigned int height )
 {
     sgui_tab_group* g = malloc( sizeof(sgui_tab_group) );
+    unsigned int fh = sgui_skin_get_default_font_height( );
     sgui_rect r;
 
     if( !g )
         return NULL;
 
     sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
-    sgui_skin_get_widget_extents( SGUI_TAB_CAPTION, &r );
+    sgui_skin_get_element( SGUI_TAB_CAP_CENTER, &r );
 
     g->widget.draw_callback         = tab_group_draw;
     g->widget.window_event_callback = tab_group_on_event;
     g->widget.destroy               = tab_group_destroy;
     g->tabs                         = NULL;
     g->tab_cap_height               = SGUI_RECT_HEIGHT( r );
-    g->tab_cap_width                = SGUI_RECT_WIDTH( r );
+    g->tab_cap_width                = fh;
 
     return (sgui_widget*)g;
 }
