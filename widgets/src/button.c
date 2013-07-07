@@ -113,41 +113,41 @@ static void button_draw( sgui_widget* w )
 
     /* draw corners */
     sgui_canvas_blend( cv, x, y, skin_pixmap, &lt );
-    sgui_canvas_blend( cv, x1-SGUI_RECT_WIDTH(lt)+1, y, skin_pixmap, &rt );
-    sgui_canvas_blend( cv, x, y1-SGUI_RECT_HEIGHT(lb)+1, skin_pixmap, &lb );
-    sgui_canvas_blend( cv, x1-SGUI_RECT_WIDTH(rb)+1,
-                       y1-SGUI_RECT_HEIGHT(rb)+1, skin_pixmap, &rb );
+    sgui_canvas_blend( cv, x1-(rt.right-rt.left), y, skin_pixmap, &rt );
+    sgui_canvas_blend( cv, x, y1-(lb.bottom-lb.top), skin_pixmap, &lb );
+    sgui_canvas_blend( cv, x1-(rb.right-rb.left), y1-(rb.bottom-rb.top),
+                       skin_pixmap, &rb );
 
     /* draw borders */
     dst.left   = x;
-    dst.right  = x  + l.right-l.left;
-    dst.top    = y  + lt.bottom-lt.top;
-    dst.bottom = y1 - (lb.bottom-lb.top);
+    dst.right  = x  + (l.right - l.left);
+    dst.top    = y  + SGUI_RECT_HEIGHT(lt);
+    dst.bottom = y1 - SGUI_RECT_HEIGHT(lb);
     sgui_canvas_stretch_blend( cv, skin_pixmap, &l, &dst, 0 );
 
     dst.left   = x1 - (r.right-r.left);
     dst.right  = x1;
-    dst.top    = y  + (rt.bottom-rt.top);
-    dst.bottom = y1 - (rb.bottom-rb.top);
+    dst.top    = y  + SGUI_RECT_HEIGHT(rt);
+    dst.bottom = y1 - SGUI_RECT_HEIGHT(rb);
     sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
 
-    dst.left   = x  +  lt.right-lt.left;
-    dst.right  = x1 - (rt.right-rt.left);
+    dst.left   = x  + SGUI_RECT_WIDTH(lt);
+    dst.right  = x1 - SGUI_RECT_WIDTH(rt);
     dst.top    = y;
-    dst.bottom = y  +  t.bottom-t.top;
+    dst.bottom = y  + (t.bottom-t.top);
     sgui_canvas_stretch_blend( cv, skin_pixmap, &t, &dst, 0 );
 
-    dst.left   = x  +  lb.right-lb.left;
-    dst.right  = x1 - (rb.right-rb.left);
+    dst.left   = x  + SGUI_RECT_WIDTH(lb);
+    dst.right  = x1 - SGUI_RECT_WIDTH(rb);
     dst.top    = y1 - (b.bottom-b.top);
     dst.bottom = y1;
     sgui_canvas_stretch_blend( cv, skin_pixmap, &b, &dst, 0 );
 
     /* draw background */
-    dst.left   = x  +  lt.right-lt.left;
-    dst.right  = x1 - (rt.right-rt.left);
-    dst.top    = y  + (lt.bottom-lt.top);
-    dst.bottom = y1 - (lb.bottom-lb.top);
+    dst.left   = x  + SGUI_RECT_WIDTH(l);
+    dst.right  = x1 - SGUI_RECT_WIDTH(r);
+    dst.top    = y  + SGUI_RECT_HEIGHT(t);
+    dst.bottom = y1 - SGUI_RECT_HEIGHT(b);
     sgui_canvas_stretch_blend( cv, skin_pixmap, &f, &dst, 0 );
 
     /* draw text */
