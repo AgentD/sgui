@@ -720,6 +720,39 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
     }
 
     sgui_pixmap_load( pixmap, 50, 42, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
+
+    /* group box */
+    for( x=0; x<20; ++x )
+    {
+        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=buffer[x*4+3]=0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 31, 63, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 31, 63, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 50, 63, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 31, 82, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
+
+    for( x=0; x<20; ++x )
+    {
+        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=0x00;
+        buffer[x*4+3]=0xFF;
+    }
+
+    sgui_pixmap_load( pixmap, 30, 62, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 30, 62, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 49, 62, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
+    sgui_pixmap_load( pixmap, 30, 81, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
+
+    for( y=0; y<17; ++y )
+    {
+        for( x=0; x<17; ++x )
+        {
+            buffer[(y*17+x)*4]=buffer[(y*17+x)*4+1]=buffer[(y*17+x)*4+2]=
+            buffer[(y*17+x)*4+3]=0x00;
+        }
+    }
+
+    sgui_pixmap_load( pixmap, 32, 64, buffer, 0, 0, 17, 17, 17, SGUI_RGBA8 );
 }
 
 void sgui_skin_get_element( int element, sgui_rect* r )
@@ -781,6 +814,14 @@ void sgui_skin_get_element( int element, sgui_rect* r )
     case SGUI_FRAME_BOTTOM:          sgui_rect_set_size(r,1,2,10,10);  break;
     case SGUI_FRAME_CENTER:          sgui_rect_set_size(r,1,1,10,10);  break;
     case SGUI_FRAME_BORDER:          sgui_rect_set_size(r,0,0,1,1);    break;
+    case SGUI_GROUPBOX_LEFT_TOP:     sgui_rect_set_size(r,30,62,13,13);break;
+    case SGUI_GROUPBOX_RIGHT_TOP:    sgui_rect_set_size(r,38,62,13,13); break;
+    case SGUI_GROUPBOX_LEFT_BOTTOM:  sgui_rect_set_size(r,30,70,13,13); break;
+    case SGUI_GROUPBOX_RIGHT_BOTTOM: sgui_rect_set_size(r,38,70,13,13); break;
+    case SGUI_GROUPBOX_LEFT:         sgui_rect_set_size(r,30,64,2,13); break;
+    case SGUI_GROUPBOX_RIGHT:        sgui_rect_set_size(r,49,64,2,13); break;
+    case SGUI_GROUPBOX_TOP:          sgui_rect_set_size(r,32,62,13,2); break;
+    case SGUI_GROUPBOX_BOTTOM:       sgui_rect_set_size(r,32,81,13,2); break;
     case SGUI_SCROLL_BAR_H_PANE_LEFT:  sgui_rect_set_size(r,48,20,7,20);break;
     case SGUI_SCROLL_BAR_H_PANE_CENTER:sgui_rect_set_size(r,49,20,6,20);break;
     case SGUI_SCROLL_BAR_H_PANE_RIGHT: sgui_rect_set_size(r,61,20,7,20);break;
@@ -967,46 +1008,6 @@ void sgui_skin_get_widget_extents( int type, sgui_rect* r )
 }
 
 /***************************************************************************/
-
-void sgui_skin_draw_group_box( sgui_canvas* cv, sgui_rect* area,
-                               const char* caption )
-{
-    unsigned char color[3] = { 0xFF, 0xFF, 0xFF };
-    unsigned int len;
-    int x, y, x1, y1;
-
-    if( !area || !cv )
-        return;
-
-    x   = area->left;
-    y   = area->top;
-    x1  = area->right;
-    y1  = area->bottom;
-    len = sgui_skin_default_font_extents( caption, -1, 0, 0 );
-
-    sgui_canvas_draw_text_plain( cv, x+13, y, 0, 0, color, caption, -1 );
-    y += font_height/2;
-
-    /* the top line has a gap for the caption */
-    sgui_canvas_draw_line(cv,x+1,     y+1, 9,           1, color, SGUI_RGB8);
-    sgui_canvas_draw_line(cv,x+16+len,y+1, x1-x-15-len, 1, color, SGUI_RGB8);
-
-    /* left, right and bottom lines */
-    sgui_canvas_draw_line(cv, x+1, y+1, y1-y, 0, color, SGUI_RGB8);
-    sgui_canvas_draw_line(cv, x1,  y+1, y1-y, 0, color, SGUI_RGB8);
-    sgui_canvas_draw_line(cv, x+1, y1,  x1-x, 1, color, SGUI_RGB8);
-
-    color[0] = color[1] = color[2] = 0x00;
-
-    /* again, a gap for the caption */
-    sgui_canvas_draw_line(cv, x,        y,          10, 1, color, SGUI_RGB8);
-    sgui_canvas_draw_line(cv, x+16+len, y, x1-x-16-len, 1, color, SGUI_RGB8);
-
-    /* left right and bottom lines */
-    sgui_canvas_draw_line( cv, x,    y, y1-y, 0, color, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x1-1, y, y1-y, 0, color, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x, y1-1, x1-x, 1, color, SGUI_RGB8 );
-}
 
 void sgui_skin_draw_tab_caption( sgui_canvas* cv, int x, int y,
                                  unsigned int width, const char* caption )

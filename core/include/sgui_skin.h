@@ -104,6 +104,14 @@
 #define SGUI_FRAME_BOTTOM                 0x41
 #define SGUI_FRAME_CENTER                 0x42
 #define SGUI_FRAME_BORDER                 0x43
+#define SGUI_GROUPBOX_LEFT_TOP            0x44
+#define SGUI_GROUPBOX_RIGHT_TOP           0x45
+#define SGUI_GROUPBOX_LEFT_BOTTOM         0x46
+#define SGUI_GROUPBOX_RIGHT_BOTTOM        0x47
+#define SGUI_GROUPBOX_LEFT                0x48
+#define SGUI_GROUPBOX_RIGHT               0x49
+#define SGUI_GROUPBOX_TOP                 0x4A
+#define SGUI_GROUPBOX_BOTTOM              0x4B
 
 
 
@@ -198,19 +206,6 @@ SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
  * \param r    Returns the dimensions of the widget
  */
 SGUI_DLL void sgui_skin_get_widget_extents( int type, sgui_rect* r );
-
-/**
- * \brief Draw a happy little group box onto a canvas
- *
- * \param cv      The canvas to draw to
- * \param x       Distance from the left of the canvas
- * \param y       Distance from the top of the canvas
- * \param width   The width of the group box
- * \param height  The height of the group box
- * \param caption The caption of the group box
- */
-SGUI_DLL void sgui_skin_draw_group_box( sgui_canvas* cv, sgui_rect* area,
-                                        const char* caption );
 
 /**
  * \brief Draw the caption of a tab onto a canvas

@@ -549,7 +549,7 @@ void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
     y = clip.top;
 
     /* do the blending */
-    canvas->blend( canvas, x, y, canvas->skin_pixmap, &r );
+    canvas->blend( canvas, x, y, pixmap, &r );
 }
 
 void sgui_canvas_stretch_blit( sgui_canvas* canvas, sgui_pixmap* pixmap,
