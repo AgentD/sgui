@@ -842,6 +842,16 @@ void sgui_skin_get_element( int element, sgui_rect* r )
     case SGUI_TAB_CAP_LEFT:          sgui_rect_set_size(r,25,12,1,24); break;
     case SGUI_TAB_CAP_CENTER:        sgui_rect_set_size(r,38,38,10,24);break;
     case SGUI_TAB_CAP_RIGHT:         sgui_rect_set_size(r,0,12,1,24);  break;
+    case SGUI_TAB_LEFT_TOP:          sgui_rect_set_size(r,38,12,8,8);  break;
+    case SGUI_TAB_RIGHT_TOP:         sgui_rect_set_size(r,40,12,8,8);  break;
+    case SGUI_TAB_LEFT_BOTTOM:       sgui_rect_set_size(r,38,14,8,8);  break;
+    case SGUI_TAB_RIGHT_BOTTOM:      sgui_rect_set_size(r,40,14,8,8);  break;
+    case SGUI_TAB_LEFT:              sgui_rect_set_size(r,38,13,1,8);  break;
+    case SGUI_TAB_RIGHT:             sgui_rect_set_size(r,47,13,1,8);  break;
+    case SGUI_TAB_TOP:               sgui_rect_set_size(r,39,12,8,1);  break;
+    case SGUI_TAB_BOTTOM:            sgui_rect_set_size(r,39,21,8,1);  break;
+    case SGUI_TAB_GAP_LEFT:          sgui_rect_set_size(r,0,0,0,0);    break;
+    case SGUI_TAB_GAP_RIGHT:         sgui_rect_set_size(r,0,0,0,0);    break;
     case SGUI_SCROLL_BAR_H_PANE_LEFT:  sgui_rect_set_size(r,48,20,7,20);break;
     case SGUI_SCROLL_BAR_H_PANE_CENTER:sgui_rect_set_size(r,49,20,6,20);break;
     case SGUI_SCROLL_BAR_H_PANE_RIGHT: sgui_rect_set_size(r,61,20,7,20);break;
@@ -1009,24 +1019,5 @@ void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
     r->top    = 0;
     r->right  = longest - 1;
     r->bottom = lines * font_height + font_height/2 - 1;
-}
-
-/***************************************************************************/
-
-void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y, unsigned int width,
-                         unsigned int height, unsigned int gap,
-                         unsigned int gap_width )
-{
-    unsigned char color[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned int w_remain = width - gap - gap_width;
-    int x_after = x + gap + gap_width;
-
-    sgui_canvas_draw_line( cv, x,       y, gap+1,     1, color, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x_after, y, w_remain,  1, color, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x,       y, height,    0, color, SGUI_RGB8 );
-
-    color[0] = color[1] = color[2] = 0x00;
-    sgui_canvas_draw_line( cv, x, y+height-1, width, 1, color, SGUI_RGB8 );
-    sgui_canvas_draw_line( cv, x+width-1, y, height, 0, color, SGUI_RGB8 );
 }
 

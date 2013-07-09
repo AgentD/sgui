@@ -110,6 +110,16 @@
 #define SGUI_TAB_CAP_LEFT                 0x4C
 #define SGUI_TAB_CAP_CENTER               0x4D
 #define SGUI_TAB_CAP_RIGHT                0x4E
+#define SGUI_TAB_LEFT_TOP                 0x4F
+#define SGUI_TAB_RIGHT_TOP                0x50
+#define SGUI_TAB_LEFT_BOTTOM              0x51
+#define SGUI_TAB_RIGHT_BOTTOM             0x52
+#define SGUI_TAB_LEFT                     0x53
+#define SGUI_TAB_RIGHT                    0x54
+#define SGUI_TAB_TOP                      0x55
+#define SGUI_TAB_BOTTOM                   0x56
+#define SGUI_TAB_GAP_LEFT                 0x57
+#define SGUI_TAB_GAP_RIGHT                0x58
 
 
 
@@ -197,20 +207,6 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  */
 SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
 
-/**
- * \brif Draw a tab onto onto a canvas
- *
- * \param cv        The canvas to draw to
- * \param x         Distance from the left of the canvas
- * \param y         Distance from the top of the canvas
- * \param width     The width of the tab
- * \param height    The height of the tab
- * \param gap       The offset at witch to insert a gap for the caption
- * \param gap_width The width of the gap
- */
-SGUI_DLL void sgui_skin_draw_tab( sgui_canvas* cv, int x, int y,
-                                  unsigned int width, unsigned int height,
-                                  unsigned int gap, unsigned int gap_width );
 
 
 #ifdef __cplusplus

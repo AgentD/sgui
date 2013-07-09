@@ -145,10 +145,94 @@ static void tab_group_draw_captions( sgui_tab_group* g )
     }
 }
 
+static void tab_group_draw_tab( sgui_canvas* cv, sgui_rect* area,
+                                unsigned int gap, unsigned int gap_width )
+{
+    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
+    sgui_rect L, R, C, dst;
+
+    /* draw top before gap */
+    sgui_skin_get_element( SGUI_TAB_LEFT_TOP, &L );
+    sgui_skin_get_element( SGUI_TAB_TOP, &C );
+    sgui_skin_get_element( SGUI_TAB_GAP_LEFT, &R );
+    sgui_rect_set_size( &dst,area->left,area->top,gap+1,SGUI_RECT_HEIGHT(C) );
+    dst.left += SGUI_RECT_WIDTH(L);
+
+    if( SGUI_RECT_WIDTH(L)>=(int)gap )
+        L.right = L.left + gap - SGUI_RECT_WIDTH(R);
+
+    if( R.left<R.right )
+    {
+        dst.right -= SGUI_RECT_WIDTH(R);
+        sgui_canvas_blend( cv, dst.right+1, area->top, skin_pixmap, &R );
+    }
+
+    sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &L );
+
+    if( dst.left<dst.right )
+        sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
+
+    /* draw top after gap */
+    sgui_skin_get_element( SGUI_TAB_GAP_RIGHT, &L );
+    sgui_skin_get_element( SGUI_TAB_TOP, &C );
+    sgui_skin_get_element( SGUI_TAB_RIGHT_TOP, &R );
+    dst.left = area->left + gap + gap_width;
+    dst.top = area->top;
+    dst.right = area->right - SGUI_RECT_WIDTH(R);
+    dst.bottom = area->top + (C.bottom - C.top);
+
+    if( L.left<L.right )
+    {
+        sgui_canvas_blend( cv, dst.left, dst.top, skin_pixmap, &L );
+        dst.left += SGUI_RECT_WIDTH(L);
+    }
+
+    sgui_canvas_blend( cv, dst.right+1, dst.top, skin_pixmap, &R );
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
+
+    /* draw left */
+    sgui_skin_get_element( SGUI_TAB_LEFT_BOTTOM, &L );
+    sgui_skin_get_element( SGUI_TAB_LEFT, &C );
+    sgui_skin_get_element( SGUI_TAB_LEFT_TOP, &R );
+    dst.left = area->left;
+    dst.top = area->top + (R.bottom - R.top);
+    dst.right = area->left + (C.right - C.left);
+    dst.bottom = area->bottom - (L.right - L.left);
+
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
+
+    /* draw right */
+    sgui_skin_get_element( SGUI_TAB_RIGHT_BOTTOM, &L );
+    sgui_skin_get_element( SGUI_TAB_RIGHT, &C );
+    sgui_skin_get_element( SGUI_TAB_RIGHT_TOP, &R );
+    dst.left = area->right - (C.right - C.left);
+    dst.top = area->top + (R.bottom - R.top);
+    dst.right = area->right;
+    dst.bottom = area->bottom - (L.right - L.left);
+
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
+
+    /* draw bottom */
+    sgui_skin_get_element( SGUI_TAB_LEFT_BOTTOM, &L );
+    sgui_skin_get_element( SGUI_TAB_RIGHT_BOTTOM, &R );
+    sgui_skin_get_element( SGUI_TAB_BOTTOM, &C );
+    dst.left = area->left + SGUI_RECT_WIDTH(L);
+    dst.top = area->bottom - (C.bottom-C.top);
+    dst.right = area->right - SGUI_RECT_WIDTH(R);
+    dst.bottom = area->bottom;
+
+    sgui_canvas_blend( cv, area->left, area->bottom-(L.bottom-L.top),
+                       skin_pixmap, &L );
+    sgui_canvas_blend( cv, dst.right+1, area->bottom-(R.bottom-R.top),
+                       skin_pixmap, &R );
+    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
+}
+
 static void tab_group_draw( sgui_widget* widget )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
     unsigned int gap, gap_w;
+    sgui_rect r;
     sgui_tab* i;
 
     /* draw tab captions */
@@ -168,11 +252,9 @@ static void tab_group_draw( sgui_widget* widget )
 
     if( i )
     {
-        sgui_skin_draw_tab( widget->canvas, widget->area.left,
-                            widget->area.top + g->tab_cap_height, 
-                            SGUI_RECT_WIDTH(widget->area),
-                            SGUI_RECT_HEIGHT(widget->area) -
-                            g->tab_cap_height, gap, gap_w );
+        r = widget->area;
+        r.top += g->tab_cap_height;
+        tab_group_draw_tab( widget->canvas, &r, gap, gap_w );
     }
 }
 
