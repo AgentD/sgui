@@ -311,23 +311,6 @@ SGUI_DLL void sgui_canvas_stretch_blend( sgui_canvas* canvas,
                                          int repeate );
 
 /**
- * \brief Draw a line onto a canvas
- *
- * \param x          Distance from the left of the canvas to the start of the
- *                   line.
- * \param y          Distance from the top of the canvas to the start of the
- *                   line.
- * \param length     The length of the line in the desired direction
- * \param horizontal Non-zero to draw a horizontal line, zero to draw a
- *                   vertical line.
- * \param color      The color to draw the line in
- * \param format     The color format stored in the color array(SGUI_RGB8, ...)
- */
-SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
-                                     unsigned int length, int horizontal,
-                                     unsigned char* color, int format );
-
-/**
  * \brief Render one line of text in a single font face
  *
  * \param x         Distance from the left of the canvas to the left of the

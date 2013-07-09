@@ -266,33 +266,6 @@ static void canvas_gl_blit( sgui_canvas* canvas, int x, int y,
     canvas_gl_stretch_blit( canvas, pixmap, srcrect, &dstrect, 0, 0 );
 }
 
-static void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                                unsigned char* color, int format )
-{
-    GLubyte A=0x00, R=0x00, G=0x00, B=0x00;
-    (void)canvas;
-
-    if( format==SGUI_RGB8 || format==SGUI_RGBA8 )
-    {
-        R = color[0];
-        G = color[1];
-        B = color[2];
-        A = format==SGUI_RGBA8 ? color[3] : 0xFF;
-    }
-    else if( format==SGUI_A8 )
-        R = G = B = A = color[0];
-
-    glColor4ub( R, G, B, A );
-
-    glVertex2i( r->left,    r->top      );
-    glVertex2i( r->right+1, r->top      );
-    glVertex2i( r->left,    r->bottom+1 );
-
-    glVertex2i( r->right+1, r->top      );
-    glVertex2i( r->right+1, r->bottom+1 );
-    glVertex2i( r->left,    r->bottom+1 );
-}
-
 static void canvas_gl_blend_glyph( sgui_canvas* canvas, int x, int y,
                                    sgui_pixmap* pixmap, sgui_rect* r,
                                    unsigned char* color )
@@ -434,7 +407,6 @@ sgui_canvas* gl_canvas_create_compat( unsigned int width,
     cv->canvas.stretch_blit = canvas_gl_stretch_blit;
     cv->canvas.stretch_blend = canvas_gl_stretch_blend;
     cv->canvas.blend_glyph = canvas_gl_blend_glyph;
-    cv->canvas.draw_box = canvas_gl_draw_box;
     cv->canvas.draw_string = canvas_gl_draw_string;
 
     return (sgui_canvas*)cv;

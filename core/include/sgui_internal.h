@@ -318,17 +318,6 @@ struct sgui_canvas
                            unsigned char* color );
 
     /**
-     * \brief Draw a box onto a canvas
-     *
-     * \param canvas  A pointer to the canvas.
-     * \param r       The rect to draw (offset applied and clipped)
-     * \param color   The color to draw the rect in
-     * \param format  The format of the color
-     */
-    void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
-                       unsigned char* color, int format );
-
-    /**
      * \brief Draw a string of text onto a canvas
      *
      * \param canvas A pointer to the canvas.

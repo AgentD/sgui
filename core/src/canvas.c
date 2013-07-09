@@ -732,36 +732,6 @@ void sgui_canvas_stretch_blend( sgui_canvas* canvas, sgui_pixmap* pixmap,
     }
 }
 
-void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
-                            unsigned int length, int horizontal,
-                            unsigned char* color, int format )
-{
-    sgui_rect r;
-
-    /* santiy check */
-    if( !canvas || !canvas->began || !color )
-        return;
-
-    if( format==SGUI_RGBA8 && color[3]==0xFF )
-        format = SGUI_RGB8;
-
-    if( horizontal )
-        sgui_rect_set_size( &r, x, y, length, 1 );
-    else
-        sgui_rect_set_size( &r, x, y, 1, length );
-
-    /* offset and clip the given rectangle */
-    r.left   += canvas->ox;
-    r.right  += canvas->ox;
-    r.top    += canvas->oy;
-    r.bottom += canvas->oy;
-
-    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
-        return;
-
-    canvas->draw_box( canvas, &r, color, format );
-}
-
 int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                  int bold, int italic,
                                  unsigned char* color,

@@ -135,29 +135,6 @@ static void canvas_xlib_blend_glyph( sgui_canvas* canvas, int x, int y,
                       SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
 }
 
-static void canvas_xlib_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                                  unsigned char* color, int format )
-{
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
-    XRenderColor c;
-
-    if( format==SGUI_RGB8 || format==SGUI_RGBA8 )
-    {
-        c.red   = color[0]<<8;
-        c.green = color[1]<<8;
-        c.blue  = color[2]<<8;
-        c.alpha = format==SGUI_RGBA8 ? (color[3]<<8) : 0xFFFF;
-    }
-    else
-    {
-        c.red = c.green = c.blue = color[0]<<8;
-        c.alpha = 0xFFFF;
-    }
-
-    XRenderFillRectangle( dpy, PictOpOver, cv->pic, &c, r->left, r->top,
-                          SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
-}
-
 static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
                                     sgui_font* font, unsigned char* color,
                                     const char* text, unsigned int length )
@@ -286,7 +263,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     cv->canvas.blend         = canvas_xlib_blend;
     cv->canvas.blend_glyph   = canvas_xlib_blend_glyph;
     cv->canvas.clear         = canvas_xlib_clear;
-    cv->canvas.draw_box      = canvas_xlib_draw_box;
     cv->canvas.draw_string   = canvas_xlib_draw_string;
     cv->canvas.create_pixmap = canvas_xlib_create_pixmap;
     cv->canvas.stretch_blend = NULL;

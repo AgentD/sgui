@@ -415,12 +415,6 @@ static void canvas_gl_blend( sgui_canvas* canvas, int x, int y,
     (void)canvas; (void)x; (void)y; (void)pixmap; (void)srcrect;
 }
 
-static void canvas_gl_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                                unsigned char* color, int format )
-{
-    (void)canvas; (void)r; (void)color; (void)format;
-}
-
 static void canvas_gl_blend_glyph( sgui_canvas* canvas, int x, int y,
                                    sgui_pixmap* pixmap, sgui_rect* r,
                                    unsigned char* color )
@@ -457,7 +451,6 @@ sgui_canvas* gl_canvas_create_core( unsigned int width, unsigned int height )
     cv->canvas.blit = canvas_gl_blit;
     cv->canvas.blend = canvas_gl_blend;
     cv->canvas.blend_glyph = canvas_gl_blend_glyph;
-    cv->canvas.draw_box = canvas_gl_draw_box;
     cv->canvas.draw_string = canvas_gl_draw_string;
 
     return (sgui_canvas*)cv;

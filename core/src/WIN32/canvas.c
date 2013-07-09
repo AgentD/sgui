@@ -126,55 +126,6 @@ static void canvas_gdi_blend( sgui_canvas* canvas, int x, int y,
                 srcrect->left, srcrect->top, w, h, ftn );
 }
 
-static void canvas_gdi_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                                 unsigned char* color, int format )
-{
-    sgui_canvas_gdi* cv = (sgui_canvas_gdi*)canvas;
-    unsigned char A, iA;
-    unsigned char *dst, *row;
-    int i, j;
-
-    dst = (unsigned char*)cv->data + (r->top*canvas->width + r->left)*4;
-
-    if( format==SGUI_RGBA8 )
-    {
-        A = color[3];
-        iA = 0xFF - A;
-
-        for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
-        {
-            for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
-            {
-                row[0] = (row[0] * iA + color[2] * A)>>8;
-                row[1] = (row[1] * iA + color[1] * A)>>8;
-                row[2] = (row[2] * iA + color[0] * A)>>8;
-            }
-        }
-    }
-    else if( format==SGUI_RGB8 )
-    {
-        for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
-        {
-            for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
-            {
-                row[0] = color[2];
-                row[1] = color[1];
-                row[2] = color[0];
-            }
-        }
-    }
-    else
-    {
-        for( j=r->top; j<=r->bottom; ++j, dst+=canvas->width*4 )
-        {
-            for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
-            {
-                row[0] = row[1] = row[2] = *color;
-            }
-        }
-    }
-}
-
 static void canvas_gdi_blend_stencil( sgui_canvas* canvas,
                                       unsigned char* buffer,
                                       int x, int y,
@@ -307,7 +258,6 @@ sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height )
     cv->canvas.blend = canvas_gdi_blend;
     cv->canvas.stretch_blit = NULL;
     cv->canvas.stretch_blend = NULL;
-    cv->canvas.draw_box = canvas_gdi_draw_box;
     cv->canvas.draw_string = canvas_gdi_draw_string;
     cv->canvas.create_pixmap = canvas_gdi_create_pixmap;
     cv->canvas.skin_pixmap = get_skin_pixmap( );
