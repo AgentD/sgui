@@ -27,7 +27,15 @@
 
 
 
-#include "sgui_dll.h"
+#ifdef SGUI_WINDOWS
+    #ifdef SGUI_BUILDING_DLL
+        #define SGUI_DLL __declspec(dllexport)
+    #else
+        #define SGUI_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SGUI_DLL
+#endif
 
 
 
