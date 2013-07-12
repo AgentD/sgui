@@ -143,6 +143,9 @@ int sgui_init( void )
     /* initialise keycode translation LUT */
     init_keycodes( );
 
+    /* initialise default GUI skin */
+    sgui_skin_set( NULL );
+
     return 1;
 }
 

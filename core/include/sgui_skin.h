@@ -28,6 +28,7 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_rect.h"
 
 
 
@@ -120,6 +121,24 @@
 #define SGUI_TAB_BOTTOM                   0x56
 #define SGUI_TAB_GAP_LEFT                 0x57
 #define SGUI_TAB_GAP_RIGHT                0x58
+#define SGUI_SKIN_ELEMENTS                0x59
+
+
+
+struct sgui_skin
+{
+    sgui_rect elements[ SGUI_SKIN_ELEMENTS ];
+
+    unsigned int pixmap_width;
+    unsigned int pixmap_height;
+
+    unsigned int font_height;
+
+    unsigned char window_color[4];
+    unsigned char font_color[4];
+
+    void(* load_to_pixmap )( sgui_pixmap* pixmap );
+};
 
 
 
@@ -127,6 +146,10 @@
 extern "C"
 {
 #endif
+
+SGUI_DLL void sgui_skin_init_default( sgui_skin* skin );
+
+SGUI_DLL void sgui_skin_set( sgui_skin* skin );
 
 /**
  * \brief Get the minum size a pixmap needs to hold the current skin elements
@@ -146,7 +169,7 @@ SGUI_DLL void sgui_skin_to_pixmap( sgui_pixmap* pixmap );
  * \param element The element in question (e.g SGUI_CHECKBOX_SELECTED)
  * \param r       Returns the region of the element
  */
-SGUI_DLL void sgui_skin_get_element( int element, sgui_rect* r );
+SGUI_DLL void sgui_skin_get_element( unsigned int element, sgui_rect* r );
 
 /**
  * \brief Override the default font for the skin

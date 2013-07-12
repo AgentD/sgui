@@ -124,6 +124,9 @@ int sgui_init( void )
         return 0;
     }
 
+    /* initialise default GUI skin */
+    sgui_skin_set( NULL );
+
     return 1;
 }
 
