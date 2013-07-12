@@ -129,15 +129,21 @@ struct sgui_skin
 {
     sgui_rect elements[ SGUI_SKIN_ELEMENTS ];
 
-    unsigned int pixmap_width;
-    unsigned int pixmap_height;
+    unsigned int pixmap_width;  /**< \brief The width of the skin pixmap */
+    unsigned int pixmap_height; /**< \brief The height of the skin pixmap */
 
-    unsigned int font_height;
+    unsigned int font_height;   /**< \brief The pixel height of the font */
 
-    unsigned char window_color[4];
-    unsigned char font_color[4];
+    unsigned char window_color[4];  /**< \brief The window background color */
+    unsigned char font_color[4];    /**< \brief The font color */
 
-    void(* load_to_pixmap )( sgui_pixmap* pixmap );
+    /**
+     * \brief Load the required GUI elements into a pixmap
+     *
+     * \param skin   Pointer to the skin itself
+     * \param pixmap Pointer to a pixmap
+     */
+    void(* load_to_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
 };
 
 
@@ -147,8 +153,27 @@ extern "C"
 {
 #endif
 
+/**
+ * \brief Initialise a skin structue with the default skin
+ *
+ * \param skin A pointer to a skin structure
+ */
 SGUI_DLL void sgui_skin_init_default( sgui_skin* skin );
 
+/**
+ * \brief Set the skin to use for rendering UI elements
+ *
+ * The skin can only be set globally and should only be changed while no
+ * window or widget exists.
+ * 
+ * GUI elements are only rerendered when required, changes would progress
+ * slowly and look disturbing. Even if the skin is changed while no widgets
+ * are visible, the widgets might look odd as they can use skin elements
+ * of the previous skin for calculating their dimensions during
+ * initialisation.
+ *
+ * \param skin A pointer to a skin structure to copy over the current skin
+ */
 SGUI_DLL void sgui_skin_set( sgui_skin* skin );
 
 /**

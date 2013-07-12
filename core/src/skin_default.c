@@ -33,13 +33,11 @@
 
 
 
-static void default_skin_to_pixmap( sgui_pixmap* pixmap )
+static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
 {
     unsigned char buffer[ 20*20*4 ];
     unsigned int x, y;
-
-    if( !pixmap )
-        return;
+    (void)skin;
 
     /* draw unchecked checkbox */
     for( y=0; y<12; ++y )

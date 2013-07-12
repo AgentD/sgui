@@ -70,7 +70,10 @@ void sgui_skin_get_pixmap_size( unsigned int* width, unsigned int* height )
 
 void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
 {
-    skin.load_to_pixmap( pixmap );
+    if( skin.load_to_pixmap && pixmap )
+    {
+        skin.load_to_pixmap( &skin, pixmap );
+    }
 }
 
 void sgui_skin_get_element( unsigned int element, sgui_rect* r )
