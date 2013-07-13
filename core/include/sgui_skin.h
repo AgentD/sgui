@@ -125,40 +125,10 @@
 
 
 
-struct sgui_skin
-{
-    sgui_rect elements[ SGUI_SKIN_ELEMENTS ];
-
-    unsigned int pixmap_width;  /**< \brief The width of the skin pixmap */
-    unsigned int pixmap_height; /**< \brief The height of the skin pixmap */
-
-    unsigned int font_height;   /**< \brief The pixel height of the font */
-
-    unsigned char window_color[4];  /**< \brief The window background color */
-    unsigned char font_color[4];    /**< \brief The font color */
-
-    /**
-     * \brief Load the required GUI elements into a pixmap
-     *
-     * \param skin   Pointer to the skin itself
-     * \param pixmap Pointer to a pixmap
-     */
-    void(* load_to_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
-};
-
-
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-/**
- * \brief Initialise a skin structue with the default skin
- *
- * \param skin A pointer to a skin structure
- */
-SGUI_DLL void sgui_skin_init_default( sgui_skin* skin );
 
 /**
  * \brief Set the skin to use for rendering UI elements

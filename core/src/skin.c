@@ -23,26 +23,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
+#include "sgui_internal.h"
 #include "sgui_skin.h"
-
-#include "sgui_progress_bar.h"
-#include "sgui_window.h"
-#include "sgui_canvas.h"
-#include "sgui_pixmap.h"
 #include "sgui_font.h"
-#include "sgui_rect.h"
 #include "sgui_utf8.h"
 
 #include <stddef.h>
-#include <stdlib.h>
 #include <string.h>
-
-
-
-static sgui_font* font_norm = NULL;
-static sgui_font* font_bold = NULL;
-static sgui_font* font_ital = NULL;
-static sgui_font* font_boit = NULL;
 
 
 
@@ -58,7 +45,7 @@ void sgui_skin_set( sgui_skin* ui_skin )
     }
     else
     {
-        sgui_skin_init_default( &skin );
+        sgui_interal_skin_init_default( &skin );
     }
 }
 
@@ -87,10 +74,10 @@ void sgui_skin_get_element( unsigned int element, sgui_rect* r )
 void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                  sgui_font* italic, sgui_font* bold_italic )
 {
-    font_norm = normal;
-    font_bold = bold;
-    font_ital = italic;
-    font_boit = bold_italic;
+    skin.font_norm = normal;
+    skin.font_bold = bold;
+    skin.font_ital = italic;
+    skin.font_boit = bold_italic;
 }
 
 void sgui_skin_get_window_background_color( unsigned char* color )
@@ -122,11 +109,11 @@ unsigned int sgui_skin_get_default_font_height( void )
 
 sgui_font* sgui_skin_get_default_font( int bold, int italic )
 {
-    if( bold && italic ) return font_boit;
-    if( bold           ) return font_bold;
-    if( italic         ) return font_ital;
+    if( bold && italic ) return skin.font_boit;
+    if( bold           ) return skin.font_bold;
+    if( italic         ) return skin.font_ital;
 
-    return font_norm;
+    return skin.font_norm;
 }
 
 unsigned int sgui_skin_default_font_extents( const char* text,

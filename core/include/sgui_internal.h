@@ -31,6 +31,7 @@
 #include "sgui_rect.h"
 #include "sgui_window.h"
 #include "sgui_canvas.h"
+#include "sgui_skin.h"
 
 
 
@@ -76,6 +77,32 @@
 #define WIDGET_CANVAS_CHANGED       0x20
 
 
+
+struct sgui_skin
+{
+    sgui_rect elements[ SGUI_SKIN_ELEMENTS ];
+
+    unsigned int pixmap_width;  /**< \brief The width of the skin pixmap */
+    unsigned int pixmap_height; /**< \brief The height of the skin pixmap */
+
+    unsigned int font_height;   /**< \brief The pixel height of the font */
+
+    unsigned char window_color[4];  /**< \brief The window background color */
+    unsigned char font_color[4];    /**< \brief The font color */
+
+    sgui_font* font_norm;   /**< \brief Font face for normal text */
+    sgui_font* font_bold;   /**< \brief Font face for bold text */
+    sgui_font* font_ital;   /**< \brief Font face for italic text */
+    sgui_font* font_boit;   /**< \brief Font face for bold and italic text */
+
+    /**
+     * \brief Load the required GUI elements into a pixmap
+     *
+     * \param skin   Pointer to the skin itself
+     * \param pixmap Pointer to a pixmap
+     */
+    void(* load_to_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
+};
 
 struct sgui_pixmap
 {
@@ -510,6 +537,13 @@ SGUI_DLL void sgui_internal_window_deinit( sgui_window* window );
  */
 SGUI_DLL void sgui_internal_window_fire_event( sgui_window* wnd, int event,
                                                sgui_event* e );
+
+/**
+ * \brief Initialise a skin structue with the default skin
+ *
+ * \param skin A pointer to a skin structure
+ */
+SGUI_DLL void sgui_interal_skin_init_default( sgui_skin* skin );
 
 #ifdef __cplusplus
 }

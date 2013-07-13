@@ -67,7 +67,7 @@ void gl_window_callback( sgui_window* wnd, int type, sgui_event* event )
 
 int main( int argc, char** argv )
 {
-    int x, y, nogl=0;
+    int x, y, nogl=0, fh;
     sgui_font* font;
     sgui_font* font_bold;
     sgui_font* font_ital;
@@ -122,10 +122,12 @@ int main( int argc, char** argv )
             image[ (y*128 + x)*4 + 3 ] = 0xFF * (x/128.0f);
         }
 
-    font     =sgui_font_load("../font/SourceSansPro-Regular.ttf",16);
-    font_bold=sgui_font_load("../font/SourceSansPro-Semibold.ttf",16);
-    font_ital=sgui_font_load("../font/SourceSansPro-It.ttf",16);
-    font_boit=sgui_font_load("../font/SourceSansPro-SemiboldIt.ttf",16);
+    fh = sgui_skin_get_default_font_height( );
+
+    font     =sgui_font_load( "../font/SourceSansPro-Regular.ttf", fh );
+    font_bold=sgui_font_load( "../font/SourceSansPro-Semibold.ttf", fh );
+    font_ital=sgui_font_load( "../font/SourceSansPro-It.ttf", fh );
+    font_boit=sgui_font_load( "../font/SourceSansPro-SemiboldIt.ttf", fh );
 
     sgui_skin_set_default_font( font, font_bold, font_ital, font_boit );
 

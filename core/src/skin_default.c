@@ -25,6 +25,9 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_skin.h"
 #include "sgui_pixmap.h"
+#include "sgui_internal.h"
+
+#include <stddef.h>
 
 
 
@@ -752,7 +755,7 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
 
 /****************************************************************************/
 
-void sgui_skin_init_default( sgui_skin* skin )
+void sgui_interal_skin_init_default( sgui_skin* skin )
 {
     SET_ELEMENT( skin, SGUI_PBAR_H_STIPPLED_START,        0, 12,  5, 30 );
     SET_ELEMENT( skin, SGUI_PBAR_H_STIPPLED_EMPTY,        1, 12, 12, 30 );
@@ -850,6 +853,11 @@ void sgui_skin_init_default( sgui_skin* skin )
     skin->window_color[1] = 0x64;
     skin->window_color[2] = 0x64;
     skin->window_color[3] = 0x80;
+
+    skin->font_norm = NULL;
+    skin->font_bold = NULL;
+    skin->font_ital = NULL;
+    skin->font_boit = NULL;
 
     skin->font_color[0] = 0xFF;
     skin->font_color[1] = 0xFF;
