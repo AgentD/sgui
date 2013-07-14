@@ -73,6 +73,7 @@ int main( int argc, char** argv )
     sgui_font* font_ital;
     sgui_font* font_boit;
     sgui_window_description desc = { NULL, 100, 100, 1, 0, 1, 32, 24, 8, 4 };
+    char* skin = NULL;
 
     for( x=1; x<argc; ++x )
     {
@@ -88,9 +89,17 @@ int main( int argc, char** argv )
             nogl = 1;
             desc.backend = SGUI_OPENGL_COMPAT;
         }
+        else if( !strcmp( argv[x], "--skin" ) && ((x+1)<argc) )
+        {
+            skin = argv[x+1];
+            ++x;
+        }
     }
 
     sgui_init( );
+
+    if( skin )
+        sgui_skin_load( skin, NULL );
 
     a = sgui_window_create_desc( &desc );
 

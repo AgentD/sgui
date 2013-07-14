@@ -131,6 +131,40 @@ extern "C"
 #endif
 
 /**
+ * \brief Load the skin to use for rendering UI elements from a file
+ *
+ * The skin can only be set globally and should only be changed while no
+ * window or widget exists.
+ * 
+ * GUI elements are only rerendered when required, changes would progress
+ * slowly and look disturbing. Even if the skin is changed while no widgets
+ * are visible, the widgets might look odd as they can use skin elements
+ * of the previous skin for calculating their dimensions during
+ * initialisation.
+ *
+ * This function reads a configuration file containing skin element positions
+ * on a pixmap in the fasssion "elementname = (x,y,w,h)". For element names,
+ * see the sample files provided with sgui (or the source of this function).
+ * The skin pixmap can be loaded from a TGA image file, plain RGB or RBGA
+ * data, no RLE compression, origin in the upper left (to keep the loader
+ * simple).
+ *
+ * \param configfile A path to a configuration file to load the skin
+ *                   information from
+ * \param fs         A pointer to a filesystem abstraction layer to use for
+ *                   accessing files. Use NULL for standard I/O
+ */
+SGUI_DLL void sgui_skin_load( const char* configfile, sgui_filesystem* fs );
+
+/**
+ * \brief Reset the skinning system internals and free memory
+ *
+ * This function is automatically called by sgui_deinit and does things
+ * like freeing memory used by a skin loaded from a file.
+ */
+SGUI_DLL void sgui_skin_unload( void );
+
+/**
  * \brief Set the skin to use for rendering UI elements
  *
  * The skin can only be set globally and should only be changed while no
@@ -141,6 +175,8 @@ extern "C"
  * are visible, the widgets might look odd as they can use skin elements
  * of the previous skin for calculating their dimensions during
  * initialisation.
+ *
+ * This function is automatically called by sgui_init with a NULL argument.
  *
  * \param skin A pointer to a skin structure to copy over the current skin
  */
@@ -224,8 +260,6 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  * \param height      Returns the height of the rendererd text
  */
 SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
-
-
 
 #ifdef __cplusplus
 }

@@ -136,6 +136,8 @@ void sgui_deinit( void )
     if( skin_pixmap )
         sgui_pixmap_destroy( skin_pixmap );
 
+    sgui_skin_unload( );
+
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 

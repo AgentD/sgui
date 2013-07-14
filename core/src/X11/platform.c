@@ -151,6 +151,8 @@ int sgui_init( void )
 
 void sgui_deinit( void )
 {
+    sgui_skin_unload( );
+
     if( skin_pixmap )
         sgui_pixmap_destroy( skin_pixmap );
 
