@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#define SGUI_BUILDING_DLL
 #include "sgui_filesystem.h"
 
 #include <stdio.h>
@@ -41,11 +42,6 @@ static unsigned int fs_read( void* file, void* ptr,
     return fread( ptr, size, nmemb, file );
 }
 
-static int fs_eof( void* file )
-{
-    return feof( file );
-}
-
 static void fs_close( void* file )
 {
     fclose( file );
@@ -57,7 +53,7 @@ static sgui_filesystem stdio =
 {
     fs_open_read,
     fs_read,
-    fs_eof,
+    (int(*)(void*))feof,
     fs_close
 };
 

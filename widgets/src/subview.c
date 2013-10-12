@@ -87,7 +87,12 @@ static void subview_on_subwindow_event( sgui_window* wnd, int type,
     case SGUI_SIZE_CHANGE_EVENT:
     case SGUI_EXPOSE_EVENT:
         if( view->draw_fun )
+        {
+            sgui_window_make_current( view->subwnd );
             view->draw_fun( (sgui_widget*)view );
+            sgui_window_swap_buffers( view->subwnd );
+            sgui_window_make_current( NULL );
+        }
     default:
         if( view->window_fun )
             view->window_fun( (sgui_widget*)view, type, event );

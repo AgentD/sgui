@@ -26,8 +26,8 @@ endif( )
 
 
 set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/font_cache.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/filesystem.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/font_cache.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/rect.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/skin.c
@@ -35,11 +35,6 @@ set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/widget.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/window.c
-
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenGL/canvas_gl.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenGL/canvas_gl_compat.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenGL/canvas_gl_core.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenGL/pixmap_gl.c
 
               ${CORE_PLATFORM_SRC}
      PARENT_SCOPE )

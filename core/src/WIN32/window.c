@@ -25,7 +25,6 @@
 #define SGUI_BUILDING_DLL
 #include "internal.h"
 #include "sgui_event.h"
-#include "sgui_opengl.h"
 
 
 
@@ -249,11 +248,9 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         sgui_internal_window_fire_event( base, SGUI_SIZE_CHANGE_EVENT, &e );
 
         /* resize canvas and redraw everything */
-        sgui_canvas_resize( base->back_buffer, base->w, base->h );
-
-        if( wnd->base.backend==SGUI_NATIVE &&
-            !(base->override_canvas & SGUI_OVERRIDE_DRAW) )
+        if( base->back_buffer )
         {
+            sgui_canvas_resize( base->back_buffer, base->w, base->h );
             sgui_canvas_draw_widgets( base->back_buffer, 1 );
         }
         break;
@@ -262,72 +259,43 @@ int handle_window_events(sgui_window_w32* wnd, UINT msg, WPARAM wp, LPARAM lp)
         base->y = HIWORD( lp );
         break;
     case WM_PAINT:
-        if( !(base->override_canvas & SGUI_OVERRIDE_DRAW) )
+        if( base->back_buffer )
+        {
+            num = sgui_canvas_num_dirty_rects( base->back_buffer );
+
+            if( num )
+                sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
+
+            sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
+            hDC = BeginPaint( wnd->hWnd, &ps );
+            canvas_gdi_display(hDC,base->back_buffer,0,0,base->w,base->h);
+            EndPaint( wnd->hWnd, &ps );
+        }
+
+        if( wnd->base.backend==SGUI_OPENGL_CORE ||
+            wnd->base.backend==SGUI_OPENGL_COMPAT )
         {
             sgui_rect_set_size( &e.expose_event, 0, 0, base->w, base->h );
-
-            if( wnd->base.backend==SGUI_NATIVE )
-            {
-                num = sgui_canvas_num_dirty_rects( base->back_buffer );
-
-                if( num )
-                    sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
-
-                sgui_internal_window_fire_event(base, SGUI_EXPOSE_EVENT, &e);
-                hDC = BeginPaint( wnd->hWnd, &ps );
-                canvas_gdi_display(hDC,base->back_buffer,0,0,base->w,base->h);
-                EndPaint( wnd->hWnd, &ps );
-            }
-            else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-                     wnd->base.backend==SGUI_OPENGL_COMPAT )
-            {
-                sgui_window_make_current( (sgui_window*)wnd );
-
-                if( !(base->override_canvas & SGUI_OVERRIDE_CLEAR) )
-                {
-                    sgui_canvas_begin( wnd->base.back_buffer, NULL );
-                    sgui_canvas_clear( wnd->base.back_buffer, NULL );
-                    sgui_canvas_end( wnd->base.back_buffer );
-                }
-
-                sgui_internal_window_fire_event(base, SGUI_EXPOSE_EVENT, &e);
-
-                sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
-                sgui_window_swap_buffers( (sgui_window*)wnd );
-                sgui_window_make_current( NULL );
-            }
+            sgui_internal_window_fire_event( base, SGUI_EXPOSE_EVENT, &e );
         }
     default:
         return -1;
     }
 
     /* invalidate all dirty rects of the canvas */
-    if( !(base->override_canvas & SGUI_OVERRIDE_DRAW) )
+    if( base->back_buffer )
     {
         num = sgui_canvas_num_dirty_rects( base->back_buffer );
 
-        if( wnd->base.backend==SGUI_NATIVE )
+        for( i=0; i<num; ++i )
         {
-            for( i=0; i<num; ++i )
-            {
-                sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &sr, i );
+            sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &sr, i );
 
-                SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
-                InvalidateRect( wnd->hWnd, &r, TRUE );
-            }
+            SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
+            InvalidateRect( wnd->hWnd, &r, TRUE );
+        }
 
-            sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
-        }
-        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-                 wnd->base.backend==SGUI_OPENGL_COMPAT )
-        {
-            if( num )
-            {
-                SetRect( &r, 0, 0, wnd->base.w-1, wnd->base.h-1 );
-                InvalidateRect( wnd->hWnd, &r, TRUE );
-                sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
-            }
-        }
+        sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
     }
 
     return 0;
@@ -403,21 +371,18 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
             return NULL;
         }
 
-        wnd->base.back_buffer = sgui_opengl_canvas_create( desc->width,
-                                          desc->height,
-                                          desc->backend==SGUI_OPENGL_COMPAT );
+        wnd->base.back_buffer = NULL;
         wnd->base.swap_buffers = gl_swap_buffers;
     }
     else
     {
-        wnd->base.back_buffer = canvas_gdi_create( desc->width,
-                                                   desc->height );
-    }
+        wnd->base.back_buffer = canvas_gdi_create(desc->width, desc->height);
 
-    if( !wnd->base.back_buffer )
-    {
-        w32_window_destroy( (sgui_window*)wnd );
-        return NULL;
+        if( !wnd->base.back_buffer )
+        {
+            w32_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
     }
 
     sgui_internal_window_post_init( (sgui_window*)wnd,

@@ -375,8 +375,6 @@ struct sgui_window
 
     int backend;                /**< \brief Window backend used */
 
-    int override_canvas;        /**< \brief Override regular canvas usage */
-
     void* userptr;
 
 

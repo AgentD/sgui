@@ -51,8 +51,6 @@
 #include "sgui_subview.h"
 #include "sgui_tab.h"
 
-#include "sgui_opengl.h"
-
 
 
 #ifdef __cplusplus

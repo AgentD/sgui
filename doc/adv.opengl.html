@@ -19,16 +19,16 @@ The SGUI library has native support for OpenGL&reg; rendering, both using the
 older 1.x and 2.x versions, as well as using the 3.x and above core profile
 versions.<br>
 <br>
-This means that not only can SGUI create a window with an OpenGL&reg; context,
-it can treat it just like a normal window and add widgets to it, without the
-any additional care taking after the backend change (try to run the demo
-program with "--glcompat" or "--glcore"). The window can either be entirely
-managed by SGUI, or the program can take control over event processing and
-rendering, to allow real time rendering in the same window with full controll
-over how and when the GUI is to be rendered.
+SGUI can create a window with an OpenGL&reg; context, either entirely managed
+with a redraw callback, or the program can take control over event processing
+and rendering, to allow for real time rendering.
 <br><br>
-Also, SGUI offers an OpenGL&reg; widget, allowing easy creation of dedicated
-areas within a window to use for OpenGL&reg; rendering.
+SGUI also offers an OpenGL&reg; widget, allowing easy creation of dedicated
+areas within a window to use for OpenGL&reg; rendering with normal widgets
+grouped around it.
+<br><br>
+OpenGL&reg; windows won't have a canvas object and as such cannot render
+widgets.
 
 <h4>Creating a managed OpenGL&reg; window</h4>
 
@@ -60,23 +60,21 @@ to us:
 
 When creating the window with the description structure pointer, an OpenGL&reg;
 context is created automatically. The window behaves like a regular SGUI
-window. Widgets can be attached to it and it handles events. The are only a 
-few differences:
+window. The are a few differences however:
 <ul>
-<li>The widgets are drawn using the OpenGL&reg; API</li>
-<li>When something has to be redrawn, the entire window is redrawn</li>
-<li>An <b>SGUI_EXPOSE_EVENT</b> event is generated after clearing and
-    <i>right before</i> the widgets are drawn</li>
+<li>An OpenGL&reg; window cannot have any widgets attached to it</li>
+<li>When the window system requests a redraw, an <b>SGUI_EXPOSE_EVENT</b>
+    event is generated</li>
+<li>After catching the expose event in a window event callback, the window
+    has to be made current in order to draw to it</li>
 </ul>
 
 In order to draw to the window, just <a href="using.events.html">hook a window
 event callback</a> to the window that uses regular OpenGL&reg; function to
 draw the window background when an <b>SGUI_EXPOSE_EVENT</b> is generated.
-You don't need to worry about making the context current, clearing the
-color buffer to the background color, swapping buffers once drawing is done,
-or even adjusting the viewport to the window size. Everything is done
-automatically. You can even have multiple OpenGL&reg; windows and it will just
-work.<br>
+<br>
+Making the rendering context current just requires a call to
+<a href="../doxydoc/html/sgui__window_8h.html#a8760950071f69d126579127c1af6fbe7">sgui_window_make_current</a>.<br>
 <br>
 The window can be used just like every other normal SGUI window, however it
 is not suited for interactive OpenGL&reg; rendering demands (i.e. pumping out
@@ -90,23 +88,10 @@ We will address that issue in the next section.
 The code for a small example program can be found in the file <b>extras/gl1.c</b>.
 For the sake of simplicity, compatibillity profile has been used.<br>
 <br>
-To render at interactive frame rates, the behaviour of the SGUI main loop has
-to be altered and, since normal widget rendering would come in the way, you
-also need to override the widget rendering of the window itself. But with
-SGUI, this is way easier than it sounds.<br>
-<br>
 The window is created in the very same way as in the section above. The major
-difference here is, that rendering is done inside the main loop instead of
-an event function. After creating the window and before entering the main
-loop, automatic widget drawing has to be disabled and the rendering context
-has to be made current.<br>
-<br>
-Widget rendering can be disabled by a call to
-<a href="../doxydoc/html/sgui__window_8h.html#a958c9c7d2c6eff74eb9138571cfdaab9">sgui_window_override_drawing</a>,
-passing <b>SGUI_OVERRIDE_ALL</b> as a second parameter, to disable widget
-rendering, background clearing and event processing for the widgets.
-Making the rendering context current just requires a call to
-<a href="../doxydoc/html/sgui__window_8h.html#a8760950071f69d126579127c1af6fbe7">sgui_window_make_current</a>.<br>
+difference here is, that rendering is done inside a manual main loop instead
+of an event function. The rendering context has to be made current before
+entering the main loop<br>
 <br>
 The major difference is the main loop:
 
@@ -131,35 +116,21 @@ when rendering is done, the
 <a href="../doxydoc/html/sgui__window_8h.html#aee86b2e52c44ac1b68ec281ac555de3c">sgui_window_swap_buffers</a>
 function is called to swap the front and the back buffer (in case of double
 buffering). This way, rendering at interactive frame rates can be achived.<br>
-<br>
-In some applications, it might be of interesst to occasionally enable normal
-user interface rendering (widgets and what not) ontop of the interactive
-OpenGL&reg; rendering. This can be achieved easily using the handy 
-<a href="../doxydoc/html/sgui__window_8h.html#a958c9c7d2c6eff74eb9138571cfdaab9">sgui_window_override_drawing</a>
-function. To renable UI drawing, pass <b>SGUI_OVERRIDE_DRAW</b> as second
-argument. This re-enables internal event processing for widgets. All that's
-left to do, is get the canvas object from the window (more on that in the
-<a href="hacking.html">hacking chapter</a>), using the
-<a href="../doxydoc/html/sgui__window_8h.html#a6bc04db9deec270669e52d798f12f92d">sgui_window_get_canvas</a>
-function and then, force drawing of all widgets using the
-<a href="../doxydoc/html/sgui__canvas_8h.html#a605aff9a40116164979088f1a3259a1d">sgui_canvas_draw_widgets</a>
-function after drawing to the window.
 
 <h4>Creating an OpenGL&reg; subwindow</h4>
 
 Normally, when an application needs OpenGL&reg; rendering to display
 something, but does not neccessarily need interactive rendering, something
-like a small display area inside a normal window is desired. Of course, SGUI
-supports just that too.<br>
+like a small display area inside a normal window is desired.<br>
 <br>
 If you read the doxygen documentation on the <a href="../doxydoc/html/structsgui__window__description.html">sgui_window_description</a>
 structure (or read the header), you may have noticed, that the structure has a
-<b>parent</b> attribute. Using this attribute, a window (may be with an
+<b>parent</b> attribute. Using this attribute, a window (in this case with an
 OpenGL&reg; rendering context) can be created that resides undecorated,
 untouched by the window manager inside a regular window.<br>
 <br>
 To make your life easier, SGUI provides you with a nice widget that
-encapsulates just that in a simple interface and behaves like a normal widget.
+encapsulates that in a simple interface and behaves like a normal widget.
 <br>
 <br>
 The widget in question is called
@@ -168,14 +139,12 @@ created like a normal widget, attached to a window, or even as a child widget
 to another widget, and so on.<br>
 <br>
 To draw to the widget, a callback can be registered that is called as soon as
-the underlying window requires redrawing. Again, making the context current,
-setting the viewport, clearing the background and swapping the buffers is
-already taken care off.<br>
+the underlying window requires redrawing. Making the context current and
+swapping the buffers is taken care off by the widget.<br>
 <br>
 In addition, a callback can be registered that receives events from the
 underlying window (mouse movements, keyboard actions, etc...) and the window
-itself can be obtained to, for instance, attach widgets to the subwindow or
-do other fancy stuff.
+itself can be obtained to do more fancy stuff.
 
 <hr>
 <a href="using.children.html">Previous</a>

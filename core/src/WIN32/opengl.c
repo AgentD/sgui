@@ -23,7 +23,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "sgui_opengl.h"
 #include "sgui_event.h"
 #include "internal.h"
 

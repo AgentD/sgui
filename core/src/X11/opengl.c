@@ -24,7 +24,6 @@
  */
 #define SGUI_BUILDING_DLL
 #include "internal.h"
-#include "sgui_opengl.h"
 #include "sgui_event.h"
 
 #ifndef SGUI_NO_OPENGL

@@ -30,6 +30,9 @@ void glview_on_draw( sgui_widget* glview )
     sgui_widget_get_size( glview, &w, &h );
 
 #ifndef SGUI_NO_OPENGL
+    glViewport( 0, 0, w, h );
+    glClear( GL_COLOR_BUFFER_BIT );
+
     glMatrixMode( GL_MODELVIEW );
     glRotatef( 5.0f, 0.0f, 1.0f, 0.0f );
 
@@ -42,25 +45,6 @@ void glview_on_draw( sgui_widget* glview )
     glVertex2f(  0.0f,  0.5f );
     glEnd( );
 #endif
-}
-
-void gl_window_callback( sgui_window* wnd, int type, sgui_event* event )
-{
-    (void)wnd; (void)event;
-
-    if( type==SGUI_EXPOSE_EVENT )
-    {
-#ifndef SGUI_NO_OPENGL
-        glBegin( GL_TRIANGLES );
-        glColor3f( 1.0f, 0.0f, 0.0f );
-        glVertex2f( -0.8f, -0.3f );
-        glColor3f( 0.0f, 1.0f, 0.0f );
-        glVertex2f(  0.2f, -0.3f );
-        glColor3f( 0.0f, 0.0f, 1.0f );
-        glVertex2f( -0.3f,  0.7f );
-        glEnd( );
-#endif
-    }
 }
 
 
@@ -79,16 +63,6 @@ int main( int argc, char** argv )
     {
         if( !strcmp( argv[x], "--nogl" ) )
             nogl = 1;
-        else if( !strcmp( argv[x], "--glcore" ) )
-        {
-            nogl = 1;
-            desc.backend = SGUI_OPENGL_CORE;
-        }
-        else if( !strcmp( argv[x], "--glcompat" ) )
-        {
-            nogl = 1;
-            desc.backend = SGUI_OPENGL_COMPAT;
-        }
         else if( !strcmp( argv[x], "--skin" ) && ((x+1)<argc) )
         {
             skin = argv[x+1];
@@ -117,9 +91,6 @@ int main( int argc, char** argv )
 
     sgui_window_set_size( a, 520, 420 );
     sgui_window_set_size( b, 200, 100 );
-
-    sgui_window_make_current( a );
-    sgui_window_on_event( a, gl_window_callback );
 
     /* */
     for( y=0; y<128; ++y )
@@ -215,30 +186,7 @@ int main( int argc, char** argv )
     sgui_tab_group_add_widget( tab, 2, p3 );
 
     /* OpenGL widget tab */
-    if( nogl )
-    {
-#ifndef SGUI_NO_OPENGL
-        if(desc.backend==SGUI_OPENGL_COMPAT || desc.backend==SGUI_OPENGL_CORE)
-        {
-            char buffer[ 128 ];
-
-            sgui_tab_group_add_tab( tab, "OpenGL" );
-
-            sgui_window_make_current( a );
-
-            sprintf( buffer, "OpenGL %s %s\n%s\n%s",
-                     glGetString( GL_VERSION ),
-                     desc.backend==SGUI_OPENGL_COMPAT ?
-                     "compatibillity" : "core",
-                     glGetString( GL_RENDERER ),
-                     glGetString( GL_VENDOR ) );
-
-            gl_sub0 = sgui_static_text_create( 20, 20, buffer );
-            sgui_tab_group_add_widget( tab, 3, gl_sub0 );
-        }
-#endif
-    }
-    else
+    if( !nogl )
     {
         unsigned char color[3] = { 0, 0, 0 };
 

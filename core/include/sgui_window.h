@@ -51,12 +51,6 @@ extern "C" {
 #define SGUI_OPENGL_CORE   1
 #define SGUI_OPENGL_COMPAT 2
 
-#define SGUI_OVERRIDE_DRAW   0x01
-#define SGUI_OVERRIDE_EVENTS 0x02
-#define SGUI_OVERRIDE_CLEAR  0x04
-#define SGUI_OVERRIDE_ALL    0x07
-
-
 
 
 typedef struct
@@ -379,23 +373,6 @@ SGUI_DLL void sgui_window_on_widget_event( sgui_window* wnd,
 
 /** \brief Get a pointer to the back buffer canvas object of the window */
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
-
-/**
- * \brief This function can be used to completely disable widget rendering
- *        for a window
- *
- * When maually managing a window with, e.g. an OpenGL rendering context, it
- * may be required to completely disable widget rendering and implement it
- * outside the window code in different ways.
- *
- * \param wnd      A pointer to the window.
- * \param override A set of flags indicating what to override.
- *                 SGUI_OVERRIDE_DRAW, disables drawing, SGUI_OVERRIDE_CLEAR
- *                 overrides clearing of the background and
- *                 SGUI_OVERRIDE_EVENTS disables event redirection.
- *                 SGUI_OVERRIDE_ALL can be used to disable everything.
- */
-SGUI_DLL void sgui_window_override_drawing( sgui_window* wnd, int override );
 
 /**
  * \brief This function returns the platform specific objects of a window

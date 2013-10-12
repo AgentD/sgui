@@ -25,7 +25,6 @@
 #define SGUI_BUILDING_DLL
 #include "internal.h"
 #include "sgui_event.h"
-#include "sgui_opengl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -243,15 +242,20 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         SEND_EVENT( wnd, SGUI_SIZE_CHANGE_EVENT, &se );
 
         /* redraw everything */
-        if( wnd->base.backend==SGUI_NATIVE &&
-            !(wnd->base.override_canvas & SGUI_OVERRIDE_DRAW) )
-        {
-            sgui_canvas_draw_widgets( wnd->base.back_buffer, 1 );
-        }
+        sgui_canvas_draw_widgets( wnd->base.back_buffer, 1 );
         break;
     case DestroyNotify:
         wnd->base.visible = 0;
         wnd->wnd = 0;
+        break;
+    case MapNotify:
+        if( wnd->base.backend==SGUI_OPENGL_CORE ||
+            wnd->base.backend==SGUI_OPENGL_COMPAT )
+        {
+            sgui_rect_set_size( &se.expose_event, 0, 0,
+                                wnd->base.w, wnd->base.h );
+            SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
+        }
         break;
     case UnmapNotify:
         if( e->xunmap.window==wnd->wnd && wnd->is_child )
@@ -270,44 +274,25 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         }
         break;
     case Expose:
-        if( !(wnd->base.override_canvas & SGUI_OVERRIDE_DRAW) )
+        if( wnd->base.back_buffer )
         {
-            if( wnd->base.backend==SGUI_NATIVE )
-            {
-                sgui_rect_set_size( &se.expose_event, e->xexpose.x,
-                                    e->xexpose.y, e->xexpose.width,
-                                    e->xexpose.height );
+            canvas_xlib_display( wnd->base.back_buffer,
+                                 e->xexpose.x, e->xexpose.y,
+                                 e->xexpose.width, e->xexpose.height );
+        }
 
-                SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
-
-                canvas_xlib_display( wnd->base.back_buffer,
-                                     e->xexpose.x, e->xexpose.y,
-                                     e->xexpose.width, e->xexpose.height );
-            }
-            else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-                     wnd->base.backend==SGUI_OPENGL_COMPAT )
-            {
-                sgui_window_make_current( (sgui_window*)wnd );
-
-                if( !(wnd->base.override_canvas & SGUI_OVERRIDE_CLEAR) )
-                {
-                    sgui_canvas_begin( wnd->base.back_buffer, NULL );
-                    sgui_canvas_clear( wnd->base.back_buffer, NULL );
-                    sgui_canvas_end( wnd->base.back_buffer );
-                }
-
-                SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
-
-                sgui_canvas_draw_widgets( wnd->base.back_buffer, 0 );
-                sgui_window_swap_buffers( (sgui_window*)wnd );
-                sgui_window_make_current( NULL );
-            }
+        if( wnd->base.backend==SGUI_OPENGL_CORE ||
+            wnd->base.backend==SGUI_OPENGL_COMPAT )
+        {
+            sgui_rect_set_size( &se.expose_event, 0, 0,
+                                wnd->base.w, wnd->base.h );
+            SEND_EVENT( wnd, SGUI_EXPOSE_EVENT, &se );
         }
         break;
     };
 
     /* generate expose events for dirty rectangles */
-    if( !(wnd->base.override_canvas & SGUI_OVERRIDE_DRAW) )
+    if( wnd->base.back_buffer )
     {
         num = sgui_canvas_num_dirty_rects( wnd->base.back_buffer );
 
@@ -318,37 +303,19 @@ void handle_window_events( sgui_window_xlib* wnd, XEvent* e )
         exp.window     = wnd->wnd;
         exp.count      = 0;
 
-        if( wnd->base.backend==SGUI_NATIVE )
+        for( i=0; i<num; ++i )
         {
-            for( i=0; i<num; ++i )
-            {
-                sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &r, i );
+            sgui_canvas_get_dirty_rect( wnd->base.back_buffer, &r, i );
 
-                exp.x      = r.left;
-                exp.y      = r.top;
-                exp.width  = r.right  - r.left + 1;
-                exp.height = r.bottom - r.top  + 1;
+            exp.x      = r.left;
+            exp.y      = r.top;
+            exp.width  = r.right  - r.left + 1;
+            exp.height = r.bottom - r.top  + 1;
 
-                XSendEvent(dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp);
-
-            }
-
-            sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
+            XSendEvent( dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp );
         }
-        else if( wnd->base.backend==SGUI_OPENGL_CORE ||
-                 wnd->base.backend==SGUI_OPENGL_COMPAT )
-        {
-            if( num )
-            {
-                exp.x      = 0;
-                exp.y      = 0;
-                exp.width  = wnd->base.w;
-                exp.height = wnd->base.h;
 
-                XSendEvent(dpy, wnd->wnd, False, ExposureMask, (XEvent*)&exp);
-                sgui_canvas_clear_dirty_rects( wnd->base.back_buffer );
-            }
-        }
+        sgui_canvas_redraw_widgets( wnd->base.back_buffer, 1 );
     }
 }
 
@@ -478,9 +445,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
             return NULL;
         }
 
-        wnd->base.back_buffer = sgui_opengl_canvas_create( attr.width,
-                                       attr.height,
-                                       desc->backend==SGUI_OPENGL_COMPAT );
+        wnd->base.back_buffer = NULL;
         wnd->base.swap_buffers = gl_swap_buffers;
 #endif
     }
@@ -488,12 +453,12 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     {
         wnd->base.back_buffer = canvas_xlib_create( wnd->wnd, attr.width,
                                                     attr.height );
-    }
 
-    if( !wnd->base.back_buffer )
-    {
-        xlib_window_destroy( (sgui_window*)wnd );
-        return NULL;
+        if( !wnd->base.back_buffer )
+        {
+            xlib_window_destroy( (sgui_window*)wnd );
+            return NULL;
+        }
     }
 
     /*********** Create an input context ************/

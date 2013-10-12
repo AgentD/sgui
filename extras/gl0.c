@@ -7,10 +7,17 @@
 
 void window_callback( sgui_window* wnd, int type, sgui_event* event )
 {
+    unsigned int w, h;
     (void)wnd; (void)event;
 
     if( type == SGUI_EXPOSE_EVENT )
     {
+        sgui_window_get_size( wnd, &w, &h );
+        sgui_window_make_current( wnd );
+
+        glViewport( 0, 0, w, h );
+        glClear( GL_COLOR_BUFFER_BIT );
+
         glMatrixMode( GL_MODELVIEW );
         glRotatef( 5.0f, 0.0f, 1.0f, 0.0f );
 
@@ -23,16 +30,11 @@ void window_callback( sgui_window* wnd, int type, sgui_event* event )
         glVertex2f(  0.0f,  0.5f );
         glEnd( );
 
+        sgui_window_swap_buffers( wnd );
+        sgui_window_make_current( NULL );
+
         printf( "Readraw!\n" );
     }
-}
-
-void scrollbar_callback( void* userptr, int new_offset, int delta )
-{
-    sgui_widget* pbar = userptr;
-    (void)delta;
-
-    sgui_progress_bar_set_progress( pbar, new_offset );
 }
 
 
@@ -41,8 +43,6 @@ int main( void )
 {
     sgui_window* wnd;
     sgui_window_description desc;
-    sgui_widget* pbar;
-    sgui_widget* sbar;
 
     sgui_init( );
 
@@ -50,7 +50,7 @@ int main( void )
     desc.parent         = NULL;
     desc.width          = 300;
     desc.height         = 300;
-    desc.resizeable     = SGUI_FIXED_SIZE;
+    desc.resizeable     = SGUI_RESIZEABLE;
     desc.backend        = SGUI_OPENGL_COMPAT;
     desc.doublebuffer   = SGUI_DOUBLEBUFFERED;
     desc.bits_per_pixel = 32;
@@ -64,22 +64,8 @@ int main( void )
     sgui_window_move_center( wnd );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
-    /* create a few widgets */
-    pbar = sgui_progress_bar_create( 10, 10, SGUI_PROGRESS_BAR_STIPPLED,
-                                     SGUI_PROGRESS_BAR_HORIZONTAL,
-                                     40, 280 );
-
-    sbar = sgui_scroll_bar_create( 10, 45, SGUI_SCROLL_BAR_HORIZONTAL,
-                                   280, 100, 10 );
-
-    sgui_scroll_bar_set_offset( sbar, 40 );
-
-    sgui_window_add_widget( wnd, pbar );
-    sgui_window_add_widget( wnd, sbar );
-
     /* hook event callbacks */
     sgui_window_on_event( wnd, window_callback );
-    sgui_scroll_bar_on_scroll( sbar, scrollbar_callback, pbar );
 
     /* main loop */
     sgui_main_loop( );
@@ -87,8 +73,6 @@ int main( void )
     /* clean up */
     sgui_window_make_current( NULL );
     sgui_window_destroy( wnd );
-    sgui_widget_destroy( pbar );
-    sgui_widget_destroy( sbar );
     sgui_deinit( );
 
     return 0;

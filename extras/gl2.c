@@ -7,7 +7,12 @@
 
 void glview_on_draw( sgui_widget* glview )
 {
-    (void)glview;
+    unsigned int w, h;
+
+    sgui_widget_get_size( glview, &w, &h );
+
+    glViewport( 0, 0, w, h );
+    glClear( GL_COLOR_BUFFER_BIT );
 
     glMatrixMode( GL_MODELVIEW );
     glRotatef( 5.0f, 0.0f, 1.0f, 0.0f );

@@ -23,7 +23,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_pixmap.h"
-#include "sgui_opengl.h"
 #include "internal.h"
 
 
