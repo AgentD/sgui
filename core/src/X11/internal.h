@@ -73,7 +73,7 @@
 
 typedef struct _sgui_window_xlib
 {
-    sgui_window base;
+    sgui_window super;
 
     Window wnd;
     XIC ic;
@@ -93,7 +93,7 @@ sgui_window_xlib;
 
 typedef struct
 {
-    sgui_pixmap pm;
+    sgui_pixmap super;
 
     Pixmap pix;
     Picture pic;

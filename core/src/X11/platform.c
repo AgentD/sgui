@@ -202,7 +202,7 @@ int sgui_main_loop_step( void )
 
     /* check if there's at least 1 window still active */
     for( i=list; i!=NULL; i=i->next )
-        if( i->base.visible )
+        if( i->super.visible )
             return 1;
 
     return 0;
@@ -235,7 +235,7 @@ void sgui_main_loop( void )
 
         /* check if there's at least 1 window still active */
         for( i=list, active=0; i!=NULL && !active; i=i->next )
-            active |= i->base.visible;
+            active |= i->super.visible;
     }
     while( active );
 }

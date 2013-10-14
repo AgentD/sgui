@@ -37,128 +37,128 @@ struct sgui_font
 
 static sgui_font* sgui_font_load_common( unsigned int pixel_height )
 {
-    sgui_font* font;
+    sgui_font* this;
 
     /* allocate font structure */
-    font = malloc( sizeof(sgui_font) );
+    this = malloc( sizeof(sgui_font) );
 
-    if( !font )
+    if( !this )
         return NULL;
 
     /* initialise the remaining fields */
-    font->buffer        = NULL;
-    font->height        = pixel_height;
-    font->current_glyph = 0;
+    this->buffer        = NULL;
+    this->height        = pixel_height;
+    this->current_glyph = 0;
 
-    return font;
+    return this;
 }
 
 sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 {
-    sgui_font* font;
+    sgui_font* this;
 
     /* sanity check */
     if( !filename )
         return NULL;
 
     /* allocate font structure */
-    font = sgui_font_load_common( pixel_height );
+    this = sgui_font_load_common( pixel_height );
 
-    if( !font )
+    if( !this )
         return NULL;
 
     /* load the font file */
-    if( FT_New_Face( freetype, filename, 0, &font->face ) )
+    if( FT_New_Face( freetype, filename, 0, &this->face ) )
     {
-        free( font );
+        free( this );
         return NULL;
     }
 
-    FT_Set_Pixel_Sizes( font->face, 0, pixel_height );
+    FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
 
-    return font;
+    return this;
 }
 
 sgui_font* sgui_font_load_memory( const void* data, unsigned long size,
                                   unsigned int pixel_height )
 {
-    sgui_font* font;
+    sgui_font* this;
 
     /* sanity check */
     if( !data || !size )
         return NULL;
 
     /* allocate font structure */
-    font = sgui_font_load_common( pixel_height );
+    this = sgui_font_load_common( pixel_height );
 
-    if( !font )
+    if( !this )
         return NULL;
 
     /* allocate a buffer for the file */
-    font->buffer = malloc( size );
+    this->buffer = malloc( size );
 
-    if( !font->buffer )
+    if( !this->buffer )
     {
-        free( font );
+        free( this );
         return NULL;
     }
 
     /* initialise the font */
-    if( FT_New_Memory_Face( freetype, font->buffer, size, 0, &font->face ) )
+    if( FT_New_Memory_Face( freetype, this->buffer, size, 0, &this->face ) )
     {
-        free( font->buffer );
-        free( font );
+        free( this->buffer );
+        free( this );
         return NULL;
     }
 
-    FT_Set_Pixel_Sizes( font->face, 0, pixel_height );
+    FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
 
-    return font;
+    return this;
 }
 
-void sgui_font_destroy( sgui_font* font )
+void sgui_font_destroy( sgui_font* this )
 {
-    if( font )
+    if( this )
     {
-        FT_Done_Face( font->face );
+        FT_Done_Face( this->face );
 
-        free( font->buffer );
-        free( font );
+        free( this->buffer );
+        free( this );
     }
 }
 
-unsigned int sgui_font_get_height( sgui_font* font )
+unsigned int sgui_font_get_height( sgui_font* this )
 {
-    return font ? font->height : 0;
+    return this ? this->height : 0;
 }
 
-void sgui_font_load_glyph( sgui_font* font, unsigned int codepoint )
+void sgui_font_load_glyph( sgui_font* this, unsigned int codepoint )
 {
     FT_UInt index;
 
-    if( font )
+    if( this )
     {
-        font->current_glyph = codepoint;
+        this->current_glyph = codepoint;
 
-        index = FT_Get_Char_Index( font->face, codepoint );
+        index = FT_Get_Char_Index( this->face, codepoint );
 
-        FT_Load_Glyph( font->face, index, FT_LOAD_DEFAULT );
-        FT_Render_Glyph( font->face->glyph, FT_RENDER_MODE_NORMAL );
+        FT_Load_Glyph( this->face, index, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( this->face->glyph, FT_RENDER_MODE_NORMAL );
     }
 }
 
-int sgui_font_get_kerning_distance( sgui_font* font, unsigned int first,
+int sgui_font_get_kerning_distance( sgui_font* this, unsigned int first,
                                     unsigned int second )
 {
     FT_Vector delta;
     FT_UInt index_a, index_b;
 
-    if( font && FT_HAS_KERNING( font->face ) )
+    if( this && FT_HAS_KERNING( this->face ) )
     {
-        index_a = FT_Get_Char_Index( font->face, first );
-        index_b = FT_Get_Char_Index( font->face, second );
+        index_a = FT_Get_Char_Index( this->face, first );
+        index_b = FT_Get_Char_Index( this->face, second );
 
-        FT_Get_Kerning( font->face, index_a, index_b,
+        FT_Get_Kerning( this->face, index_a, index_b,
                         FT_KERNING_DEFAULT, &delta );
 
         return -((delta.x < 0 ? -delta.x : delta.x) >> 6);
@@ -167,25 +167,25 @@ int sgui_font_get_kerning_distance( sgui_font* font, unsigned int first,
     return 0;
 }
 
-void sgui_font_get_glyph_metrics( sgui_font* font, unsigned int* width,
+void sgui_font_get_glyph_metrics( sgui_font* this, unsigned int* width,
                                   unsigned int* height, int* bearing )
 {
     unsigned int w = 0, h = 0;
     int b = 0;
 
-    if( font )
+    if( this )
     {
-        if( font->current_glyph == ' ' )
+        if( this->current_glyph == ' ' )
         {
-            w = font->height / 3;
-            h = font->height;
+            w = this->height / 3;
+            h = this->height;
             b = 0;
         }
         else
         {
-            w = font->face->glyph->bitmap.width;
-            h = font->face->glyph->bitmap.rows;
-            b = font->height - font->face->glyph->bitmap_top;
+            w = this->face->glyph->bitmap.width;
+            h = this->face->glyph->bitmap.rows;
+            b = this->height - this->face->glyph->bitmap_top;
         }
     }
 
@@ -194,10 +194,10 @@ void sgui_font_get_glyph_metrics( sgui_font* font, unsigned int* width,
     if( bearing ) *bearing = b;
 }
 
-unsigned char* sgui_font_get_glyph( sgui_font* font )
+unsigned char* sgui_font_get_glyph( sgui_font* this )
 {
-    if( font && font->current_glyph != ' ' )
-        return font->face->glyph->bitmap.buffer;
+    if( this && this->current_glyph != ' ' )
+        return this->face->glyph->bitmap.buffer;
 
     return NULL;
 }

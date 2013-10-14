@@ -34,12 +34,6 @@
 
 
 
-int sgui_internal_window_init( sgui_window* window )
-{
-    (void)window;
-    return 1;
-}
-
 void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
                                      unsigned int height, int backend )
 {
@@ -52,24 +46,12 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
         window->backend = backend;
 
         sgui_skin_get_window_background_color( rgb );
-        sgui_canvas_set_background_color( window->back_buffer, rgb );
+        sgui_canvas_set_background_color( window->canvas, rgb );
         sgui_window_make_current( window );
-        sgui_canvas_begin( window->back_buffer, NULL );
-        sgui_canvas_clear( window->back_buffer, NULL );
-        sgui_canvas_end( window->back_buffer );
+        sgui_canvas_begin( window->canvas, NULL );
+        sgui_canvas_clear( window->canvas, NULL );
+        sgui_canvas_end( window->canvas );
         sgui_window_make_current( NULL );
-    }
-}
-
-void sgui_internal_window_deinit( sgui_window* window )
-{
-    if( window )
-    {
-        if( window->back_buffer )
-        {
-            sgui_canvas_destroy( window->back_buffer );
-            window->back_buffer = NULL;
-        }
     }
 }
 
@@ -81,7 +63,7 @@ void sgui_internal_window_fire_event( sgui_window* wnd, int event,
         if( wnd->event_fun )
             wnd->event_fun( wnd, event, e );
 
-        sgui_canvas_send_window_event( wnd->back_buffer, event, e );
+        sgui_canvas_send_window_event( wnd->canvas, event, e );
     }
 }
 
@@ -168,11 +150,11 @@ void sgui_window_set_size( sgui_window* wnd,
         wnd->set_size( wnd, width, height );
 
         /* resize the canvas */
-        sgui_canvas_resize( wnd->back_buffer, wnd->w, wnd->h );
+        sgui_canvas_resize( wnd->canvas, wnd->w, wnd->h );
 
         if( wnd->backend==SGUI_NATIVE )
         {
-            sgui_canvas_draw_widgets( wnd->back_buffer, 1 );
+            sgui_canvas_draw_widgets( wnd->canvas, 1 );
         }
     }
 }
@@ -248,14 +230,14 @@ void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
 void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
     if( wnd )
-        sgui_widget_add_child(sgui_canvas_get_root(wnd->back_buffer), widget);
+        sgui_widget_add_child( sgui_canvas_get_root(wnd->canvas), widget );
 }
 
 void sgui_window_on_widget_event( sgui_window* wnd,
                                   sgui_widget_callback fun, void* user )
 {
     if( wnd )
-        sgui_canvas_on_event( wnd->back_buffer, fun, user );
+        sgui_canvas_on_event( wnd->canvas, fun, user );
 }
 
 void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
@@ -266,7 +248,7 @@ void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
 
 sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
 {
-    return wnd ? wnd->back_buffer : NULL;
+    return wnd ? wnd->canvas : NULL;
 }
 
 void sgui_window_set_userptr( sgui_window* wnd, void* ptr )

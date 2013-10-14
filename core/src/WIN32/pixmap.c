@@ -27,7 +27,7 @@
 
 
 
-static void gdi_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
+static void gdi_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
                              const unsigned char* data, unsigned int scan,
                              unsigned int width, unsigned int height,
                              int format )
@@ -35,17 +35,15 @@ static void gdi_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     unsigned char *dst, *dstrow;
     const unsigned char *src, *row;
     unsigned int i, j, alpha, srcbpp;
+    gdi_pixmap* this = (gdi_pixmap*)super;
     int bpp;
 
     srcbpp = format==SGUI_RGBA8 ? 4 : (format==SGUI_RGB8 ? 3 : 1);
-
-    bpp = ((gdi_pixmap*)pixmap)->format==SGUI_RGBA8 ? 4 :
-          (((gdi_pixmap*)pixmap)->format==SGUI_RGB8 ? 3 : 1);
-
-    dst = ((gdi_pixmap*)pixmap)->ptr + (dstx + dsty*pixmap->width)*srcbpp;
+    bpp = this->format==SGUI_RGBA8 ? 4 : (this->format==SGUI_RGB8 ? 3 : 1);
+    dst = this->ptr + (dstx + dsty*super->width)*bpp;
 
     for( src=data, j=0; j<height; ++j, src+=scan*srcbpp,
-                                       dst+=pixmap->width*bpp )
+                                       dst+=super->width*bpp )
     {
         for( dstrow=dst, row=src, i=0; i<width; ++i, row+=srcbpp,
                                                      dstrow+=bpp )
@@ -72,27 +70,30 @@ static void gdi_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     }
 }
 
-static void gdi_pixmap_destroy( sgui_pixmap* pixmap )
+static void gdi_pixmap_destroy( sgui_pixmap* super )
 {
-    DeleteObject( ((gdi_pixmap*)pixmap)->bitmap );
-    DeleteDC( ((gdi_pixmap*)pixmap)->hDC );
-    free( pixmap );
+    gdi_pixmap* this = (gdi_pixmap*)super;
+
+    DeleteObject( this->bitmap );
+    DeleteDC( this->hDC );
+    free( this );
 }
 
 sgui_pixmap* gdi_pixmap_create( unsigned int width, unsigned int height,
                                 int format )
 {
-    gdi_pixmap* pix = malloc( sizeof(gdi_pixmap) );
+    gdi_pixmap* this = malloc( sizeof(gdi_pixmap) );
+    sgui_pixmap* super = (sgui_pixmap*)this;
     BITMAPINFO info;
 
-    if( !pix )
+    if( !this )
         return NULL;
 
-    pix->format     = format;
-    pix->pm.width   = width;
-    pix->pm.height  = height;
-    pix->pm.destroy = gdi_pixmap_destroy;
-    pix->pm.load    = gdi_pixmap_load;
+    this->format   = format;
+    super->width   = width;
+    super->height  = height;
+    super->destroy = gdi_pixmap_destroy;
+    super->load    = gdi_pixmap_load;
 
     info.bmiHeader.biSize        = sizeof(info.bmiHeader);
     info.bmiHeader.biPlanes      = 1;
@@ -102,26 +103,26 @@ sgui_pixmap* gdi_pixmap_create( unsigned int width, unsigned int height,
     info.bmiHeader.biBitCount    = format==SGUI_RGBA8 ? 32 :
                                    format==SGUI_RGB8 ? 24 : 8;
 
-    pix->hDC = CreateCompatibleDC( NULL );
+    this->hDC = CreateCompatibleDC( NULL );
 
-    if( !pix->hDC )
+    if( !this->hDC )
     {
-        free( pix );
+        free( this );
         return NULL;
     }
 
-    pix->bitmap = CreateDIBSection( pix->hDC, &info, DIB_RGB_COLORS,
-                                    (void**)&pix->ptr, 0, 0 );
+    this->bitmap = CreateDIBSection( this->hDC, &info, DIB_RGB_COLORS,
+                                     (void**)&this->ptr, 0, 0 );
 
-    if( !pix->bitmap )
+    if( !this->bitmap )
     {
-        DeleteDC( pix->hDC );
-        free( pix );
+        DeleteDC( this->hDC );
+        free( this );
         return NULL;
     }
 
-    SelectObject( pix->hDC, pix->bitmap );
+    SelectObject( this->hDC, this->bitmap );
 
-    return (sgui_pixmap*)pix;
+    return (sgui_pixmap*)this;
 }
 

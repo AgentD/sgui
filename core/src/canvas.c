@@ -48,8 +48,6 @@
 void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                 unsigned int height )
 {
-    cv->ox = cv->oy = 0;
-
     memset( cv, 0, sizeof(sgui_canvas) );
 
     cv->width = width;

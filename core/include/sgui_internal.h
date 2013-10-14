@@ -364,7 +364,7 @@ struct sgui_canvas
 
 struct sgui_window
 {
-    sgui_canvas* back_buffer;   /**< \brief pointer to a canvas */
+    sgui_canvas* canvas;        /**< \brief pointer to a canvas */
 
     sgui_window_callback event_fun; /**< \brief the window event callback */
 
@@ -492,15 +492,6 @@ SGUI_DLL void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
                                          unsigned int height );
 
 /**
- * \brief Initialise a window structure
- *
- * \param window A pointer to the window structure
- *
- * \return Non-zero on success, zero on failure
- */
-SGUI_DLL int sgui_internal_window_init( sgui_window* window );
-
-/**
  * \brief Perform common operations at the end of sgui_window_create
  *
  * This function stores the size and backend of a window in a window
@@ -516,15 +507,6 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
                                               unsigned int width,
                                               unsigned int height,
                                               int backend );
-
-/**
- * \brief Perform the reverse oprations of sgui_internal_window_init
- *
- * This function takes care of destroying the canvas of the window.
- *
- * \param window A pointer to a window structure
- */
-SGUI_DLL void sgui_internal_window_deinit( sgui_window* window );
 
 /**
  * \brief Propagate a window event

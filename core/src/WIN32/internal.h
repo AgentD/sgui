@@ -73,7 +73,7 @@
 
 typedef struct _sgui_window_w32
 {
-    sgui_window base;
+    sgui_window super;
 
     HWND hWnd;
 
@@ -88,7 +88,7 @@ sgui_window_w32;
 
 typedef struct
 {
-    sgui_pixmap pm;
+    sgui_pixmap super;
 
     HDC hDC;
     HBITMAP bitmap;

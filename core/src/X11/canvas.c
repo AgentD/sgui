@@ -30,7 +30,7 @@
 
 typedef struct
 {
-    sgui_canvas canvas;
+    sgui_canvas super;
 
     Window wnd;
 
@@ -45,82 +45,80 @@ sgui_canvas_xlib;
 
 
 
-static void canvas_xlib_destroy( sgui_canvas* canvas )
+static void canvas_xlib_destroy( sgui_canvas* super )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
-    if( cv->pic ) XRenderFreePicture( dpy, cv->pic );
-    if( cv->pen ) XRenderFreePicture( dpy, cv->pen );
+    if( this->pic ) XRenderFreePicture( dpy, this->pic );
+    if( this->pen ) XRenderFreePicture( dpy, this->pen );
 
-    if( cv->pixmap ) XFreePixmap( dpy, cv->pixmap );
-    if( cv->penmap ) XFreePixmap( dpy, cv->penmap );
+    if( this->pixmap ) XFreePixmap( dpy, this->pixmap );
+    if( this->penmap ) XFreePixmap( dpy, this->penmap );
 
-    if( cv->gc )
-        XFreeGC( dpy, cv->gc );
+    if( this->gc )
+        XFreeGC( dpy, this->gc );
 
-    free( cv );
+    free( this );
 }
 
-static void canvas_xlib_resize( sgui_canvas* canvas, unsigned int width,
+static void canvas_xlib_resize( sgui_canvas* super, unsigned int width,
                                 unsigned int height )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
     XRenderPictFormat* fmt;
 
     /* destroy the pixmap */
-    XRenderFreePicture( dpy, cv->pic );
-    XFreePixmap( dpy, cv->pixmap );
+    XRenderFreePicture( dpy, this->pic );
+    XFreePixmap( dpy, this->pixmap );
 
     /* create a new pixmap */
-    cv->pixmap = XCreatePixmap( dpy, cv->wnd, width, height, 24 );
+    this->pixmap = XCreatePixmap( dpy, this->wnd, width, height, 24 );
 
     fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-    cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
+    this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
 }
 
-static void canvas_xlib_clear( sgui_canvas* canvas, sgui_rect* r )
+static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
     XRenderColor c;
 
-    c.red   = canvas->bg_color[0]<<8;
-    c.green = canvas->bg_color[1]<<8;
-    c.blue  = canvas->bg_color[2]<<8;
+    c.red   = super->bg_color[0]<<8;
+    c.green = super->bg_color[1]<<8;
+    c.blue  = super->bg_color[2]<<8;
     c.alpha = 0xFFFF;
 
-    XRenderFillRectangle( dpy, PictOpSrc, cv->pic, &c, r->left, r->top,
+    XRenderFillRectangle( dpy, PictOpSrc, this->pic, &c, r->left, r->top,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
-static void canvas_xlib_blit( sgui_canvas* canvas, int x, int y,
+static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
                               sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
-    XRenderComposite( dpy, PictOpSrc, ((xlib_pixmap*)pixmap)->pic, 0, cv->pic,
-                      srcrect->left, srcrect->top, 0, 0,
-                      x, y,
+    XRenderComposite( dpy, PictOpSrc, ((xlib_pixmap*)pixmap)->pic, 0,
+                      this->pic, srcrect->left, srcrect->top, 0, 0, x, y,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
-static void canvas_xlib_blend( sgui_canvas* canvas, int x, int y,
+static void canvas_xlib_blend( sgui_canvas* super, int x, int y,
                                sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
     XRenderComposite( dpy, PictOpOver, ((xlib_pixmap*)pixmap)->pic, 0,
-                      cv->pic, srcrect->left, srcrect->top, 0, 0,
-                      x, y,
+                      this->pic, srcrect->left, srcrect->top, 0, 0, x, y,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
 }
 
-static void canvas_xlib_blend_glyph( sgui_canvas* canvas, int x, int y,
+static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
                                      sgui_pixmap* pixmap, sgui_rect* r,
                                      unsigned char* color )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
     XRenderColor c;
 
     c.red   = color[0]<<8;
@@ -128,29 +126,29 @@ static void canvas_xlib_blend_glyph( sgui_canvas* canvas, int x, int y,
     c.blue  = color[2]<<8;
     c.alpha = 0xFFFF;
 
-    XRenderFillRectangle( dpy, PictOpSrc, cv->pen, &c, 0, 0, 1, 1 );
+    XRenderFillRectangle( dpy, PictOpSrc, this->pen, &c, 0, 0, 1, 1 );
 
-    XRenderComposite( dpy, PictOpOver, cv->pen, ((xlib_pixmap*)pixmap)->pic,
-                      cv->pic, 0, 0, r->left, r->top, x, y,
+    XRenderComposite( dpy, PictOpOver, this->pen, ((xlib_pixmap*)pixmap)->pic,
+                      this->pic, 0, 0, r->left, r->top, x, y,
                       SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
 }
 
-static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
+static int canvas_xlib_draw_string( sgui_canvas* super, int x, int y,
                                     sgui_font* font, unsigned char* color,
                                     const char* text, unsigned int length )
 {
     int oldx = x;
     unsigned int i, len = 0;
     unsigned long character, previous=0;
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
     sgui_font_cache* cache = get_glyph_cache( );
     XRectangle r;
 
-    r.x = canvas->sc.left;
-    r.y = canvas->sc.top;
-    r.width = SGUI_RECT_WIDTH( canvas->sc );
-    r.height = SGUI_RECT_HEIGHT( canvas->sc );
-    XRenderSetPictureClipRectangles( dpy, cv->pic, 0, 0, &r, 1 );
+    r.x = super->sc.left;
+    r.y = super->sc.top;
+    r.width = SGUI_RECT_WIDTH( super->sc );
+    r.height = SGUI_RECT_HEIGHT( super->sc );
+    XRenderSetPictureClipRectangles( dpy, this->pic, 0, 0, &r, 1 );
 
     /* for each character */
     for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
@@ -163,7 +161,7 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
 
         /* blend onto destination buffer */
         x += sgui_font_cache_draw_glyph( cache, font, character,
-                                         x, y, canvas, color ) + 1;
+                                         x, y, super, color ) + 1;
 
         /* store previous glyph index for kerning */
         previous = character;
@@ -171,27 +169,28 @@ static int canvas_xlib_draw_string( sgui_canvas* canvas, int x, int y,
 
     r.x = 0;
     r.y = 0;
-    r.width = canvas->width;
-    r.height = canvas->height;
-    XRenderSetPictureClipRectangles( dpy, cv->pic, 0, 0, &r, 1 );
+    r.width = super->width;
+    r.height = super->height;
+    XRenderSetPictureClipRectangles( dpy, this->pic, 0, 0, &r, 1 );
 
     return x - oldx;
 }
 
-sgui_pixmap* canvas_xlib_create_pixmap( sgui_canvas* canvas,
+sgui_pixmap* canvas_xlib_create_pixmap( sgui_canvas* super,
                                         unsigned int width,
                                         unsigned int height, int format )
 {
-    sgui_canvas_xlib* cv = (sgui_canvas_xlib*)canvas;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
-    return xlib_pixmap_create( width, height, format, cv->wnd );
+    return xlib_pixmap_create( width, height, format, this->wnd );
 }
 
 /************************ internal canvas functions ************************/
 sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height )
 {
-    sgui_canvas_xlib* cv;
+    sgui_canvas_xlib* this;
+    sgui_canvas* super;
     XRenderPictFormat* fmt;
     XRenderPictureAttributes attr;
     int base, error;
@@ -203,83 +202,84 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     }
 
     /* allocate xlib canvas */
-    cv = malloc( sizeof(sgui_canvas_xlib) );
+    this = malloc( sizeof(sgui_canvas_xlib) );
+    super = (sgui_canvas*)this;
 
-    if( !cv )
+    if( !this )
         return NULL;
 
     /* create pixmaps */
-    cv->pixmap = XCreatePixmap( dpy, wnd, width, height, 24 );
+    this->pixmap = XCreatePixmap( dpy, wnd, width, height, 24 );
 
-    if( !cv->pixmap )
+    if( !this->pixmap )
     {
-        canvas_xlib_destroy( (sgui_canvas*)cv );
+        canvas_xlib_destroy( super );
         return NULL;
     }
 
-    cv->penmap = XCreatePixmap( dpy, wnd, 1, 1, 24 );
+    this->penmap = XCreatePixmap( dpy, wnd, 1, 1, 24 );
 
-    if( !cv->penmap )
+    if( !this->penmap )
     {
-        canvas_xlib_destroy( (sgui_canvas*)cv );
+        canvas_xlib_destroy( super );
         return NULL;
     }
 
     /* crate Xrender pictures */
     fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-    cv->pic = XRenderCreatePicture( dpy, cv->pixmap, fmt, 0, NULL );
+    this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
 
-    if( !cv->pic )
+    if( !this->pic )
     {
-        canvas_xlib_destroy( (sgui_canvas*)cv );
+        canvas_xlib_destroy( super );
         return NULL;        
     }
 
     attr.repeat = RepeatNormal;
-    cv->pen = XRenderCreatePicture( dpy, cv->penmap, fmt, CPRepeat, &attr );
+    this->pen = XRenderCreatePicture(dpy, this->penmap, fmt, CPRepeat, &attr);
 
-    if( !cv->pen )
+    if( !this->pen )
     {
-        canvas_xlib_destroy( (sgui_canvas*)cv );
+        canvas_xlib_destroy( super );
         return NULL;        
     }
 
     /* create a graphics context */
-    cv->gc = XCreateGC( dpy, cv->pixmap, 0, NULL );
+    this->gc = XCreateGC( dpy, this->pixmap, 0, NULL );
 
-    if( !cv->gc )
+    if( !this->gc )
     {
-        canvas_xlib_destroy( (sgui_canvas*)cv );
+        canvas_xlib_destroy( super );
         return NULL;
     }
 
     /* finish initialisation */
-    sgui_internal_canvas_init( (sgui_canvas*)cv, width, height );
-    cv->wnd = wnd;
+    sgui_internal_canvas_init( super, width, height );
+    this->wnd = wnd;
 
-    cv->canvas.destroy       = canvas_xlib_destroy;
-    cv->canvas.resize        = canvas_xlib_resize;
-    cv->canvas.blit          = canvas_xlib_blit;
-    cv->canvas.blend         = canvas_xlib_blend;
-    cv->canvas.blend_glyph   = canvas_xlib_blend_glyph;
-    cv->canvas.clear         = canvas_xlib_clear;
-    cv->canvas.draw_string   = canvas_xlib_draw_string;
-    cv->canvas.create_pixmap = canvas_xlib_create_pixmap;
-    cv->canvas.stretch_blend = NULL;
-    cv->canvas.stretch_blit  = NULL;
-    cv->canvas.skin_pixmap   = get_skin_pixmap( );
+    super->destroy       = canvas_xlib_destroy;
+    super->resize        = canvas_xlib_resize;
+    super->blit          = canvas_xlib_blit;
+    super->blend         = canvas_xlib_blend;
+    super->blend_glyph   = canvas_xlib_blend_glyph;
+    super->clear         = canvas_xlib_clear;
+    super->draw_string   = canvas_xlib_draw_string;
+    super->create_pixmap = canvas_xlib_create_pixmap;
+    super->stretch_blend = NULL;
+    super->stretch_blit  = NULL;
+    super->skin_pixmap   = get_skin_pixmap( );
 
-    return (sgui_canvas*)cv;
+    return (sgui_canvas*)this;
 }
 
-void canvas_xlib_display( sgui_canvas* cv, int x, int y,
+void canvas_xlib_display( sgui_canvas* super, int x, int y,
                           unsigned int width, unsigned int height )
 {
-    sgui_canvas_xlib* canvas = (sgui_canvas_xlib*)cv;
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
-    if( canvas )
+    if( this )
     {
-        XCopyArea( dpy, canvas->pixmap, canvas->wnd, canvas->gc,
+        XCopyArea( dpy, this->pixmap, this->wnd, this->gc,
                    x, y, width, height, x, y );
     }    
 }

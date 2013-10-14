@@ -27,23 +27,26 @@
 
 
 
-void xlib_pixmap_destroy( sgui_pixmap* pixmap )
+void xlib_pixmap_destroy( sgui_pixmap* super )
 {
-    XRenderFreePicture( dpy, ((xlib_pixmap*)pixmap)->pic );
-    XFreePixmap( dpy, ((xlib_pixmap*)pixmap)->pix );
-    free( pixmap );
+    xlib_pixmap* this = (xlib_pixmap*)super;
+
+    XRenderFreePicture( dpy, this->pic );
+    XFreePixmap( dpy, this->pix );
+    free( this );
 }
 
-void xlib_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
+void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
                        const unsigned char* data, unsigned int scan,
                        unsigned int width, unsigned int height, int format )
 {
+    xlib_pixmap* this = (xlib_pixmap*)super;
     const unsigned char *src, *row;
     unsigned int i, j;
     XRenderColor c;
     Picture pic;
 
-    pic = ((xlib_pixmap*)pixmap)->pic;
+    pic = this->pic;
 
     if( format==SGUI_RGBA8 )
     {
@@ -98,28 +101,30 @@ void xlib_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
 sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
                                  int format, Window wnd )
 {
-    xlib_pixmap* pixmap = NULL;
+    xlib_pixmap* this = NULL;
     XRenderPictFormat* fmt;
+    sgui_pixmap* super;
 
     /* create pixmap structure */
-    pixmap = malloc( sizeof(xlib_pixmap) ); 
+    this = malloc( sizeof(xlib_pixmap) ); 
+    super = (sgui_pixmap*)this;
 
-    if( !pixmap )
+    if( !this )
         return NULL;
 
-    pixmap->pm.width   = width;
-    pixmap->pm.height  = height;
-    pixmap->pm.destroy = xlib_pixmap_destroy;
-    pixmap->pm.load    = xlib_pixmap_load;
+    super->width   = width;
+    super->height  = height;
+    super->destroy = xlib_pixmap_destroy;
+    super->load    = xlib_pixmap_load;
 
     /* try to create an X11 Pixmap */
-    pixmap->pix = XCreatePixmap( dpy, wnd, width, height,
-                                 format==SGUI_RGBA8 ? 32 :
-                                  format==SGUI_RGB8 ? 24 : 8 );
+    this->pix = XCreatePixmap( dpy, wnd, width, height,
+                               format==SGUI_RGBA8 ? 32 :
+                               format==SGUI_RGB8 ? 24 : 8 );
 
-    if( !pixmap->pix )
+    if( !this->pix )
     {
-        free( pixmap );
+        free( this );
         return NULL;
     }
 
@@ -131,15 +136,15 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
     else
         fmt = XRenderFindStandardFormat( dpy, PictStandardA8 );
 
-    pixmap->pic = XRenderCreatePicture( dpy, pixmap->pix, fmt, 0, NULL );
+    this->pic = XRenderCreatePicture( dpy, this->pix, fmt, 0, NULL );
 
-    if( !pixmap->pic )
+    if( !this->pic )
     {
-        XFreePixmap( dpy, pixmap->pix );
-        free( pixmap );
+        XFreePixmap( dpy, this->pix );
+        free( this );
         return NULL;
     }
 
-    return (sgui_pixmap*)pixmap;
+    return (sgui_pixmap*)this;
 }
 
