@@ -351,6 +351,35 @@ SGUI_DLL void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
 /** \brief Get a pointer to a pixmap holding the UI skin */
 SGUI_DLL sgui_pixmap* sgui_canvas_get_skin_pixmap( sgui_canvas* canvas );
 
+
+
+/**
+ * \brief Create an instance of a reference implementation of a canvas that
+ *        uses a memory buffer
+ *
+ * \param buffer A pointer to a buffer to draw to
+ * \param width  The width of the memory buffer
+ * \param height The height of the memory buffer
+ * \param format The color format of the memory buffer
+ * \param swaprb If non-zero (TRUE), red and blue are swapped
+ *
+ * \return A pointer to a canvas on success, NULL on failure
+ */
+SGUI_DLL sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
+                                                 unsigned int width,
+                                                 unsigned int height,
+                                                 int format,
+                                                 int swaprb );
+
+/**
+ * \brief Set a new buffer pointer for a memory canvas
+ *
+ * \param canvas A pointer to a memory canvas object
+ * \param buffer A pointer to a buffer to draw to
+ */
+SGUI_DLL void sgui_memory_canvas_set_buffer( sgui_canvas* canvas,
+                                             unsigned char* buffer );
+
 #ifdef __cplusplus
 }
 #endif

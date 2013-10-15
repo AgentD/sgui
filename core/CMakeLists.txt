@@ -15,7 +15,6 @@ if( UNIX )
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/window.c )
 elseif( WIN32 )
   set( CORE_PLATFORM_SRC
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/canvas.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/font.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/opengl.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/platform.c
@@ -27,6 +26,7 @@ endif( )
 set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/filesystem.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/font_cache.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/rect.c

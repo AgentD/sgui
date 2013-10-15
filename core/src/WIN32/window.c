@@ -28,6 +28,31 @@
 
 
 
+static void resize_pixmap( sgui_window_w32* this )
+{
+    sgui_window* super = (sgui_window*)this;
+
+    /* adjust size in the header */
+    this->info.bmiHeader.biWidth  = super->w;
+    this->info.bmiHeader.biHeight = -((int)super->h);
+
+    /* unbind the the dib section and delete it */
+    SelectObject( this->hDC, 0 );
+    DeleteObject( this->bitmap );
+
+    /* create a new dib section */
+    this->bitmap = CreateDIBSection( this->hDC, &this->info, DIB_RGB_COLORS,
+                                     &this->data, 0, 0 );
+
+    /* bind it */
+    SelectObject( this->hDC, this->bitmap );
+
+    /* tell the memory canvas about the new data pointer */
+    sgui_memory_canvas_set_buffer( super->canvas, TO_W32(this)->data );
+}
+
+/****************************************************************************/
+
 static void w32_window_get_mouse_position( sgui_window* this, int* x, int* y )
 {
     POINT pos = { 0, 0 };
@@ -77,6 +102,10 @@ static void w32_window_set_size( sgui_window* this,
 
     this->w = width;
     this->h = height;
+
+    /* resize the canvas pixmap */
+    if( this->backend == SGUI_NATIVE )
+        resize_pixmap( TO_W32(this) );
 }
 
 static void w32_window_move_center( sgui_window* this )
@@ -118,7 +147,18 @@ static void w32_window_destroy( sgui_window* this )
         sgui_canvas_destroy( this->canvas );
 
     if( this->backend==SGUI_OPENGL_COMPAT || this->backend==SGUI_OPENGL_CORE )
+    {
         destroy_gl_context( TO_W32(this) );
+    }
+    else if( TO_W32(this)->hDC )
+    {
+        SelectObject( TO_W32(this)->hDC, 0 );
+
+        if( TO_W32(this)->bitmap )
+            DeleteObject( TO_W32(this)->bitmap );
+
+        DeleteDC( TO_W32(this)->hDC );
+    }
 
     if( TO_W32(this)->hWnd )
     {
@@ -247,14 +287,19 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         e.size.new_width  = super->w;
         e.size.new_height = super->h;
 
+        /* resize canvas and redraw everything */
+        if( super->backend==SGUI_NATIVE )
+        {
+            resize_pixmap( this );
+            sgui_canvas_resize( super->canvas, super->w, super->h );
+        }
+
+        /* fire a resize event */
         sgui_internal_window_fire_event( super, SGUI_SIZE_CHANGE_EVENT, &e );
 
-        /* resize canvas and redraw everything */
+        /* redraw the widgets */
         if( super->canvas )
-        {
-            sgui_canvas_resize( super->canvas, super->w, super->h );
             sgui_canvas_draw_widgets( super->canvas, 1 );
-        }
         break;
     case WM_MOVE:
         super->x = LOWORD( lp );
@@ -269,8 +314,9 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
                 sgui_canvas_redraw_widgets( super->canvas, 1 );
 
             sgui_internal_window_fire_event( super, SGUI_EXPOSE_EVENT, &e );
+
             hDC = BeginPaint( this->hWnd, &ps );
-            canvas_gdi_display( hDC,super->canvas, 0, 0, super->w, super->h );
+            BitBlt( hDC, 0, 0, super->w, super->h, this->hDC, 0, 0, SRCCOPY );
             EndPaint( this->hWnd, &ps );
         }
 
@@ -374,13 +420,47 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     }
     else
     {
-        super->canvas = canvas_gdi_create( desc->width, desc->height );
+        /* create an offscreen Device Context */
+        this->hDC = CreateCompatibleDC( NULL );
+
+        if( !this->hDC )
+        {
+            w32_window_destroy( (sgui_window*)this );
+            return NULL;
+        }
+
+        /*fill the bitmap header */
+        this->info.bmiHeader.biSize        = sizeof(this->info.bmiHeader);
+        this->info.bmiHeader.biBitCount    = 32;
+        this->info.bmiHeader.biCompression = BI_RGB;
+        this->info.bmiHeader.biPlanes      = 1;
+        this->info.bmiHeader.biWidth       = desc->width;
+        this->info.bmiHeader.biHeight      = -((int)desc->height);
+
+        /* create a DIB section = bitmap with accessable data pointer */
+        this->bitmap = CreateDIBSection( this->hDC, &this->info,
+                                         DIB_RGB_COLORS, &this->data, 0, 0 );
+
+        if( !this->bitmap )
+        {
+            w32_window_destroy( (sgui_window*)this );
+            return NULL;
+        }
+
+        /* bind the dib section to the offscreen context */
+        SelectObject( this->hDC, this->bitmap );
+
+        super->canvas = sgui_memory_canvas_create( this->data,
+                                                   desc->width, desc->height,
+                                                   SGUI_RGBA8, 1 );
 
         if( !super->canvas )
         {
             w32_window_destroy( (sgui_window*)this );
             return NULL;
         }
+
+        super->canvas->skin_pixmap = get_skin_pixmap( );
     }
 
     sgui_internal_window_post_init( (sgui_window*)this,

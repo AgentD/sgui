@@ -76,9 +76,13 @@ typedef struct _sgui_window_w32
     sgui_window super;
 
     HWND hWnd;
+    HDC hDC;
+
+    void* data;
+    BITMAPINFO info;
+    HBITMAP bitmap;
 
 #ifndef SGUI_NO_OPENGL
-    HDC hDC;
     HGLRC hRC;
 #endif
 
@@ -118,12 +122,6 @@ void gl_make_current( sgui_window_w32* wnd );
 /* in opengl.c: turn vsync on or off */
 void gl_set_vsync( sgui_window_w32* wnd, int vsync_on );
 
-/* in canvas.c: create a gdi canvas */
-sgui_canvas* canvas_gdi_create( unsigned int width, unsigned int height );
-
-/* in canvas.c: display the canvas on a same sized window */
-void canvas_gdi_display( HDC dc, sgui_canvas* cv, int x, int y,
-                         unsigned int width, unsigned int height );
 
 #endif /* INTERNAL_H */
 
