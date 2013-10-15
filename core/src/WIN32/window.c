@@ -144,7 +144,10 @@ static void w32_window_destroy( sgui_window* this )
     MSG msg;
 
     if( this->canvas )
+    {
         sgui_canvas_destroy( this->canvas );
+        this->canvas = NULL;    /* HACK: DestroyWindow calls message proc */
+    }
 
     if( this->backend==SGUI_OPENGL_COMPAT || this->backend==SGUI_OPENGL_CORE )
     {
