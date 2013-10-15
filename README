@@ -34,8 +34,7 @@
         - Supports older and newer versions
         - core profile as well as compatibillity profile
         - OpenGL(R) widget for rendering inside a normal GUI application
-        - can create a native window with OpenGL(R) context and render
-          widgets using OpenGL(R) transparently
+        - can create a window with OpenGL(R) context
     - Permissive Free Software (aka "Open Source") license
         - X11, aka MIT license (License text added below)
         - Allows you to do whatever you want, as long as credit is given
