@@ -1,5 +1,5 @@
 /*
- * pixmap.c
+ * mem_pixmap.c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -23,11 +23,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
+#include "sgui_internal.h"
+#include "sgui_pixmap.h"
+
+#include <stdlib.h>
 
 
 
-static void gdi_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
+typedef struct
+{
+    sgui_pixmap super;
+
+    unsigned char* buffer;
+    int format;
+}
+mem_pixmap;
+
+
+
+static void mem_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
                              const unsigned char* data, unsigned int scan,
                              unsigned int width, unsigned int height,
                              int format )
@@ -35,12 +49,12 @@ static void gdi_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
     unsigned char *dst, *dstrow;
     const unsigned char *src, *row;
     unsigned int i, j, alpha, srcbpp;
-    gdi_pixmap* this = (gdi_pixmap*)super;
+    mem_pixmap* this = (mem_pixmap*)super;
     int bpp;
 
     srcbpp = format==SGUI_RGBA8 ? 4 : (format==SGUI_RGB8 ? 3 : 1);
     bpp = this->format==SGUI_RGBA8 ? 4 : (this->format==SGUI_RGB8 ? 3 : 1);
-    dst = this->ptr + (dstx + dsty*super->width)*bpp;
+    dst = this->buffer + (dstx + dsty*super->width)*bpp;
 
     for( src=data, j=0; j<height; ++j, src+=scan*srcbpp,
                                        dst+=super->width*bpp )
@@ -52,9 +66,9 @@ static void gdi_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
             {
                 alpha = srcbpp==4 ? row[3] : 0xFF;
 
-                dstrow[0] = row[2]*alpha >> 8;
+                dstrow[0] = row[0]*alpha >> 8;
                 dstrow[1] = row[1]*alpha >> 8;
-                dstrow[2] = row[0]*alpha >> 8;
+                dstrow[2] = row[2]*alpha >> 8;
 
                 if( bpp==4 )
                     dstrow[3] = alpha;
@@ -70,59 +84,57 @@ static void gdi_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
     }
 }
 
-static void gdi_pixmap_destroy( sgui_pixmap* super )
+static void mem_pixmap_destroy( sgui_pixmap* super )
 {
-    gdi_pixmap* this = (gdi_pixmap*)super;
+    mem_pixmap* this = (mem_pixmap*)super;
 
-    DeleteObject( this->bitmap );
-    DeleteDC( this->hDC );
+    free( this->buffer );
     free( this );
 }
 
-sgui_pixmap* gdi_pixmap_create( unsigned int width, unsigned int height,
-                                int format )
+/****************************************************************************/
+
+sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
+                                              unsigned int height,
+                                              int format )
 {
-    gdi_pixmap* this = malloc( sizeof(gdi_pixmap) );
-    sgui_pixmap* super = (sgui_pixmap*)this;
-    BITMAPINFO info;
+    mem_pixmap* this;
+    sgui_pixmap* super;
+
+    if( !width || !height )
+        return NULL;
+
+    this = malloc( sizeof(mem_pixmap) );
+    super = (sgui_pixmap*)this;
 
     if( !this )
         return NULL;
 
+    this->buffer = malloc( width*height*(format==SGUI_RGB8 ? 3 : 
+                                         format==SGUI_RGBA8 ? 4 : 1) );
+
+    if( !this->buffer )
+    {
+        free( this );
+        return NULL;
+    }
+
     this->format   = format;
     super->width   = width;
     super->height  = height;
-    super->destroy = gdi_pixmap_destroy;
-    super->load    = gdi_pixmap_load;
-
-    info.bmiHeader.biSize        = sizeof(info.bmiHeader);
-    info.bmiHeader.biPlanes      = 1;
-    info.bmiHeader.biWidth       = width;
-    info.bmiHeader.biHeight      = -((int)height);
-    info.bmiHeader.biCompression = BI_RGB;
-    info.bmiHeader.biBitCount    = format==SGUI_RGBA8 ? 32 :
-                                   format==SGUI_RGB8 ? 24 : 8;
-
-    this->hDC = CreateCompatibleDC( NULL );
-
-    if( !this->hDC )
-    {
-        free( this );
-        return NULL;
-    }
-
-    this->bitmap = CreateDIBSection( this->hDC, &info, DIB_RGB_COLORS,
-                                     (void**)&this->ptr, 0, 0 );
-
-    if( !this->bitmap )
-    {
-        DeleteDC( this->hDC );
-        free( this );
-        return NULL;
-    }
-
-    SelectObject( this->hDC, this->bitmap );
+    super->destroy = mem_pixmap_destroy;
+    super->load    = mem_pixmap_load;
 
     return (sgui_pixmap*)this;
+}
+
+unsigned char* sgui_internal_mem_pixmap_buffer( sgui_pixmap* this )
+{
+    return this ? ((mem_pixmap*)this)->buffer : NULL;
+}
+
+int sgui_internal_mem_pixmap_format( sgui_pixmap* this )
+{
+    return this ? ((mem_pixmap*)this)->format : 0;
 }
 

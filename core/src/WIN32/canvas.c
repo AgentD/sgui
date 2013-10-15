@@ -98,12 +98,7 @@ static void canvas_gdi_clear( sgui_canvas* super, sgui_rect* r )
 static void canvas_gdi_blit( sgui_canvas* super, int x, int y,
                              sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_gdi* this = (sgui_canvas_gdi*)super;
-    unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
-    unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
-
-    BitBlt( this->dc, x, y, w, h, ((gdi_pixmap*)pixmap)->hDC,
-            srcrect->left, srcrect->top, SRCCOPY );
+    (void)super; (void)x; (void)y; (void)pixmap; (void)srcrect;
 }
 
 static void canvas_gdi_blend( sgui_canvas* super, int x, int y,
@@ -112,15 +107,28 @@ static void canvas_gdi_blend( sgui_canvas* super, int x, int y,
     sgui_canvas_gdi* this = (sgui_canvas_gdi*)super;
     unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
-    BLENDFUNCTION ftn;
+    unsigned char A, iA, *src, *dst, *row, *srow;
+    unsigned int i, j, srcbpp, scan, lines;
 
-    ftn.BlendOp             = AC_SRC_OVER;
-    ftn.BlendFlags          = 0;
-    ftn.SourceConstantAlpha = 0xFF;
-    ftn.AlphaFormat         = AC_SRC_ALPHA;
+    dst = (unsigned char*)this->data + (y*super->width + x)*4;
+    src = sgui_internal_mem_pixmap_buffer( pixmap );
+    srcbpp = sgui_internal_mem_pixmap_format( pixmap );
+    srcbpp = srcbpp==SGUI_RGBA8 ? 4 : (srcbpp==SGUI_RGB8 ? 3 : 1);
+    sgui_pixmap_get_size( pixmap, &scan, &lines );
+    src += (srcrect->top*scan + srcrect->left) * srcbpp;
 
-    AlphaBlend( this->dc, x, y, w, h, ((gdi_pixmap*)pixmap)->hDC,
-                srcrect->left, srcrect->top, w, h, ftn );
+    for( j=0; j<h; ++j, src+=scan*srcbpp, dst+=super->width*4 )
+    {
+        for( srow=src, row=dst, i=0; i<w; ++i, row+=4, srow+=srcbpp )
+        {
+            A = srcbpp==4 ? srow[3] : (srcbpp==1 ? srow[0] : 0xFF);
+            iA = 0xFF - A;
+
+            row[0] = (row[0] * iA + srow[2] * A)>>8;
+            row[1] = (row[1] * iA + srow[1] * A)>>8;
+            row[2] = (row[2] * iA + srow[0] * A)>>8;
+        }
+    }
 }
 
 static void canvas_gdi_blend_stencil( sgui_canvas* super,
@@ -203,7 +211,7 @@ static sgui_pixmap* canvas_gdi_create_pixmap( sgui_canvas* super,
 {
     (void)super;
 
-    return gdi_pixmap_create( width, height, format );
+    return sgui_internal_mem_pixmap_create( width, height, format );
 }
 
 /************************ internal canvas functions ************************/

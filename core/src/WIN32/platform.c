@@ -77,7 +77,8 @@ sgui_pixmap* get_skin_pixmap( void )
     {
         sgui_skin_get_pixmap_size( &width, &height );
 
-        skin_pixmap = gdi_pixmap_create( width, height, SGUI_RGBA8 );
+        skin_pixmap = sgui_internal_mem_pixmap_create( width, height,
+                                                       SGUI_RGBA8 );
 
         if( skin_pixmap )
             sgui_skin_to_pixmap( skin_pixmap );

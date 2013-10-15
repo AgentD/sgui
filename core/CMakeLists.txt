@@ -18,7 +18,6 @@ elseif( WIN32 )
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/canvas.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/font.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/opengl.c
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/pixmap.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/platform.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/window.c )
 endif( )
@@ -28,6 +27,7 @@ endif( )
 set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/filesystem.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/font_cache.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/rect.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/skin.c
