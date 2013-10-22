@@ -9,6 +9,14 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
 #----------------------------------------------------------------------
 # Compile configuration
 #----------------------------------------------------------------------
+if( NOT WIN32 )
+  option( MEMCANVAS "Compile memory canvas implementation" ON )
+
+  if( NOT MEMCANVAS )
+    add_definitions( -DSGUI_NO_MEM_CANVAS )
+  endif( )
+endif( )
+
 option( OPENGL "Compile with OpenGL(R) support" ON )
 
 if( NOT OPENGL )

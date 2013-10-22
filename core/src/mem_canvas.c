@@ -34,6 +34,7 @@
 
 
 
+#ifndef SGUI_NO_MEM_CANVAS
 typedef struct
 {
     sgui_canvas super;
@@ -328,4 +329,5 @@ void sgui_memory_canvas_set_buffer( sgui_canvas* this,
         ((mem_canvas*)this)->data = buffer;
     }
 }
+#endif
 

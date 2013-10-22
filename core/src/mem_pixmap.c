@@ -30,6 +30,7 @@
 
 
 
+#ifndef SGUI_NO_MEM_CANVAS
 typedef struct
 {
     sgui_pixmap super;
@@ -137,4 +138,5 @@ int sgui_internal_mem_pixmap_format( sgui_pixmap* this )
 {
     return this ? ((mem_pixmap*)this)->format : 0;
 }
+#endif
 
