@@ -149,13 +149,7 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     int attribs[10], major, minor;
-
-    /* try to create a glx window */
-    wnd->glx_wnd = glXCreateWindow( dpy, cfg, wnd->wnd, NULL );
-    wnd->gl      = 0;
-
-    if( !wnd->glx_wnd )
-        return 0;
+    wnd->gl = 0;
 
     /* try to load context creation function */
     CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
@@ -196,7 +190,7 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
 
 void gl_swap_buffers( sgui_window* wnd )
 {
-    glXSwapBuffers( dpy, TO_X11(wnd)->glx_wnd );
+    glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
 }
 #endif
 

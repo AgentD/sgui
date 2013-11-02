@@ -112,9 +112,6 @@ static void xlib_window_destroy( sgui_window* this )
     {
         if( TO_X11(this)->gl )
             glXDestroyContext( dpy, TO_X11(this)->gl );
-
-        if( TO_X11(this)->glx_wnd )
-            glXDestroyWindow( dpy, TO_X11(this)->glx_wnd );
     }
 #endif
 
@@ -496,8 +493,8 @@ void sgui_window_make_current( sgui_window* this )
     if( this && (this->backend==SGUI_OPENGL_CORE ||
                  this->backend==SGUI_OPENGL_COMPAT) )
     {
-        glXMakeContextCurrent( dpy, TO_X11(this)->glx_wnd,
-                               TO_X11(this)->glx_wnd, TO_X11(this)->gl );
+        glXMakeContextCurrent( dpy, TO_X11(this)->wnd, TO_X11(this)->wnd,
+                               TO_X11(this)->gl );
     }
     else
     {
@@ -520,7 +517,7 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
                           LOAD_GLFUN( "glXSwapIntervalEXT" );
 
         if( SwapIntervalEXT )
-            SwapIntervalEXT( dpy, TO_X11(this)->glx_wnd, vsync_on ? 1 : 0 );
+            SwapIntervalEXT( dpy, TO_X11(this)->wnd, vsync_on ? 1 : 0 );
     }
 #endif
 }

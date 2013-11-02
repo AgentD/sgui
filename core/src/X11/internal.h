@@ -84,7 +84,6 @@ typedef struct _sgui_window_xlib
 
 #ifndef SGUI_NO_OPENGL
     GLXContext gl;
-    GLXWindow glx_wnd;
 #endif
 
     struct _sgui_window_xlib* next;  /* linked list stuff */
