@@ -32,6 +32,7 @@ Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
 FT_Library freetype = 0;
+Window root = 0;
 static sgui_pixmap* skin_pixmap = NULL;
 static sgui_font_cache* glyph_cache = NULL;
 
@@ -75,8 +76,7 @@ sgui_pixmap* get_skin_pixmap( void )
     {
         sgui_skin_get_pixmap_size( &width, &height );
 
-        skin_pixmap = xlib_pixmap_create( width, height, SGUI_RGBA8,
-                                          DefaultRootWindow(dpy) );
+        skin_pixmap = xlib_pixmap_create( width, height, SGUI_RGBA8, root );
 
         if( skin_pixmap )
             sgui_skin_to_pixmap( skin_pixmap );
@@ -92,7 +92,7 @@ sgui_font_cache* get_glyph_cache( void )
     if( !glyph_cache )
     {
         font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
-                                       SGUI_A8, DefaultRootWindow(dpy) );
+                                       SGUI_A8, root );
 
         if( font_map )
         {
@@ -146,6 +146,7 @@ int sgui_init( void )
     /* initialise default GUI skin */
     sgui_skin_set( NULL );
 
+    root = DefaultRootWindow( dpy );
     return 1;
 }
 

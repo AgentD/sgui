@@ -192,5 +192,23 @@ void gl_swap_buffers( sgui_window* wnd )
 {
     glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
 }
+#else
+int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
+                         sgui_window_description* desc )
+{
+    (void)fbc; (void)vi; (void)cmap; (void)desc;
+    return 0;
+}
+
+int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
+{
+    (void)cfg; (void)core; (void)wnd;
+    return 0;
+}
+
+void gl_swap_buffers( sgui_window* wnd )
+{
+    (void)wnd;
+}
 #endif
 

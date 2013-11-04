@@ -328,22 +328,15 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     sgui_window* super;
     XSizeHints hints;
     XWindowAttributes attr;
-#ifndef SGUI_NO_OPENGL
     XSetWindowAttributes swa;
     XVisualInfo* vi = NULL;
     GLXFBConfig fbc = NULL;
-#endif
     unsigned long color = 0;
     unsigned char rgb[3];
     Window x_parent;
 
     if( !desc || !desc->width || !desc->height )
         return NULL;
-
-#ifdef SGUI_NO_OPENGL
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
-        return NULL;
-#endif
 
     /********* allocate space for the window structure *********/
     this = malloc( sizeof(sgui_window_xlib) );
@@ -357,23 +350,17 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     add_window( this );
 
     /******************** create the window ********************/
-    x_parent = desc->parent ? TO_X11(desc->parent)->wnd :
-                              DefaultRootWindow(dpy);
+    x_parent = desc->parent ? TO_X11(desc->parent)->wnd : root;
     this->is_child = (desc->parent!=NULL);
 
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-#ifndef SGUI_NO_OPENGL
         /* Get an fbc (optional), a visual and a Colormap */
         if( !get_fbc_visual_cmap( &fbc, &vi, &swa.colormap, desc ) )
-        {
-            xlib_window_destroy( super );
-            return NULL;
-        }
+            goto failure;
 
         /* create the window */
-        swa.background_pixmap = None;
-        swa.border_pixel      = 0;
+        swa.border_pixel = 0;
 
         this->wnd = XCreateWindow( dpy, x_parent, 0, 0,
                                    desc->width, desc->height, 0,
@@ -381,7 +368,6 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                                    CWBorderPixel|CWColormap, &swa );
 
         XFree( vi );
-#endif
     }
     else
     {
@@ -397,10 +383,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     }
 
     if( !this->wnd )
-    {
-        xlib_window_destroy( super );
-        return NULL;
-    }
+        goto failure;
 
     /* make the window non resizeable if required */
     if( !desc->resizeable )
@@ -433,16 +416,11 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     /********************** create canvas **********************/
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-#ifndef SGUI_NO_OPENGL
         if( !create_context( fbc, desc->backend==SGUI_OPENGL_CORE, this ) )
-        {
-            xlib_window_destroy( super );
-            return NULL;
-        }
+            goto failure;
 
         super->canvas = NULL;
         super->swap_buffers = gl_swap_buffers;
-#endif
     }
     else
     {
@@ -450,10 +428,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                                             attr.height );
 
         if( !super->canvas )
-        {
-            xlib_window_destroy( super );
-            return NULL;
-        }
+            goto failure;
     }
 
     /*********** Create an input context ************/
@@ -462,10 +437,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                           this->wnd, XNFocusWindow, this->wnd, NULL );
 
     if( !this->ic )
-    {
-        xlib_window_destroy( super );
-        return NULL;
-    }
+        goto failure;
 
     sgui_internal_window_post_init( super, attr.width, attr.height,
                                     desc->backend );
@@ -483,6 +455,9 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->destroy            = xlib_window_destroy;
 
     return (sgui_window*)this;
+failure:
+    xlib_window_destroy( super );
+    return NULL;
 }
 
 void sgui_window_make_current( sgui_window* this )
@@ -526,17 +501,11 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
 void sgui_window_get_platform_data( sgui_window* this,
                                     void* window, void* context )
 {
-    Window* wnd_ptr;
-#ifndef SGUI_NO_OPENGL
-    GLXContext* glx_ptr;
-#endif
-
     if( this )
     {
         if( window )
         {
-            wnd_ptr = window;
-            *wnd_ptr = TO_X11(this)->wnd;
+            *((Window*)window) = TO_X11(this)->wnd;
         }
 
         if( context )
@@ -545,8 +514,7 @@ void sgui_window_get_platform_data( sgui_window* this,
             if( this->backend==SGUI_OPENGL_COMPAT ||
                 this->backend==SGUI_OPENGL_CORE )
             {
-                glx_ptr = context;
-                *glx_ptr = TO_X11(this)->gl;
+                *((GLXContext*)context) = TO_X11(this)->gl;
             }
         #endif
         }

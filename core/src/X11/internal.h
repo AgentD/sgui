@@ -101,6 +101,7 @@ xlib_pixmap;
 
 extern XIM im;
 extern Display* dpy;
+extern Window root;
 extern Atom atom_wm_delete;
 extern FT_Library freetype;
 
@@ -127,7 +128,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
 void canvas_xlib_display( sgui_canvas* cv, int x, int y,
                           unsigned int width, unsigned int height );
 
-#ifndef SGUI_NO_OPENGL
 /* in OpenGL.c: get a framebuffer configuration, visual and colormap
    creating an framebuffer configuration may fail, returns non-zero on
    success, zero if creating a visual or colormap failed */
@@ -139,7 +139,6 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd );
 
 /* in OpenGL.c: sgui_window_swap_buffers implementation */
 void gl_swap_buffers( sgui_window* wnd );
-#endif
 
 /* pixmap.c: create an xlib pixmap */
 sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
