@@ -169,6 +169,8 @@ static void w32_window_destroy( sgui_window* this )
         PeekMessage( &msg, TO_W32(this)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
     }
 
+    DeleteObject( TO_W32(this)->bgbrush );
+
     remove_window( (sgui_window_w32*)this );
     free( this );
 }
@@ -180,6 +182,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
 {
     sgui_window* super = (sgui_window*)this;
     unsigned int i, num;
+    BLENDFUNCTION ftn;
     RECT r;
     sgui_rect sr;
     sgui_event e;
@@ -318,8 +321,19 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
 
             sgui_internal_window_fire_event( super, SGUI_EXPOSE_EVENT, &e );
 
+            ftn.BlendOp = AC_SRC_OVER;
+            ftn.BlendFlags = 0;
+            ftn.SourceConstantAlpha = 0xFF;
+            ftn.AlphaFormat = AC_SRC_ALPHA;
+
+            r.left = r.top = 0;
+            r.right = super->w;
+            r.bottom = super->h;
+
             hDC = BeginPaint( this->hWnd, &ps );
-            BitBlt( hDC, 0, 0, super->w, super->h, this->hDC, 0, 0, SRCCOPY );
+            FillRect( hDC, &r, this->bgbrush );
+            AlphaBlend( hDC, 0, 0, super->w, super->h, this->hDC,
+                        0, 0, super->w, super->h, ftn );
             EndPaint( this->hWnd, &ps );
         }
 
@@ -358,6 +372,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 {
     sgui_window_w32* this;
     sgui_window* super;
+    unsigned char color[4];
     HWND parent_hnd = 0;
     DWORD style;
     RECT r;
@@ -469,6 +484,9 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     sgui_internal_window_post_init( (sgui_window*)this,
                                      desc->width, desc->height,
                                      desc->backend );
+
+    sgui_skin_get_window_background_color( color );
+    this->bgbrush = CreateSolidBrush( RGB(color[0],color[1],color[2]) );
 
     /* store entry points */
     super->get_mouse_position = w32_window_get_mouse_position;

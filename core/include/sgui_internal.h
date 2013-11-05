@@ -195,8 +195,6 @@ struct sgui_canvas
 
     int began;
 
-    unsigned char bg_color[3];      /**< \brief RGB8 background color */
-
     sgui_widget root;               /**< \brief The dummy root widget */
 
     sgui_widget* mouse_over;        /**< \brief The widget under the mouse
@@ -262,7 +260,7 @@ struct sgui_canvas
     void(* end )( sgui_canvas* canvas );
 
     /**
-     * \brief Clear a portion of a canvas to the background color
+     * \brief Clear a portion of a canvas
      *
      * \param canvas A pointer to the canvas.
      * \param r      The region to clear, with ofset applied and cliped with
@@ -495,8 +493,7 @@ SGUI_DLL void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
  * \brief Perform common operations at the end of sgui_window_create
  *
  * This function stores the size and backend of a window in a window
- * structure, sets the window canvas background color to default window
- * color and clears it.
+ * structure.
  *
  * \param window  A pointer to a window structure
  * \param width   The width to store in the structure

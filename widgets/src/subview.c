@@ -192,19 +192,6 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     return (sgui_widget*)view;
 }
 
-void sgui_subview_set_background_color( sgui_widget* subview,
-                                        unsigned char* color )
-{
-    sgui_subview* view = (sgui_subview*)subview;
-    sgui_canvas* cv;
-
-    if( view && color )
-    {
-        cv = sgui_window_get_canvas( view->subwnd );
-        sgui_canvas_set_background_color( cv, color );
-    }
-}
-
 sgui_window* sgui_subview_get_window( sgui_widget* subview )
 {
     return subview ? ((sgui_subview*)subview)->subwnd : NULL;

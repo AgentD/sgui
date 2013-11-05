@@ -37,21 +37,15 @@
 void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
                                      unsigned int height, int backend )
 {
-    unsigned char rgb[3];
-
     if( window )
     {
         window->w       = width;
         window->h       = height;
         window->backend = backend;
 
-        sgui_skin_get_window_background_color( rgb );
-        sgui_canvas_set_background_color( window->canvas, rgb );
-        sgui_window_make_current( window );
         sgui_canvas_begin( window->canvas, NULL );
         sgui_canvas_clear( window->canvas, NULL );
         sgui_canvas_end( window->canvas );
-        sgui_window_make_current( NULL );
     }
 }
 

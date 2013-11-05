@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
 
@@ -58,14 +59,13 @@ static void mem_canvas_swaprb( sgui_canvas* super )
     y = this->locked.top;
     x1 = this->locked.right;
     y1 = this->locked.bottom;
-    dst = (unsigned char*)this->data + (y*super->width + x)*4;
+    dst = this->data + (y*super->width + x)*this->bpp;
 
     /* for each pixel in the locked area */
     for( j=y; j<=y1; ++j, dst+=super->width*this->bpp )
     {
         for( row=dst, i=x; i<=x1; ++i, row+=this->bpp )
         {
-            /* swap R and B */
             temp = row[0];
             row[0] = row[2];
             row[2] = temp;
@@ -89,20 +89,18 @@ static void canvas_mem_resize( sgui_canvas* super, unsigned int width,
 static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
 {
     mem_canvas* this = (mem_canvas*)super;
-    unsigned char *dst, *row;
-    int i, j;
+    unsigned int deltax, deltay;
+    unsigned char* dst;
+    int i;
 
-    dst = (unsigned char*)this->data + (r->top*super->width + r->left)*4;
+    dst = this->data + (r->top*super->width + r->left)*this->bpp;
+    deltax = (r->right - r->left + 1)*this->bpp;
+    deltay = super->width*this->bpp;
 
     /* clear */
-    for( j=r->top; j<=r->bottom; ++j, dst+=super->width*this->bpp )
+    for( i=r->top; i<=r->bottom; ++i, dst+=deltay )
     {
-        for( row=dst, i=r->left; i<=r->right; ++i, row+=this->bpp )
-        {
-            row[0] = super->bg_color[0];
-            row[1] = super->bg_color[1];
-            row[2] = super->bg_color[2];
-        }
+        memset( dst, 0, deltax );
     }
 }
 
@@ -115,7 +113,7 @@ static void canvas_mem_blit( sgui_canvas* super, int x, int y,
     unsigned char *src, *dst, *row, *srow;
     unsigned int i, j, srcbpp, scan, lines;
 
-    dst = (unsigned char*)this->data + (y*super->width + x)*4;
+    dst = this->data + (y*super->width + x)*this->bpp;
     src = sgui_internal_mem_pixmap_buffer( pixmap );
     srcbpp = sgui_internal_mem_pixmap_format( pixmap );
     srcbpp = srcbpp==SGUI_RGBA8 ? 4 : (srcbpp==SGUI_RGB8 ? 3 : 1);
@@ -138,6 +136,8 @@ static void canvas_mem_blit( sgui_canvas* super, int x, int y,
                 row[1] = srow[0];
                 row[2] = srow[0];
             }
+            if( this->bpp>3 )
+                row[3] = 0xFF;
         }
     }
 }
@@ -156,7 +156,7 @@ static void canvas_mem_blend( sgui_canvas* super, int x, int y,
 
     if( srcbpp == 4 )
     {
-        dst = (unsigned char*)this->data + (y*super->width + x)*4;
+        dst = this->data + (y*super->width + x)*this->bpp;
         src = sgui_internal_mem_pixmap_buffer( pixmap );
         sgui_pixmap_get_size( pixmap, &scan, &lines );
         src += (srcrect->top*scan + srcrect->left) * srcbpp;
@@ -171,6 +171,11 @@ static void canvas_mem_blend( sgui_canvas* super, int x, int y,
                 row[0] = (row[0] * iA + srow[0] * A)>>8;
                 row[1] = (row[1] * iA + srow[1] * A)>>8;
                 row[2] = (row[2] * iA + srow[2] * A)>>8;
+
+                if( this->bpp>3 )
+                {
+                    row[3] = (row[3] * iA + 0xFF * A) >> 8;
+                }
             }
         }
     }
@@ -203,6 +208,11 @@ static void canvas_mem_blend_stencil( sgui_canvas* super,
             row[0] = (row[0] * iA + color[0] * A)>>8;
             row[1] = (row[1] * iA + color[1] * A)>>8;
             row[2] = (row[2] * iA + color[2] * A)>>8;
+
+            if( this->bpp>3 )
+            {
+                row[3] = (row[3] * iA + 0xFF * A) >> 8;
+            }
         }
     }
 }

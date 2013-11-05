@@ -81,6 +81,7 @@ typedef struct _sgui_window_w32
     void* data;
     BITMAPINFO info;
     HBITMAP bitmap;
+    HBRUSH bgbrush;
 
 #ifndef SGUI_NO_OPENGL
     HGLRC hRC;

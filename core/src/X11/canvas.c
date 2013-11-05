@@ -33,6 +33,7 @@ typedef struct
     sgui_canvas super;
 
     Window wnd;
+    Picture wndpic;
 
     Picture pen;
     Pixmap penmap;
@@ -51,6 +52,7 @@ static void canvas_xlib_destroy( sgui_canvas* super )
 
     if( this->pic ) XRenderFreePicture( dpy, this->pic );
     if( this->pen ) XRenderFreePicture( dpy, this->pen );
+    if( this->wndpic ) XRenderFreePicture( dpy, this->wndpic );
 
     if( this->pixmap ) XFreePixmap( dpy, this->pixmap );
     if( this->penmap ) XFreePixmap( dpy, this->penmap );
@@ -72,9 +74,9 @@ static void canvas_xlib_resize( sgui_canvas* super, unsigned int width,
     XFreePixmap( dpy, this->pixmap );
 
     /* create a new pixmap */
-    this->pixmap = XCreatePixmap( dpy, this->wnd, width, height, 24 );
+    this->pixmap = XCreatePixmap( dpy, this->wnd, width, height, 32 );
 
-    fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
+    fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
     this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
 }
 
@@ -83,10 +85,7 @@ static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
     sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
     XRenderColor c;
 
-    c.red   = super->bg_color[0]<<8;
-    c.green = super->bg_color[1]<<8;
-    c.blue  = super->bg_color[2]<<8;
-    c.alpha = 0xFFFF;
+    c.red = c.green = c.blue = c.alpha = 0;
 
     XRenderFillRectangle( dpy, PictOpSrc, this->pic, &c, r->left, r->top,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
@@ -96,11 +95,17 @@ static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
                               sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
+    unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
+    XRenderColor c;
 
-    XRenderComposite( dpy, PictOpSrc, ((xlib_pixmap*)pixmap)->pic, 0,
-                      this->pic, srcrect->left, srcrect->top, 0, 0, x, y,
-                      SGUI_RECT_WIDTH_V(srcrect),
-                      SGUI_RECT_HEIGHT_V(srcrect) );
+    c.red = c.green = c.blue = 0;
+    c.alpha = 0xFFFF;
+
+    XRenderFillRectangle( dpy, PictOpSrc, this->pic, &c, x, y, w, h );
+    XRenderComposite( dpy, PictOpOver, ((xlib_pixmap*)pixmap)->pic, 0,
+                      this->pic, srcrect->left, srcrect->top, 0, 0,
+                      x, y, w, h );
 }
 
 static void canvas_xlib_blend( sgui_canvas* super, int x, int y,
@@ -209,7 +214,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
         return NULL;
 
     /* create pixmaps */
-    this->pixmap = XCreatePixmap( dpy, wnd, width, height, 24 );
+    this->pixmap = XCreatePixmap( dpy, wnd, width, height, 32 );
 
     if( !this->pixmap )
     {
@@ -226,13 +231,22 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     }
 
     /* crate Xrender pictures */
-    fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
+    fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
     this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
 
     if( !this->pic )
     {
         canvas_xlib_destroy( super );
         return NULL;        
+    }
+
+    fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
+    this->wndpic = XRenderCreatePicture( dpy, wnd, fmt, 0, NULL );
+
+    if( !this->wndpic )
+    {
+        canvas_xlib_destroy( super );
+        return NULL;
     }
 
     attr.repeat = RepeatNormal;
@@ -279,8 +293,9 @@ void canvas_xlib_display( sgui_canvas* super, int x, int y,
 
     if( this )
     {
-        XCopyArea( dpy, this->pixmap, this->wnd, this->gc,
-                   x, y, width, height, x, y );
-    }    
+        XClearArea( dpy, this->wnd, x, y, width, height, False );
+        XRenderComposite( dpy, PictOpOver, this->pic, 0, this->wndpic,
+                          x, y, 0, 0, x, y, width, height );
+    }
 }
 

@@ -34,7 +34,6 @@ int main( void )
     sgui_widget* text;
     sgui_widget* gl_view;
     sgui_font* font;
-    unsigned char bg_color[3] = { 0, 0, 0 };
 
     sgui_init( );
 
@@ -55,8 +54,6 @@ int main( void )
     button = sgui_button_create( 10, 155, 75, 30, "Refresh" );
     gl_view = sgui_subview_create( wnd, 10, 10, 180, 120,
                                    SGUI_OPENGL_COMPAT, NULL );
-
-    sgui_subview_set_background_color( gl_view, bg_color );
 
     /* hook callbacks */
     sgui_subview_set_draw_callback( gl_view, glview_on_draw );

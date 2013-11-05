@@ -85,18 +85,6 @@ SGUI_DLL sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
                                            sgui_window_description* cfg );
 
 /**
- * \brief Change the background color of a subview widget
- *
- * The background color of subview widgets defaults to the regular window
- * background color.
- *
- * \param subview The view of wich to change the color
- * \param color   The new background color
- */
-SGUI_DLL void sgui_subview_set_background_color( sgui_widget* subview,
-                                                 unsigned char* color );
-
-/**
  * \brief Get a direct pointer to the window managed by a subview widget
  */
 SGUI_DLL sgui_window* sgui_subview_get_window( sgui_widget* subview );

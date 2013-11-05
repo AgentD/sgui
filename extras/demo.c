@@ -188,15 +188,12 @@ int main( int argc, char** argv )
     /* OpenGL widget tab */
     if( !nogl )
     {
-        unsigned char color[3] = { 0, 0, 0 };
-
         sgui_tab_group_add_tab( tab, "OpenGL" );
 
         gl_view=sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT,NULL);
         gl_sub0 = sgui_static_text_create( 45, 175, "Redraw on demand" );
         gl_sub1 = sgui_static_text_create( 275, 175, "Redraw continuous" );
 
-        sgui_subview_set_background_color( gl_view, color );
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 
         sgui_tab_group_add_widget( tab, 3, gl_view );

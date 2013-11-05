@@ -181,15 +181,6 @@ SGUI_DLL void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
                                     unsigned int* height );
 
 /**
- * \brief Set the background color of the canvas
- *
- * \param color The background color
- */
-SGUI_DLL void sgui_canvas_set_background_color( sgui_canvas* canvas,
-                                                unsigned char* color );
-
-
-/**
  * \brief Create a pixmap
  *
  * This function creates a pixmap. A pixmap is a server side memory area that
@@ -242,7 +233,7 @@ SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
 
 
 /**
- * \brief Clear a rectangular region on the canvas to the background color
+ * \brief Clear a rectangular region on the canvas
  *
  * \param r The area to clear
  */

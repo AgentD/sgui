@@ -67,9 +67,9 @@ static void mem_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
             {
                 alpha = srcbpp==4 ? row[3] : 0xFF;
 
-                dstrow[0] = row[0]*alpha >> 8;
-                dstrow[1] = row[1]*alpha >> 8;
-                dstrow[2] = row[2]*alpha >> 8;
+                dstrow[0] = row[0];
+                dstrow[1] = row[1];
+                dstrow[2] = row[2];
 
                 if( bpp==4 )
                     dstrow[3] = alpha;

@@ -379,17 +379,6 @@ void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
     if( height ) *height = canvas ? canvas->height : 0;
 }
 
-void sgui_canvas_set_background_color( sgui_canvas* canvas,
-                                       unsigned char* color )
-{
-    if( canvas && color )
-    {
-        canvas->bg_color[0] = color[0];
-        canvas->bg_color[1] = color[1];
-        canvas->bg_color[2] = color[2];
-    }
-}
-
 sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
                                         unsigned int width,
                                         unsigned int height, int format )
