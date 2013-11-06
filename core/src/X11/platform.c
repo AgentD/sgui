@@ -47,12 +47,47 @@ static const char* wm_delete_window = "WM_DELETE_WINDOW";
 /* Xlib error callback to prevent xlib from crashing our program on error */
 static int xlib_swallow_errors( Display* display, XErrorEvent* event )
 {
-    (void)display;
-    (void)event;
+    (void)display; (void)event;
     return 0;
 }
 
+/* fetch and process the next Xlib event */
+static void handle_event( )
+{
+    sgui_window_xlib* i;
+    XEvent e;
 
+    XNextEvent( dpy, &e );
+
+    /* XFilterEvent filters out keyboard events needed for composing and
+       returns True if it handled the event and we should ignore it */
+    if( !XFilterEvent( &e, None ) )
+    {
+        /* route the event to it's window */
+        for( i=list; i!=NULL && i->wnd!=e.xany.window; i=i->next );
+
+        if( i!=NULL )
+            handle_window_events( i, &e );
+    }
+}
+
+/* returns non-zero if there's at least 1 window still active */
+static int have_active_windows( )
+{
+    sgui_window_xlib* i;
+
+    for( i=list; i!=NULL && !i->super.visible; i=i->next );
+
+    return i!=NULL;
+}
+
+static void update_windows( )
+{
+    sgui_window_xlib* i;
+
+    for( i=list; i!=NULL; i=i->next )
+        update_window( i );
+}
 
 /****************************************************************************/
 
@@ -112,53 +147,38 @@ int sgui_init( void )
 {
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
-    {
-        sgui_deinit( );
-        return 0;
-    }
+        goto failure;
 
     /* open display connection */
-    dpy = XOpenDisplay( 0 );
-
-    if( !dpy )
-    {
-        sgui_deinit( );
-        return 0;
-    }
+    if( !(dpy = XOpenDisplay( 0 )) )
+        goto failure;
 
     XSetErrorHandler( xlib_swallow_errors );
 
     /* create input method */
-    im = XOpenIM( dpy, NULL, NULL, NULL );
+    if( !(im = XOpenIM( dpy, NULL, NULL, NULL )) )
+        goto failure;
 
-    if( !im )
-    {
-        sgui_deinit( );
-        return 0;
-    }
-
-    /* get wm delete atom */
+    /* get usefull constants */
     atom_wm_delete = XInternAtom( dpy, wm_delete_window, True );
+    root = DefaultRootWindow( dpy );
 
     /* initialise keycode translation LUT */
     init_keycodes( );
 
     /* initialise default GUI skin */
     sgui_skin_set( NULL );
-
-    root = DefaultRootWindow( dpy );
     return 1;
+failure:
+    sgui_deinit( );
+    return 0;
 }
 
 void sgui_deinit( void )
 {
     sgui_skin_unload( );
-
-    if( skin_pixmap )
-        sgui_pixmap_destroy( skin_pixmap );
-
-    if( glyph_cache )
-        sgui_font_cache_destroy( glyph_cache );
+    sgui_pixmap_destroy( skin_pixmap );
+    sgui_font_cache_destroy( glyph_cache );
 
     if( im )
         XCloseIM( im );
@@ -178,66 +198,20 @@ void sgui_deinit( void )
 
 int sgui_main_loop_step( void )
 {
-    sgui_window_xlib* i;
-    XEvent e;
+    update_windows( );
 
     if( XPending( dpy ) > 0 )
-    {
-        XNextEvent( dpy, &e );
+        handle_event( );
 
-        /* XFilterEvent filters out keyboard events needed for composing and
-           returns True if it handled the event and we should ignore it */
-        if( !XFilterEvent( &e, None ) )
-        {
-            /* route the event to it's window */
-            for( i=list; i!=NULL; i=i->next )
-            {
-                if( i->wnd == e.xany.window )
-                {
-                    handle_window_events( i, &e );
-                    break;
-                }
-            }
-        }
-    }
-
-    /* check if there's at least 1 window still active */
-    for( i=list; i!=NULL; i=i->next )
-        if( i->super.visible )
-            return 1;
-
-    return 0;
+    return have_active_windows( );
 }
 
 void sgui_main_loop( void )
 {
-    sgui_window_xlib* i;
-    int active;
-    XEvent e;
-
-    do
+    while( have_active_windows( ) )
     {
-        XNextEvent( dpy, &e );
-
-        /* XFilterEvent filters out keyboard events needed for composing and
-           returns True if it handled the event and we should ignore it */
-        if( !XFilterEvent( &e, None ) )
-        {
-            /* route the event to it's window */
-            for( i=list; i!=NULL; i=i->next )
-            {
-                if( i->wnd == e.xany.window )
-                {
-                    handle_window_events( i, &e );
-                    break;
-                }
-            }
-        }
-
-        /* check if there's at least 1 window still active */
-        for( i=list, active=0; i!=NULL && !active; i=i->next )
-            active |= i->super.visible;
+        update_windows( );
+        handle_event( );
     }
-    while( active );
 }
 

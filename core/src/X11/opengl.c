@@ -47,6 +47,9 @@ typedef GLXContext (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
                                                   GLXContext, Bool,
                                                   const int* );
 
+int glversions[][2] = { {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
+                               {3,3}, {3,2}, {3,1}, {3,0} };
+
 
 void set_attributes( int* attr, int bpp, int depth, int stencil,
                      int doublebuffer, int samples )
@@ -148,7 +151,8 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
 int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
-    int attribs[10], major, minor;
+    int attribs[10];
+    unsigned int i;
     wnd->gl = 0;
 
     /* try to load context creation function */
@@ -170,14 +174,11 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
         attribs[8] = None;
 
         /* try to create 4.x down to 3.x context */
-        for( major=4; !wnd->gl && major>=3; --major )
+        for(i=0; !wnd->gl && i<sizeof(glversions)/sizeof(glversions[0]); ++i)
         {
-            for( minor=3; !wnd->gl && minor>=0; --minor )
-            {
-                attribs[1] = major;
-                attribs[3] = minor;
-                wnd->gl = CreateContextAttribs( dpy, cfg, 0, True, attribs );
-            }
+            attribs[1] = glversions[i][0];
+            attribs[3] = glversions[i][1];
+            wnd->gl = CreateContextAttribs( dpy, cfg, 0, True, attribs );
         }
     }
 

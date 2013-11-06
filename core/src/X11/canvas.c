@@ -40,7 +40,6 @@ typedef struct
 
     Picture pic;
     Pixmap pixmap;
-    GC gc;
 }
 sgui_canvas_xlib;
 
@@ -56,9 +55,6 @@ static void canvas_xlib_destroy( sgui_canvas* super )
 
     if( this->pixmap ) XFreePixmap( dpy, this->pixmap );
     if( this->penmap ) XFreePixmap( dpy, this->penmap );
-
-    if( this->gc )
-        XFreeGC( dpy, this->gc );
 
     free( this );
 }
@@ -202,9 +198,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
 
     /* make sure that the XRender extension is present */
     if( !XRenderQueryExtension( dpy, &base, &error ) )
-    {
         return NULL;
-    }
 
     /* allocate xlib canvas */
     this = malloc( sizeof(sgui_canvas_xlib) );
@@ -214,58 +208,30 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
         return NULL;
 
     /* create pixmaps */
-    this->pixmap = XCreatePixmap( dpy, wnd, width, height, 32 );
+    if( !(this->pixmap = XCreatePixmap( dpy, wnd, width, height, 32 )) )
+        goto failure;
 
-    if( !this->pixmap )
-    {
-        canvas_xlib_destroy( super );
-        return NULL;
-    }
-
-    this->penmap = XCreatePixmap( dpy, wnd, 1, 1, 24 );
-
-    if( !this->penmap )
-    {
-        canvas_xlib_destroy( super );
-        return NULL;
-    }
+    if( !(this->penmap = XCreatePixmap( dpy, wnd, 1, 1, 24 )) )
+        goto failure;
 
     /* crate Xrender pictures */
     fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
     this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
 
     if( !this->pic )
-    {
-        canvas_xlib_destroy( super );
-        return NULL;        
-    }
+        goto failure;
 
     fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
     this->wndpic = XRenderCreatePicture( dpy, wnd, fmt, 0, NULL );
 
     if( !this->wndpic )
-    {
-        canvas_xlib_destroy( super );
-        return NULL;
-    }
+        goto failure;
 
     attr.repeat = RepeatNormal;
     this->pen = XRenderCreatePicture(dpy, this->penmap, fmt, CPRepeat, &attr);
 
     if( !this->pen )
-    {
-        canvas_xlib_destroy( super );
-        return NULL;        
-    }
-
-    /* create a graphics context */
-    this->gc = XCreateGC( dpy, this->pixmap, 0, NULL );
-
-    if( !this->gc )
-    {
-        canvas_xlib_destroy( super );
-        return NULL;
-    }
+        goto failure;
 
     /* finish initialisation */
     sgui_internal_canvas_init( super, width, height );
@@ -284,6 +250,9 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     super->skin_pixmap   = get_skin_pixmap( );
 
     return (sgui_canvas*)this;
+failure:
+    canvas_xlib_destroy( super );
+    return NULL;
 }
 
 void canvas_xlib_display( sgui_canvas* super, int x, int y,

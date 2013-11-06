@@ -120,6 +120,9 @@ void remove_window( sgui_window_xlib* window );
 /* in window.c: process an XEvent */
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 
+/* in window.c: generate expose events for dirty rectangles */
+void update_window( sgui_window_xlib* wnd );
+
 /* in canvas.c: create an xlib canvas */
 sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height );

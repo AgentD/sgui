@@ -124,17 +124,46 @@ static void xlib_window_destroy( sgui_window* this )
 
 /****************************************************************************/
 
+void update_window( sgui_window_xlib* this )
+{
+    sgui_window* super = (sgui_window*)this;
+    unsigned int i, num;
+    XExposeEvent exp;
+    sgui_rect r;
+
+    if( super->canvas )
+    {
+        num = sgui_canvas_num_dirty_rects( super->canvas );
+
+        exp.type       = Expose;
+        exp.serial     = 0;
+        exp.send_event = 1;
+        exp.display    = dpy;
+        exp.window     = this->wnd;
+        exp.count      = 0;
+
+        for( i=0; i<num; ++i )
+        {
+            sgui_canvas_get_dirty_rect( super->canvas, &r, i );
+
+            exp.x      = r.left;
+            exp.y      = r.top;
+            exp.width  = r.right  - r.left + 1;
+            exp.height = r.bottom - r.top  + 1;
+
+            XSendEvent( dpy, this->wnd, False, ExposureMask, (XEvent*)&exp );
+        }
+
+        sgui_canvas_redraw_widgets( super->canvas, 1 );
+    }
+}
+
 void handle_window_events( sgui_window_xlib* this, XEvent* e )
 {
-    unsigned int i, num;
-    sgui_window* super;
-    XExposeEvent exp;
+    sgui_window* super = (sgui_window*)this;
     sgui_event se;
-    sgui_rect r;
     Status stat;
     KeySym sym;
-
-    super = (sgui_window*)this;
 
     switch( e->type )
     {
@@ -184,18 +213,21 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         else
         {
-            if( e->xbutton.button == Button1 )
-                se.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-            else if( e->xbutton.button == Button2 )
-                se.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-            else if( e->xbutton.button == Button3 )
-                se.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-            else
+            switch( e->xbutton.button )
+            {
+            case Button1:
+                se.mouse_press.button=SGUI_MOUSE_BUTTON_LEFT;
                 break;
+            case Button2:
+                se.mouse_press.button=SGUI_MOUSE_BUTTON_MIDDLE;
+                break;
+            case Button3:
+                se.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+                break;
+            }
 
-            sgui_window_get_mouse_position( (sgui_window*)this,
-                                            &se.mouse_press.x,
-                                            &se.mouse_press.y );
+            se.mouse_press.x = e->xbutton.x;
+            se.mouse_press.y = e->xbutton.y;
 
             if( e->type==ButtonPress )
                 SEND_EVENT( this, SGUI_MOUSE_PRESS_EVENT, &se );
@@ -253,8 +285,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         if( super->backend==SGUI_OPENGL_CORE ||
             super->backend==SGUI_OPENGL_COMPAT )
         {
-            sgui_rect_set_size( &se.expose_event, 0, 0,
-                                super->w, super->h );
+            sgui_rect_set_size( &se.expose_event, 0, 0, super->w, super->h );
             SEND_EVENT( this, SGUI_EXPOSE_EVENT, &se );
         }
         break;
@@ -277,47 +308,18 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case Expose:
         if( super->canvas )
         {
-            canvas_xlib_display( super->canvas,
-                                 e->xexpose.x, e->xexpose.y,
+            canvas_xlib_display( super->canvas, e->xexpose.x, e->xexpose.y,
                                  e->xexpose.width, e->xexpose.height );
         }
 
         if( super->backend==SGUI_OPENGL_CORE ||
             super->backend==SGUI_OPENGL_COMPAT )
         {
-            sgui_rect_set_size( &se.expose_event, 0, 0,
-                                super->w, super->h );
+            sgui_rect_set_size( &se.expose_event, 0, 0, super->w, super->h );
             SEND_EVENT( this, SGUI_EXPOSE_EVENT, &se );
         }
         break;
     };
-
-    /* generate expose events for dirty rectangles */
-    if( super->canvas )
-    {
-        num = sgui_canvas_num_dirty_rects( super->canvas );
-
-        exp.type       = Expose;
-        exp.serial     = 0;
-        exp.send_event = 1;
-        exp.display    = dpy;
-        exp.window     = this->wnd;
-        exp.count      = 0;
-
-        for( i=0; i<num; ++i )
-        {
-            sgui_canvas_get_dirty_rect( super->canvas, &r, i );
-
-            exp.x      = r.left;
-            exp.y      = r.top;
-            exp.width  = r.right  - r.left + 1;
-            exp.height = r.bottom - r.top  + 1;
-
-            XSendEvent( dpy, this->wnd, False, ExposureMask, (XEvent*)&exp );
-        }
-
-        sgui_canvas_redraw_widgets( super->canvas, 1 );
-    }
 }
 
 /****************************************************************************/
@@ -373,9 +375,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     {
         sgui_skin_get_window_background_color( rgb );
 
-        color |= ((unsigned long)rgb[0]) << 16;
-        color |= ((unsigned long)rgb[1]) << 8;
-        color |= ((unsigned long)rgb[2]);
+        color = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
 
         this->wnd = XCreateSimpleWindow( dpy, x_parent, 0, 0,
                                          desc->width, desc->height,
@@ -508,16 +508,16 @@ void sgui_window_get_platform_data( sgui_window* this,
             *((Window*)window) = TO_X11(this)->wnd;
         }
 
+    #ifndef SGUI_NO_OPENGL
         if( context )
         {
-        #ifndef SGUI_NO_OPENGL
             if( this->backend==SGUI_OPENGL_COMPAT ||
                 this->backend==SGUI_OPENGL_CORE )
             {
                 *((GLXContext*)context) = TO_X11(this)->gl;
             }
-        #endif
         }
+    #endif
     }
 }
 
