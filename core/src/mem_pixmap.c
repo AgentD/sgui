@@ -27,6 +27,7 @@
 #include "sgui_pixmap.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 
@@ -36,50 +37,174 @@ typedef struct
     sgui_pixmap super;
 
     unsigned char* buffer;
-    int format;
+    int format, swaprb;
 }
 mem_pixmap;
 
 
 
-static void mem_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
-                             const unsigned char* data, unsigned int scan,
-                             unsigned int width, unsigned int height,
-                             int format )
+static void mem_pixmap_load_rgb8( sgui_pixmap* super, int dstx, int dsty,
+                                  const unsigned char* data, unsigned int scan,
+                                  unsigned int width, unsigned int height,
+                                  int format )
 {
-    unsigned char *dst, *dstrow;
+    unsigned char *dst, *dstrow, temp;
     const unsigned char *src, *row;
-    unsigned int i, j, alpha, srcbpp;
+    unsigned int i, j, dxd;
     mem_pixmap* this = (mem_pixmap*)super;
-    int bpp;
 
-    srcbpp = format==SGUI_RGBA8 ? 4 : (format==SGUI_RGB8 ? 3 : 1);
-    bpp = this->format==SGUI_RGBA8 ? 4 : (this->format==SGUI_RGB8 ? 3 : 1);
-    dst = this->buffer + (dstx + dsty*super->width)*bpp;
+    dst = this->buffer + (dstx + dsty*super->width) * 3;
+    dxd = super->width*3;
 
-    for( src=data, j=0; j<height; ++j, src+=scan*srcbpp,
-                                       dst+=super->width*bpp )
+    if( format==SGUI_A8 )
     {
-        for( dstrow=dst, row=src, i=0; i<width; ++i, row+=srcbpp,
-                                                     dstrow+=bpp )
+        for( src=data, j=0; j<height; ++j, src+=scan, dst+=dxd )
         {
-            if( srcbpp>=3 )
+            for( dstrow=dst, row=src, i=0; i<width; ++i, ++row, dstrow+=3 )
             {
-                alpha = srcbpp==4 ? row[3] : 0xFF;
+                dstrow[0] = dstrow[1] = dstrow[2] = *row;
+            }
+        }
+    }
+    else if( format==SGUI_RGB8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=3*scan, dst+=dxd )
+        {
+            memcpy( dst, src, width );
+        }
+    }
+    else
+    {
+        for( src=data, j=0; j<height; ++j, src+=4*scan, dst+=dxd )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i, ++row )
+            {
+                *(dstrow++) = *(row++);
+                *(dstrow++) = *(row++);
+                *(dstrow++) = *(row++);
+            }
+        }
+    }
 
+    if( this->swaprb )
+    {
+        dst = this->buffer + (dstx + dsty*super->width) * 3;
+
+        for( j=0; j<height; ++j, dst+=dxd )
+        {
+            for( dstrow=dst, i=0; i<width; ++i, ++row, dstrow+=3 )
+            {
+                temp = dstrow[0];
+                dstrow[0] = dstrow[2];
+                dstrow[2] = temp;
+            }
+        }
+    }
+}
+
+static void mem_pixmap_load_rgba8( sgui_pixmap* super, int dstx, int dsty,
+                                   const unsigned char* data,
+                                   unsigned int scan, unsigned int width,
+                                   unsigned int height, int format )
+{
+    unsigned char temp, *dst, *dstrow;
+    const unsigned char *src, *row;
+    unsigned int i, j, alpha;
+    mem_pixmap* this = (mem_pixmap*)super;
+
+    dst = this->buffer + (dstx + dsty*super->width) * 4;
+
+    if( format==SGUI_A8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan, dst+=super->width*4 )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i, ++row, dstrow+=4 )
+            {
+                dstrow[0] = dstrow[1] = dstrow[2] = dstrow[3] = *row;
+            }
+        }
+    }
+    else if( format==SGUI_RGB8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan*3, dst+=super->width*4 )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i, row+=3, dstrow+=4 )
+            {
                 dstrow[0] = row[0];
                 dstrow[1] = row[1];
                 dstrow[2] = row[2];
-
-                if( bpp==4 )
-                    dstrow[3] = alpha;
+                dstrow[3] = 0xFF;
             }
-            else
+        }
+    }
+    else
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan*4, dst+=super->width*4 )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i, row+=4, dstrow+=4 )
             {
-                dstrow[0] = dstrow[1] = dstrow[2] = *row;
+                alpha = row[3];
 
-                if( bpp==4 )
-                    dstrow[3] = *row;
+                dstrow[0] = (row[0] * alpha) >>8;
+                dstrow[1] = (row[1] * alpha) >>8;
+                dstrow[2] = (row[2] * alpha) >>8;
+                dstrow[3] = alpha;
+            }
+        }
+    }
+
+    if( this->swaprb )
+    {
+        dst = this->buffer + (dstx + dsty*super->width) * 4;
+
+        for( j=0; j<height; ++j, dst+=super->width*4 )
+        {
+            for( dstrow=dst, i=0; i<width; ++i, ++row, dstrow+=4 )
+            {
+                temp = dstrow[0];
+                dstrow[0] = dstrow[2];
+                dstrow[2] = temp;
+            }
+        }
+    }
+}
+
+static void mem_pixmap_load_a8( sgui_pixmap* super, int dstx, int dsty,
+                                const unsigned char* data,
+                                unsigned int scan, unsigned int width,
+                                unsigned int height, int format )
+{
+    unsigned char *dst, *dstrow;
+    const unsigned char *src, *row;
+    unsigned int i, j;
+    mem_pixmap* this = (mem_pixmap*)super;
+
+    dst = this->buffer + (dstx + dsty*super->width);
+
+    if( format==SGUI_A8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan, dst+=super->width )
+        {
+            memcpy( dst, src, width );
+        }
+    }
+    else if( format==SGUI_RGB8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan, dst+=super->width )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i, row+=3 )
+            {
+                *(dstrow++) = *row;
+            }
+        }
+    }
+    else
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan, dst+=super->width )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i, row+=4 )
+            {
+                *(dstrow++) = row[3];
             }
         }
     }
@@ -97,7 +222,7 @@ static void mem_pixmap_destroy( sgui_pixmap* super )
 
 sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
                                               unsigned int height,
-                                              int format )
+                                              int format, int swaprb )
 {
     mem_pixmap* this;
     sgui_pixmap* super;
@@ -121,10 +246,13 @@ sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
     }
 
     this->format   = format;
+    this->swaprb   = swaprb;
     super->width   = width;
     super->height  = height;
     super->destroy = mem_pixmap_destroy;
-    super->load    = mem_pixmap_load;
+    super->load    = format==SGUI_RGBA8 ? mem_pixmap_load_rgba8 :
+                     format==SGUI_RGB8  ? mem_pixmap_load_rgb8 :
+                                          mem_pixmap_load_a8;
 
     return (sgui_pixmap*)this;
 }

@@ -533,7 +533,8 @@ SGUI_DLL void sgui_interal_skin_init_default( sgui_skin* skin );
  */
 SGUI_DLL sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
                                                        unsigned int height,
-                                                       int format );
+                                                       int format,
+                                                       int swaprb );
 
 /** \brief Get a pointer to the data of a memory pixmap */
 SGUI_DLL unsigned char* sgui_internal_mem_pixmap_buffer( sgui_pixmap* pix );
