@@ -177,14 +177,35 @@ static void w32_window_destroy( sgui_window* this )
 
 /****************************************************************************/
 
+void update_window( sgui_window_w32* this )
+{
+    sgui_window* super = (sgui_window*)this;
+    unsigned int i, num;
+    sgui_rect sr;
+    RECT r;
+
+    if( super->canvas )
+    {
+        num = sgui_canvas_num_dirty_rects( super->canvas );
+
+        for( i=0; i<num; ++i )
+        {
+            sgui_canvas_get_dirty_rect( super->canvas, &sr, i );
+
+            SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
+            InvalidateRect( this->hWnd, &r, TRUE );
+        }
+
+        sgui_canvas_redraw_widgets( super->canvas, 1 );
+    }
+}
+
 int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
                           LPARAM lp )
 {
     sgui_window* super = (sgui_window*)this;
-    unsigned int i, num;
     BLENDFUNCTION ftn;
     RECT r;
-    sgui_rect sr;
     sgui_event e;
     PAINTSTRUCT ps;
     HDC hDC;
@@ -286,12 +307,9 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         }
         break;
     case WM_SIZE:
-        super->w = LOWORD( lp );
-        super->h = HIWORD( lp );
-
         /* send size change event */
-        e.size.new_width  = super->w;
-        e.size.new_height = super->h;
+        e.size.new_width  = super->w = LOWORD( lp );
+        e.size.new_height = super->h = HIWORD( lp );
 
         /* resize canvas and redraw everything */
         if( super->backend==SGUI_NATIVE )
@@ -314,11 +332,6 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
     case WM_PAINT:
         if( super->canvas )
         {
-            num = sgui_canvas_num_dirty_rects( super->canvas );
-
-            if( num )
-                sgui_canvas_redraw_widgets( super->canvas, 1 );
-
             sgui_internal_window_fire_event( super, SGUI_EXPOSE_EVENT, &e );
 
             ftn.BlendOp = AC_SRC_OVER;
@@ -347,22 +360,6 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         return -1;
     }
 
-    /* invalidate all dirty rects of the canvas */
-    if( super->canvas )
-    {
-        num = sgui_canvas_num_dirty_rects( super->canvas );
-
-        for( i=0; i<num; ++i )
-        {
-            sgui_canvas_get_dirty_rect( super->canvas, &sr, i );
-
-            SetRect( &r, sr.left, sr.top, sr.right+1, sr.bottom+1 );
-            InvalidateRect( this->hWnd, &r, TRUE );
-        }
-
-        sgui_canvas_redraw_widgets( super->canvas, 1 );
-    }
-
     return 0;
 }
 
@@ -379,11 +376,6 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 
     if( !desc || !desc->width || !desc->height )
         return NULL;
-
-#ifdef SGUI_NO_OPENGL
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
-        return NULL;
-#endif
 
     /*************** allocate space for the window structure ***************/
     this = malloc( sizeof(sgui_window_w32) );
@@ -417,10 +409,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                                  r.bottom-r.top, parent_hnd, 0, hInstance, 0);
 
     if( !this->hWnd )
-    {
-        w32_window_destroy( (sgui_window*)this );
-        return NULL;
-    }
+        goto failure;
 
     SET_USER_PTR( this->hWnd, this );
 
@@ -428,10 +417,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
         if( !create_gl_context( this, desc ) )
-        {
-            w32_window_destroy( (sgui_window*)this );
-            return NULL;
-        }
+            goto failure;
 
         super->canvas = NULL;
         super->swap_buffers = gl_swap_buffers;
@@ -439,13 +425,8 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     else
     {
         /* create an offscreen Device Context */
-        this->hDC = CreateCompatibleDC( NULL );
-
-        if( !this->hDC )
-        {
-            w32_window_destroy( (sgui_window*)this );
-            return NULL;
-        }
+        if( !(this->hDC = CreateCompatibleDC( NULL )) )
+            goto failure;
 
         /*fill the bitmap header */
         this->info.bmiHeader.biSize        = sizeof(this->info.bmiHeader);
@@ -460,10 +441,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                                          DIB_RGB_COLORS, &this->data, 0, 0 );
 
         if( !this->bitmap )
-        {
-            w32_window_destroy( (sgui_window*)this );
-            return NULL;
-        }
+            goto failure;
 
         /* bind the dib section to the offscreen context */
         SelectObject( this->hDC, this->bitmap );
@@ -473,10 +451,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
                                                    SGUI_RGBA8, 1 );
 
         if( !super->canvas )
-        {
-            w32_window_destroy( (sgui_window*)this );
-            return NULL;
-        }
+            goto failure;
 
         super->canvas->skin_pixmap = get_skin_pixmap( );
     }
@@ -499,6 +474,9 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->destroy            = w32_window_destroy;
 
     return (sgui_window*)this;
+failure:
+    w32_window_destroy( (sgui_window*)this );
+    return NULL;
 }
 
 void sgui_window_make_current( sgui_window* this )
@@ -537,17 +515,17 @@ void sgui_window_get_platform_data( sgui_window* this,
             *phWnd = TO_W32(this)->hWnd;
         }
 
+    #ifndef SGUI_NO_OPENGL
         if( context )
         {
-        #ifndef SGUI_NO_OPENGL
             if( this->backend==SGUI_OPENGL_COMPAT ||
                 this->backend==SGUI_OPENGL_CORE )
             {
                 phRC = context;
                 *phRC = TO_W32(this)->hRC;
             }
-        #endif
         }
+    #endif
     }
 }
 

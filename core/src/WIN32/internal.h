@@ -103,6 +103,9 @@ void add_window( sgui_window_w32* wnd );
 /* in platform.c: remove a window */
 void remove_window( sgui_window_w32* wnd );
 
+/* in window.c: invalidate all dirty rects of the canvas */
+void update_window( sgui_window_w32* wnd );
+
 /* in window.c: handle window messages */
 int handle_window_events( sgui_window_w32* wnd, UINT msg,
                           WPARAM wp, LPARAM lp );

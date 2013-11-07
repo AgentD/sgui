@@ -35,9 +35,6 @@ HINSTANCE hInstance;
 const char* wndclass = "sgui_wnd_class";
 
 
-
-
-
 static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
                                        LPARAM lp )
 {
@@ -54,8 +51,24 @@ static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
     return result < 0 ? DefWindowProc( hWnd, msg, wp, lp ) : result;
 }
 
+static int is_window_active( void )
+{
+    sgui_window_w32* i;
 
+    for( i=list; i!=NULL && !i->super.visible; i=i->next );
 
+    return (i!=NULL);
+}
+
+static void update_windows( void )
+{
+    sgui_window_w32* i;
+
+    for( i=list; i!=NULL; i=i->next )
+       update_window( i );
+}
+
+/****************************************************************************/
 
 void add_window( sgui_window_w32* wnd )
 {
@@ -95,19 +108,11 @@ int sgui_init( void )
 
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
-    {
-        sgui_deinit( );
-        return 0;
-    }
+        goto failure;
 
     /* get hInstance */
-    hInstance = GetModuleHandle( NULL );
-
-    if( !hInstance )
-    {
-        sgui_deinit( );
-        return 0;
-    }
+    if( !(hInstance = GetModuleHandle( NULL )) )
+        goto failure;
 
     /* Register window class */
     memset( &wc, 0, sizeof(WNDCLASSEX) );
@@ -120,15 +125,14 @@ int sgui_init( void )
     wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
 
     if( RegisterClassEx( &wc ) == 0 )
-    {
-        sgui_deinit( );
-        return 0;
-    }
+        goto failure;
 
     /* initialise default GUI skin */
     sgui_skin_set( NULL );
-
     return 1;
+failure:
+    sgui_deinit( );
+    return 0;
 }
 
 void sgui_deinit( void )
@@ -154,41 +158,29 @@ void sgui_deinit( void )
 
 int sgui_main_loop_step( void )
 {
-    sgui_window_w32* i;
     MSG msg;
 
-    /* handle a message if there is one */
+    update_windows( );
+
     if( PeekMessage( &msg, 0, 0, 0, PM_REMOVE ) )
     {
         TranslateMessage( &msg );
         DispatchMessage( &msg );
     }
 
-    /* check if there's at least 1 window still active */
-    for( i=list; i!=NULL; i=i->next )
-        if( i->super.visible )
-            return 1;
-
-    return 0;
+    return is_window_active( );
 }
 
 void sgui_main_loop( void )
 {
-    sgui_window_w32* i;
-    int active;
     MSG msg;
 
-    do
+    while( is_window_active( ) )
     {
-        /* handle message */
+        update_windows( );
         GetMessage( &msg, 0, 0, 0 );
         TranslateMessage( &msg );
         DispatchMessage( &msg );
-
-        /* check if there's at least 1 window still active */
-        for( i=list, active=0; i!=NULL && !active; i=i->next )
-            active |= i->super.visible;
     }
-    while( active );
 }
 
