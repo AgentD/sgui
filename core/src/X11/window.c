@@ -204,12 +204,14 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case ButtonPress:
     case ButtonRelease:
         /* Button4 and Button5 are mouse wheel up and down */
-        if( (e->xbutton.button==Button4||e->xbutton.button==Button5) &&
-            e->type==ButtonPress )
+        if( e->xbutton.button==Button4 || e->xbutton.button==Button5 )
         {
-            se.mouse_wheel.direction = (e->xbutton.button==Button4)?1:-1;
+            if( e->type==ButtonPress )
+            {
+                se.mouse_wheel.direction = (e->xbutton.button==Button4)?1:-1;
 
-            SEND_EVENT( this, SGUI_MOUSE_WHEEL_EVENT, &se );
+                SEND_EVENT( this, SGUI_MOUSE_WHEEL_EVENT, &se );
+            }
         }
         else
         {
