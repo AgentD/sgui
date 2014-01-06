@@ -358,19 +358,6 @@ SGUI_DLL void* sgui_window_get_userptr( sgui_window* wnd );
  */
 SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
 
-/**
- * \brief Register a callback to be called on a widget event
- *
- * \param wnd  A pointer to a window
- * \param fun  The function to call when a widget event occours
- * \param user A user data pointer that is passed to the given function
- */
-SGUI_DLL void sgui_window_on_widget_event( sgui_window* wnd,
-                                           sgui_widget_callback fun,
-                                           void* user );
-
-
-
 /** \brief Get a pointer to the back buffer canvas object of the window */
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 

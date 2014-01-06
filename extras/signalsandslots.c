@@ -4,14 +4,11 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-/***************************************************************************/
-#define PARAM_NONE  0
-#define PARAM_INT   2
-#define PARAM_INT2  4
+#define VAR_NONE  0
+#define VAR_INT   2
+#define VAR_INT2  4
 
-typedef void(* callback_function )( void* object, ... );
-
-typedef struct listener_s
+typedef struct
 {
     union
     {
@@ -19,10 +16,19 @@ typedef struct listener_s
 
         struct { int x; int y; } i2;
     }
-    param;                      /* the parameters to pass to the function */
+    data;
 
-    int param_type;             /* PARAM_* constant */
+    int type;
+}
+varying;
+
+/***************************************************************************/
+typedef void(* callback_function )( void* object, ... );
+
+typedef struct listener_s
+{
     callback_function function; /* callback function ("methode") */
+    varying argument;           /* argument to pass to the callback */
 
     void* sender;               /* the sender object */
     void* receiver;             /* the receiver object */
@@ -37,16 +43,17 @@ void listener_process( listener* l, int event, void* sender )
     if( !l || l->event!=event || l->sender!=sender )
         return;
 
-    switch( l->param_type )
+    switch( l->argument.type )
     {
-    case PARAM_NONE:
+    case VAR_NONE:
         l->function( l->receiver );
         break;
-    case PARAM_INT:
-        l->function( l->receiver, l->param.i );
+    case VAR_INT:
+        l->function( l->receiver, l->argument.data.i );
         break;
-    case PARAM_INT2:
-        l->function( l->receiver, l->param.i2.x, l->param.i2.y );
+    case VAR_INT2:
+        l->function( l->receiver,
+                     l->argument.data.i2.x, l->argument.data.i2.y );
         break;
     }
 }
@@ -106,7 +113,7 @@ void event_manager_connect( event_manager* mgr, int event,
         return;
 
     /* fill in listener fields */
-    l->param_type = param_type;
+    l->argument.type = param_type;
     l->function = function;
     l->sender = sender;
     l->receiver = receiver;
@@ -120,28 +127,29 @@ void event_manager_connect( event_manager* mgr, int event,
 
     switch( param_type )
     {
-    case PARAM_INT:
-        l->param.i = va_arg( ap, int );
+    case VAR_INT:
+        l->argument.data.i = va_arg( ap, int );
         break;
-    case PARAM_INT2:
-        l->param.i2.x = va_arg( ap, int );
-        l->param.i2.y = va_arg( ap, int );
+    case VAR_INT2:
+        l->argument.data.i2.x = va_arg( ap, int );
+        l->argument.data.i2.y = va_arg( ap, int );
         break;
     }
 
     va_end( ap );
 }
 
-void event_manager_event_callback( sgui_widget* widget, int type, void* user )
+void event_manager_event_callback( sgui_window* window, int type,
+                                   sgui_event* event )
 {
-    event_manager* mgr = user;
+    event_manager* mgr = sgui_window_get_userptr( window );
     listener* l;
 
-    if( mgr )
+    if( mgr && event && type>SGUI_MAX_CANVAS_EVENT )
     {
         /* call the process function on every listener */
         for( l=mgr->listeners; l!=NULL; l=l->next )
-            listener_process( l, type, widget );
+            listener_process( l, type, event->source );
     }
 }
 
@@ -196,29 +204,32 @@ int main( void )
     /* create the "event manager" and make some connections */
     mgr = event_manager_create( );
 
-    sgui_window_on_widget_event( wnd, event_manager_event_callback, mgr );
+    sgui_window_set_userptr( wnd, mgr );
+    sgui_window_on_event( wnd, event_manager_event_callback );
 
     event_manager_connect( mgr, SGUI_BUTTON_CLICK_EVENT, b1, img,
                            (callback_function)sgui_widget_set_visible,
-                           PARAM_INT, 1 );
+                           VAR_INT, 1 );
 
     event_manager_connect( mgr, SGUI_BUTTON_CLICK_EVENT, b2, img,
                            (callback_function)sgui_widget_set_visible,
-                           PARAM_INT, 0 );
+                           VAR_INT, 0 );
 
     event_manager_connect( mgr, SGUI_BUTTON_CLICK_EVENT, b3, wnd,
                            (callback_function)sgui_window_move,
-                           PARAM_INT2, 50, 100 );
+                           VAR_INT2, 50, 100 );
 
     event_manager_connect( mgr, SGUI_BUTTON_CLICK_EVENT, b4, wnd,
                            (callback_function)sgui_window_set_visible,
-                           PARAM_INT, 0 );
+                           VAR_INT, 0 );
 
     /* enter main loop */
     sgui_main_loop( );
 
     /* clean up */
     event_manager_destroy( mgr );
+    sgui_window_on_event( wnd, NULL );
+
     sgui_window_destroy( wnd );
     sgui_widget_destroy( b1 );
     sgui_widget_destroy( b2 );

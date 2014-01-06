@@ -34,6 +34,19 @@
 
 
 
+static void window_redirect_event( sgui_widget* widget, int type, void* user )
+{
+    sgui_window* this = (sgui_window*)user;
+    sgui_event e;
+
+    e.source = widget;
+
+    if( this && this->event_fun )
+        this->event_fun( this, type, &e );
+}
+
+
+
 void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
                                      unsigned int height, int backend )
 {
@@ -42,6 +55,8 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
         window->w       = width;
         window->h       = height;
         window->backend = backend;
+
+        sgui_canvas_on_event( window->canvas, window_redirect_event, window );
 
         sgui_canvas_begin( window->canvas, NULL );
         sgui_canvas_clear( window->canvas, NULL );
@@ -225,13 +240,6 @@ void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
 {
     if( wnd )
         sgui_widget_add_child( sgui_canvas_get_root(wnd->canvas), widget );
-}
-
-void sgui_window_on_widget_event( sgui_window* wnd,
-                                  sgui_widget_callback fun, void* user )
-{
-    if( wnd )
-        sgui_canvas_on_event( wnd->canvas, fun, user );
 }
 
 void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )

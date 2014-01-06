@@ -4,23 +4,17 @@
 
 
 
-void widget_callback( sgui_widget* widget, int type, void* user )
-{
-    (void)widget; (void)user;
-
-    if( type == SGUI_BUTTON_CLICK_EVENT )
-    {
-        sgui_window_set_visible( user, SGUI_INVISIBLE );
-    }
-}
-
 void window_callback( sgui_window* wnd, int type, sgui_event* event )
 {
-    (void)wnd; (void)event;
+    (void)event;
 
     if( type == SGUI_CHAR_EVENT )
     {
         printf( "%s\n", event->char_event.as_utf8_str );
+    }
+    else if( type == SGUI_BUTTON_CLICK_EVENT )
+    {
+        sgui_window_set_visible( wnd, SGUI_INVISIBLE );
     }
 }
 
@@ -58,7 +52,6 @@ int main( )
     sgui_window_add_widget( wnd, button );
 
     /* hook event callbacks */
-    sgui_window_on_widget_event( wnd, widget_callback, wnd );
     sgui_window_on_event( wnd, window_callback );
 
     /* main loop */

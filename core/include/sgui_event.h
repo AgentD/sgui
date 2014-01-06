@@ -55,11 +55,15 @@
 
 #define SGUI_EXPOSE_EVENT               0x000B
 
+#define SGUI_MAX_WINDOW_EVENT           0x000F
+
 /**************** canvas events ****************/
 #define SGUI_MOUSE_ENTER_EVENT          0x0010
 #define SGUI_MOUSE_LEAVE_EVENT          0x0011
 #define SGUI_FOCUS_EVENT                0x0012
 #define SGUI_FOCUS_LOSE_EVENT           0x0013
+
+#define SGUI_MAX_CANVAS_EVENT           0x001F
 
 /**************** button events ****************/
 #define SGUI_BUTTON_CLICK_EVENT         0x0020
@@ -100,6 +104,8 @@ union sgui_event
     struct { char as_utf8_str[8]; } char_event;
 
     sgui_rect expose_event;
+
+    sgui_widget* source;
 };
 
 #endif /* SGUI_EVENT_H */
