@@ -513,6 +513,10 @@ struct sgui_window
 
 
 
+SGUI_DLL extern sgui_skin sgui_default_skin;
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -567,11 +571,9 @@ SGUI_DLL void sgui_internal_window_fire_event( sgui_window* wnd, int event,
                                                sgui_event* e );
 
 /**
- * \brief Initialise a skin structue with the default skin
- *
- * \param skin A pointer to a skin structure
+ * \brief Initialise the sgui_default_skin structue with the default skin
  */
-SGUI_DLL void sgui_interal_skin_init_default( sgui_skin* skin );
+SGUI_DLL void sgui_interal_skin_init_default( void );
 
 /**
  * \brief Instantiate an in memory implementation of a pixmap

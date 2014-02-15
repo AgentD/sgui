@@ -31,6 +31,11 @@
 
 
 
+sgui_skin sgui_default_skin;
+static int is_init = 0;
+
+
+
 static void default_get_checkbox_extents( sgui_skin* this, sgui_rect* r )
 {
     (void)this;
@@ -455,44 +460,52 @@ static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
 
 /****************************************************************************/
 
-void sgui_interal_skin_init_default( sgui_skin* skin )
+void sgui_interal_skin_init_default( void )
 {
-    skin->get_checkbox_extents = default_get_checkbox_extents;
-    skin->get_radio_button_extents = default_get_checkbox_extents;
-    skin->draw_checkbox = default_draw_checkbox;
-    skin->draw_radio_button = default_draw_radio_button;
-    skin->draw_button = default_draw_button;
-    skin->draw_editbox = default_draw_editbox;
-    skin->get_edit_box_height = default_get_edit_box_height;
-    skin->get_edit_box_border_width = default_get_edit_box_border_width;
-    skin->draw_frame = default_draw_frame;
-    skin->get_frame_border_width = default_get_frame_border_width;
-    skin->draw_group_box = default_draw_group_box;
-    skin->get_progess_bar_width = default_get_progess_bar_width;
-    skin->draw_progress_bar = default_draw_progress_bar;
-    skin->draw_progress_stippled = default_draw_progress_stippled;
-    skin->draw_scroll_bar = default_draw_scroll_bar;
-    skin->get_scroll_bar_width = default_get_scroll_bar_width;
-    skin->get_scroll_bar_button_extents=default_get_scroll_bar_button_extents;
-    skin->draw_tab_caption = default_draw_tab_caption;
-    skin->draw_tab = default_draw_tab;
-    skin->get_tap_caption_extents = default_get_tap_caption_extents;
+    if( is_init )
+        return;
 
-    skin->window_color[0] = 0x64;
-    skin->window_color[1] = 0x64;
-    skin->window_color[2] = 0x64;
-    skin->window_color[3] = 0x80;
+    sgui_default_skin.get_checkbox_extents = default_get_checkbox_extents;
+    sgui_default_skin.get_radio_button_extents = default_get_checkbox_extents;
+    sgui_default_skin.draw_checkbox = default_draw_checkbox;
+    sgui_default_skin.draw_radio_button = default_draw_radio_button;
+    sgui_default_skin.draw_button = default_draw_button;
+    sgui_default_skin.draw_editbox = default_draw_editbox;
+    sgui_default_skin.get_edit_box_height = default_get_edit_box_height;
+    sgui_default_skin.draw_frame = default_draw_frame;
+    sgui_default_skin.get_frame_border_width = default_get_frame_border_width;
+    sgui_default_skin.draw_group_box = default_draw_group_box;
+    sgui_default_skin.get_progess_bar_width = default_get_progess_bar_width;
+    sgui_default_skin.draw_progress_bar = default_draw_progress_bar;
+    sgui_default_skin.draw_progress_stippled = default_draw_progress_stippled;
+    sgui_default_skin.draw_scroll_bar = default_draw_scroll_bar;
+    sgui_default_skin.get_scroll_bar_width = default_get_scroll_bar_width;
+    sgui_default_skin.draw_tab_caption = default_draw_tab_caption;
+    sgui_default_skin.draw_tab = default_draw_tab;
+    sgui_default_skin.get_edit_box_border_width =
+    default_get_edit_box_border_width;
+    sgui_default_skin.get_scroll_bar_button_extents =
+    default_get_scroll_bar_button_extents;
+    sgui_default_skin.get_tap_caption_extents =
+    default_get_tap_caption_extents;
 
-    skin->font_norm = NULL;
-    skin->font_bold = NULL;
-    skin->font_ital = NULL;
-    skin->font_boit = NULL;
+    sgui_default_skin.window_color[0] = 0x64;
+    sgui_default_skin.window_color[1] = 0x64;
+    sgui_default_skin.window_color[2] = 0x64;
+    sgui_default_skin.window_color[3] = 0x80;
 
-    skin->font_color[0] = 0xFF;
-    skin->font_color[1] = 0xFF;
-    skin->font_color[2] = 0xFF;
-    skin->font_color[3] = 0xFF;
+    sgui_default_skin.font_norm = NULL;
+    sgui_default_skin.font_bold = NULL;
+    sgui_default_skin.font_ital = NULL;
+    sgui_default_skin.font_boit = NULL;
 
-    skin->font_height = 16;
+    sgui_default_skin.font_color[0] = 0xFF;
+    sgui_default_skin.font_color[1] = 0xFF;
+    sgui_default_skin.font_color[2] = 0xFF;
+    sgui_default_skin.font_color[3] = 0xFF;
+
+    sgui_default_skin.font_height = 16;
+
+    is_init = 1;
 }
 

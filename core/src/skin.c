@@ -1,5 +1,5 @@
 /*
- * skin.c
+ * skin->c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -37,39 +37,33 @@
 
 
 
-static sgui_skin skin;
+static sgui_skin* skin;
 
 
 
 void sgui_skin_set( sgui_skin* ui_skin )
 {
-    if( ui_skin )
-    {
-        memcpy( &skin, ui_skin, sizeof(sgui_skin) );
-    }
-    else
-    {
-        sgui_interal_skin_init_default( &skin );
-    }
+    sgui_interal_skin_init_default( );
+    skin = ui_skin ? ui_skin : &sgui_default_skin;
 }
 
 void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
                                  sgui_font* italic, sgui_font* bold_italic )
 {
-    skin.font_norm = normal;
-    skin.font_bold = bold;
-    skin.font_ital = italic;
-    skin.font_boit = bold_italic;
+    skin->font_norm = normal;
+    skin->font_bold = bold;
+    skin->font_ital = italic;
+    skin->font_boit = bold_italic;
 }
 
 void sgui_skin_get_window_background_color( unsigned char* color )
 {
     if( color )
     {
-        color[0] = skin.window_color[0];
-        color[1] = skin.window_color[1];
-        color[2] = skin.window_color[2];
-        color[3] = skin.window_color[3];
+        color[0] = skin->window_color[0];
+        color[1] = skin->window_color[1];
+        color[2] = skin->window_color[2];
+        color[3] = skin->window_color[3];
     }
 }
 
@@ -77,25 +71,25 @@ void sgui_skin_get_default_font_color( unsigned char* color )
 {
     if( color )
     {
-        color[0] = skin.font_color[0];
-        color[1] = skin.font_color[1];
-        color[2] = skin.font_color[2];
-        color[3] = skin.font_color[3];
+        color[0] = skin->font_color[0];
+        color[1] = skin->font_color[1];
+        color[2] = skin->font_color[2];
+        color[3] = skin->font_color[3];
     }
 }
 
 unsigned int sgui_skin_get_default_font_height( void )
 {
-    return skin.font_height;
+    return skin->font_height;
 }
 
 sgui_font* sgui_skin_get_default_font( int bold, int italic )
 {
-    if( bold && italic ) return skin.font_boit;
-    if( bold           ) return skin.font_bold;
-    if( italic         ) return skin.font_ital;
+    if( bold && italic ) return skin->font_boit;
+    if( bold           ) return skin->font_bold;
+    if( italic         ) return skin->font_ital;
 
-    return skin.font_norm;
+    return skin->font_norm;
 }
 
 unsigned int sgui_skin_default_font_extents( const char* text,
@@ -199,75 +193,75 @@ void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
     r->left   = 0;
     r->top    = 0;
     r->right  = longest - 1;
-    r->bottom = lines * skin.font_height + skin.font_height/2 - 1;
+    r->bottom = lines * skin->font_height + skin->font_height/2 - 1;
 }
 
 void sgui_skin_get_checkbox_extents( sgui_rect* r )
 {
     if( r )
-        skin.get_checkbox_extents( &skin, r );
+        skin->get_checkbox_extents( skin, r );
 }
 
 void sgui_skin_get_radio_button_extents( sgui_rect* r )
 {
     if( r )
-        skin.get_radio_button_extents( &skin, r );
+        skin->get_radio_button_extents( skin, r );
 }
 
 unsigned int sgui_skin_get_edit_box_height( void )
 {
-    return skin.get_edit_box_height( &skin );
+    return skin->get_edit_box_height( skin );
 }
 
 unsigned int sgui_skin_get_edit_box_border_width( void )
 {
-    return skin.get_edit_box_border_width( &skin );
+    return skin->get_edit_box_border_width( skin );
 }
 
 unsigned int sgui_skin_get_frame_border_width( void )
 {
-    return skin.get_frame_border_width( &skin );
+    return skin->get_frame_border_width( skin );
 }
 
 unsigned int sgui_skin_get_progess_bar_width( void )
 {
-    return skin.get_progess_bar_width( &skin );
+    return skin->get_progess_bar_width( skin );
 }
 
 unsigned int sgui_skin_get_scroll_bar_width( void )
 {
-    return skin.get_scroll_bar_width( &skin );
+    return skin->get_scroll_bar_width( skin );
 }
 
 void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r )
 {
     if( r )
-        skin.get_scroll_bar_button_extents( &skin, r );
+        skin->get_scroll_bar_button_extents( skin, r );
 }
 
 void sgui_skin_get_tap_caption_extents( sgui_rect* r )
 {
     if( r )
-        skin.get_tap_caption_extents( &skin, r );
+        skin->get_tap_caption_extents( skin, r );
 }
 
 void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )
 {
     if( canvas )
-        skin.draw_checkbox( &skin, canvas, x, y, checked );
+        skin->draw_checkbox( skin, canvas, x, y, checked );
 }
 
 void sgui_skin_draw_radio_button( sgui_canvas* canvas, int x, int y,
                                   int checked )
 {
     if( canvas )
-        skin.draw_radio_button( &skin, canvas, x, y, checked );
+        skin->draw_radio_button( skin, canvas, x, y, checked );
 }
 
 void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r, int pressed )
 {
     if( canvas && r )
-        skin.draw_button( &skin, canvas, r, pressed );
+        skin->draw_button( skin, canvas, r, pressed );
 }
 
 void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
@@ -276,20 +270,20 @@ void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
     offset = offset<0 ? 0 : offset;
 
     if( canvas && r )
-        skin.draw_editbox( &skin, canvas, r, text, offset, cursor );
+        skin->draw_editbox( skin, canvas, r, text, offset, cursor );
 }
 
 void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r )
 {
     if( canvas && r )
-        skin.draw_frame( &skin, canvas, r );
+        skin->draw_frame( skin, canvas, r );
 }
 
 void sgui_skin_draw_group_box( sgui_canvas* canvas, sgui_rect* r,
                                const char* caption )
 {
     if( canvas && r )
-        skin.draw_group_box( &skin, canvas, r, caption );
+        skin->draw_group_box( skin, canvas, r, caption );
 }
 
 void sgui_skin_draw_progress_bar( sgui_canvas* canvas, int x, int y,
@@ -299,7 +293,7 @@ void sgui_skin_draw_progress_bar( sgui_canvas* canvas, int x, int y,
     percentage = percentage<0 ? 0 : (percentage>100 ? 100 : percentage);
 
     if( canvas )
-        skin.draw_progress_bar( &skin, canvas, x, y, length,
+        skin->draw_progress_bar( skin, canvas, x, y, length,
                                 vertical, percentage );
 }
 
@@ -308,7 +302,7 @@ void sgui_skin_draw_progress_stippled( sgui_canvas* canvas, int x, int y,
                                        int percentage )
 {
     if( canvas )
-        skin.draw_progress_stippled( &skin, canvas, x, y, length, vertical,
+        skin->draw_progress_stippled( skin, canvas, x, y, length, vertical,
                                      percentage );
 }
 
@@ -318,7 +312,7 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* canvas, int x, int y,
                                 int decbutton, int incbutton )
 {
     if( canvas )
-        skin.draw_scroll_bar( &skin, canvas, x, y, length, vertical,
+        skin->draw_scroll_bar( skin, canvas, x, y, length, vertical,
                               pane_offset, pane_length,
                               decbutton, incbutton );
 }
@@ -328,13 +322,13 @@ void sgui_skin_draw_tab_caption( sgui_canvas* canvas, int x, int y,
                                  unsigned int text_width )
 {
     if( canvas )
-        skin.draw_tab_caption( &skin, canvas, x, y, caption, text_width );
+        skin->draw_tab_caption( skin, canvas, x, y, caption, text_width );
 }
 
 void sgui_skin_draw_tab( sgui_canvas* canvas, sgui_rect* r,
                          unsigned int gap, unsigned int gap_width )
 {
     if( canvas )
-        skin.draw_tab( &skin, canvas, r, gap, gap_width );
+        skin->draw_tab( skin, canvas, r, gap, gap_width );
 }
 

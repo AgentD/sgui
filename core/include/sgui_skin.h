@@ -51,7 +51,7 @@ extern "C"
  *
  * This function is automatically called by sgui_init with a NULL argument.
  *
- * \param skin A pointer to a skin structure to copy over the current skin
+ * \param skin A pointer to a skin structure. NULL to reset to default
  */
 SGUI_DLL void sgui_skin_set( sgui_skin* skin );
 
