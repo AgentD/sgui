@@ -452,8 +452,6 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 
         if( !super->canvas )
             goto failure;
-
-        super->canvas->skin_pixmap = get_skin_pixmap( );
     }
 
     sgui_internal_window_post_init( (sgui_window*)this,

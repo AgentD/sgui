@@ -28,7 +28,6 @@
 
 
 static sgui_window_w32* list = NULL;
-static sgui_pixmap* skin_pixmap = NULL;
 
 FT_Library freetype;
 HINSTANCE hInstance;
@@ -82,24 +81,6 @@ void remove_window( sgui_window_w32* wnd )
     SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
-sgui_pixmap* get_skin_pixmap( void )
-{
-    unsigned int width, height;
-
-    if( !skin_pixmap )
-    {
-        sgui_skin_get_pixmap_size( &width, &height );
-
-        skin_pixmap = sgui_internal_mem_pixmap_create( width, height,
-                                                       SGUI_RGBA8, 1 );
-
-        if( skin_pixmap )
-            sgui_skin_to_pixmap( skin_pixmap );
-    }
-
-    return skin_pixmap;
-}
-
 /****************************************************************************/
 
 int sgui_init( void )
@@ -137,12 +118,6 @@ failure:
 
 void sgui_deinit( void )
 {
-    /* destroy skin pixmap */
-    if( skin_pixmap )
-        sgui_pixmap_destroy( skin_pixmap );
-
-    sgui_skin_unload( );
-
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 
@@ -150,7 +125,6 @@ void sgui_deinit( void )
         FT_Done_FreeType( freetype );
 
     /* reset values */
-    skin_pixmap = NULL;
     freetype = 0;
     hInstance = 0;
     list = NULL;
