@@ -105,6 +105,8 @@ struct sgui_skin
 
     unsigned int(* get_frame_border_width )( sgui_skin* skin );
 
+    unsigned int(* get_progess_bar_width )( sgui_skin* skin );
+
     void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
                             int x, int y, int checked );
 
@@ -121,6 +123,14 @@ struct sgui_skin
 
     void(* draw_group_box )( sgui_skin* skin, sgui_canvas* canvas,
                              sgui_rect* r, const char* caption );
+
+    void(* draw_progress_bar )( sgui_skin* skin, sgui_canvas* canvas, int x,
+                                int y, unsigned int length, int vertical,
+                                int percentage );
+
+    void(* draw_progress_stippled )( sgui_skin* skin, sgui_canvas* canvas,
+                                     int x, int y, unsigned int length,
+                                     int vertical, int percentage );
 
     /**
      * \brief Load the required GUI elements into a pixmap

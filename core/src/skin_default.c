@@ -474,71 +474,6 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
 
     sgui_pixmap_load( pixmap, 25, 12, buffer, 0, 0, 1, 30, 1, SGUI_RGBA8 );
 
-    /* vertical progress bar */
-    for( y=0; y<29; ++y )
-    {
-        buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0x00;
-        buffer[ y*4+3 ] = 0xFF;
-    }
-
-    buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0xFF;
-    buffer[ y*4+3 ] = 0xFF;
-
-    sgui_pixmap_load( pixmap, 0, 42, buffer, 0, 0, 30, 1, 30, SGUI_RGBA8 );
-
-    for( x=0; x<30; ++x )
-    {
-        for( y=0; y<12; ++y )
-        {
-            buffer[(y*30+x)*4]=buffer[(y*30+x)*4+1]=buffer[(y*30+x)*4+2]=0x00;
-            buffer[ (y*30 + x)*4 + 3 ] = 0x80;
-        }
-    }
-
-    for( y=0; y<12; ++y )
-    {
-        buffer[ y*30*4 ] = buffer[ y*30*4 + 1 ] = buffer[ y*30*4 + 2 ] = 0x00;
-        buffer[ y*30*4 + 3 ] = 0xFF;
-    }
-
-    for( y=0; y<12; ++y )
-    {
-        buffer[(y*30+29)*4]=buffer[(y*30+29)*4+1]=buffer[(y*30+29)*4+2]=0xFF;
-        buffer[ (y*30+29)*4 + 3 ] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 0, 43, buffer, 0, 0, 30, 12, 30, SGUI_RGBA8 );
-
-    for( y=0; y<7; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[(y*30+x+5)*4  ] = buffer[(y*30+x+5)*4+1] = 0xFF;
-            buffer[(y*30+x+5)*4+2] = buffer[(y*30+x+5)*4+3] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 0, 55, buffer, 0, 0, 30, 12, 30, SGUI_RGBA8 );
-
-    for( x=0; x<28; ++x )
-    {
-        for( y=0; y<12; ++y )
-        {
-            buffer[(y*30+x+1)*4]=buffer[(y*30+x+1)*4+1]=0xFF;
-            buffer[(y*30+x+1)*4+2]=0x00;
-            buffer[(y*30+x+1)*4+3]=0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 0, 68, buffer, 0, 0, 30, 12, 30, SGUI_RGBA8 );
-
-    for( x=0; x<30; ++x )
-    {
-        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 0, 67, buffer, 0, 0, 30, 1, 30, SGUI_RGBA8 );
-
     /* button normal */
     for( x=0; x<200; ++x )
     {
@@ -588,22 +523,28 @@ static void default_get_checkbox_extents( sgui_skin* this, sgui_rect* r )
     sgui_rect_set_size( r, 0, 0, 20, 12 );
 }
 
-unsigned int default_get_edit_box_height( sgui_skin* this )
+static unsigned int default_get_edit_box_height( sgui_skin* this )
 {
     (void)this;
     return 30;
 }
 
-unsigned int default_get_edit_box_border_width( sgui_skin* this )
+static unsigned int default_get_edit_box_border_width( sgui_skin* this )
 {
     (void)this;
     return 2;
 }
 
-unsigned int default_get_frame_border_width( sgui_skin* this )
+static unsigned int default_get_frame_border_width( sgui_skin* this )
 {
     (void)this;
     return 1;
+}
+
+static unsigned int default_get_progess_bar_width( sgui_skin* this )
+{
+    (void)this;
+    return 30;
 }
 
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
@@ -682,8 +623,8 @@ static void default_draw_radio_button( sgui_skin* this, sgui_canvas* canvas,
     }
 }
 
-void default_draw_button( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
-                          int pressed )
+static void default_draw_button( sgui_skin* skin, sgui_canvas* canvas,
+                                 sgui_rect* r, int pressed )
 {
     unsigned char black[4] = { 0, 0, 0, 0xFF };
     unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -706,8 +647,9 @@ void default_draw_button( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
     }
 }
 
-void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r,
-                           const char* text, int offset, int cursor )
+static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
+                                  sgui_rect* r, const char* text, int offset,
+                                  int cursor )
 {
     unsigned char black[4] = { 0, 0, 0, 0xFF };
     unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -739,7 +681,8 @@ void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r,
     sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
 }
 
-void default_draw_frame( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r )
+static void default_draw_frame( sgui_skin* this, sgui_canvas* canvas,
+                                sgui_rect* r )
 {
     unsigned char bg[4] = { 0, 0, 0, 0x80 };
     unsigned char black[4] = { 0, 0, 0, 0xFF };
@@ -755,8 +698,8 @@ void default_draw_frame( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r )
     sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
 }
 
-void default_draw_group_box( sgui_skin* this, sgui_canvas* canvas,
-                             sgui_rect* r, const char* caption )
+static void default_draw_group_box( sgui_skin* this, sgui_canvas* canvas,
+                                    sgui_rect* r, const char* caption )
 {
     unsigned char black[4] = { 0, 0, 0, 0xFF };
     unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -784,26 +727,96 @@ void default_draw_group_box( sgui_skin* this, sgui_canvas* canvas,
                                  caption, -1 );
 }
 
+static void default_draw_progress_bar( sgui_skin* this, sgui_canvas* canvas,
+                                       int x, int y, unsigned int length,
+                                       int vertical, int percentage )
+{
+    unsigned char bg[4] = { 0, 0, 0, 0x80 };
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned char yellow[4] = { 0xFF, 0xFF, 0x00, 0xFF };
+    unsigned int bar = (percentage*(length-2))/100;
+    sgui_rect r;
+    (void)this;
+
+    if( vertical )
+    {
+        sgui_rect_set_size( &r, x, y, 30, length-bar-1 );
+        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+        sgui_canvas_draw_line(canvas, x, y, 30, 1, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y, length, 0, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y+length-1, 30, 1, white, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x+29, y, length, 0, white, SGUI_RGB8);
+
+        sgui_rect_set_size( &r, x+1, y+length-bar-1, 28, bar );
+        sgui_canvas_draw_box( canvas, &r, yellow, SGUI_RGB8 );
+    }
+    else
+    {
+        sgui_rect_set_size( &r, x, y, length, 30 );
+        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+        sgui_canvas_draw_line(canvas, x, y, 30, 0, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y, length, 1, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y+29, length, 1, white, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x+length-1, y, 30, 0, white, SGUI_RGB8);
+
+        sgui_rect_set_size( &r, x+1, y+1, bar, 28 );
+        sgui_canvas_draw_box( canvas, &r, yellow, SGUI_RGB8 );
+    }
+}
+
+static void default_draw_progress_stippled( sgui_skin* this,
+                                            sgui_canvas* canvas, int x, int y,
+                                            unsigned int length, int vertical,
+                                            int percentage )
+{
+    unsigned char bg[4] = { 0, 0, 0, 0x80 };
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned int i, bar = (percentage*(length-2))/100;
+    sgui_rect r;
+    (void)this;
+
+    if( vertical )
+    {
+        sgui_rect_set_size( &r, x, y, 30, length );
+        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+        sgui_canvas_draw_line(canvas, x, y, 30, 1, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y, length, 0, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y+length-1, 30, 1, white, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x+29, y, length, 0, white, SGUI_RGB8);
+
+        for( i=5; i<bar; i+=12 )
+        {
+            sgui_rect_set_size( &r, x+5, y+length-7-i, 20, 7 );
+            sgui_canvas_draw_box( canvas, &r, white, SGUI_RGBA8 );
+        }
+    }
+    else
+    {
+        sgui_rect_set_size( &r, x, y, length, 30 );
+        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+        sgui_canvas_draw_line(canvas, x, y, 30, 0, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y, length, 1, black, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x, y+29, length, 1, white, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, x+length-1, y, 30, 0, white, SGUI_RGB8);
+
+        for( i=5; i<bar; i+=12 )
+        {
+            sgui_rect_set_size( &r, x+i, y+5, 7, 20 );
+            sgui_canvas_draw_box( canvas, &r, white, SGUI_RGBA8 );
+        }
+    }
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
 {
-    SET_ELEMENT( skin, SGUI_PBAR_H_STIPPLED_START,        0, 12,  5, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_STIPPLED_EMPTY,        1, 12, 12, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_STIPPLED_FILLED,      13, 12, 12, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_STIPPLED_END,         21, 12,  5, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_FILLED_START,          0, 12,  1, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_FILLED_EMPTY,          1, 12, 12, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_FILLED_FILLED,        26, 12,  1, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_H_FILLED_END,           25, 12,  1, 30 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_STIPPLED_START,        0, 42, 30,  5 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_STIPPLED_EMPTY,        0, 43, 30, 12 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_STIPPLED_FILLED,       0, 50, 30, 12 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_STIPPLED_END,          0, 63, 30,  5 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_START,          0, 42, 30,  1 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_EMPTY,          0, 43, 30, 12 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_FILLED,         0, 68, 30, 12 );
-    SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_END,            0, 67, 30,  1 );
     SET_ELEMENT( skin, SGUI_TAB_CAP_LEFT,                25, 12,  1, 24 ); 
     SET_ELEMENT( skin, SGUI_TAB_CAP_CENTER,              38, 38, 10, 24 );
     SET_ELEMENT( skin, SGUI_TAB_CAP_RIGHT,                0, 12,  1, 24 );  
@@ -846,6 +859,9 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->draw_frame = default_draw_frame;
     skin->get_frame_border_width = default_get_frame_border_width;
     skin->draw_group_box = default_draw_group_box;
+    skin->get_progess_bar_width = default_get_progess_bar_width;
+    skin->draw_progress_bar = default_draw_progress_bar;
+    skin->draw_progress_stippled = default_draw_progress_stippled;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;

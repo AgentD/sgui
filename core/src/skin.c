@@ -192,22 +192,6 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
         if( sscanf( line+j, "(%d,%d,%d,%d)", &x, &y, &w, &h ) != 4 )
             continue;
 
-        ELEMENT( "pbar.h.stippled.start", SGUI_PBAR_H_STIPPLED_START );
-        ELEMENT( "pbar.h.stippled.empty", SGUI_PBAR_H_STIPPLED_EMPTY );
-        ELEMENT( "pbar.h.stippled.filled", SGUI_PBAR_H_STIPPLED_FILLED );
-        ELEMENT( "pbar.h.stippled.end", SGUI_PBAR_H_STIPPLED_END );
-        ELEMENT( "pbar.v.stippled.start", SGUI_PBAR_V_STIPPLED_START );
-        ELEMENT( "pbar.v.stippled.empty", SGUI_PBAR_V_STIPPLED_EMPTY );
-        ELEMENT( "pbar.v.stippled.filled", SGUI_PBAR_V_STIPPLED_FILLED );
-        ELEMENT( "pbar.v.stippled.end", SGUI_PBAR_V_STIPPLED_END );
-        ELEMENT( "pbar.h.filled.start", SGUI_PBAR_H_FILLED_START );
-        ELEMENT( "pbar.h.filled.empty", SGUI_PBAR_H_FILLED_EMPTY );
-        ELEMENT( "pbar.h.filled.filled", SGUI_PBAR_H_FILLED_FILLED );
-        ELEMENT( "pbar.h.filled.end", SGUI_PBAR_H_FILLED_END );
-        ELEMENT( "pbar.v.filled.start", SGUI_PBAR_V_FILLED_START );
-        ELEMENT( "pbar.v.filled.empty", SGUI_PBAR_V_FILLED_EMPTY );
-        ELEMENT( "pbar.v.filled.filled", SGUI_PBAR_V_FILLED_FILLED );
-        ELEMENT( "pbar.v.filled.end", SGUI_PBAR_V_FILLED_END );
         ELEMENT( "sbar.h.pane.left", SGUI_SCROLL_BAR_H_PANE_LEFT );
         ELEMENT( "sbar.h.pane.center", SGUI_SCROLL_BAR_H_PANE_CENTER );
         ELEMENT( "sbar.h.pane.right", SGUI_SCROLL_BAR_H_PANE_RIGHT );
@@ -462,6 +446,11 @@ unsigned int sgui_skin_get_frame_border_width( void )
     return skin.get_frame_border_width( &skin );
 }
 
+unsigned int sgui_skin_get_progess_bar_width( void )
+{
+    return skin.get_progess_bar_width( &skin );
+}
+
 void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )
 {
     if( canvas )
@@ -501,5 +490,25 @@ void sgui_skin_draw_group_box( sgui_canvas* canvas, sgui_rect* r,
 {
     if( canvas && r )
         skin.draw_group_box( &skin, canvas, r, caption );
+}
+
+void sgui_skin_draw_progress_bar( sgui_canvas* canvas, int x, int y,
+                                  unsigned int length, int vertical,
+                                  int percentage )
+{
+    percentage = percentage<0 ? 0 : (percentage>100 ? 100 : percentage);
+
+    if( canvas )
+        skin.draw_progress_bar( &skin, canvas, x, y, length,
+                                vertical, percentage );
+}
+
+void sgui_skin_draw_progress_stippled( sgui_canvas* canvas, int x, int y,
+                                       unsigned int length, int vertical,
+                                       int percentage )
+{
+    if( canvas )
+        skin.draw_progress_stippled( &skin, canvas, x, y, length, vertical,
+                                     percentage );
 }
 

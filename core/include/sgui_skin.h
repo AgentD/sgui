@@ -32,22 +32,6 @@
 
 
 
-#define SGUI_PBAR_H_STIPPLED_START        0x00
-#define SGUI_PBAR_H_STIPPLED_EMPTY        0x01
-#define SGUI_PBAR_H_STIPPLED_FILLED       0x02
-#define SGUI_PBAR_H_STIPPLED_END          0x03
-#define SGUI_PBAR_V_STIPPLED_START        0x04
-#define SGUI_PBAR_V_STIPPLED_EMPTY        0x05
-#define SGUI_PBAR_V_STIPPLED_FILLED       0x06
-#define SGUI_PBAR_V_STIPPLED_END          0x07
-#define SGUI_PBAR_H_FILLED_START          0x08
-#define SGUI_PBAR_H_FILLED_EMPTY          0x09
-#define SGUI_PBAR_H_FILLED_FILLED         0x0A
-#define SGUI_PBAR_H_FILLED_END            0x0B
-#define SGUI_PBAR_V_FILLED_START          0x0C
-#define SGUI_PBAR_V_FILLED_EMPTY          0x0D
-#define SGUI_PBAR_V_FILLED_FILLED         0x0E
-#define SGUI_PBAR_V_FILLED_END            0x0F
 #define SGUI_SCROLL_BAR_H_PANE_LEFT       0x26
 #define SGUI_SCROLL_BAR_H_PANE_CENTER     0x27
 #define SGUI_SCROLL_BAR_H_PANE_RIGHT      0x28
@@ -227,6 +211,8 @@ SGUI_DLL unsigned int sgui_skin_get_edit_box_border_width( void );
 
 SGUI_DLL unsigned int sgui_skin_get_frame_border_width( void );
 
+SGUI_DLL unsigned int sgui_skin_get_progess_bar_width( void );
+
 SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
                                        int checked );
 
@@ -244,6 +230,16 @@ SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r );
 
 SGUI_DLL void sgui_skin_draw_group_box( sgui_canvas* canvas, sgui_rect* r,
                                         const char* caption );
+
+SGUI_DLL void sgui_skin_draw_progress_bar( sgui_canvas* canvas, int x, int y,
+                                           unsigned int length,
+                                           int vertical, int percentage );
+
+SGUI_DLL void sgui_skin_draw_progress_stippled( sgui_canvas* canvas,
+                                                int x, int y,
+                                                unsigned int length,
+                                                int vertical,
+                                                int percentage );
 
 #ifdef __cplusplus
 }

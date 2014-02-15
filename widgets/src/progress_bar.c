@@ -37,128 +37,31 @@ typedef struct
 {
     sgui_widget widget;
 
+    int vertical;
     unsigned int progress, stippled;
 }
 sgui_progress_bar;
 
 
 
-static void progress_draw_h( sgui_widget* widget )
+static void progress_draw( sgui_widget* widget )
 {
     sgui_progress_bar* b = (sgui_progress_bar*)widget;
-    sgui_canvas* cv = widget->canvas;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    sgui_rect begin, filled, empty, end, stretch;
-    int w, border;
-
-    /* get the required skin elements */
-    if( b->stippled )
-    {
-        sgui_skin_get_element( SGUI_PBAR_H_STIPPLED_START,  &begin  );
-        sgui_skin_get_element( SGUI_PBAR_H_STIPPLED_END,    &end    );
-        sgui_skin_get_element( SGUI_PBAR_H_STIPPLED_FILLED, &filled );
-        sgui_skin_get_element( SGUI_PBAR_H_STIPPLED_EMPTY,  &empty  );
-    }
-    else
-    {
-        sgui_skin_get_element( SGUI_PBAR_H_FILLED_START,  &begin );
-        sgui_skin_get_element( SGUI_PBAR_H_FILLED_END,    &end   );
-        sgui_skin_get_element( SGUI_PBAR_H_FILLED_FILLED, &filled );
-        sgui_skin_get_element( SGUI_PBAR_H_FILLED_EMPTY,  &empty  );
-    }
-
-    /* draw beginning */
-    sgui_canvas_blend( cv, widget->area.left, widget->area.top,
-                       skin_pixmap, &begin );
-
-    /* draw filled area */
-    stretch = widget->area;
-    border = SGUI_RECT_WIDTH(begin) + SGUI_RECT_WIDTH(end);
-    w = SGUI_RECT_WIDTH( widget->area );
-    w = ((w-border)*b->progress) / 100;
-    stretch.left += SGUI_RECT_WIDTH(begin);
-    stretch.right = stretch.left + w - 1;
+    unsigned int length = b->vertical ? SGUI_RECT_HEIGHT(widget->area) :
+                                        SGUI_RECT_WIDTH(widget->area);
 
     if( b->stippled )
     {
-        stretch.right -= w % SGUI_RECT_WIDTH(filled);
-
-        if( w >= SGUI_RECT_WIDTH(filled) )
-            sgui_canvas_stretch_blend(cv, skin_pixmap, &filled, &stretch, 1);
+        sgui_skin_draw_progress_stippled( widget->canvas,
+                                          widget->area.left, widget->area.top,
+                                          length, b->vertical, b->progress );
     }
     else
     {
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &filled, &stretch, 0 );
+        sgui_skin_draw_progress_bar( widget->canvas,
+                                     widget->area.left, widget->area.top,
+                                     length, b->vertical, b->progress );
     }
-
-    /* draw remaining empty area */
-    stretch.left = stretch.right + 1;
-    stretch.right = widget->area.right - SGUI_RECT_WIDTH(end);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &empty, &stretch, 0 );
-
-    /* draw end */
-    sgui_canvas_blend( cv, widget->area.right-SGUI_RECT_WIDTH(end)+1,
-                       widget->area.top, skin_pixmap, &end );
-}
-
-static void progress_draw_v( sgui_widget* widget )
-{
-    sgui_progress_bar* b = (sgui_progress_bar*)widget;
-    sgui_canvas* cv = widget->canvas;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    sgui_rect begin, filled, empty, end, stretch;
-    int h, border;
-
-    /* get the required skin elements */
-    if( b->stippled )
-    {
-        sgui_skin_get_element( SGUI_PBAR_V_STIPPLED_START,  &begin  );
-        sgui_skin_get_element( SGUI_PBAR_V_STIPPLED_END,    &end    );
-        sgui_skin_get_element( SGUI_PBAR_V_STIPPLED_FILLED, &filled );
-        sgui_skin_get_element( SGUI_PBAR_V_STIPPLED_EMPTY,  &empty  );
-    }
-    else
-    {
-        sgui_skin_get_element( SGUI_PBAR_V_FILLED_START,  &begin  );
-        sgui_skin_get_element( SGUI_PBAR_V_FILLED_END,    &end    );
-        sgui_skin_get_element( SGUI_PBAR_V_FILLED_FILLED, &filled );
-        sgui_skin_get_element( SGUI_PBAR_V_FILLED_EMPTY,  &empty  );
-    }
-
-    /* draw beginning */
-    sgui_canvas_blend( cv, widget->area.left, widget->area.top,
-                       skin_pixmap, &begin );
-
-    /* draw filled area */
-    stretch = widget->area;
-    border = SGUI_RECT_HEIGHT(begin) + SGUI_RECT_HEIGHT(end);
-    h = SGUI_RECT_HEIGHT( widget->area );
-    h = ((h-border)*b->progress) / 100;
-
-    if( b->stippled )
-    {
-        stretch.bottom -= SGUI_RECT_HEIGHT(end)-1;
-        stretch.top = stretch.bottom - h + h%SGUI_RECT_HEIGHT(filled);
-
-        if( h >= SGUI_RECT_HEIGHT(filled) )
-            sgui_canvas_stretch_blend(cv, skin_pixmap, &filled, &stretch, 1);
-    }
-    else
-    {
-        stretch.bottom -= SGUI_RECT_HEIGHT(end);
-        stretch.top = stretch.bottom - h;
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &filled, &stretch, 0 );
-    }
-
-    /* draw remaining empty section */
-    stretch.bottom = stretch.top - 1;
-    stretch.top = widget->area.top + SGUI_RECT_HEIGHT(begin);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &empty, &stretch, 0 );
-
-    /* draw end */
-    sgui_canvas_blend( cv, widget->area.left,
-                       widget->area.bottom-SGUI_RECT_HEIGHT(end)+1,
-                       skin_pixmap, &end );
 }
 
 static void progress_bar_destroy( sgui_widget* bar )
@@ -174,7 +77,6 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 {
     unsigned int width, height;
     sgui_progress_bar* b;
-    sgui_rect r;
 
     /* sanity check */
     if( progress > 100 )
@@ -189,25 +91,15 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     /* initialise the base widget */
     sgui_internal_widget_init( (sgui_widget*)b, 0, 0, 0, 0 );
 
-    b->widget.draw_callback = vertical ? progress_draw_v : progress_draw_h;
+    b->widget.draw_callback = progress_draw;
     b->widget.destroy       = progress_bar_destroy;
     b->progress             = progress;
     b->stippled             = style==SGUI_PROGRESS_BAR_STIPPLED;
+    b->vertical             = vertical;
 
     /* get the size of the progress bar */
-    if( b->stippled )
-    {
-        sgui_skin_get_element( vertical ? SGUI_PBAR_V_STIPPLED_FILLED :
-                                          SGUI_PBAR_H_STIPPLED_FILLED, &r );
-    }
-    else
-    {
-        sgui_skin_get_element( vertical ? SGUI_PBAR_V_FILLED_FILLED :
-                                          SGUI_PBAR_H_FILLED_FILLED, &r );
-    }
-
-    width  = vertical ? (unsigned int)SGUI_RECT_WIDTH( r ) : length;
-    height = vertical ? length : (unsigned int)SGUI_RECT_HEIGHT( r );
+    width  = vertical ? sgui_skin_get_progess_bar_width( ) : length;
+    height = vertical ? length : sgui_skin_get_progess_bar_width( );
 
     sgui_rect_set_size( &b->widget.area, x, y, width, height );
 
