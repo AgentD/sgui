@@ -64,14 +64,6 @@
 #define SGUI_SCROLL_BAR_BUTTON_DOWN_IN    0x33
 #define SGUI_SCROLL_BAR_BUTTON_LEFT_IN    0x34
 #define SGUI_SCROLL_BAR_BUTTON_RIGHT_IN   0x35
-#define SGUI_GROUPBOX_LEFT_TOP            0x44
-#define SGUI_GROUPBOX_RIGHT_TOP           0x45
-#define SGUI_GROUPBOX_LEFT_BOTTOM         0x46
-#define SGUI_GROUPBOX_RIGHT_BOTTOM        0x47
-#define SGUI_GROUPBOX_LEFT                0x48
-#define SGUI_GROUPBOX_RIGHT               0x49
-#define SGUI_GROUPBOX_TOP                 0x4A
-#define SGUI_GROUPBOX_BOTTOM              0x4B
 #define SGUI_TAB_CAP_LEFT                 0x4C
 #define SGUI_TAB_CAP_CENTER               0x4D
 #define SGUI_TAB_CAP_RIGHT                0x4E
@@ -249,6 +241,9 @@ SGUI_DLL void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
                                       int cursor );
 
 SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r );
+
+SGUI_DLL void sgui_skin_draw_group_box( sgui_canvas* canvas, sgui_rect* r,
+                                        const char* caption );
 
 #ifdef __cplusplus
 }

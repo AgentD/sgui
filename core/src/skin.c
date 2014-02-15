@@ -224,14 +224,6 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
         ELEMENT( "sbar.in.down", SGUI_SCROLL_BAR_BUTTON_DOWN_IN );
         ELEMENT( "sbar.in.left", SGUI_SCROLL_BAR_BUTTON_LEFT_IN );
         ELEMENT( "sbar.in.right", SGUI_SCROLL_BAR_BUTTON_RIGHT_IN );
-        ELEMENT( "group.left", SGUI_GROUPBOX_LEFT );
-        ELEMENT( "group.left.top", SGUI_GROUPBOX_LEFT_TOP );
-        ELEMENT( "group.left.bottom", SGUI_GROUPBOX_LEFT_BOTTOM );
-        ELEMENT( "group.right", SGUI_GROUPBOX_RIGHT );
-        ELEMENT( "group.right.top", SGUI_GROUPBOX_RIGHT_TOP );
-        ELEMENT( "group.right.bottom", SGUI_GROUPBOX_RIGHT_BOTTOM );
-        ELEMENT( "group.top", SGUI_GROUPBOX_TOP );
-        ELEMENT( "group.bottom", SGUI_GROUPBOX_BOTTOM );
         ELEMENT( "tab.cap.left", SGUI_TAB_CAP_LEFT );
         ELEMENT( "tab.cap.center", SGUI_TAB_CAP_CENTER );
         ELEMENT( "tab.cap.right", SGUI_TAB_CAP_RIGHT );
@@ -502,5 +494,12 @@ void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r )
 {
     if( canvas && r )
         skin.draw_frame( &skin, canvas, r );
+}
+
+void sgui_skin_draw_group_box( sgui_canvas* canvas, sgui_rect* r,
+                               const char* caption )
+{
+    if( canvas && r )
+        skin.draw_group_box( &skin, canvas, r, caption );
 }
 

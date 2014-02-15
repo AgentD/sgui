@@ -119,6 +119,9 @@ struct sgui_skin
 
     void(* draw_frame )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r );
 
+    void(* draw_group_box )( sgui_skin* skin, sgui_canvas* canvas,
+                             sgui_rect* r, const char* caption );
+
     /**
      * \brief Load the required GUI elements into a pixmap
      *

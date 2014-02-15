@@ -564,39 +564,6 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
     sgui_pixmap_load( pixmap, 38, 21, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
     sgui_pixmap_load( pixmap, 47, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
 
-    /* group box */
-    for( x=0; x<20; ++x )
-    {
-        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=buffer[x*4+3]=0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 31, 63, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 31, 63, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 50, 63, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 31, 82, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=0x00;
-        buffer[x*4+3]=0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 30, 62, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 30, 62, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 49, 62, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 30, 81, buffer, 0, 0, 20, 1, 20, SGUI_RGBA8 );
-
-    for( y=0; y<17; ++y )
-    {
-        for( x=0; x<17; ++x )
-        {
-            buffer[(y*17+x)*4]=buffer[(y*17+x)*4+1]=buffer[(y*17+x)*4+2]=
-            buffer[(y*17+x)*4+3]=0x00;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 32, 64, buffer, 0, 0, 17, 17, 17, SGUI_RGBA8 );
-
     /* tab caption */
     for( y=0; y<4; ++y )
     {
@@ -788,6 +755,35 @@ void default_draw_frame( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r )
     sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
 }
 
+void default_draw_group_box( sgui_skin* this, sgui_canvas* canvas,
+                             sgui_rect* r, const char* caption )
+{
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    int txw = sgui_skin_default_font_extents( caption, -1, 0, 0 );
+    (void)this;
+
+    y += 8;
+    h -= 8;
+
+    sgui_canvas_draw_line( canvas, x+1,   y+1,   h-1, 0, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+1,   y+h-1, w-1, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+w-1, y+1,   h-1, 0, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+1,   y+1,   12,  1, white, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, x,     y,     h-1, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,     y+h-2, w-2, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+w-2, y,     h-1, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,     y,     13,  1, black, SGUI_RGB8 );
+
+    sgui_canvas_draw_line(canvas, x+18+txw, y+1, w-txw-20,1,white,SGUI_RGB8);
+    sgui_canvas_draw_line(canvas, x+18+txw, y,   w-txw-20,1,black,SGUI_RGB8);
+
+    sgui_canvas_draw_text_plain( canvas, x + 15, r->top, 0, 0, white,
+                                 caption, -1 );
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
@@ -808,14 +804,6 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_EMPTY,          0, 43, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_FILLED,         0, 68, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_END,            0, 67, 30,  1 );
-    SET_ELEMENT( skin, SGUI_GROUPBOX_LEFT_TOP,           30, 62, 13, 13 );
-    SET_ELEMENT( skin, SGUI_GROUPBOX_RIGHT_TOP,          38, 62, 13, 13 );
-    SET_ELEMENT( skin, SGUI_GROUPBOX_LEFT_BOTTOM,        30, 70, 13, 13 );
-    SET_ELEMENT( skin, SGUI_GROUPBOX_RIGHT_BOTTOM,       38, 70, 13, 13 );
-    SET_ELEMENT( skin, SGUI_GROUPBOX_LEFT,               30, 64,  2, 13 ); 
-    SET_ELEMENT( skin, SGUI_GROUPBOX_RIGHT,              49, 64,  2, 13 ); 
-    SET_ELEMENT( skin, SGUI_GROUPBOX_TOP,                32, 62, 13,  2 ); 
-    SET_ELEMENT( skin, SGUI_GROUPBOX_BOTTOM,             32, 81, 13,  2 ); 
     SET_ELEMENT( skin, SGUI_TAB_CAP_LEFT,                25, 12,  1, 24 ); 
     SET_ELEMENT( skin, SGUI_TAB_CAP_CENTER,              38, 38, 10, 24 );
     SET_ELEMENT( skin, SGUI_TAB_CAP_RIGHT,                0, 12,  1, 24 );  
@@ -857,6 +845,7 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->get_edit_box_border_width = default_get_edit_box_border_width;
     skin->draw_frame = default_draw_frame;
     skin->get_frame_border_width = default_get_frame_border_width;
+    skin->draw_group_box = default_draw_group_box;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;
