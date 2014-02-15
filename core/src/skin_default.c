@@ -38,155 +38,8 @@
 
 static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
 {
-    unsigned char buffer[ 20*20*4 ];
-    unsigned int x, y;
     (void)skin;
-
-    /* draw unchecked checkbox */
-    for( y=0; y<12; ++y )
-    {
-        for( x=0; x<12; ++x )
-        {
-            buffer[ (y*12 + x)*4     ] = 0x00;
-            buffer[ (y*12 + x)*4 + 1 ] = 0x00;
-            buffer[ (y*12 + x)*4 + 2 ] = 0x00;
-            buffer[ (y*12 + x)*4 + 3 ] = 0x80;
-        }
-    }
-
-    for( x=0; x<12; ++x )
-    {
-        buffer[ x*12*4     ] = buffer[ x*4     ] = 0x00;
-        buffer[ x*12*4 + 1 ] = buffer[ x*4 + 1 ] = 0x00;
-        buffer[ x*12*4 + 2 ] = buffer[ x*4 + 2 ] = 0x00;
-        buffer[ x*12*4 + 3 ] = buffer[ x*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<12; ++x )
-        for( y=0; y<4; ++y )
-            buffer[ (x*12 + 11)*4 + y ] = buffer[ (11*12 + x)*4 + y ] = 0xFF;
-
-    sgui_pixmap_load( pixmap, 0, 0, buffer, 0, 0, 12, 12, 12, SGUI_RGBA8 );
-
-    /* scroll bar background */
-    for( x=0; x<20; ++x )
-    {
-        for( y=0; y<20; ++y )
-        {
-            buffer[(y*20+x)*4]=buffer[(y*20+x)*4+1]=buffer[(y*20+x)*4+2]=0x64;
-            buffer[(y*20+x)*4+3] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 30, 42, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* horizontal progress bar */
-    for( y=0; y<29; ++y )
-    {
-        buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0x00;
-        buffer[ y*4+3 ] = 0xFF;
-    }
-
-    buffer[ y*4 ] = buffer[ y*4+1 ] = buffer[ y*4+2 ] = 0xFF;
-    buffer[ y*4+3 ] = 0xFF;
-
-    sgui_pixmap_load( pixmap, 0, 12, buffer, 0, 0, 1, 30, 1, SGUI_RGBA8 );
-
-    for( x=0; x<12; ++x )
-    {
-        for( y=0; y<30; ++y )
-        {
-            buffer[(y*12+x)*4]=buffer[(y*12+x)*4+1]=buffer[(y*12+x)*4+2]=0x00;
-            buffer[ (y*12 + x)*4 + 3 ] = 0x80;
-        }
-    }
-
-    for( x=0; x<12; ++x )
-    {
-        buffer[ x*4 ] = buffer[ x*4 + 1 ] = buffer[ x*4 + 2 ] = 0x00;
-        buffer[ x*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<12; ++x )
-    {
-        buffer[(29*12+x)*4]=buffer[(29*12+x)*4+1]=buffer[(29*12+x)*4+2]=0xFF;
-        buffer[(29*12+x)*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 1, 12, buffer, 0, 0, 12, 30, 12, SGUI_RGBA8 );
-
-    for( x=0; x<7; ++x )
-    {
-        for( y=0; y<20; ++y )
-        {
-            buffer[((y+5)*12+x)*4  ] = buffer[((y+5)*12+x)*4+1] = 0xFF;
-            buffer[((y+5)*12+x)*4+2] = 0xFF;
-            buffer[((y+5)*12+x)*4+3] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 13, 12, buffer, 0, 0, 12, 30, 12, SGUI_RGBA8 );
-
-    for( x=0; x<12; ++x )
-    {
-        for( y=0; y<28; ++y )
-        {
-            buffer[((y+1)*12+x)*4]=buffer[((y+1)*12+x)*4+1]=0xFF;
-            buffer[((y+1)*12+x)*4+2]=0x00;
-            buffer[((y+1)*12+x)*4+3]=0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 26, 12, buffer, 0, 0, 12, 30, 12, SGUI_RGBA8 );
-
-    for( y=0; y<30; ++y )
-    {
-        buffer[y*4] = buffer[y*4+1] = buffer[y*4+2] = buffer[y*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 25, 12, buffer, 0, 0, 1, 30, 1, SGUI_RGBA8 );
-
-    /* button normal */
-    for( x=0; x<200; ++x )
-    {
-        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0;
-    }
-
-    sgui_pixmap_load( pixmap, 38, 12, buffer, 0, 0, 10, 20, 10, SGUI_RGBA8 );
-
-    for( x=0; x<10; ++x )
-    {
-        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 38, 12, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 38, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
-
-    for( x=0; x<10; ++x )
-    {
-        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = 0x00;
-        buffer[x*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 38, 21, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 47, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
-
-    /* tab caption */
-    for( y=0; y<4; ++y )
-    {
-        for( x=0; x<10; ++x )
-        {
-            buffer[(y*10+x)*4]=buffer[(y*10+x)*4+1]=buffer[(y*10+x)*4+2]=0x64;
-            buffer[(y*10+x)*4+3]=0xFF;
-        }
-    }
-
-    for( x=0; x<10; ++x )
-    {
-        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=buffer[x*4+3]=0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 38, 38, buffer, 0, 0, 10, 4, 10, SGUI_RGBA8 );
+    (void)pixmap;
 }
 
 static void default_get_checkbox_extents( sgui_skin* this, sgui_rect* r )
@@ -230,6 +83,12 @@ static void default_get_scroll_bar_button_extents( sgui_skin* this,
 {
     (void)this;
     sgui_rect_set_size( r, 0, 0, 20, 20 );
+}
+
+static void default_get_tap_caption_extents( sgui_skin* this, sgui_rect* r )
+{
+    (void)this;
+    sgui_rect_set_size( r, 0, 0, 16, 25 );
 }
 
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
@@ -573,24 +432,42 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
     }
 }
 
+static void default_draw_tab_caption( sgui_skin* this, sgui_canvas* canvas,
+                                      int x, int y, const char* caption,
+                                      unsigned int text_width )
+{
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
+    (void)this;
+
+    sgui_canvas_draw_line( canvas, x, y, text_width, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x, y,         25, 0, white, SGUI_RGB8 );
+    sgui_canvas_draw_line(canvas, x+text_width-1, y, 25, 0, black, SGUI_RGB8);
+    sgui_canvas_draw_text_plain(canvas, x+8, y+1, 0, 0, white, caption, -1);
+}
+
+static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
+                              sgui_rect* r, unsigned int gap,
+                              unsigned int gap_width )
+{
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
+    int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    (void)this;
+
+    sgui_canvas_draw_line( canvas, x, y, h, 0, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x, y, gap-x+11, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, gap+gap_width+10, y, w-gap_width-gap, 1,
+                           white, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, black, SGUI_RGB8 );
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
 {
-    SET_ELEMENT( skin, SGUI_TAB_CAP_LEFT,                25, 12,  1, 24 ); 
-    SET_ELEMENT( skin, SGUI_TAB_CAP_CENTER,              38, 38, 10, 24 );
-    SET_ELEMENT( skin, SGUI_TAB_CAP_RIGHT,                0, 12,  1, 24 );  
-    SET_ELEMENT( skin, SGUI_TAB_LEFT_TOP,                38, 12,  8,  8 );  
-    SET_ELEMENT( skin, SGUI_TAB_RIGHT_TOP,               40, 12,  8,  8 );  
-    SET_ELEMENT( skin, SGUI_TAB_LEFT_BOTTOM,             38, 14,  8,  8 );  
-    SET_ELEMENT( skin, SGUI_TAB_RIGHT_BOTTOM,            40, 14,  8,  8 );  
-    SET_ELEMENT( skin, SGUI_TAB_LEFT,                    38, 13,  1,  8 );  
-    SET_ELEMENT( skin, SGUI_TAB_RIGHT,                   47, 13,  1,  8 );  
-    SET_ELEMENT( skin, SGUI_TAB_TOP,                     39, 12,  8,  1 );  
-    SET_ELEMENT( skin, SGUI_TAB_BOTTOM,                  39, 21,  8,  1 );  
-    SET_ELEMENT( skin, SGUI_TAB_GAP_LEFT,                 0,  0,  0,  0 );    
-    SET_ELEMENT( skin, SGUI_TAB_GAP_RIGHT,                0,  0,  0,  0 );    
-
     skin->load_to_pixmap = default_skin_to_pixmap;
     skin->get_checkbox_extents = default_get_checkbox_extents;
     skin->get_radio_button_extents = default_get_checkbox_extents;
@@ -609,6 +486,9 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->draw_scroll_bar = default_draw_scroll_bar;
     skin->get_scroll_bar_width = default_get_scroll_bar_width;
     skin->get_scroll_bar_button_extents=default_get_scroll_bar_button_extents;
+    skin->draw_tab_caption = default_draw_tab_caption;
+    skin->draw_tab = default_draw_tab;
+    skin->get_tap_caption_extents = default_get_tap_caption_extents;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;

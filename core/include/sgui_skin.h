@@ -32,23 +32,6 @@
 
 
 
-#define SGUI_TAB_CAP_LEFT                 0x4C
-#define SGUI_TAB_CAP_CENTER               0x4D
-#define SGUI_TAB_CAP_RIGHT                0x4E
-#define SGUI_TAB_LEFT_TOP                 0x4F
-#define SGUI_TAB_RIGHT_TOP                0x50
-#define SGUI_TAB_LEFT_BOTTOM              0x51
-#define SGUI_TAB_RIGHT_BOTTOM             0x52
-#define SGUI_TAB_LEFT                     0x53
-#define SGUI_TAB_RIGHT                    0x54
-#define SGUI_TAB_TOP                      0x55
-#define SGUI_TAB_BOTTOM                   0x56
-#define SGUI_TAB_GAP_LEFT                 0x57
-#define SGUI_TAB_GAP_RIGHT                0x58
-#define SGUI_SKIN_ELEMENTS                0x59
-
-
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -117,14 +100,6 @@ SGUI_DLL void sgui_skin_get_pixmap_size( unsigned int* width,
 
 /** \brief Fill a given pixmap with the default GUI skin */
 SGUI_DLL void sgui_skin_to_pixmap( sgui_pixmap* pixmap );
-
-/**
- * \brief Get the region on the skin pixmap where a given element is stored
- *
- * \param element The element in question (e.g SGUI_CHECKBOX_SELECTED)
- * \param r       Returns the region of the element
- */
-SGUI_DLL void sgui_skin_get_element( unsigned int element, sgui_rect* r );
 
 /**
  * \brief Override the default font for the skin
@@ -201,6 +176,8 @@ SGUI_DLL unsigned int sgui_skin_get_scroll_bar_width( void );
 
 SGUI_DLL void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r );
 
+SGUI_DLL void sgui_skin_get_tap_caption_extents( sgui_rect* r );
+
 SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
                                        int checked );
 
@@ -234,6 +211,13 @@ SGUI_DLL void sgui_skin_draw_scroll_bar( sgui_canvas* canvas, int x, int y,
                                          int pane_offset,
                                          unsigned int pane_length,
                                          int decbutton, int incbutton );
+
+SGUI_DLL void sgui_skin_draw_tab_caption( sgui_canvas* canvas, int x, int y,
+                                          const char* caption,
+                                          unsigned int text_width );
+
+SGUI_DLL void sgui_skin_draw_tab( sgui_canvas* canvas, sgui_rect* r,
+                                  unsigned int gap, unsigned int gap_width );
 
 #ifdef __cplusplus
 }

@@ -117,10 +117,6 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
 
     cfgfile = fs->file_open_read( fs, configfile );
 
-#define ELEMENT( name, index )\
-        if( !strcmp(line+i,name) )\
-            sgui_rect_set_size(skin.elements+index,x,y,w,h)
-
     while( !fs->file_eof( cfgfile ) )
     {
         sgui_filesystem_read_line( fs, cfgfile, line, sizeof(line) );
@@ -191,23 +187,7 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
         /* read skin elements */
         if( sscanf( line+j, "(%d,%d,%d,%d)", &x, &y, &w, &h ) != 4 )
             continue;
-
-        ELEMENT( "tab.cap.left", SGUI_TAB_CAP_LEFT );
-        ELEMENT( "tab.cap.center", SGUI_TAB_CAP_CENTER );
-        ELEMENT( "tab.cap.right", SGUI_TAB_CAP_RIGHT );
-        ELEMENT( "tab.left", SGUI_TAB_LEFT );
-        ELEMENT( "tab.left.top", SGUI_TAB_LEFT_TOP );
-        ELEMENT( "tab.left.bottom", SGUI_TAB_LEFT_BOTTOM );
-        ELEMENT( "tab.right", SGUI_TAB_RIGHT );
-        ELEMENT( "tab.right.top", SGUI_TAB_RIGHT_TOP );
-        ELEMENT( "tab.right.bottom", SGUI_TAB_RIGHT_BOTTOM );
-        ELEMENT( "tab.top", SGUI_TAB_TOP );
-        ELEMENT( "tab.bottom", SGUI_TAB_BOTTOM );
-        ELEMENT( "tab.gap.left", SGUI_TAB_GAP_LEFT );
-        ELEMENT( "tab.gap.right", SGUI_TAB_GAP_RIGHT );
     }
-
-#undef ELEMENT
 
     fs->file_close( cfgfile );
 }
@@ -243,14 +223,6 @@ void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
     if( skin.load_to_pixmap && pixmap )
     {
         skin.load_to_pixmap( &skin, pixmap );
-    }
-}
-
-void sgui_skin_get_element( unsigned int element, sgui_rect* r )
-{
-    if( r && (element < SGUI_SKIN_ELEMENTS) )
-    {
-        sgui_rect_copy( r, skin.elements + element );
     }
 }
 
@@ -446,6 +418,12 @@ void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r )
         skin.get_scroll_bar_button_extents( &skin, r );
 }
 
+void sgui_skin_get_tap_caption_extents( sgui_rect* r )
+{
+    if( r )
+        skin.get_tap_caption_extents( &skin, r );
+}
+
 void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )
 {
     if( canvas )
@@ -516,5 +494,20 @@ void sgui_skin_draw_scroll_bar( sgui_canvas* canvas, int x, int y,
         skin.draw_scroll_bar( &skin, canvas, x, y, length, vertical,
                               pane_offset, pane_length,
                               decbutton, incbutton );
+}
+
+void sgui_skin_draw_tab_caption( sgui_canvas* canvas, int x, int y,
+                                 const char* caption,
+                                 unsigned int text_width )
+{
+    if( canvas )
+        skin.draw_tab_caption( &skin, canvas, x, y, caption, text_width );
+}
+
+void sgui_skin_draw_tab( sgui_canvas* canvas, sgui_rect* r,
+                         unsigned int gap, unsigned int gap_width )
+{
+    if( canvas )
+        skin.draw_tab( &skin, canvas, r, gap, gap_width );
 }
 

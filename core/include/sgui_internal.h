@@ -80,8 +80,6 @@
 
 struct sgui_skin
 {
-    sgui_rect elements[ SGUI_SKIN_ELEMENTS ];
-
     unsigned int pixmap_width;  /**< \brief The width of the skin pixmap */
     unsigned int pixmap_height; /**< \brief The height of the skin pixmap */
 
@@ -110,6 +108,8 @@ struct sgui_skin
     unsigned int(* get_scroll_bar_width )( sgui_skin* skin );
 
     void(* get_scroll_bar_button_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* get_tap_caption_extents )( sgui_skin* skin, sgui_rect* r );
 
     void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
                             int x, int y, int checked );
@@ -140,6 +140,13 @@ struct sgui_skin
                               int x, int y, unsigned int length, int vertical,
                               int pane_offset, unsigned int pane_length,
                               int decbutton, int incbutton );
+
+    void(* draw_tab_caption )( sgui_skin* skin, sgui_canvas* canvas,
+                               int x, int y, const char* caption,
+                               unsigned int text_width );
+
+    void(* draw_tab )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                       unsigned int gap, unsigned int gap_width );
 
     /**
      * \brief Load the required GUI elements into a pixmap

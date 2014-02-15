@@ -111,126 +111,21 @@ static void tab_group_on_event( sgui_widget* widget, int type,
     }
 }
 
-static void tab_group_draw_captions( sgui_tab_group* g )
-{
-    sgui_canvas* cv = g->widget.canvas;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    int x = g->widget.area.left, y = g->widget.area.top;
-    sgui_rect L, R, C, dst;
-    unsigned char color[4];
-    sgui_tab* i;
-
-    /* add offset to the left. TODO: what if there are too many captions? */
-    sgui_skin_get_element( SGUI_TAB_GAP_LEFT, &L );
-    x += SGUI_RECT_WIDTH(L);
-
-    sgui_skin_get_default_font_color( color );
-    sgui_skin_get_element( SGUI_TAB_CAP_LEFT, &L );
-    sgui_skin_get_element( SGUI_TAB_CAP_RIGHT, &R );
-    sgui_skin_get_element( SGUI_TAB_CAP_CENTER, &C );
-
-    dst.top = y;
-    dst.bottom = y + g->tab_cap_height - 1;
-
-    for( i=g->tabs; i!=NULL; i=i->next )
-    {
-        dst.left = x + SGUI_RECT_WIDTH(L);
-        dst.right = x + (i->caption_width-1) - SGUI_RECT_WIDTH(R);
-
-        /* draw caption */
-        sgui_canvas_blend( cv, x, y, skin_pixmap, &L );
-        sgui_canvas_blend( cv, dst.right+1, dst.top, skin_pixmap, &R );
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
-
-        /* draw text */
-        sgui_canvas_draw_text_plain( cv, x+(g->tab_cap_width>>1), y, 0, 0,
-                                     color, i->caption, -1 );
-        x += i->caption_width;
-    }
-}
-
-static void tab_group_draw_tab( sgui_canvas* cv, sgui_rect* area,
-                                unsigned int gap, unsigned int gap_width )
-{
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    sgui_rect L, R, C, dst;
-
-    /* add offset to the left. TODO: what if there are too many captions? */
-    sgui_skin_get_element( SGUI_TAB_GAP_LEFT, &L );
-    gap += SGUI_RECT_WIDTH(L);
-
-    /* draw top before gap */
-    sgui_skin_get_element( SGUI_TAB_LEFT_TOP, &L );
-    sgui_skin_get_element( SGUI_TAB_TOP, &C );
-    sgui_rect_set_size( &dst,area->left,area->top,gap+1,SGUI_RECT_HEIGHT(C) );
-    dst.left += SGUI_RECT_WIDTH(L);
-
-    if( SGUI_RECT_WIDTH(L)>=(int)gap )
-        L.right = L.left + gap;
-
-    sgui_canvas_blend( cv, area->left, area->top, skin_pixmap, &L );
-
-    if( dst.left<dst.right )
-        sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
-
-    /* draw top after gap */
-    sgui_skin_get_element( SGUI_TAB_TOP, &C );
-    sgui_skin_get_element( SGUI_TAB_RIGHT_TOP, &R );
-    dst.left = area->left + gap + gap_width;
-    dst.top = area->top;
-    dst.right = area->right - SGUI_RECT_WIDTH(R);
-    dst.bottom = area->top + (C.bottom - C.top);
-
-    sgui_canvas_blend( cv, dst.right+1, dst.top, skin_pixmap, &R );
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
-
-    /* draw left */
-    sgui_skin_get_element( SGUI_TAB_LEFT_BOTTOM, &L );
-    sgui_skin_get_element( SGUI_TAB_LEFT, &C );
-    sgui_skin_get_element( SGUI_TAB_LEFT_TOP, &R );
-    dst.left = area->left;
-    dst.top = area->top + (R.bottom - R.top);
-    dst.right = area->left + (C.right - C.left);
-    dst.bottom = area->bottom - (L.right - L.left);
-
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
-
-    /* draw right */
-    sgui_skin_get_element( SGUI_TAB_RIGHT_BOTTOM, &L );
-    sgui_skin_get_element( SGUI_TAB_RIGHT, &C );
-    sgui_skin_get_element( SGUI_TAB_RIGHT_TOP, &R );
-    dst.left = area->right - (C.right - C.left);
-    dst.top = area->top + (R.bottom - R.top);
-    dst.right = area->right;
-    dst.bottom = area->bottom - (L.right - L.left);
-
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
-
-    /* draw bottom */
-    sgui_skin_get_element( SGUI_TAB_LEFT_BOTTOM, &L );
-    sgui_skin_get_element( SGUI_TAB_RIGHT_BOTTOM, &R );
-    sgui_skin_get_element( SGUI_TAB_BOTTOM, &C );
-    dst.left = area->left + SGUI_RECT_WIDTH(L);
-    dst.top = area->bottom - (C.bottom-C.top);
-    dst.right = area->right - SGUI_RECT_WIDTH(R);
-    dst.bottom = area->bottom;
-
-    sgui_canvas_blend( cv, area->left, area->bottom-(L.bottom-L.top),
-                       skin_pixmap, &L );
-    sgui_canvas_blend( cv, dst.right+1, area->bottom-(R.bottom-R.top),
-                       skin_pixmap, &R );
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &C, &dst, 0 );
-}
-
 static void tab_group_draw( sgui_widget* widget )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
+    int x = g->widget.area.left, y = g->widget.area.top;
+    sgui_canvas* cv = g->widget.canvas;
     unsigned int gap, gap_w;
     sgui_rect r;
     sgui_tab* i;
 
-    /* draw tab captions */
-    tab_group_draw_captions( g );
+    /* draw tab captions. TODO: what if there are too many captions? */
+    for( i=g->tabs; i!=NULL; i=i->next )
+    {
+        sgui_skin_draw_tab_caption( cv, x, y, i->caption, i->caption_width );
+        x += i->caption_width;
+    }
 
     /* draw selected tab */
     for( i=g->tabs, gap=0; i!=NULL; i=i->next )
@@ -248,7 +143,7 @@ static void tab_group_draw( sgui_widget* widget )
     {
         r = widget->area;
         r.top += g->tab_cap_height;
-        tab_group_draw_tab( widget->canvas, &r, gap, gap_w );
+        sgui_skin_draw_tab( cv, &r, gap, gap_w );
     }
 }
 
@@ -258,21 +153,20 @@ sgui_widget* sgui_tab_group_create( int x, int y,
                                     unsigned int width, unsigned int height )
 {
     sgui_tab_group* g = malloc( sizeof(sgui_tab_group) );
-    unsigned int fh = sgui_skin_get_default_font_height( );
     sgui_rect r;
 
     if( !g )
         return NULL;
 
     sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
-    sgui_skin_get_element( SGUI_TAB_CAP_CENTER, &r );
+    sgui_skin_get_tap_caption_extents( &r );
 
     g->widget.draw_callback         = tab_group_draw;
     g->widget.window_event_callback = tab_group_on_event;
     g->widget.destroy               = tab_group_destroy;
     g->tabs                         = NULL;
     g->tab_cap_height               = SGUI_RECT_HEIGHT( r );
-    g->tab_cap_width                = fh;
+    g->tab_cap_width                = SGUI_RECT_WIDTH( r );
 
     return (sgui_widget*)g;
 }

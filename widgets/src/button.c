@@ -380,11 +380,6 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
     }
     else
     {
-        sgui_skin_get_element( b->type, &r );
-
-        b->cx = SGUI_RECT_WIDTH( r );
-        b->cy = SGUI_RECT_HEIGHT( r );
-
         button->area.right = button->area.left + b->cx + text_width;
     }
 
