@@ -192,22 +192,6 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
         if( sscanf( line+j, "(%d,%d,%d,%d)", &x, &y, &w, &h ) != 4 )
             continue;
 
-        ELEMENT( "sbar.h.pane.left", SGUI_SCROLL_BAR_H_PANE_LEFT );
-        ELEMENT( "sbar.h.pane.center", SGUI_SCROLL_BAR_H_PANE_CENTER );
-        ELEMENT( "sbar.h.pane.right", SGUI_SCROLL_BAR_H_PANE_RIGHT );
-        ELEMENT( "sbar.h.bar.background", SGUI_SCROLL_BAR_H_BACKGROUND );
-        ELEMENT( "sbar.v.pane.top", SGUI_SCROLL_BAR_V_PANE_TOP );
-        ELEMENT( "sbar.v.pane.center", SGUI_SCROLL_BAR_V_PANE_CENTER );
-        ELEMENT( "sbar.v.pane.bottom", SGUI_SCROLL_BAR_V_PANE_BOTTOM );
-        ELEMENT( "sbar.v.bar.background", SGUI_SCROLL_BAR_V_BACKGROUND );
-        ELEMENT( "sbar.up", SGUI_SCROLL_BAR_BUTTON_UP );
-        ELEMENT( "sbar.down", SGUI_SCROLL_BAR_BUTTON_DOWN );
-        ELEMENT( "sbar.left", SGUI_SCROLL_BAR_BUTTON_LEFT );
-        ELEMENT( "sbar.right", SGUI_SCROLL_BAR_BUTTON_RIGHT );
-        ELEMENT( "sbar.in.up", SGUI_SCROLL_BAR_BUTTON_UP_IN );
-        ELEMENT( "sbar.in.down", SGUI_SCROLL_BAR_BUTTON_DOWN_IN );
-        ELEMENT( "sbar.in.left", SGUI_SCROLL_BAR_BUTTON_LEFT_IN );
-        ELEMENT( "sbar.in.right", SGUI_SCROLL_BAR_BUTTON_RIGHT_IN );
         ELEMENT( "tab.cap.left", SGUI_TAB_CAP_LEFT );
         ELEMENT( "tab.cap.center", SGUI_TAB_CAP_CENTER );
         ELEMENT( "tab.cap.right", SGUI_TAB_CAP_RIGHT );
@@ -451,6 +435,17 @@ unsigned int sgui_skin_get_progess_bar_width( void )
     return skin.get_progess_bar_width( &skin );
 }
 
+unsigned int sgui_skin_get_scroll_bar_width( void )
+{
+    return skin.get_scroll_bar_width( &skin );
+}
+
+void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r )
+{
+    if( r )
+        skin.get_scroll_bar_button_extents( &skin, r );
+}
+
 void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )
 {
     if( canvas )
@@ -510,5 +505,16 @@ void sgui_skin_draw_progress_stippled( sgui_canvas* canvas, int x, int y,
     if( canvas )
         skin.draw_progress_stippled( &skin, canvas, x, y, length, vertical,
                                      percentage );
+}
+
+void sgui_skin_draw_scroll_bar( sgui_canvas* canvas, int x, int y,
+                                unsigned int length, int vertical,
+                                int pane_offset, unsigned int pane_length,
+                                int decbutton, int incbutton )
+{
+    if( canvas )
+        skin.draw_scroll_bar( &skin, canvas, x, y, length, vertical,
+                              pane_offset, pane_length,
+                              decbutton, incbutton );
 }
 

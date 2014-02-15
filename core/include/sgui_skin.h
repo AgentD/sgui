@@ -32,22 +32,6 @@
 
 
 
-#define SGUI_SCROLL_BAR_H_PANE_LEFT       0x26
-#define SGUI_SCROLL_BAR_H_PANE_CENTER     0x27
-#define SGUI_SCROLL_BAR_H_PANE_RIGHT      0x28
-#define SGUI_SCROLL_BAR_V_PANE_TOP        0x29
-#define SGUI_SCROLL_BAR_V_PANE_CENTER     0x2A
-#define SGUI_SCROLL_BAR_V_PANE_BOTTOM     0x2B
-#define SGUI_SCROLL_BAR_V_BACKGROUND      0x2C
-#define SGUI_SCROLL_BAR_H_BACKGROUND      0x2D
-#define SGUI_SCROLL_BAR_BUTTON_UP         0x2E
-#define SGUI_SCROLL_BAR_BUTTON_DOWN       0x2F
-#define SGUI_SCROLL_BAR_BUTTON_LEFT       0x30
-#define SGUI_SCROLL_BAR_BUTTON_RIGHT      0x31
-#define SGUI_SCROLL_BAR_BUTTON_UP_IN      0x32
-#define SGUI_SCROLL_BAR_BUTTON_DOWN_IN    0x33
-#define SGUI_SCROLL_BAR_BUTTON_LEFT_IN    0x34
-#define SGUI_SCROLL_BAR_BUTTON_RIGHT_IN   0x35
 #define SGUI_TAB_CAP_LEFT                 0x4C
 #define SGUI_TAB_CAP_CENTER               0x4D
 #define SGUI_TAB_CAP_RIGHT                0x4E
@@ -213,6 +197,10 @@ SGUI_DLL unsigned int sgui_skin_get_frame_border_width( void );
 
 SGUI_DLL unsigned int sgui_skin_get_progess_bar_width( void );
 
+SGUI_DLL unsigned int sgui_skin_get_scroll_bar_width( void );
+
+SGUI_DLL void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r );
+
 SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
                                        int checked );
 
@@ -240,6 +228,12 @@ SGUI_DLL void sgui_skin_draw_progress_stippled( sgui_canvas* canvas,
                                                 unsigned int length,
                                                 int vertical,
                                                 int percentage );
+
+SGUI_DLL void sgui_skin_draw_scroll_bar( sgui_canvas* canvas, int x, int y,
+                                         unsigned int length, int vertical,
+                                         int pane_offset,
+                                         unsigned int pane_length,
+                                         int decbutton, int incbutton );
 
 #ifdef __cplusplus
 }

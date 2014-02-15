@@ -261,96 +261,16 @@ static void scroll_bar_on_event_v( sgui_widget* widget, int type,
     }
 }
 
-static void scroll_bar_draw_h( sgui_widget* widget )
+static void scroll_bar_draw( sgui_widget* super )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
-    sgui_canvas* cv = widget->canvas;
-    int x = widget->area.left, y = widget->area.top;
-    unsigned int length = b->length, p_length = b->p_length;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    sgui_rect r, dst;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
 
-    /* right button */
-    sgui_skin_get_element( b->inc_button_state ? 
-                           SGUI_SCROLL_BAR_BUTTON_RIGHT_IN :
-                           SGUI_SCROLL_BAR_BUTTON_RIGHT, &r );
-    sgui_canvas_blend( cv, x+length-SGUI_RECT_WIDTH(r), y,
-                       skin_pixmap, &r );
-    length -= SGUI_RECT_WIDTH(r);
-
-    /* left button */
-    sgui_skin_get_element( b->dec_button_state ? 
-                           SGUI_SCROLL_BAR_BUTTON_LEFT_IN :
-                           SGUI_SCROLL_BAR_BUTTON_LEFT, &r );
-    sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
-    x += SGUI_RECT_WIDTH(r);
-    length -= SGUI_RECT_WIDTH(r);
-
-    /* pane background */
-    sgui_skin_get_element( SGUI_SCROLL_BAR_H_BACKGROUND, &r );
-    sgui_rect_set_size( &dst, x, y, length, SGUI_RECT_HEIGHT(r) );
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
-
-    /* pane */
-    x += b->p_offset;
-    sgui_skin_get_element( SGUI_SCROLL_BAR_H_PANE_LEFT, &r );
-    sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
-    p_length -= SGUI_RECT_WIDTH(r);
-    x += SGUI_RECT_WIDTH(r);
-
-    sgui_skin_get_element( SGUI_SCROLL_BAR_H_PANE_RIGHT, &r );
-    p_length -= SGUI_RECT_WIDTH(r);
-    sgui_canvas_blend( cv, x+p_length, y, skin_pixmap, &r );
-
-    sgui_rect_set_size( &dst, x, y, p_length+1, SGUI_RECT_HEIGHT(r) );
-    sgui_skin_get_element( SGUI_SCROLL_BAR_H_PANE_CENTER, &r );
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
-}
-
-static void scroll_bar_draw_v( sgui_widget* widget )
-{
-    sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
-    sgui_canvas* cv = widget->canvas;
-    int x = widget->area.left, y = widget->area.top;
-    unsigned int length = b->length, p_length = b->p_length;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-    sgui_rect r, dst;
-
-    /* lower button */
-    sgui_skin_get_element( b->inc_button_state ? 
-                           SGUI_SCROLL_BAR_BUTTON_DOWN_IN :
-                           SGUI_SCROLL_BAR_BUTTON_DOWN, &r );
-    sgui_canvas_blend( cv, x, y+length-SGUI_RECT_HEIGHT(r),
-                       skin_pixmap, &r );
-    length -= SGUI_RECT_HEIGHT(r);
-
-    /* upper button */
-    sgui_skin_get_element( b->dec_button_state ? 
-                           SGUI_SCROLL_BAR_BUTTON_UP_IN :
-                           SGUI_SCROLL_BAR_BUTTON_UP, &r );
-    sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
-    y += SGUI_RECT_HEIGHT(r);
-    length -= SGUI_RECT_HEIGHT(r);
-
-    /* pane background */
-    sgui_skin_get_element( SGUI_SCROLL_BAR_V_BACKGROUND, &r );
-    sgui_rect_set_size( &dst, x, y, SGUI_RECT_HEIGHT(r), length );
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
-
-    /* pane */
-    y += b->p_offset;
-    sgui_skin_get_element( SGUI_SCROLL_BAR_V_PANE_TOP, &r );
-    sgui_canvas_blend( cv, x, y, skin_pixmap, &r );
-    p_length -= SGUI_RECT_HEIGHT(r);
-    y += SGUI_RECT_HEIGHT(r);
-
-    sgui_skin_get_element( SGUI_SCROLL_BAR_V_PANE_BOTTOM, &r );
-    p_length -= SGUI_RECT_HEIGHT(r);
-    sgui_canvas_blend( cv, x, y+p_length, skin_pixmap, &r );
-
-    sgui_rect_set_size( &dst, x, y, SGUI_RECT_WIDTH(r), p_length+1 );
-    sgui_skin_get_element( SGUI_SCROLL_BAR_V_PANE_CENTER, &r );
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
+    sgui_skin_draw_scroll_bar( super->canvas,
+                               super->area.left, super->area.top,
+                               this->length, !this->horizontal,
+                               this->p_offset, this->p_length,
+                               this->inc_button_state,
+                               this->dec_button_state );
 }
 
 static void scroll_bar_destroy( sgui_widget* bar )
@@ -373,58 +293,35 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
         return NULL;
 
     memset( b, 0, sizeof(sgui_scroll_bar) );
+    sgui_skin_get_scroll_bar_button_extents( &r );
+
+    b->bw = SGUI_RECT_WIDTH( r );
+    b->bh = SGUI_RECT_HEIGHT( r );
 
     if( horizontal )
     {
-        sgui_skin_get_element( SGUI_SCROLL_BAR_H_PANE_CENTER, &r );
-        h = MAX(h, (unsigned int)SGUI_RECT_HEIGHT(r));
-        sgui_skin_get_element( SGUI_SCROLL_BAR_H_BACKGROUND, &r );
-        h = MAX(h, (unsigned int)SGUI_RECT_HEIGHT(r));
-        sgui_skin_get_element( SGUI_SCROLL_BAR_BUTTON_LEFT, &r );
-        h = MAX(h, (unsigned int)SGUI_RECT_HEIGHT(r));
-        sgui_skin_get_element( SGUI_SCROLL_BAR_BUTTON_RIGHT, &r );
-        h = MAX(h, (unsigned int)SGUI_RECT_HEIGHT(r));
-        b->bw = SGUI_RECT_WIDTH( r );
-        b->bh = SGUI_RECT_HEIGHT( r );
-
         w = length;
+        h = sgui_skin_get_scroll_bar_width( );
     }
     else
     {
-        sgui_skin_get_element( SGUI_SCROLL_BAR_V_PANE_CENTER, &r );
-        w = MAX(w, (unsigned int)SGUI_RECT_WIDTH(r));
-        sgui_skin_get_element( SGUI_SCROLL_BAR_V_BACKGROUND, &r );
-        w = MAX(w, (unsigned int)SGUI_RECT_WIDTH(r));
-        sgui_skin_get_element( SGUI_SCROLL_BAR_BUTTON_UP, &r );
-        w = MAX(w, (unsigned int)SGUI_RECT_WIDTH(r));
-        sgui_skin_get_element( SGUI_SCROLL_BAR_BUTTON_DOWN, &r );
-        w = MAX(w, (unsigned int)SGUI_RECT_WIDTH(r));
-        b->bw = SGUI_RECT_WIDTH( r );
-        b->bh = SGUI_RECT_HEIGHT( r );
-
+        w = sgui_skin_get_scroll_bar_width( );
         h = length;
     }
 
     sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
 
-    if( horizontal )
-    {
-        b->widget.window_event_callback = scroll_bar_on_event_h;
-        b->widget.draw_callback = scroll_bar_draw_h;
-    }
-    else
-    {
-        b->widget.window_event_callback = scroll_bar_on_event_v;
-        b->widget.draw_callback = scroll_bar_draw_v;
-    }
+    b->widget.window_event_callback = horizontal ? scroll_bar_on_event_h :
+                                                   scroll_bar_on_event_v;
 
-    b->widget.destroy = scroll_bar_destroy;
-    b->horizontal     = horizontal;
-    b->length         = length;
-    b->v_length       = disp_area_length;
-    b->v_max          = scroll_area_length;
-    b->p_length       = ((b->v_length<<8) / b->v_max) *
-                        (length - 2*(horizontal ? b->bw : b->bh));
+    b->widget.draw_callback = scroll_bar_draw;
+    b->widget.destroy       = scroll_bar_destroy;
+    b->horizontal           = horizontal;
+    b->length               = length;
+    b->v_length             = disp_area_length;
+    b->v_max                = scroll_area_length;
+    b->p_length             = ((b->v_length<<8) / b->v_max) *
+                               (length - 2*(horizontal ? b->bw : b->bh));
 
     b->p_length >>= 8;
 

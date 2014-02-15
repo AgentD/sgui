@@ -68,334 +68,6 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
 
     sgui_pixmap_load( pixmap, 0, 0, buffer, 0, 0, 12, 12, 12, SGUI_RGBA8 );
 
-    /* scroll bar down button */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0xFF;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0xFF;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0xFF;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0x00;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0x00;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0x00;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( y=0; y<6; ++y )
-    {
-        for( x=0; x<(11-2*y); ++x )
-        {
-            buffer[ ((7+y)*20 + 5+y+x)*4     ] = 0xFF;
-            buffer[ ((7+y)*20 + 5+y+x)*4 + 1 ] = 0xFF;
-            buffer[ ((7+y)*20 + 5+y+x)*4 + 2 ] = 0xFF;
-            buffer[ ((7+y)*20 + 5+y+x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 48, 0, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar down button pressed */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0x00;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0x00;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0x00;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0xFF;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( y=0; y<6; ++y )
-    {
-        for( x=0; x<(11-2*y); ++x )
-        {
-            buffer[ ((7+y-1)*20 + 5+y+x-1)*4     ] = 0xFF;
-            buffer[ ((7+y-1)*20 + 5+y+x-1)*4 + 1 ] = 0xFF;
-            buffer[ ((7+y-1)*20 + 5+y+x-1)*4 + 2 ] = 0xFF;
-            buffer[ ((7+y-1)*20 + 5+y+x-1)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 68, 0, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar up button */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0xFF;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0xFF;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0xFF;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0x00;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0x00;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0x00;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( y=0; y<6; ++y )
-    {
-        for( x=0; x<(11-2*y); ++x )
-        {
-            buffer[ ((12-y)*20 + 5+y+x)*4     ] = 0xFF;
-            buffer[ ((12-y)*20 + 5+y+x)*4 + 1 ] = 0xFF;
-            buffer[ ((12-y)*20 + 5+y+x)*4 + 2 ] = 0xFF;
-            buffer[ ((12-y)*20 + 5+y+x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 88, 0, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar up button pressed */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0x00;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0x00;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0x00;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0xFF;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( y=0; y<6; ++y )
-    {
-        for( x=0; x<(11-2*y); ++x )
-        {
-            buffer[ ((12-y-1)*20 + 5+y+x-1)*4     ] = 0xFF;
-            buffer[ ((12-y-1)*20 + 5+y+x-1)*4 + 1 ] = 0xFF;
-            buffer[ ((12-y-1)*20 + 5+y+x-1)*4 + 2 ] = 0xFF;
-            buffer[ ((12-y-1)*20 + 5+y+x-1)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 108, 0, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar left button */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0xFF;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0xFF;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0xFF;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0x00;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0x00;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0x00;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<6; ++x )
-    {
-        for( y=0; y<(11-2*x); ++y )
-        {
-            buffer[ ((5+y+x)*20 + 12-x)*4     ] = 0xFF;
-            buffer[ ((5+y+x)*20 + 12-x)*4 + 1 ] = 0xFF;
-            buffer[ ((5+y+x)*20 + 12-x)*4 + 2 ] = 0xFF;
-            buffer[ ((5+y+x)*20 + 12-x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 48, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar left button pressed */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0x00;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0x00;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0x00;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0xFF;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<6; ++x )
-    {
-        for( y=0; y<(11-2*x); ++y )
-        {
-            buffer[ ((5+y+x-1)*20 + 12-x-1)*4     ] = 0xFF;
-            buffer[ ((5+y+x-1)*20 + 12-x-1)*4 + 1 ] = 0xFF;
-            buffer[ ((5+y+x-1)*20 + 12-x-1)*4 + 2 ] = 0xFF;
-            buffer[ ((5+y+x-1)*20 + 12-x-1)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 68, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar right button */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0xFF;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0xFF;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0xFF;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0x00;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0x00;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0x00;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<6; ++x )
-    {
-        for( y=0; y<(11-2*x); ++y )
-        {
-            buffer[ ((5+y+x)*20 + 7+x)*4     ] = 0xFF;
-            buffer[ ((5+y+x)*20 + 7+x)*4 + 1 ] = 0xFF;
-            buffer[ ((5+y+x)*20 + 7+x)*4 + 2 ] = 0xFF;
-            buffer[ ((5+y+x)*20 + 7+x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 88, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
-    /* scroll bar right button pressed */
-    for( y=0; y<20; ++y )
-    {
-        for( x=0; x<20; ++x )
-        {
-            buffer[ (y*20 + x)*4     ] = 0x64;
-            buffer[ (y*20 + x)*4 + 1 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 2 ] = 0x64;
-            buffer[ (y*20 + x)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ x*4     ] = buffer[ x*20*4     ] = 0x00;
-        buffer[ x*4 + 1 ] = buffer[ x*20*4 + 1 ] = 0x00;
-        buffer[ x*4 + 2 ] = buffer[ x*20*4 + 2 ] = 0x00;
-        buffer[ x*4 + 3 ] = buffer[ x*20*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<20; ++x )
-    {
-        buffer[ (19*20+x)*4     ] = buffer[ (x*20+19)*4     ] = 0xFF;
-        buffer[ (19*20+x)*4 + 1 ] = buffer[ (x*20+19)*4 + 1 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 2 ] = buffer[ (x*20+19)*4 + 2 ] = 0xFF;
-        buffer[ (19*20+x)*4 + 3 ] = buffer[ (x*20+19)*4 + 3 ] = 0xFF;
-    }
-
-    for( x=0; x<6; ++x )
-    {
-        for( y=0; y<(11-2*x); ++y )
-        {
-            buffer[ ((5+y+x-1)*20 + 7+x-1)*4     ] = 0xFF;
-            buffer[ ((5+y+x-1)*20 + 7+x-1)*4 + 1 ] = 0xFF;
-            buffer[ ((5+y+x-1)*20 + 7+x-1)*4 + 2 ] = 0xFF;
-            buffer[ ((5+y+x-1)*20 + 7+x-1)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 108, 20, buffer, 0, 0, 20, 20, 20, SGUI_RGBA8 );
-
     /* scroll bar background */
     for( x=0; x<20; ++x )
     {
@@ -545,6 +217,19 @@ static unsigned int default_get_progess_bar_width( sgui_skin* this )
 {
     (void)this;
     return 30;
+}
+
+static unsigned int default_get_scroll_bar_width( sgui_skin* this )
+{
+    (void)this;
+    return 20;
+}
+
+static void default_get_scroll_bar_button_extents( sgui_skin* this,
+                                                   sgui_rect* r )
+{
+    (void)this;
+    sgui_rect_set_size( r, 0, 0, 20, 20 );
 }
 
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
@@ -813,6 +498,81 @@ static void default_draw_progress_stippled( sgui_skin* this,
     }
 }
 
+static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
+                                     int x, int y, unsigned int length,
+                                     int vertical, int pane_offset,
+                                     unsigned int pane_length,
+                                     int decbutton, int incbutton )
+{
+    unsigned char bg[4] = { 0x64, 0x64, 0x64, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    sgui_rect r;
+    int i;
+
+    if( vertical )
+    {
+        /* background */
+        sgui_rect_set_size( &r, x, y, 20, length );
+        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGB8 );
+
+        /* upper button */
+        sgui_rect_set_size( &r, x, y, 20, 20 );
+        default_draw_button( this, canvas, &r, incbutton );
+
+        for( i=5; i<=10; ++i )
+        {
+            sgui_canvas_draw_line( canvas, x+i-incbutton, y+17-i-incbutton,
+                                   11-(i-5)*2, 1, white, SGUI_RGB8 );
+        }
+
+        /* lower button */
+        sgui_rect_set_size( &r, x, y+length-20, 20, 20 );
+        default_draw_button( this, canvas, &r, decbutton );
+
+        for( i=5; i<=10; ++i )
+        {
+            sgui_canvas_draw_line( canvas, x+i-decbutton,
+                                   y+length-18+i-decbutton,
+                                   11-(i-5)*2, 1, white, SGUI_RGB8 );
+        }
+
+        /* pane */
+        sgui_rect_set_size( &r, x, y+20+pane_offset, 20, pane_length );
+        default_draw_button( this, canvas, &r, 0 );
+    }
+    else
+    {
+        /* background */
+        sgui_rect_set_size( &r, x, y, length, 20 );
+        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGB8 );
+
+        /* left button */
+        sgui_rect_set_size( &r, x, y, 20, 20 );
+        default_draw_button( this, canvas, &r, incbutton );
+
+        for( i=7; i<=12; ++i )
+        {
+            sgui_canvas_draw_line( canvas, x+i-incbutton, y+17-i-incbutton,
+                                   1+(i-7)*2, 0, white, SGUI_RGB8 );
+        }
+
+        /* right button */
+        sgui_rect_set_size( &r, x+length-20, y, 20, 20 );
+        default_draw_button( this, canvas, &r, decbutton );
+
+        for( i=7; i<=12; ++i )
+        {
+            sgui_canvas_draw_line( canvas, x+length-20+i-incbutton,
+                                   y+i-2-incbutton,
+                                   11-(i-7)*2, 0, white, SGUI_RGB8 );
+        }
+
+        /* pane */
+        sgui_rect_set_size( &r, x+20+pane_offset, y, pane_length, 20 );
+        default_draw_button( this, canvas, &r, 0 );
+    }
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
@@ -830,22 +590,6 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     SET_ELEMENT( skin, SGUI_TAB_BOTTOM,                  39, 21,  8,  1 );  
     SET_ELEMENT( skin, SGUI_TAB_GAP_LEFT,                 0,  0,  0,  0 );    
     SET_ELEMENT( skin, SGUI_TAB_GAP_RIGHT,                0,  0,  0,  0 );    
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_H_PANE_LEFT,      48, 20,  7, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_H_PANE_CENTER,    49, 20,  6, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_H_PANE_RIGHT,     61, 20,  7, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_V_PANE_TOP,       48,  0, 20,  7 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_V_PANE_CENTER,    48, 13, 20,  6 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_V_PANE_BOTTOM,    48, 13, 20,  7 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_V_BACKGROUND,     30, 42, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_H_BACKGROUND,     30, 42, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_UP,        88,  0, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_DOWN,      48,  0, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_LEFT,      48, 20, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_RIGHT,     88, 20, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_UP_IN,    108,  0, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_DOWN_IN,   68,  0, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_LEFT_IN,   68, 20, 20, 20 );
-    SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_RIGHT_IN, 108, 20, 20, 20 );
 
     skin->load_to_pixmap = default_skin_to_pixmap;
     skin->get_checkbox_extents = default_get_checkbox_extents;
@@ -862,6 +606,9 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->get_progess_bar_width = default_get_progess_bar_width;
     skin->draw_progress_bar = default_draw_progress_bar;
     skin->draw_progress_stippled = default_draw_progress_stippled;
+    skin->draw_scroll_bar = default_draw_scroll_bar;
+    skin->get_scroll_bar_width = default_get_scroll_bar_width;
+    skin->get_scroll_bar_button_extents=default_get_scroll_bar_button_extents;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;
