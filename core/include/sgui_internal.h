@@ -95,6 +95,19 @@ struct sgui_skin
     sgui_font* font_ital;   /**< \brief Font face for italic text */
     sgui_font* font_boit;   /**< \brief Font face for bold and italic text */
 
+    void(* get_checkbox_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* get_radio_button_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
+                            int x, int y, int checked );
+
+    void(* draw_radio_button )( sgui_skin* skin, sgui_canvas* canvas,
+                                int x, int y, int checked );
+
+    void(* draw_button )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                          int pressed );
+
     /**
      * \brief Load the required GUI elements into a pixmap
      *

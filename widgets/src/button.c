@@ -36,8 +36,13 @@
 
 
 
-#define SGUI_BUTTON          1
-#define SGUI_BUTTON_SELECTED 2
+#define SGUI_BUTTON                 1
+#define SGUI_BUTTON_SELECTED        2
+#define SGUI_CHECKBOX               3
+#define SGUI_CHECKBOX_SELECTED      4
+#define SGUI_RADIO_BUTTON           5
+#define SGUI_RADIO_BUTTON_SELECTED  6
+
 
 
 
@@ -48,7 +53,7 @@ typedef struct sgui_button
     char* text;
     int type;                 /* button type */
     unsigned int cx, cy;      /* button: text position,
-                                 checkbox/radio button: object size */
+                                 checkbox/radio button: text/object offset */
 
     struct sgui_button* prev; /* radio button menu: next in menu */
     struct sgui_button* next; /* radio button menu: previous in menu */
@@ -57,103 +62,39 @@ sgui_button;
 
 
 
-static void checkbox_draw( sgui_widget* w )
+static void checkbox_draw( sgui_widget* super )
 {
-    sgui_button* b = (sgui_button*)w;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( w->canvas );
-    unsigned int delta = sgui_skin_get_default_font_height( ) / 4;
-    int x = w->area.left + b->cx, y = w->area.top;
-    sgui_canvas* cv = w->canvas;
-    sgui_rect r;
+    sgui_button* this = (sgui_button*)super;
 
-    sgui_skin_get_element( b->type, &r );
-    x += b->cx/2;
+    sgui_skin_draw_checkbox( super->canvas, super->area.left,
+                             super->area.top+this->cy,
+                             this->type==SGUI_CHECKBOX_SELECTED );
 
-    sgui_canvas_blend( cv, w->area.left, w->area.top+delta, skin_pixmap, &r );
-    sgui_canvas_draw_text( w->canvas, x, y, b->text );
+    sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
+                           super->area.top, this->text );
 }
 
-static void button_draw( sgui_widget* w )
+static void radiobutton_draw( sgui_widget* super )
 {
-    sgui_button* button = (sgui_button*)w;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( w->canvas );
-    sgui_rect lt, rt, lb, rb, l, r, t, b, f, dst;
-    sgui_canvas* cv = w->canvas;
+    sgui_button* this = (sgui_button*)super;
 
-    int x = w->area.left;
-    int y = w->area.top;
-    int x1 = w->area.right;
-    int y1 = w->area.bottom;
+    sgui_skin_draw_radio_button( super->canvas,
+                                 super->area.left, super->area.top+this->cy,
+                                 this->type==SGUI_RADIO_BUTTON_SELECTED );
 
-    /* get required skin elements */
-    if( button->type==SGUI_BUTTON_SELECTED )
-    {
-        sgui_skin_get_element( SGUI_BUTTON_IN_LEFT_TOP, &lt );
-        sgui_skin_get_element( SGUI_BUTTON_IN_RIGHT_TOP, &rt );
-        sgui_skin_get_element( SGUI_BUTTON_IN_LEFT_BOTTOM, &lb );
-        sgui_skin_get_element( SGUI_BUTTON_IN_RIGHT_BOTTOM, &rb );
-        sgui_skin_get_element( SGUI_BUTTON_IN_LEFT, &l );
-        sgui_skin_get_element( SGUI_BUTTON_IN_RIGHT, &r );
-        sgui_skin_get_element( SGUI_BUTTON_IN_TOP, &t );
-        sgui_skin_get_element( SGUI_BUTTON_IN_BOTTOM, &b );
-        sgui_skin_get_element( SGUI_BUTTON_IN_FILL, &f );
-    }
-    else
-    {
-        sgui_skin_get_element( SGUI_BUTTON_LEFT_TOP, &lt );
-        sgui_skin_get_element( SGUI_BUTTON_RIGHT_TOP, &rt );
-        sgui_skin_get_element( SGUI_BUTTON_LEFT_BOTTOM, &lb );
-        sgui_skin_get_element( SGUI_BUTTON_RIGHT_BOTTOM, &rb );
-        sgui_skin_get_element( SGUI_BUTTON_LEFT, &l );
-        sgui_skin_get_element( SGUI_BUTTON_RIGHT, &r );
-        sgui_skin_get_element( SGUI_BUTTON_TOP, &t );
-        sgui_skin_get_element( SGUI_BUTTON_BOTTOM, &b );
-        sgui_skin_get_element( SGUI_BUTTON_FILL, &f );
-    }
+    sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
+                           super->area.top, this->text );
+}
 
-    /* draw corners */
-    sgui_canvas_blend( cv, x, y, skin_pixmap, &lt );
-    sgui_canvas_blend( cv, x1-(rt.right-rt.left), y, skin_pixmap, &rt );
-    sgui_canvas_blend( cv, x, y1-(lb.bottom-lb.top), skin_pixmap, &lb );
-    sgui_canvas_blend( cv, x1-(rb.right-rb.left), y1-(rb.bottom-rb.top),
-                       skin_pixmap, &rb );
+static void button_draw( sgui_widget* super )
+{
+    sgui_button* this = (sgui_button*)super;
+    int in = this->type==SGUI_BUTTON_SELECTED;
 
-    /* draw borders */
-    dst.left   = x;
-    dst.right  = x  + (l.right - l.left);
-    dst.top    = y  + SGUI_RECT_HEIGHT(lt);
-    dst.bottom = y1 - SGUI_RECT_HEIGHT(lb);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &l, &dst, 0 );
+    sgui_skin_draw_button( super->canvas, &super->area, in );
 
-    dst.left   = x1 - (r.right-r.left);
-    dst.right  = x1;
-    dst.top    = y  + SGUI_RECT_HEIGHT(rt);
-    dst.bottom = y1 - SGUI_RECT_HEIGHT(rb);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
-
-    dst.left   = x  + SGUI_RECT_WIDTH(lt);
-    dst.right  = x1 - SGUI_RECT_WIDTH(rt);
-    dst.top    = y;
-    dst.bottom = y  + (t.bottom-t.top);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &t, &dst, 0 );
-
-    dst.left   = x  + SGUI_RECT_WIDTH(lb);
-    dst.right  = x1 - SGUI_RECT_WIDTH(rb);
-    dst.top    = y1 - (b.bottom-b.top);
-    dst.bottom = y1;
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &b, &dst, 0 );
-
-    /* draw background */
-    dst.left   = x  + SGUI_RECT_WIDTH(l);
-    dst.right  = x1 - SGUI_RECT_WIDTH(r);
-    dst.top    = y  + SGUI_RECT_HEIGHT(t);
-    dst.bottom = y1 - SGUI_RECT_HEIGHT(b);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &f, &dst, 0 );
-
-    /* draw text */
-    x += button->cx - (button->type==SGUI_BUTTON_SELECTED ? 1 : 0);
-    y += button->cy - (button->type==SGUI_BUTTON_SELECTED ? 1 : 0);
-    sgui_canvas_draw_text( cv, x, y, button->text );
+    sgui_canvas_draw_text( super->canvas, super->area.left+this->cx-in,
+                           super->area.top+this->cy-in, this->text );
 }
 
 static void button_destroy( sgui_widget* button )
@@ -196,15 +137,31 @@ static sgui_button* button_create_common( int x, int y, unsigned int width,
     text_height = SGUI_RECT_HEIGHT( r );
 
     /* compute size */
-    if( type!=SGUI_BUTTON )
+    if( type==SGUI_CHECKBOX )
     {
-        sgui_skin_get_element( type, &r );
+        sgui_skin_get_checkbox_extents( &r );
 
         b->cx = SGUI_RECT_WIDTH( r );
         b->cy = SGUI_RECT_HEIGHT( r );
 
-        width  = b->cx + text_width + b->cx/2;
+        width  = b->cx + text_width;
         height = MAX(b->cy, text_height);
+
+        b->cy = (height - b->cy) / 2;
+        b->cy = MAX( b->cy, 0 );
+    }
+    else if( type==SGUI_RADIO_BUTTON )
+    {
+        sgui_skin_get_radio_button_extents( &r );
+
+        b->cx = SGUI_RECT_WIDTH( r );
+        b->cy = SGUI_RECT_HEIGHT( r );
+
+        width  = b->cx + text_width;
+        height = MAX(b->cy, text_height);
+
+        b->cy = (height - b->cy) / 2;
+        b->cy = MAX( b->cy, 0 );
     }
     else
     {
@@ -222,7 +179,9 @@ static sgui_button* button_create_common( int x, int y, unsigned int width,
     b->type = type;
 
     b->widget.destroy = button_destroy;
-    b->widget.draw_callback = type==SGUI_BUTTON ? button_draw : checkbox_draw;
+    b->widget.draw_callback = type==SGUI_BUTTON ? button_draw :
+                              type==SGUI_CHECKBOX ? checkbox_draw :
+                              radiobutton_draw;
 
     return b;
 }

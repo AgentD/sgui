@@ -68,117 +68,6 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
 
     sgui_pixmap_load( pixmap, 0, 0, buffer, 0, 0, 12, 12, 12, SGUI_RGBA8 );
 
-    /* draw checked checkbox */
-    for( y=0; y<3; ++y )
-    {
-        for( x=0; x<4; ++x )
-        {
-            buffer[ ((4+y)*12 + 2)*4 + x ] = 0xFF;
-            buffer[ ((5+y)*12 + 3)*4 + x ] = 0xFF;
-            buffer[ ((6+y)*12 + 4)*4 + x ] = 0xFF;
-            buffer[ ((5+y)*12 + 5)*4 + x ] = 0xFF;
-            buffer[ ((4+y)*12 + 6)*4 + x ] = 0xFF;
-            buffer[ ((3+y)*12 + 7)*4 + x ] = 0xFF;
-            buffer[ ((2+y)*12 + 8)*4 + x ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 12, 0, buffer, 0, 0, 12, 12, 12, SGUI_RGBA8 );
-
-    /* draw radio button */
-    for( y=0; y<12; ++y )
-    {
-        for( x=0; x<12; ++x )
-        {
-            buffer[ (y*12 + x)*4     ] = buffer[ (y*12 + x)*4 + 1 ] = 0x00;
-            buffer[ (y*12 + x)*4 + 2 ] = buffer[ (y*12 + x)*4 + 3 ] = 0x00;
-        }
-    }
-
-    for( y=0; y<8; ++y )
-    {
-        for( x=0; x<8; ++x )
-        {
-            buffer[ ((y+2)*12 + x+2)*4     ] = 0x00;
-            buffer[ ((y+2)*12 + x+2)*4 + 1 ] = 0x00;
-            buffer[ ((y+2)*12 + x+2)*4 + 2 ] = 0x00;
-            buffer[ ((y+2)*12 + x+2)*4 + 3 ] = 0x80;
-        }
-    }
-
-    for( x=0; x<4; ++x )
-    {
-        buffer[ ((x+4)*12)*4     ] = buffer[ (x+4)*4     ] = 0x00;
-        buffer[ ((x+4)*12)*4 + 1 ] = buffer[ (x+4)*4 + 1 ] = 0x00;
-        buffer[ ((x+4)*12)*4 + 2 ] = buffer[ (x+4)*4 + 2 ] = 0x00;
-        buffer[ ((x+4)*12)*4 + 3 ] = buffer[ (x+4)*4 + 3 ] = 0xFF;
-
-        buffer[ ((x+4)*12 + 11)*4     ] = buffer[ (11*12 + x+4)*4     ]=0xFF;
-        buffer[ ((x+4)*12 + 11)*4 + 1 ] = buffer[ (11*12 + x+4)*4 + 1 ]=0xFF;
-        buffer[ ((x+4)*12 + 11)*4 + 2 ] = buffer[ (11*12 + x+4)*4 + 2 ]=0xFF;
-        buffer[ ((x+4)*12 + 11)*4 + 3 ] = buffer[ (11*12 + x+4)*4 + 3 ]=0xFF;
-
-        buffer[ ((x+4)*12+1)*4     ] = buffer[ (12+x+4)*4     ] = 0x00;
-        buffer[ ((x+4)*12+1)*4 + 1 ] = buffer[ (12+x+4)*4 + 1 ] = 0x00;
-        buffer[ ((x+4)*12+1)*4 + 2 ] = buffer[ (12+x+4)*4 + 2 ] = 0x00;
-        buffer[ ((x+4)*12+1)*4 + 3 ] = buffer[ (12+x+4)*4 + 3 ] = 0x80;
-
-        buffer[ ((x+4)*12 + 10)*4     ] = buffer[ (10*12 + x+4)*4     ]=0x00;
-        buffer[ ((x+4)*12 + 10)*4 + 1 ] = buffer[ (10*12 + x+4)*4 + 1 ]=0x00;
-        buffer[ ((x+4)*12 + 10)*4 + 2 ] = buffer[ (10*12 + x+4)*4 + 2 ]=0x00;
-        buffer[ ((x+4)*12 + 10)*4 + 3 ] = buffer[ (10*12 + x+4)*4 + 3 ]=0x80;
-    }
-
-    for( x=0; x<2; ++x )
-    {
-        buffer[ (1*12 + x+2)*4     ] = buffer[ (1*12 + x+8)*4     ] = 0x00;
-        buffer[ (1*12 + x+2)*4 + 1 ] = buffer[ (1*12 + x+8)*4 + 1 ] = 0x00;
-        buffer[ (1*12 + x+2)*4 + 2 ] = buffer[ (1*12 + x+8)*4 + 2 ] = 0x00;
-        buffer[ (1*12 + x+2)*4 + 3 ] = buffer[ (1*12 + x+8)*4 + 3 ] = 0xFF;
-
-        buffer[ ((x+2)*12 + 1)*4     ] = buffer[ ((x+8)*12 + 1)*4     ]=0x00;
-        buffer[ ((x+2)*12 + 1)*4 + 1 ] = buffer[ ((x+8)*12 + 1)*4 + 1 ]=0x00;
-        buffer[ ((x+2)*12 + 1)*4 + 2 ] = buffer[ ((x+8)*12 + 1)*4 + 2 ]=0x00;
-        buffer[ ((x+2)*12 + 1)*4 + 3 ] = buffer[ ((x+8)*12 + 1)*4 + 3 ]=0xFF;
-
-        buffer[ (10*12 + x+2)*4     ] = buffer[ (10*12 + x+8)*4     ] = 0xFF;
-        buffer[ (10*12 + x+2)*4 + 1 ] = buffer[ (10*12 + x+8)*4 + 1 ] = 0xFF;
-        buffer[ (10*12 + x+2)*4 + 2 ] = buffer[ (10*12 + x+8)*4 + 2 ] = 0xFF;
-        buffer[ (10*12 + x+2)*4 + 3 ] = buffer[ (10*12 + x+8)*4 + 3 ] = 0xFF;
-
-        buffer[ ((x+2)*12 + 10)*4     ]=buffer[ ((x+8)*12 + 10)*4     ]=0xFF;
-        buffer[ ((x+2)*12 + 10)*4 + 1 ]=buffer[ ((x+8)*12 + 10)*4 + 1 ]=0xFF;
-        buffer[ ((x+2)*12 + 10)*4 + 2 ]=buffer[ ((x+8)*12 + 10)*4 + 2 ]=0xFF;
-        buffer[ ((x+2)*12 + 10)*4 + 3 ]=buffer[ ((x+8)*12 + 10)*4 + 3 ]=0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 24, 0, buffer, 0, 0, 12, 12, 12, SGUI_RGBA8 );
-
-    /* draw selected radio button */
-    for( y=0; y<6; ++y )
-    {
-        for( x=0; x<4; ++x )
-        {
-            buffer[ ((y+3)*12 + x+4)*4     ] = 0xFF;
-            buffer[ ((y+3)*12 + x+4)*4 + 1 ] = 0xFF;
-            buffer[ ((y+3)*12 + x+4)*4 + 2 ] = 0xFF;
-            buffer[ ((y+3)*12 + x+4)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    for( y=0; y<4; ++y )
-    {
-        for( x=0; x<6; ++x )
-        {
-            buffer[ ((y+4)*12 + x+3)*4     ] = 0xFF;
-            buffer[ ((y+4)*12 + x+3)*4 + 1 ] = 0xFF;
-            buffer[ ((y+4)*12 + x+3)*4 + 2 ] = 0xFF;
-            buffer[ ((y+4)*12 + x+3)*4 + 3 ] = 0xFF;
-        }
-    }
-
-    sgui_pixmap_load( pixmap, 36, 0, buffer, 0, 0, 12, 12, 12, SGUI_RGBA8 );
-
     /* scroll bar down button */
     for( y=0; y<20; ++y )
     {
@@ -675,24 +564,6 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
     sgui_pixmap_load( pixmap, 38, 21, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
     sgui_pixmap_load( pixmap, 47, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
 
-    /* button pressed */
-    for( x=0; x<10; ++x )
-    {
-        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = 0x00;
-        buffer[x*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 38, 22, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 38, 22, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
-
-    for( x=0; x<10; ++x )
-    {
-        buffer[x*4] = buffer[x*4+1] = buffer[x*4+2] = buffer[x*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 38, 31, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
-    sgui_pixmap_load( pixmap, 47, 22, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
-
     /* edit box cursor */
     for( x=0; x<20; ++x )
     {
@@ -753,6 +624,112 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
     sgui_pixmap_load( pixmap, 38, 38, buffer, 0, 0, 10, 4, 10, SGUI_RGBA8 );
 }
 
+static void default_get_checkbox_extents( sgui_skin* this, sgui_rect* r )
+{
+    (void)this;
+    sgui_rect_set_size( r, 0, 0, 20, 12 );
+}
+
+static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
+                                   int x, int y, int checked )
+{
+    unsigned char bg[4] = { 0, 0, 0, 0x80 };
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    sgui_rect r;
+    (void)this;
+
+    sgui_rect_set_size( &r, x+1, y+1, 10, 10 );
+    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+    sgui_canvas_draw_line( canvas, x,    y,    12, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,    y,    12, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,    y+11, 12, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+11, y,    12, 0, white, SGUI_RGB8 );
+
+    if( checked )
+    {
+        sgui_canvas_draw_line( canvas, x+2, y+4, 3, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+3, y+5, 3, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+4, y+6, 3, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+5, y+5, 3, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+6, y+4, 3, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+7, y+3, 3, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+8, y+2, 3, 0, white, SGUI_RGB8 );
+    }
+}
+
+static void default_draw_radio_button( sgui_skin* this, sgui_canvas* canvas,
+                                       int x, int y, int checked )
+{
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned char bg[4] = { 0, 0, 0, 0x80 };
+    sgui_rect r;
+    (void)this;
+
+    sgui_rect_set_size( &r, x+4, y+1, 4, 10 );
+    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+    sgui_rect_set_size( &r, x+2, y+2, 2, 8 );
+    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+    sgui_rect_set_size( &r, x+8, y+2, 2, 8 );
+    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+
+    sgui_canvas_draw_line( canvas, x+1, y+4, 4, 0, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_line( canvas, x+10, y+4, 4, 0, bg, SGUI_RGBA8 );
+
+    sgui_canvas_draw_line( canvas, x+4, y,   4, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+2, y+1, 2, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+8, y+1, 2, 1, black, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, x,   y+4, 4, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+1, y+2, 2, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+1, y+8, 2, 0, black, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, x+4, y+11, 4, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+2, y+10, 2, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+8, y+10, 2, 1, white, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, x+11, y+4, 4, 0, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+10, y+2, 2, 0, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+10, y+8, 2, 0, white, SGUI_RGB8 );
+
+    if( checked )
+    {
+        sgui_rect_set_size( &r, x+4, y+3, 4, 6 );
+        sgui_canvas_draw_box( canvas, &r, white, SGUI_RGB8 );
+
+        sgui_rect_set_size( &r, x+3, y+4, 6, 4 );
+        sgui_canvas_draw_box( canvas, &r, white, SGUI_RGB8 );
+    }
+}
+
+void default_draw_button( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                          int pressed )
+{
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    (void)skin;
+
+    if( pressed )
+    {
+        sgui_canvas_draw_line( canvas, x,     y,     w, 1, black, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x,     y,     h, 0, black, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
+    }
+    else
+    {
+        sgui_canvas_draw_line( canvas, x,     y,     w, 1, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x,     y,     h, 0, white, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, black, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, black, SGUI_RGB8 );
+    }
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
@@ -773,28 +750,6 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_EMPTY,          0, 43, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_FILLED,         0, 68, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_END,            0, 67, 30,  1 );
-    SET_ELEMENT( skin, SGUI_CHECKBOX,                     0,  0, 12, 12 );
-    SET_ELEMENT( skin, SGUI_CHECKBOX_SELECTED,           12,  0, 12, 12 );
-    SET_ELEMENT( skin, SGUI_RADIO_BUTTON,                24,  0, 12, 12 );
-    SET_ELEMENT( skin, SGUI_RADIO_BUTTON_SELECTED,       36,  0, 12, 12 );
-    SET_ELEMENT( skin, SGUI_BUTTON_LEFT_TOP,             38, 12,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_RIGHT_TOP,            43, 12,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_LEFT_BOTTOM,          38, 17,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_RIGHT_BOTTOM,         43, 17,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_LEFT,                 38, 13,  5,  8 );
-    SET_ELEMENT( skin, SGUI_BUTTON_RIGHT,                43, 13,  5,  8 );
-    SET_ELEMENT( skin, SGUI_BUTTON_TOP,                  39, 12,  8,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_BOTTOM,               39, 17,  8,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_FILL,                 39, 13,  8,  8 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_LEFT_TOP,          38, 22,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_RIGHT_TOP,         43, 22,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_LEFT_BOTTOM,       38, 27,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_RIGHT_BOTTOM,      43, 27,  5,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_LEFT,              38, 23,  5,  8 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_RIGHT,             43, 23,  5,  8 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_TOP,               39, 22,  8,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_BOTTOM,            39, 27,  8,  5 );
-    SET_ELEMENT( skin, SGUI_BUTTON_IN_FILL,              39, 23,  8,  8 );
     SET_ELEMENT( skin, SGUI_EDIT_BOX_LEFT,                0, 12,  5, 30 );
     SET_ELEMENT( skin, SGUI_EDIT_BOX_CENTER,              1, 12, 12, 30 );
     SET_ELEMENT( skin, SGUI_EDIT_BOX_RIGHT,              21, 12,  5, 30 );
@@ -848,6 +803,11 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     SET_ELEMENT( skin, SGUI_SCROLL_BAR_BUTTON_RIGHT_IN, 108, 20, 20, 20 );
 
     skin->load_to_pixmap = default_skin_to_pixmap;
+    skin->get_checkbox_extents = default_get_checkbox_extents;
+    skin->get_radio_button_extents = default_get_checkbox_extents;
+    skin->draw_checkbox = default_draw_checkbox;
+    skin->draw_radio_button = default_draw_radio_button;
+    skin->draw_button = default_draw_button;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;

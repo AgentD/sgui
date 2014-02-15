@@ -208,28 +208,6 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
         ELEMENT( "pbar.v.filled.empty", SGUI_PBAR_V_FILLED_EMPTY );
         ELEMENT( "pbar.v.filled.filled", SGUI_PBAR_V_FILLED_FILLED );
         ELEMENT( "pbar.v.filled.end", SGUI_PBAR_V_FILLED_END );
-        ELEMENT( "checkbox", SGUI_CHECKBOX );
-        ELEMENT( "checkbox.selected", SGUI_CHECKBOX_SELECTED );
-        ELEMENT( "radio", SGUI_RADIO_BUTTON );
-        ELEMENT( "radio.selected", SGUI_RADIO_BUTTON_SELECTED );
-        ELEMENT( "button.left.top", SGUI_BUTTON_LEFT_TOP );
-        ELEMENT( "button.left.bottom", SGUI_BUTTON_LEFT_BOTTOM );
-        ELEMENT( "button.right.top", SGUI_BUTTON_RIGHT_TOP );
-        ELEMENT( "button.right.bottom", SGUI_BUTTON_RIGHT_BOTTOM );
-        ELEMENT( "button.left", SGUI_BUTTON_LEFT );
-        ELEMENT( "button.right", SGUI_BUTTON_RIGHT );
-        ELEMENT( "button.top", SGUI_BUTTON_TOP );
-        ELEMENT( "button.bottom", SGUI_BUTTON_BOTTOM );
-        ELEMENT( "button.fill", SGUI_BUTTON_FILL );
-        ELEMENT( "button.in.left.top", SGUI_BUTTON_IN_LEFT_TOP );
-        ELEMENT( "button.in.left.bottom", SGUI_BUTTON_IN_LEFT_BOTTOM );
-        ELEMENT( "button.in.right.top", SGUI_BUTTON_IN_RIGHT_TOP );
-        ELEMENT( "button.in.right.bottom", SGUI_BUTTON_IN_RIGHT_BOTTOM );
-        ELEMENT( "button.in.left", SGUI_BUTTON_IN_LEFT );
-        ELEMENT( "button.in.right", SGUI_BUTTON_IN_RIGHT );
-        ELEMENT( "button.in.top", SGUI_BUTTON_IN_TOP );
-        ELEMENT( "button.in.bottom", SGUI_BUTTON_IN_BOTTOM );
-        ELEMENT( "button.in.fill", SGUI_BUTTON_IN_FILL );
         ELEMENT( "sbar.h.pane.left", SGUI_SCROLL_BAR_H_PANE_LEFT );
         ELEMENT( "sbar.h.pane.center", SGUI_SCROLL_BAR_H_PANE_CENTER );
         ELEMENT( "sbar.h.pane.right", SGUI_SCROLL_BAR_H_PANE_RIGHT );
@@ -477,5 +455,36 @@ void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
     r->top    = 0;
     r->right  = longest - 1;
     r->bottom = lines * skin.font_height + skin.font_height/2 - 1;
+}
+
+void sgui_skin_get_checkbox_extents( sgui_rect* r )
+{
+    if( r )
+        skin.get_checkbox_extents( &skin, r );
+}
+
+void sgui_skin_get_radio_button_extents( sgui_rect* r )
+{
+    if( r )
+        skin.get_radio_button_extents( &skin, r );
+}
+
+void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )
+{
+    if( canvas )
+        skin.draw_checkbox( &skin, canvas, x, y, checked );
+}
+
+void sgui_skin_draw_radio_button( sgui_canvas* canvas, int x, int y,
+                                  int checked )
+{
+    if( canvas )
+        skin.draw_radio_button( &skin, canvas, x, y, checked );
+}
+
+void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r, int pressed )
+{
+    if( canvas )
+        skin.draw_button( &skin, canvas, r, pressed );
 }
 

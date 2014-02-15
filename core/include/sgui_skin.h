@@ -48,28 +48,6 @@
 #define SGUI_PBAR_V_FILLED_EMPTY          0x0D
 #define SGUI_PBAR_V_FILLED_FILLED         0x0E
 #define SGUI_PBAR_V_FILLED_END            0x0F
-#define SGUI_CHECKBOX                     0x10
-#define SGUI_CHECKBOX_SELECTED            0x11
-#define SGUI_RADIO_BUTTON                 0x12
-#define SGUI_RADIO_BUTTON_SELECTED        0x13
-#define SGUI_BUTTON_LEFT_TOP              0x14
-#define SGUI_BUTTON_RIGHT_TOP             0x15
-#define SGUI_BUTTON_LEFT_BOTTOM           0x16
-#define SGUI_BUTTON_RIGHT_BOTTOM          0x17
-#define SGUI_BUTTON_LEFT                  0x18
-#define SGUI_BUTTON_RIGHT                 0x19
-#define SGUI_BUTTON_TOP                   0x1A
-#define SGUI_BUTTON_BOTTOM                0x1B
-#define SGUI_BUTTON_FILL                  0x1C
-#define SGUI_BUTTON_IN_LEFT_TOP           0x1D
-#define SGUI_BUTTON_IN_RIGHT_TOP          0x1E
-#define SGUI_BUTTON_IN_LEFT_BOTTOM        0x1F
-#define SGUI_BUTTON_IN_RIGHT_BOTTOM       0x20
-#define SGUI_BUTTON_IN_LEFT               0x21
-#define SGUI_BUTTON_IN_RIGHT              0x22
-#define SGUI_BUTTON_IN_TOP                0x23
-#define SGUI_BUTTON_IN_BOTTOM             0x24
-#define SGUI_BUTTON_IN_FILL               0x25
 #define SGUI_SCROLL_BAR_H_PANE_LEFT       0x26
 #define SGUI_SCROLL_BAR_H_PANE_CENTER     0x27
 #define SGUI_SCROLL_BAR_H_PANE_RIGHT      0x28
@@ -260,6 +238,19 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  * \param height      Returns the height of the rendererd text
  */
 SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
+
+SGUI_DLL void sgui_skin_get_checkbox_extents( sgui_rect* r );
+
+SGUI_DLL void sgui_skin_get_radio_button_extents( sgui_rect* r );
+
+SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
+                                       int checked );
+
+SGUI_DLL void sgui_skin_draw_radio_button( sgui_canvas* canvas, int x, int y,
+                                           int checked );
+
+SGUI_DLL void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r,
+                                     int pressed );
 
 #ifdef __cplusplus
 }
