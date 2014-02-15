@@ -64,16 +64,6 @@
 #define SGUI_SCROLL_BAR_BUTTON_DOWN_IN    0x33
 #define SGUI_SCROLL_BAR_BUTTON_LEFT_IN    0x34
 #define SGUI_SCROLL_BAR_BUTTON_RIGHT_IN   0x35
-#define SGUI_FRAME_LEFT_TOP               0x3A
-#define SGUI_FRAME_RIGHT_TOP              0x3B
-#define SGUI_FRAME_LEFT_BOTTOM            0x3C
-#define SGUI_FRAME_RIGHT_BOTTOM           0x3D
-#define SGUI_FRAME_LEFT                   0x3E
-#define SGUI_FRAME_RIGHT                  0x3F
-#define SGUI_FRAME_TOP                    0x40
-#define SGUI_FRAME_BOTTOM                 0x41
-#define SGUI_FRAME_CENTER                 0x42
-#define SGUI_FRAME_BORDER                 0x43
 #define SGUI_GROUPBOX_LEFT_TOP            0x44
 #define SGUI_GROUPBOX_RIGHT_TOP           0x45
 #define SGUI_GROUPBOX_LEFT_BOTTOM         0x46
@@ -243,6 +233,8 @@ SGUI_DLL unsigned int sgui_skin_get_edit_box_height( void );
 
 SGUI_DLL unsigned int sgui_skin_get_edit_box_border_width( void );
 
+SGUI_DLL unsigned int sgui_skin_get_frame_border_width( void );
+
 SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
                                        int checked );
 
@@ -255,6 +247,8 @@ SGUI_DLL void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r,
 SGUI_DLL void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
                                       const char* text, int offset,
                                       int cursor );
+
+SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r );
 
 #ifdef __cplusplus
 }

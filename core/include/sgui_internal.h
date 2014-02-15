@@ -103,6 +103,8 @@ struct sgui_skin
 
     unsigned int(* get_edit_box_border_width )( sgui_skin* skin );
 
+    unsigned int(* get_frame_border_width )( sgui_skin* skin );
+
     void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
                             int x, int y, int checked );
 
@@ -114,6 +116,8 @@ struct sgui_skin
 
     void(* draw_editbox )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                            const char* text, int offset, int cursor );
+
+    void(* draw_frame )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r );
 
     /**
      * \brief Load the required GUI elements into a pixmap

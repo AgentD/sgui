@@ -97,66 +97,9 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
     }
 }
 
-static void frame_draw( sgui_widget* widget )
+static void frame_draw( sgui_widget* super )
 {
-    sgui_rect lt, rt, lb, rb, l, r, t, b, f, dst;
-    sgui_canvas* cv = widget->canvas;
-    sgui_pixmap* skin_pixmap = sgui_canvas_get_skin_pixmap( cv );
-
-    int x  = widget->area.left;
-    int y  = widget->area.top;
-    int x1 = widget->area.right;
-    int y1 = widget->area.bottom;
-
-    /* get required skin elements */
-    sgui_skin_get_element( SGUI_FRAME_LEFT_TOP, &lt );
-    sgui_skin_get_element( SGUI_FRAME_RIGHT_TOP, &rt );
-    sgui_skin_get_element( SGUI_FRAME_LEFT_BOTTOM, &lb );
-    sgui_skin_get_element( SGUI_FRAME_RIGHT_BOTTOM, &rb );
-    sgui_skin_get_element( SGUI_FRAME_LEFT, &l );
-    sgui_skin_get_element( SGUI_FRAME_RIGHT, &r );
-    sgui_skin_get_element( SGUI_FRAME_TOP, &t );
-    sgui_skin_get_element( SGUI_FRAME_BOTTOM, &b );
-    sgui_skin_get_element( SGUI_FRAME_CENTER, &f );
-
-    /* draw corners */
-    sgui_canvas_blend( cv, x, y, skin_pixmap, &lt );
-    sgui_canvas_blend( cv, x1-(rt.right-rt.left), y, skin_pixmap, &rt );
-    sgui_canvas_blend( cv, x, y1-(lb.bottom-lb.top), skin_pixmap, &lb );
-    sgui_canvas_blend( cv, x1-(rb.right-rb.left), y1-(rb.bottom-rb.top),
-                       skin_pixmap, &rb );
-
-    /* draw borders */
-    dst.left   = x;
-    dst.right  = x  + (l.right - l.left);
-    dst.top    = y  + SGUI_RECT_HEIGHT(lt);
-    dst.bottom = y1 - SGUI_RECT_HEIGHT(lb);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &l, &dst, 0 );
-
-    dst.left   = x1 - (r.right-r.left);
-    dst.right  = x1;
-    dst.top    = y  + SGUI_RECT_HEIGHT(rt);
-    dst.bottom = y1 - SGUI_RECT_HEIGHT(rb);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &r, &dst, 0 );
-
-    dst.left   = x  + SGUI_RECT_WIDTH(lt);
-    dst.right  = x1 - SGUI_RECT_WIDTH(rt);
-    dst.top    = y;
-    dst.bottom = y  + (t.bottom-t.top);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &t, &dst, 0 );
-
-    dst.left   = x  + SGUI_RECT_WIDTH(lb);
-    dst.right  = x1 - SGUI_RECT_WIDTH(rb);
-    dst.top    = y1 - (b.bottom-b.top);
-    dst.bottom = y1;
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &b, &dst, 0 );
-
-    /* draw background */
-    dst.left   = x  + SGUI_RECT_WIDTH(l);
-    dst.right  = x1 - SGUI_RECT_WIDTH(r);
-    dst.top    = y  + SGUI_RECT_HEIGHT(t);
-    dst.bottom = y1 - SGUI_RECT_HEIGHT(b);
-    sgui_canvas_stretch_blend( cv, skin_pixmap, &f, &dst, 0 );
+    sgui_skin_draw_frame( super->canvas, &(super->area) );
 }
 
 static void frame_destroy( sgui_widget* frame )
@@ -266,9 +209,8 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     w = SGUI_RECT_WIDTH( r );
     h = SGUI_RECT_HEIGHT( r ) + height;
 
-    sgui_skin_get_element( SGUI_FRAME_BORDER, &r );
-    f->h_border = SGUI_RECT_WIDTH(r);
-    f->v_border = SGUI_RECT_HEIGHT(r);
+    f->h_border = sgui_skin_get_frame_border_width( );
+    f->v_border = sgui_skin_get_frame_border_width( );
     f->v_bar_dist = width - w - f->v_border;
     f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->v_border, 0,
                                        height-2*f->v_border,

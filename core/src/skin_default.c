@@ -633,6 +633,12 @@ unsigned int default_get_edit_box_border_width( sgui_skin* this )
     return 2;
 }
 
+unsigned int default_get_frame_border_width( sgui_skin* this )
+{
+    (void)this;
+    return 1;
+}
+
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
                                    int x, int y, int checked )
 {
@@ -766,6 +772,22 @@ void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r,
     sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
 }
 
+void default_draw_frame( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r )
+{
+    unsigned char bg[4] = { 0, 0, 0, 0x80 };
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    (void)this;
+
+    sgui_canvas_draw_box( canvas, r, bg, SGUI_RGBA8 );
+
+    sgui_canvas_draw_line( canvas, x,     y,     w, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,     y,     h, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
@@ -786,16 +808,6 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_EMPTY,          0, 43, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_FILLED,         0, 68, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_END,            0, 67, 30,  1 );
-    SET_ELEMENT( skin, SGUI_FRAME_LEFT_TOP,               0,  0, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_RIGHT_TOP,              2,  0, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_LEFT_BOTTOM,            0,  2, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_RIGHT_BOTTOM,           2,  2, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_LEFT,                   0,  1, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_RIGHT,                  2,  1, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_TOP,                    1,  0, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_BOTTOM,                 1,  2, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_CENTER,                 1,  1, 10, 10 );  
-    SET_ELEMENT( skin, SGUI_FRAME_BORDER,                 0,  0,  1,  1 );    
     SET_ELEMENT( skin, SGUI_GROUPBOX_LEFT_TOP,           30, 62, 13, 13 );
     SET_ELEMENT( skin, SGUI_GROUPBOX_RIGHT_TOP,          38, 62, 13, 13 );
     SET_ELEMENT( skin, SGUI_GROUPBOX_LEFT_BOTTOM,        30, 70, 13, 13 );
@@ -843,6 +855,8 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->draw_editbox = default_draw_editbox;
     skin->get_edit_box_height = default_get_edit_box_height;
     skin->get_edit_box_border_width = default_get_edit_box_border_width;
+    skin->draw_frame = default_draw_frame;
+    skin->get_frame_border_width = default_get_frame_border_width;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;
