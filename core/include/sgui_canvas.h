@@ -240,6 +240,34 @@ SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
 SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
 
 /**
+ * \brief Draw a rectangle onto a canvas
+ *
+ * \param r      The geometry of the box to draw
+ * \param color  The color to draw the box in
+ * \param format The color format stored in the color array (SGUI_RGB8, ...)
+ */
+SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                                    unsigned char* color,
+                                    int format );
+
+/**
+ * \brief Draw a line onto a canvas
+ *
+ * \param x          Distance from the left of the canvas to the start of the
+ *                   line.
+ * \param y          Distance from the top of the canvas to the start of the
+ *                   line.
+ * \param length     The length of the line in the desired direction
+ * \param horizontal Non-zero to draw a horizontal line, zero to draw a
+ *                   vertical line.
+ * \param color      The color to draw the line in
+ * \param format     The color format stored in the color array(SGUI_RGB8, ...)
+ */
+SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
+                                     unsigned int length, int horizontal,
+                                     unsigned char* color, int format );
+
+/**
  * \brief Blit an image onto a canvas
  *
  * \param x      Distance from the left of the canvas to the left of the image

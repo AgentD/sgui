@@ -461,6 +461,57 @@ void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r )
 
 /**************************** drawing functions ****************************/
 
+void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
+                           unsigned char* color, int format )
+{
+    sgui_rect r1;
+
+    /* sanity check */
+    if( !canvas || !color || !canvas->began || !r )
+        return;
+
+    if( format==SGUI_RGBA8 && color[3]==0xFF )
+        format = SGUI_RGB8;
+
+    /* offset and clip the given rectangle */
+    COPY_RECT_OFFSET( r1, r );
+
+    if( !sgui_rect_get_intersection( &r1, &canvas->sc, &r1 ) )
+        return;
+
+    canvas->draw_box( canvas, &r1, color, format );
+}
+
+void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
+                            unsigned int length, int horizontal,
+                            unsigned char* color, int format )
+{
+    sgui_rect r;
+
+    /* santiy check */
+    if( !canvas || !canvas->began || !color )
+        return;
+
+    if( format==SGUI_RGBA8 && color[3]==0xFF )
+        format = SGUI_RGB8;
+
+    if( horizontal )
+        sgui_rect_set_size( &r, x, y, length, 1 );
+    else
+        sgui_rect_set_size( &r, x, y, 1, length );
+
+    /* offset and clip the given rectangle */
+    r.left   += canvas->ox;
+    r.right  += canvas->ox;
+    r.top    += canvas->oy;
+    r.bottom += canvas->oy;
+
+    if( !sgui_rect_get_intersection( &r, &canvas->sc, &r ) )
+        return;
+
+    canvas->draw_box( canvas, &r, color, format );
+}
+
 void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
                        sgui_pixmap* pixmap, sgui_rect* srcrect )
 {

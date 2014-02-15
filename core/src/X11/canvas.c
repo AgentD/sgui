@@ -87,6 +87,29 @@ static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 }
 
+static void canvas_xlib_draw_box( sgui_canvas* super, sgui_rect* r,
+                                  unsigned char* color, int format )
+{
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    XRenderColor c;
+
+    if( format==SGUI_RGB8 || format==SGUI_RGBA8 )
+    {
+        c.red   = color[0]<<8;
+        c.green = color[1]<<8;
+        c.blue  = color[2]<<8;
+        c.alpha = format==SGUI_RGBA8 ? (color[3]<<8) : 0xFFFF;
+    }
+    else
+    {
+        c.red = c.green = c.blue = color[0]<<8;
+        c.alpha = 0xFFFF;
+    }
+
+    XRenderFillRectangle( dpy, PictOpOver, this->pic, &c, r->left, r->top,
+                          SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
+}
+
 static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
                               sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
@@ -248,6 +271,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     super->stretch_blend = NULL;
     super->stretch_blit  = NULL;
     super->skin_pixmap   = get_skin_pixmap( );
+    super->draw_box      = canvas_xlib_draw_box;
 
     return (sgui_canvas*)this;
 failure:

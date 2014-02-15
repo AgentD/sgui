@@ -84,6 +84,55 @@ static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
 
 /****************************************************************************/
 
+static void canvas_mem_draw_box( sgui_canvas* super, sgui_rect* r,
+                                 unsigned char* color, int format )
+{
+    mem_canvas* this = (mem_canvas*)super;
+    unsigned char A, iA;
+    unsigned char *dst, *row;
+    int i, j;
+
+    dst = this->data + (r->top*super->width + r->left)*this->bpp;
+
+    if( format==SGUI_RGBA8 )
+    {
+        A = color[3];
+        iA = 0xFF - A;
+
+        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*this->bpp )
+        {
+            for( row=dst, i=r->left; i<=r->right; ++i, row+=this->bpp )
+            {
+                row[0] = (row[0] * iA + color[0] * A)>>8;
+                row[1] = (row[1] * iA + color[1] * A)>>8;
+                row[2] = (row[2] * iA + color[2] * A)>>8;
+            }
+        }
+    }
+    else if( format==SGUI_RGB8 )
+    {
+        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*this->bpp )
+        {
+            for( row=dst, i=r->left; i<=r->right; ++i, row+=this->bpp )
+            {
+                row[0] = color[0];
+                row[1] = color[1];
+                row[2] = color[2];
+            }
+        }
+    }
+    else
+    {
+        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*this->bpp )
+        {
+            for( row=dst, i=r->left; i<=r->right; ++i, row+=this->bpp )
+            {
+                row[0] = row[1] = row[2] = *color;
+            }
+        }
+    }
+}
+
 static void canvas_mem_blit_rgb( sgui_canvas* super, int x, int y,
                                  sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
@@ -394,6 +443,7 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     super->draw_string = canvas_mem_draw_string;
     super->create_pixmap = canvas_mem_create_pixmap;
     super->skin_pixmap = NULL;
+    super->draw_box = canvas_mem_draw_box;
 
     return (sgui_canvas*)this;
 }
