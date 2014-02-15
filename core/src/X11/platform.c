@@ -26,6 +26,8 @@
 #include "sgui.h"
 #include "internal.h"
 
+#include <sys/select.h>
+
 
 
 Display* dpy = NULL;
@@ -51,27 +53,30 @@ static int xlib_swallow_errors( Display* display, XErrorEvent* event )
 }
 
 /* fetch and process the next Xlib event */
-static void handle_event( )
+static void handle_events( void )
 {
     sgui_window_xlib* i;
     XEvent e;
 
-    XNextEvent( dpy, &e );
-
-    /* XFilterEvent filters out keyboard events needed for composing and
-       returns True if it handled the event and we should ignore it */
-    if( !XFilterEvent( &e, None ) )
+    while( XPending( dpy ) > 0 )
     {
-        /* route the event to it's window */
-        for( i=list; i!=NULL && i->wnd!=e.xany.window; i=i->next );
+        XNextEvent( dpy, &e );
 
-        if( i!=NULL )
-            handle_window_events( i, &e );
+        /* XFilterEvent filters out keyboard events needed for composing and
+           returns True if it handled the event and we should ignore it */
+        if( !XFilterEvent( &e, None ) )
+        {
+            /* route the event to it's window */
+            for( i=list; i!=NULL && i->wnd!=e.xany.window; i=i->next );
+
+            if( i!=NULL )
+                handle_window_events( i, &e );
+        }
     }
 }
 
 /* returns non-zero if there's at least 1 window still active */
-static int have_active_windows( )
+static int have_active_windows( void )
 {
     sgui_window_xlib* i;
 
@@ -80,7 +85,7 @@ static int have_active_windows( )
     return i!=NULL;
 }
 
-static void update_windows( )
+static void update_windows( void )
 {
     sgui_window_xlib* i;
 
@@ -177,20 +182,34 @@ void sgui_deinit( void )
 
 int sgui_main_loop_step( void )
 {
+    handle_events( );
     update_windows( );
-
-    if( XPending( dpy ) > 0 )
-        handle_event( );
+    XFlush( dpy );
 
     return have_active_windows( );
 }
 
 void sgui_main_loop( void )
 {
+    struct timeval tv;
+    fd_set in_fds;
+    int x11_fd;
+
+    x11_fd = XConnectionNumber( dpy );
+
     while( have_active_windows( ) )
     {
+        handle_events( );
         update_windows( );
-        handle_event( );
+        XFlush( dpy );
+
+        /* wait for X11 events, one second time out */
+        FD_ZERO( &in_fds );
+        FD_SET( x11_fd, &in_fds );
+
+        tv.tv_usec = 0;
+        tv.tv_sec = 1;
+        select( x11_fd+1, &in_fds, 0, 0, &tv );
     }
 }
 
