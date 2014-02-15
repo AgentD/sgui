@@ -513,8 +513,6 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     super->destroy = canvas_mem_destroy;
     super->resize = canvas_mem_resize;
     super->clear = canvas_mem_clear;
-    super->stretch_blit = NULL;
-    super->stretch_blend = NULL;
     super->draw_string = canvas_mem_draw_string;
     super->create_pixmap = canvas_mem_create_pixmap;
 
