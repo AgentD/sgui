@@ -33,7 +33,6 @@ XIM im = 0;
 Atom atom_wm_delete = 0;
 FT_Library freetype = 0;
 Window root = 0;
-static sgui_pixmap* skin_pixmap = NULL;
 static sgui_font_cache* glyph_cache = NULL;
 
 static sgui_window_xlib* list = NULL;
@@ -103,23 +102,6 @@ void remove_window( sgui_window_xlib* wnd )
     SGUI_REMOVE_FROM_LIST( list, i, wnd );
 }
 
-sgui_pixmap* get_skin_pixmap( void )
-{
-    unsigned int width, height;
-
-    if( !skin_pixmap )
-    {
-        sgui_skin_get_pixmap_size( &width, &height );
-
-        skin_pixmap = xlib_pixmap_create( width, height, SGUI_RGBA8, root );
-
-        if( skin_pixmap )
-            sgui_skin_to_pixmap( skin_pixmap );
-    }
-
-    return skin_pixmap;
-}
-
 sgui_font_cache* get_glyph_cache( void )
 {
     sgui_pixmap* font_map;
@@ -176,8 +158,6 @@ failure:
 
 void sgui_deinit( void )
 {
-    sgui_skin_unload( );
-    sgui_pixmap_destroy( skin_pixmap );
     sgui_font_cache_destroy( glyph_cache );
 
     if( im )
@@ -192,7 +172,6 @@ void sgui_deinit( void )
     dpy = NULL;
     im = 0;
     freetype = 0;
-    skin_pixmap = NULL;
     list = NULL;
 }
 

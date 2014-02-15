@@ -105,9 +105,6 @@ extern Window root;
 extern Atom atom_wm_delete;
 extern FT_Library freetype;
 
-/* in platform.c: returns a pointer to the global skin pixmap */
-sgui_pixmap* get_skin_pixmap( void );
-
 /* in platform.c: returns a pointer to the global font cache */
 sgui_font_cache* get_glyph_cache( void );
 

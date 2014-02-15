@@ -31,17 +31,6 @@
 
 
 
-#define SET_ELEMENT(skin,id,x,y,w,h)\
-        sgui_rect_set_size((skin)->elements+(id),x,y,w,h)
-
-
-
-static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
-{
-    (void)skin;
-    (void)pixmap;
-}
-
 static void default_get_checkbox_extents( sgui_skin* this, sgui_rect* r )
 {
     (void)this;
@@ -468,7 +457,6 @@ static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
 {
-    skin->load_to_pixmap = default_skin_to_pixmap;
     skin->get_checkbox_extents = default_get_checkbox_extents;
     skin->get_radio_button_extents = default_get_checkbox_extents;
     skin->draw_checkbox = default_draw_checkbox;
@@ -506,8 +494,5 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->font_color[3] = 0xFF;
 
     skin->font_height = 16;
-
-    skin->pixmap_width = 128;
-    skin->pixmap_height = 128;
 }
 

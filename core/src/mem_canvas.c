@@ -442,7 +442,6 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     super->stretch_blend = NULL;
     super->draw_string = canvas_mem_draw_string;
     super->create_pixmap = canvas_mem_create_pixmap;
-    super->skin_pixmap = NULL;
     super->draw_box = canvas_mem_draw_box;
 
     return (sgui_canvas*)this;

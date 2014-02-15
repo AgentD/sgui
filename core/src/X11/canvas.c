@@ -270,7 +270,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     super->create_pixmap = canvas_xlib_create_pixmap;
     super->stretch_blend = NULL;
     super->stretch_blit  = NULL;
-    super->skin_pixmap   = get_skin_pixmap( );
     super->draw_box      = canvas_xlib_draw_box;
 
     return (sgui_canvas*)this;

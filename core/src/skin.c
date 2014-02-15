@@ -25,7 +25,6 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_filesystem.h"
 #include "sgui_internal.h"
-#include "sgui_pixmap.h"
 #include "sgui_skin.h"
 #include "sgui_font.h"
 #include "sgui_utf8.h"
@@ -39,166 +38,8 @@
 
 
 static sgui_skin skin;
-static unsigned char* image;
-static int color_format;
 
 
-
-static void read_image_file( const char* filename, sgui_filesystem* fs )
-{
-    unsigned char header[ 18 ], temp;
-    unsigned int x, y, bpp;
-    unsigned char* ptr;
-    void* file;
-
-    file = fs->file_open_read( fs, filename );
-
-    /* read the TGA header */
-    fs->file_read( file, header, 1, 18 );
-
-    /* Skip the image ID field */
-    while( (header[0])-- )
-        fs->file_read( file, &temp, 1, 1 );
-
-    /* read some information we care about */
-    skin.pixmap_width  = header[ 12 ] | (header[ 13 ]<<8);
-    skin.pixmap_height = header[ 14 ] | (header[ 15 ]<<8);
-    bpp                = header[ 16 ] >> 3;
-
-    /* sanity checks */
-    if( header[ 2 ]!=2 || header[ 1 ] || (bpp!=3 && bpp!=4) )
-    {
-        fs->file_close( file );
-        return;
-    }
-
-    if( !skin.pixmap_width || !skin.pixmap_height )
-    {
-        fs->file_close( file );
-        return;
-    }
-
-    /* Read the image data */
-    image = malloc( skin.pixmap_width*skin.pixmap_height*bpp );
-    fs->file_read( file, image, bpp, skin.pixmap_width*skin.pixmap_height );
-    color_format = bpp==3 ? SGUI_RGB8 : SGUI_RGBA8;
-
-    /* swap red and blue channels */
-    for( ptr=image, y=0; y<skin.pixmap_height; ++y )
-    {
-        for( x=0; x<skin.pixmap_width; ++x, ptr+=bpp )
-        {
-            temp = ptr[0];
-            ptr[0] = ptr[2];
-            ptr[2] = temp;
-        }
-    }
-
-    fs->file_close( file );
-}
-
-static void image_to_pixmap( sgui_skin* s, sgui_pixmap* pixmap )
-{
-    sgui_pixmap_load( pixmap, 0, 0, image, 0, 0,
-                      s->pixmap_width, s->pixmap_height,
-                      s->pixmap_width, color_format );
-}
-
-/****************************************************************************/
-
-void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
-{
-    int i, j, x, y, w, h;
-    char line[ 128 ];
-    void* cfgfile;
-
-    if( !fs )
-        fs = sgui_filesystem_get_default( );
-
-    cfgfile = fs->file_open_read( fs, configfile );
-
-    while( !fs->file_eof( cfgfile ) )
-    {
-        sgui_filesystem_read_line( fs, cfgfile, line, sizeof(line) );
-
-        /* isolate attribute name */
-        for( i=0;  isspace( line[i] );                            ++i );
-        for( j=i; !isspace( line[j] ) && line[j]!='=' && line[j]; ++j );
-
-        if( line[j] == '\0' )
-            continue;
-
-        /* terminate name and find assignment */
-        if( line[j]=='=' )
-        {
-            line[ j++ ] = '\0';
-        }
-        else
-        {
-            line[ j++ ] = '\0';
-            while( line[j]!='=' && line[j] ) ++j;
-            ++j;
-        }
-
-        if( line[j] == '\0' )
-            continue;
-
-        /* find value */
-        while( isspace( line[j] ) ) ++j;
-
-        if( line[j]!='(' && line[j]!='"' )
-            continue;
-
-        /* read skin file */
-        if( !strcmp( line+i, "skin.file" ) )
-        {
-            for( i=j+1; line[i]!='"' && line[i]; ++i );
-
-            line[i] = '\0';
-
-            read_image_file( line+j+1, fs );
-            skin.load_to_pixmap = image_to_pixmap;
-        }
-        else if( !strcmp( line+i, "window.color" ) )
-        {
-            if( sscanf( line+j, "(%d,%d,%d,%d)", &x, &y, &w, &h ) == 4 )
-            {
-                skin.window_color[0] = x;
-                skin.window_color[1] = y;
-                skin.window_color[2] = w;
-                skin.window_color[3] = h;
-            }
-        }
-        else if( !strcmp( line+i, "font.color" ) )
-        {
-            if( sscanf( line+j, "(%d,%d,%d,%d)", &x, &y, &w, &h ) == 4 )
-            {
-                skin.font_color[0] = x;
-                skin.font_color[1] = y;
-                skin.font_color[2] = w;
-                skin.font_color[3] = h;
-            }
-        }
-        else if( !strcmp( line+i, "font.height" ) )
-        {
-            sscanf( line+j, "(%u)", &skin.font_height );
-        }
-
-        /* read skin elements */
-        if( sscanf( line+j, "(%d,%d,%d,%d)", &x, &y, &w, &h ) != 4 )
-            continue;
-    }
-
-    fs->file_close( cfgfile );
-}
-
-void sgui_skin_unload( void )
-{
-    free( image );
-    image = NULL;
-
-    memset( &skin, 0, sizeof(sgui_skin) );
-}
 
 void sgui_skin_set( sgui_skin* ui_skin )
 {
@@ -209,20 +50,6 @@ void sgui_skin_set( sgui_skin* ui_skin )
     else
     {
         sgui_interal_skin_init_default( &skin );
-    }
-}
-
-void sgui_skin_get_pixmap_size( unsigned int* width, unsigned int* height )
-{
-    if( width  ) *width  = skin.pixmap_width;
-    if( height ) *height = skin.pixmap_height;
-}
-
-void sgui_skin_to_pixmap( sgui_pixmap* pixmap )
-{
-    if( skin.load_to_pixmap && pixmap )
-    {
-        skin.load_to_pixmap( &skin, pixmap );
     }
 }
 

@@ -367,8 +367,6 @@ SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
 SGUI_DLL void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
                                      const char* text );
 
-/** \brief Get a pointer to a pixmap holding the UI skin */
-SGUI_DLL sgui_pixmap* sgui_canvas_get_skin_pixmap( sgui_canvas* canvas );
 
 
 

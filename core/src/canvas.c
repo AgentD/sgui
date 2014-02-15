@@ -866,8 +866,3 @@ void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
     sgui_canvas_draw_text_plain(canvas, x+X, y, f&0x02, f&0x01, col, text, i);
 }
 
-sgui_pixmap* sgui_canvas_get_skin_pixmap( sgui_canvas* canvas )
-{
-    return canvas ? canvas->skin_pixmap : NULL;
-}
-

@@ -80,9 +80,6 @@
 
 struct sgui_skin
 {
-    unsigned int pixmap_width;  /**< \brief The width of the skin pixmap */
-    unsigned int pixmap_height; /**< \brief The height of the skin pixmap */
-
     unsigned int font_height;   /**< \brief The pixel height of the font */
 
     unsigned char window_color[4];  /**< \brief The window background color */
@@ -147,14 +144,6 @@ struct sgui_skin
 
     void(* draw_tab )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                        unsigned int gap, unsigned int gap_width );
-
-    /**
-     * \brief Load the required GUI elements into a pixmap
-     *
-     * \param skin   Pointer to the skin itself
-     * \param pixmap Pointer to a pixmap
-     */
-    void(* load_to_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
 };
 
 struct sgui_pixmap
@@ -260,8 +249,6 @@ struct sgui_canvas
 
     sgui_widget_callback fun;
     void* fun_user;
-
-    sgui_pixmap* skin_pixmap;       /**< \brief The skin pixmap */
 
     /**
      * \brief Gets called by sgui_canvas_destroy
