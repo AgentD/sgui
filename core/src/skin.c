@@ -224,10 +224,6 @@ void sgui_skin_load( const char* configfile, sgui_filesystem* fs )
         ELEMENT( "sbar.in.down", SGUI_SCROLL_BAR_BUTTON_DOWN_IN );
         ELEMENT( "sbar.in.left", SGUI_SCROLL_BAR_BUTTON_LEFT_IN );
         ELEMENT( "sbar.in.right", SGUI_SCROLL_BAR_BUTTON_RIGHT_IN );
-        ELEMENT( "editbox.left", SGUI_EDIT_BOX_LEFT );
-        ELEMENT( "editbox.center", SGUI_EDIT_BOX_CENTER );
-        ELEMENT( "editbox.right", SGUI_EDIT_BOX_RIGHT );
-        ELEMENT( "editbox.cursor", SGUI_EDIT_BOX_CURSOR );
         ELEMENT( "frame.left.top", SGUI_FRAME_LEFT_TOP );
         ELEMENT( "frame.left.bottom", SGUI_FRAME_LEFT_BOTTOM );
         ELEMENT( "frame.right.top", SGUI_FRAME_RIGHT_TOP );
@@ -469,6 +465,16 @@ void sgui_skin_get_radio_button_extents( sgui_rect* r )
         skin.get_radio_button_extents( &skin, r );
 }
 
+unsigned int sgui_skin_get_edit_box_height( void )
+{
+    return skin.get_edit_box_height( &skin );
+}
+
+unsigned int sgui_skin_get_edit_box_border_width( void )
+{
+    return skin.get_edit_box_border_width( &skin );
+}
+
 void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )
 {
     if( canvas )
@@ -484,7 +490,14 @@ void sgui_skin_draw_radio_button( sgui_canvas* canvas, int x, int y,
 
 void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r, int pressed )
 {
-    if( canvas )
+    if( canvas && r )
         skin.draw_button( &skin, canvas, r, pressed );
+}
+
+void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
+                             const char* text, int offset, int cursor )
+{
+    if( canvas && r )
+        skin.draw_editbox( &skin, canvas, r, text, offset, cursor );
 }
 

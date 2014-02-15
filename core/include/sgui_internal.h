@@ -99,6 +99,10 @@ struct sgui_skin
 
     void(* get_radio_button_extents )( sgui_skin* skin, sgui_rect* r );
 
+    unsigned int(* get_edit_box_height )( sgui_skin* skin );
+
+    unsigned int(* get_edit_box_border_width )( sgui_skin* skin );
+
     void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
                             int x, int y, int checked );
 
@@ -107,6 +111,9 @@ struct sgui_skin
 
     void(* draw_button )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                           int pressed );
+
+    void(* draw_editbox )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                           const char* text, int offset, int cursor );
 
     /**
      * \brief Load the required GUI elements into a pixmap

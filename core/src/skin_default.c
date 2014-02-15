@@ -564,15 +564,6 @@ static void default_skin_to_pixmap( sgui_skin* skin, sgui_pixmap* pixmap )
     sgui_pixmap_load( pixmap, 38, 21, buffer, 0, 0, 10, 1, 10, SGUI_RGBA8 );
     sgui_pixmap_load( pixmap, 47, 12, buffer, 0, 0, 1, 10, 1, SGUI_RGBA8 );
 
-    /* edit box cursor */
-    for( x=0; x<20; ++x )
-    {
-        buffer[x*4]=buffer[x*4+1]=buffer[x*4+2]=0x7F;
-        buffer[x*4+3] = 0xFF;
-    }
-
-    sgui_pixmap_load( pixmap, 50, 42, buffer, 0, 0, 1, 20, 1, SGUI_RGBA8 );
-
     /* group box */
     for( x=0; x<20; ++x )
     {
@@ -628,6 +619,18 @@ static void default_get_checkbox_extents( sgui_skin* this, sgui_rect* r )
 {
     (void)this;
     sgui_rect_set_size( r, 0, 0, 20, 12 );
+}
+
+unsigned int default_get_edit_box_height( sgui_skin* this )
+{
+    (void)this;
+    return 30;
+}
+
+unsigned int default_get_edit_box_border_width( sgui_skin* this )
+{
+    (void)this;
+    return 2;
 }
 
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
@@ -730,6 +733,39 @@ void default_draw_button( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
     }
 }
 
+void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas, sgui_rect* r,
+                           const char* text, int offset, int cursor )
+{
+    unsigned char black[4] = { 0, 0, 0, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned char bg[4] = { 0, 0, 0, 0x80 };
+    unsigned char cur[4] = { 0x7F, 0x7F, 0x7F, 0xFF };
+    int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    int cx;
+
+    (void)this;
+    (void)cursor;
+
+    sgui_canvas_draw_box( canvas, r, bg, SGUI_RGBA8 );
+
+    /* draw text */
+    text += offset;
+    sgui_canvas_draw_text_plain( canvas, x+2, y+4, 0, 0, white, text, -1 );
+
+    /* draw cursor */
+    if( cursor>=0 )
+    {
+        cx = sgui_skin_default_font_extents( text, cursor-offset, 0, 0 ) + 2;
+        sgui_canvas_draw_line( canvas, x+cx, y+5, h-10, 0, cur, SGUI_RGB8 );
+    }
+
+    /* draw borders */
+    sgui_canvas_draw_line( canvas, x,     y,     w, 1, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,     y,     h, 0, black, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( sgui_skin* skin )
@@ -750,10 +786,6 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_EMPTY,          0, 43, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_FILLED,         0, 68, 30, 12 );
     SET_ELEMENT( skin, SGUI_PBAR_V_FILLED_END,            0, 67, 30,  1 );
-    SET_ELEMENT( skin, SGUI_EDIT_BOX_LEFT,                0, 12,  5, 30 );
-    SET_ELEMENT( skin, SGUI_EDIT_BOX_CENTER,              1, 12, 12, 30 );
-    SET_ELEMENT( skin, SGUI_EDIT_BOX_RIGHT,              21, 12,  5, 30 );
-    SET_ELEMENT( skin, SGUI_EDIT_BOX_CURSOR,             50, 42,  1, 20 );
     SET_ELEMENT( skin, SGUI_FRAME_LEFT_TOP,               0,  0, 10, 10 );  
     SET_ELEMENT( skin, SGUI_FRAME_RIGHT_TOP,              2,  0, 10, 10 );  
     SET_ELEMENT( skin, SGUI_FRAME_LEFT_BOTTOM,            0,  2, 10, 10 );  
@@ -808,6 +840,9 @@ void sgui_interal_skin_init_default( sgui_skin* skin )
     skin->draw_checkbox = default_draw_checkbox;
     skin->draw_radio_button = default_draw_radio_button;
     skin->draw_button = default_draw_button;
+    skin->draw_editbox = default_draw_editbox;
+    skin->get_edit_box_height = default_get_edit_box_height;
+    skin->get_edit_box_border_width = default_get_edit_box_border_width;
 
     skin->window_color[0] = 0x64;
     skin->window_color[1] = 0x64;
