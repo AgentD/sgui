@@ -27,6 +27,7 @@
 #include "internal.h"
 
 #include <sys/select.h>
+#include <pthread.h>
 
 
 
@@ -36,6 +37,7 @@ Atom atom_wm_delete = 0;
 FT_Library freetype = 0;
 Window root = 0;
 static sgui_font_cache* glyph_cache = NULL;
+static pthread_mutex_t mutex;
 
 static sgui_window_xlib* list = NULL;
 
@@ -130,8 +132,25 @@ sgui_font_cache* get_glyph_cache( void )
 
 /****************************************************************************/
 
+void sgui_internal_lock_mutex( void )
+{
+    pthread_mutex_lock( &mutex );
+}
+
+void sgui_internal_unlock_mutex( void )
+{
+    pthread_mutex_unlock( &mutex );
+}
+
 int sgui_init( void )
 {
+    /* create global mutex */
+    pthread_mutexattr_t attr;
+
+    pthread_mutexattr_init( &attr );
+    pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
+    pthread_mutex_init( &mutex, &attr );
+
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
         goto failure;
@@ -163,6 +182,7 @@ failure:
 
 void sgui_deinit( void )
 {
+    pthread_mutex_destroy( &mutex );
     sgui_font_cache_destroy( glyph_cache );
 
     if( im )

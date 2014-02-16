@@ -34,6 +34,8 @@ if( CMAKE_COMPILER_IS_GNUCC OR MINGW )
 
   set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb" )
   set( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -Ofast" )
+
+  add_definitions( -D_GNU_SOURCE )
 endif( )
 
 if( MINGW )

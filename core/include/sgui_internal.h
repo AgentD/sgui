@@ -488,6 +488,19 @@ extern "C" {
 #endif
 
 /**
+ * \brief Lock the global sgui mutex. Blocks until mutex is locked.
+ *
+ * The mutex is recursive, so for a certain number lock calls, the same number
+ * of unlock calls is required to unlock the mutex.
+ */
+SGUI_DLL void sgui_internal_lock_mutex( void );
+
+/**
+ * \brief Unlock the global sgui mutex
+ */
+SGUI_DLL void sgui_internal_unlock_mutex( void );
+
+/**
  * \brief Initialise a widget structure
  *
  * \param widget A pointer to the widget structure
