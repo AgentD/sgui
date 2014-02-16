@@ -31,8 +31,10 @@ void xlib_pixmap_destroy( sgui_pixmap* super )
 {
     xlib_pixmap* this = (xlib_pixmap*)super;
 
+    sgui_internal_lock_mutex( );
     XRenderFreePicture( dpy, this->pic );
     XFreePixmap( dpy, this->pix );
+    sgui_internal_unlock_mutex( );
     free( this );
 }
 
@@ -45,6 +47,8 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
     unsigned int i, j;
     XRenderColor c;
     Picture pic;
+
+    sgui_internal_lock_mutex( );
 
     pic = this->pic;
 
@@ -94,6 +98,8 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
             }
         }
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 /****************************************************************************/
@@ -117,6 +123,8 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
     super->destroy = xlib_pixmap_destroy;
     super->load    = xlib_pixmap_load;
 
+    sgui_internal_lock_mutex( );
+
     /* try to create an X11 Pixmap */
     this->pix = XCreatePixmap( dpy, wnd, width, height,
                                format==SGUI_RGBA8 ? 32 :
@@ -125,6 +133,7 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
     if( !this->pix )
     {
         free( this );
+        sgui_internal_unlock_mutex( );
         return NULL;
     }
 
@@ -141,9 +150,12 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
     if( !this->pic )
     {
         XFreePixmap( dpy, this->pix );
+        sgui_internal_unlock_mutex( );
         free( this );
         return NULL;
     }
+
+    sgui_internal_unlock_mutex( );
 
     return (sgui_pixmap*)this;
 }

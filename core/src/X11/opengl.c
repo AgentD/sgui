@@ -51,8 +51,8 @@ int glversions[][2] = { {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
                                {3,3}, {3,2}, {3,1}, {3,0} };
 
 
-void set_attributes( int* attr, int bpp, int depth, int stencil,
-                     int doublebuffer, int samples )
+static void set_attributes( int* attr, int bpp, int depth, int stencil,
+                            int doublebuffer, int samples )
 {
     int i=0;
 
@@ -191,7 +191,9 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
 
 void gl_swap_buffers( sgui_window* wnd )
 {
+    sgui_internal_lock_mutex( );
     glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
+    sgui_internal_unlock_mutex( );
 }
 #else
 int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,

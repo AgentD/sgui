@@ -82,7 +82,9 @@ static int have_active_windows( void )
 {
     sgui_window_xlib* i;
 
+    sgui_internal_lock_mutex( );
     for( i=list; i!=NULL && !i->super.visible; i=i->next );
+    sgui_internal_unlock_mutex( );
 
     return i!=NULL;
 }
@@ -151,6 +153,8 @@ int sgui_init( void )
     pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
     pthread_mutex_init( &mutex, &attr );
 
+    XInitThreads( );
+
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
         goto failure;
@@ -202,9 +206,11 @@ void sgui_deinit( void )
 
 int sgui_main_loop_step( void )
 {
+    sgui_internal_lock_mutex( );
     handle_events( );
     update_windows( );
     XFlush( dpy );
+    sgui_internal_unlock_mutex( );
 
     return have_active_windows( );
 }
@@ -219,9 +225,11 @@ void sgui_main_loop( void )
 
     while( have_active_windows( ) )
     {
+        sgui_internal_lock_mutex( );
         handle_events( );
         update_windows( );
         XFlush( dpy );
+        sgui_internal_unlock_mutex( );
 
         /* wait for X11 events, one second time out */
         FD_ZERO( &in_fds );

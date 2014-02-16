@@ -37,28 +37,38 @@ static void xlib_window_get_mouse_position(sgui_window* this, int* x, int* y)
     int t3, t4;      /* into but xlib does not accept */
     unsigned int t5; /* a NULL pointer for these */
 
+    sgui_internal_lock_mutex( );
     XQueryPointer( dpy, TO_X11(this)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_set_mouse_position( sgui_window* this, int x, int y )
 {
+    sgui_internal_lock_mutex( );
     XWarpPointer(dpy, None, TO_X11(this)->wnd, 0, 0, this->w, this->h, x, y);
     XFlush( dpy );
 
     ++(TO_X11(this)->mouse_warped);  /* increment warp counter */
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_set_visible( sgui_window* this, int visible )
 {
+    sgui_internal_lock_mutex( );
+
     if( visible )
         XMapWindow( dpy, TO_X11(this)->wnd );
     else
         XUnmapWindow( dpy, TO_X11(this)->wnd );
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_set_title( sgui_window* this, const char* title )
 {
+    sgui_internal_lock_mutex( );
     XStoreName( dpy, TO_X11(this)->wnd, title );
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_set_size( sgui_window* this,
@@ -66,6 +76,8 @@ static void xlib_window_set_size( sgui_window* this,
 {
     XSizeHints hints;
     XWindowAttributes attr;
+
+    sgui_internal_lock_mutex( );
 
     /* adjust the fixed size for nonresizeable windows */
     if( !TO_X11(this)->resizeable )
@@ -85,24 +97,33 @@ static void xlib_window_set_size( sgui_window* this,
     XGetWindowAttributes( dpy, TO_X11(this)->wnd, &attr );
     this->w = (unsigned int)attr.width;
     this->h = (unsigned int)attr.height;
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_move_center( sgui_window* this )
 {
     this->x = (DPY_WIDTH  >> 1) - (int)(this->w >> 1);
     this->y = (DPY_HEIGHT >> 1) - (int)(this->h >> 1);
+
+    sgui_internal_lock_mutex( );
     XMoveWindow( dpy, TO_X11(this)->wnd, this->x, this->y );
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_move( sgui_window* this, int x, int y )
 {
+    sgui_internal_lock_mutex( );
     XMoveWindow( dpy, TO_X11(this)->wnd, x, y );
+    sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_destroy( sgui_window* this )
 {
     if( this->canvas )
         sgui_canvas_destroy( this->canvas );
+
+    sgui_internal_lock_mutex( );
 
     if( TO_X11(this)->ic )
         XDestroyIC( TO_X11(this)->ic );
@@ -119,6 +140,8 @@ static void xlib_window_destroy( sgui_window* this )
         XDestroyWindow( dpy, TO_X11(this)->wnd );
 
     remove_window( TO_X11(this) );
+    sgui_internal_unlock_mutex( );
+
     free( this );
 }
 
@@ -351,6 +374,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 
     memset( this, 0, sizeof(sgui_window_xlib) );
 
+    sgui_internal_lock_mutex( );
     add_window( this );
 
     /******************** create the window ********************/
@@ -444,6 +468,8 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     sgui_internal_window_post_init( super, attr.width, attr.height,
                                     desc->backend );
 
+    sgui_internal_unlock_mutex( );
+
     this->resizeable = desc->resizeable;
 
     /* store entry points */
@@ -458,6 +484,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 
     return (sgui_window*)this;
 failure:
+    sgui_internal_unlock_mutex( );
     xlib_window_destroy( super );
     return NULL;
 }
@@ -467,6 +494,8 @@ void sgui_window_make_current( sgui_window* this )
 #ifdef SGUI_NO_OPENGL
     (void)this;
 #else
+    sgui_internal_lock_mutex( );
+
     if( this && (this->backend==SGUI_OPENGL_CORE ||
                  this->backend==SGUI_OPENGL_COMPAT) )
     {
@@ -477,6 +506,8 @@ void sgui_window_make_current( sgui_window* this )
     {
         glXMakeContextCurrent( dpy, 0, 0, 0 );
     }
+
+    sgui_internal_unlock_mutex( );
 #endif
 }
 
@@ -490,11 +521,15 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
     {
         void(* SwapIntervalEXT )( Display*, GLXDrawable, int );
 
+        sgui_internal_lock_mutex( );
+
         SwapIntervalEXT = (void(*)(Display*,GLXDrawable,int))
                           LOAD_GLFUN( "glXSwapIntervalEXT" );
 
         if( SwapIntervalEXT )
             SwapIntervalEXT( dpy, TO_X11(this)->wnd, vsync_on ? 1 : 0 );
+
+        sgui_internal_unlock_mutex( );
     }
 #endif
 }
