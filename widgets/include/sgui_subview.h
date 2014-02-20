@@ -108,6 +108,13 @@ SGUI_DLL void sgui_subview_set_draw_callback( sgui_widget* subview,
 SGUI_DLL void sgui_subview_on_window_event( sgui_widget* subview,
                                             sgui_subview_window_fun windowcb );
 
+/**
+ * \brief Enforce a redraw of a subview widget
+ *
+ * \param subview A pointer to a subview widget
+ */
+SGUI_DLL void sgui_subview_refresh( sgui_widget* subview );
+
 #ifdef __cplusplus
 }
 #endif

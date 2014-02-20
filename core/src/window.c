@@ -200,6 +200,21 @@ void sgui_window_destroy( sgui_window* wnd )
     }
 }
 
+void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r )
+{
+    sgui_rect r0;
+
+    if( wnd && r )
+    {
+        r0.left   = r->left  <           0 ?               0 : r->left;
+        r0.top    = r->top   <           0 ?               0 : r->top;
+        r0.right  = r->right >=(int)wnd->w ? ((int)wnd->w-1) : r->right;
+        r0.bottom = r->bottom>=(int)wnd->h ? ((int)wnd->h-1) : r->bottom;
+
+        wnd->force_redraw( wnd, &r0 );
+    }
+}
+
 /****************************************************************************/
 
 int sgui_window_is_visible( sgui_window* wnd )

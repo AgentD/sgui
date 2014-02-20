@@ -312,6 +312,14 @@ SGUI_DLL void sgui_window_move( sgui_window* wnd, int x, int y );
 SGUI_DLL void sgui_window_get_position( sgui_window* wnd, int* x, int* y );
 
 /**
+ * \brief Force redrawing of a portion of a window
+ *
+ * \param wnd A pointer to a window
+ * \param r   A pointer to a rect holding the outlines of the redraw area
+ */
+SGUI_DLL void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r );
+
+/**
  * \brief Set a window's event callback
  *
  * Each window may have ONE callback registered that gets called when an event

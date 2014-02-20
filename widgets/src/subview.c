@@ -215,3 +215,16 @@ void sgui_subview_on_window_event( sgui_widget* subview,
     }
 }
 
+void sgui_subview_refresh( sgui_widget* subview )
+{
+    if( subview )
+    {
+        sgui_rect r;
+
+        sgui_rect_set_size( &r, 0, 0, SGUI_RECT_WIDTH(subview->area),
+                                      SGUI_RECT_HEIGHT(subview->area) );
+
+        sgui_window_force_redraw( ((sgui_subview*)subview)->subwnd, &r );
+    }
+}
+

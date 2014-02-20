@@ -475,6 +475,14 @@ struct sgui_window
      * \param wnd Pointer to the window itself
      */
     void (* destroy )( sgui_window* wnd );
+
+    /**
+     * \brief Called by sgui_window_force_redraw
+     *
+     * \param wnd Pointer to the window itself
+     * \param r   Pointer to a rect to redraw (clamped to window dimesions)
+     */
+    void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
 };
 
 

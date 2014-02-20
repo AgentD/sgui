@@ -160,6 +160,16 @@ static void w32_window_move( sgui_window* this, int x, int y )
     sgui_internal_unlock_mutex( );
 }
 
+static void w32_window_force_redraw( sgui_window* this, sgui_rect* r )
+{
+    RECT r0;
+
+    sgui_internal_lock_mutex( );
+    SetRect( &r0, r->left, r->top, r->right+1, r->bottom+1 );
+    InvalidateRect( TO_W32(this)->hWnd, &r0, TRUE );
+    sgui_internal_unlock_mutex( );
+}
+
 static void w32_window_destroy( sgui_window* this )
 {
     MSG msg;
@@ -495,6 +505,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->set_size           = w32_window_set_size;
     super->move_center        = w32_window_move_center;
     super->move               = w32_window_move;
+    super->force_redraw       = w32_window_force_redraw;
     super->destroy            = w32_window_destroy;
 
     sgui_internal_unlock_mutex( );

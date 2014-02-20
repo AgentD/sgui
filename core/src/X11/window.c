@@ -118,6 +118,26 @@ static void xlib_window_move( sgui_window* this, int x, int y )
     sgui_internal_unlock_mutex( );
 }
 
+static void xlib_window_force_redraw( sgui_window* this, sgui_rect* r )
+{
+    XExposeEvent exp;
+
+    exp.type       = Expose;
+    exp.serial     = 0;
+    exp.send_event = 1;
+    exp.display    = dpy;
+    exp.window     = TO_X11(this)->wnd;
+    exp.count      = 0;
+    exp.x          = r->left;
+    exp.y          = r->top;
+    exp.width      = r->right  - r->left + 1;
+    exp.height     = r->bottom - r->top  + 1;
+
+    sgui_internal_lock_mutex( );
+    XSendEvent( dpy, TO_X11(this)->wnd, False, ExposureMask, (XEvent*)&exp );
+    sgui_internal_unlock_mutex( );
+}
+
 static void xlib_window_destroy( sgui_window* this )
 {
     if( this->canvas )
@@ -470,8 +490,6 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     sgui_internal_window_post_init( super, attr.width, attr.height,
                                     desc->backend );
 
-    sgui_internal_unlock_mutex( );
-
     this->resizeable = desc->resizeable;
 
     /* store entry points */
@@ -482,8 +500,10 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->set_size           = xlib_window_set_size;
     super->move_center        = xlib_window_move_center;
     super->move               = xlib_window_move;
+    super->force_redraw       = xlib_window_force_redraw;
     super->destroy            = xlib_window_destroy;
 
+    sgui_internal_unlock_mutex( );
     return (sgui_window*)this;
 failure:
     sgui_internal_unlock_mutex( );
