@@ -57,8 +57,10 @@ static void w32_window_get_mouse_position( sgui_window* this, int* x, int* y )
 {
     POINT pos = { 0, 0 };
 
+    sgui_internal_lock_mutex( );
     GetCursorPos( &pos );
     ScreenToClient( TO_W32(this)->hWnd, &pos );
+    sgui_internal_unlock_mutex( );
 
     *x = pos.x;
     *y = pos.y;
@@ -70,18 +72,25 @@ static void w32_window_set_mouse_position( sgui_window* this, int x, int y )
 
     pos.x = x;
     pos.y = y;
+
+    sgui_internal_lock_mutex( );
     ClientToScreen( TO_W32(this)->hWnd, &pos );
     SetCursorPos( pos.x, pos.y );
+    sgui_internal_unlock_mutex( );
 }
 
 static void w32_window_set_visible( sgui_window* this, int visible )
 {
+    sgui_internal_lock_mutex( );
     ShowWindow( TO_W32(this)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE );
+    sgui_internal_unlock_mutex( );
 }
 
 static void w32_window_set_title( sgui_window* this, const char* title )
 {
+    sgui_internal_lock_mutex( );
     SetWindowTextA( TO_W32(this)->hWnd, title );
+    sgui_internal_unlock_mutex( );
 }
 
 static void w32_window_set_size( sgui_window* this,
@@ -89,6 +98,8 @@ static void w32_window_set_size( sgui_window* this,
 {
     RECT rcClient, rcWindow;
     POINT ptDiff;
+
+    sgui_internal_lock_mutex( );
 
     /* Determine the actual window size for the given client size */
     GetClientRect( TO_W32(this)->hWnd, &rcClient );
@@ -106,12 +117,16 @@ static void w32_window_set_size( sgui_window* this,
     /* resize the canvas pixmap */
     if( this->backend == SGUI_NATIVE )
         resize_pixmap( TO_W32(this) );
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void w32_window_move_center( sgui_window* this )
 {
     RECT desktop, window;
     int w, h, dw, dh;
+
+    sgui_internal_lock_mutex( );
 
     GetClientRect( GetDesktopWindow( ), &desktop );
     GetWindowRect( TO_W32(this)->hWnd,   &window  );
@@ -124,6 +139,8 @@ static void w32_window_move_center( sgui_window* this )
 
     MoveWindow( TO_W32(this)->hWnd, (dw>>1)-(w>>1),
                 (dh>>1)-(h>>1), w, h, TRUE );
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void w32_window_move( sgui_window* this, int x, int y )
@@ -131,17 +148,23 @@ static void w32_window_move( sgui_window* this, int x, int y )
     RECT r;
     int w, h;
 
+    sgui_internal_lock_mutex( );
+
     GetWindowRect( TO_W32(this)->hWnd, &r );
 
     w = r.right  - r.left;
     h = r.bottom - r.top;
 
     MoveWindow( TO_W32(this)->hWnd, x, y, w, h, TRUE );
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void w32_window_destroy( sgui_window* this )
 {
     MSG msg;
+
+    sgui_internal_lock_mutex( );
 
     if( this->canvas )
     {
@@ -172,6 +195,8 @@ static void w32_window_destroy( sgui_window* this )
     DeleteObject( TO_W32(this)->bgbrush );
 
     remove_window( (sgui_window_w32*)this );
+    sgui_internal_unlock_mutex( );
+
     free( this );
 }
 
@@ -384,6 +409,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     if( !this )
         return NULL;
 
+    sgui_internal_lock_mutex( );
     memset( this, 0, sizeof(sgui_window_w32) );
 
     add_window( this );
@@ -471,14 +497,18 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->move               = w32_window_move;
     super->destroy            = w32_window_destroy;
 
+    sgui_internal_unlock_mutex( );
     return (sgui_window*)this;
 failure:
+    sgui_internal_unlock_mutex( );
     w32_window_destroy( (sgui_window*)this );
     return NULL;
 }
 
 void sgui_window_make_current( sgui_window* this )
 {
+    sgui_internal_lock_mutex( );
+
     if( this && (this->backend==SGUI_OPENGL_COMPAT ||
                  this->backend==SGUI_OPENGL_CORE) )
     {
@@ -486,10 +516,14 @@ void sgui_window_make_current( sgui_window* this )
     }
     else
         gl_make_current( NULL );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_window_set_vsync( sgui_window* this, int vsync_on )
 {
+    sgui_internal_lock_mutex( );
+
     if( this && (this->backend==SGUI_OPENGL_COMPAT ||
                  this->backend==SGUI_OPENGL_CORE) )
     {
@@ -497,6 +531,8 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
     }
     else
         gl_make_current( NULL );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_window_get_platform_data( sgui_window* this,

@@ -124,7 +124,7 @@ typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
     determines the pixel format, checks if it can determine the pixel format
     from the actual array, do that, return the identifier.
  */
-int determine_pixel_format( int* pixel_attribs, int only_new )
+static int determine_pixel_format( int* pixel_attribs, int only_new )
 {
     WGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
     int pixelformat, format, i, need_new = 0;
@@ -213,8 +213,8 @@ int determine_pixel_format( int* pixel_attribs, int only_new )
     return pixelformat;
 }
 
-void set_attributes( int* attr, int bpp, int depth, int stencil,
-                     int doublebuffer, int samples )
+static void set_attributes( int* attr, int bpp, int depth, int stencil,
+                            int doublebuffer, int samples )
 {
     int i=0;
 
