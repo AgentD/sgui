@@ -447,6 +447,8 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
 
         super->canvas = NULL;
         super->swap_buffers = gl_swap_buffers;
+
+        this->is_singlebuffered = (desc->doublebuffer==SGUI_SINGLEBUFFERED);
     }
     else
     {

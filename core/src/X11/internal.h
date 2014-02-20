@@ -83,6 +83,7 @@ typedef struct _sgui_window_xlib
     unsigned int mouse_warped;/* mouse warp counter */
 
 #ifndef SGUI_NO_OPENGL
+    int is_singlebuffered;
     GLXContext gl;
 #endif
 

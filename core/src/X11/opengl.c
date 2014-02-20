@@ -191,9 +191,24 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
 
 void gl_swap_buffers( sgui_window* wnd )
 {
-    sgui_internal_lock_mutex( );
-    glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
-    sgui_internal_unlock_mutex( );
+    if( TO_X11(wnd)->is_singlebuffered )
+    {
+        /*
+            For singlebuffered contexts, glXSwapBuffers is a no-op and thus
+            doesn't do an implicit flush (on some implementations like Mesa
+            or AMD). When the context is never released and no flush happens,
+            certain OpenGL implementations freeze and go to 100% CPU.
+            This caused me a lot of confusion, so to avoid it for others, I
+            added this branch.
+         */
+        glFlush( );
+    }
+    else
+    {
+        sgui_internal_lock_mutex( );
+        glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
+        sgui_internal_unlock_mutex( );
+    }
 }
 #else
 int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
