@@ -28,6 +28,7 @@
 
 
 static sgui_window_w32* list = NULL;
+static CRITICAL_SECTION mutex;
 
 FT_Library freetype;
 HINSTANCE hInstance;
@@ -83,9 +84,22 @@ void remove_window( sgui_window_w32* wnd )
 
 /****************************************************************************/
 
+void sgui_internal_lock_mutex( void )
+{
+    EnterCriticalSection( &mutex );
+}
+
+void sgui_internal_unlock_mutex( void )
+{
+    LeaveCriticalSection( &mutex );
+}
+
 int sgui_init( void )
 {
     WNDCLASSEX wc;
+
+    /* initalize global mutex */
+    InitializeCriticalSection( &mutex );
 
     /* initialise freetype library */
     if( FT_Init_FreeType( &freetype ) )
@@ -123,6 +137,9 @@ void sgui_deinit( void )
 
     if( freetype )
         FT_Done_FreeType( freetype );
+
+    /* destroy global mutex */
+    DeleteCriticalSection( &mutex );
 
     /* reset values */
     freetype = 0;
