@@ -7,13 +7,34 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef MACHINE_OS_UNIX
+    #include <pthread.h>
+    #include <unistd.h>
+
+    typedef pthread_t thread_type;
+
+    #define CREATE_THREAD( t, fun ) pthread_create( &(t), NULL, (fun), NULL )
+    #define WAIT_THREAD( t ) pthread_join( (t), NULL )
+    #define SLEEP_MS( ms ) usleep( (ms)*1000 )
+#else
+    #include <windows.h>
+
+    typedef HANDLE thread_type;
+
+    #define CREATE_THREAD( t, fun ) (t) = CreateThread( 0, 0, fun, 0, 0, 0 )
+    #define WAIT_THREAD( t ) WaitForSingleObject( (t), INFINITE );\
+                             CloseHandle( (t) )
+    #define SLEEP_MS( ms ) Sleep( (ms) )
+#endif
+
 
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *f, *gb, *ra, *rb, *rc, *tab;
-sgui_widget *gl_view, *gl_sub0, *gl_sub1;
+sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
 unsigned char image[128*128*4];
+int running = 1;
 
 const char* text =
     "Lorem <b>ipsum</b> dolor <i>sit</i> amet,\n"
@@ -47,6 +68,29 @@ void glview_on_draw( sgui_widget* glview )
 #endif
 }
 
+#ifdef MACHINE_OS_UNIX
+void* gl_drawing_thread( void* arg )
+#else
+DWORD __stdcall gl_drawing_thread( LPVOID arg )
+#endif
+{
+    sgui_window* wnd = sgui_subview_get_window( gl_view2 );
+    (void)arg;
+
+    sgui_window_make_current( wnd );
+    sgui_window_set_vsync( wnd, 1 );
+
+    while( running )
+    {
+        glview_on_draw( gl_view2 );
+        SLEEP_MS( 20 );
+        sgui_window_swap_buffers( wnd );
+    }
+
+    sgui_window_make_current( NULL );
+    return 0;
+}
+
 
 
 int main( int argc, char** argv )
@@ -57,6 +101,7 @@ int main( int argc, char** argv )
     sgui_font* font_ital;
     sgui_font* font_boit;
     sgui_window_description desc = { NULL, 100, 100, 1, 0, 1, 32, 24, 8, 4 };
+    thread_type thread;
 
     for( x=1; x<argc; ++x )
     {
@@ -182,20 +227,28 @@ int main( int argc, char** argv )
         sgui_tab_group_add_tab( tab, "OpenGL" );
 
         gl_view=sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT,NULL);
+        gl_view2 = sgui_subview_create(a,250,25,200,150,
+                                       SGUI_OPENGL_COMPAT,NULL);
         gl_sub0 = sgui_static_text_create( 45, 175, "Redraw on demand" );
         gl_sub1 = sgui_static_text_create( 275, 175, "Redraw continuous" );
 
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 
         sgui_tab_group_add_widget( tab, 3, gl_view );
+        sgui_tab_group_add_widget( tab, 3, gl_view2 );
         sgui_tab_group_add_widget( tab, 3, gl_sub0 );
         sgui_tab_group_add_widget( tab, 3, gl_sub1 );
+
+        CREATE_THREAD( thread, gl_drawing_thread );
     }
 
     /* */
     sgui_window_add_widget( a, tab );
 
     sgui_main_loop( );
+
+    running = 0;
+    WAIT_THREAD( thread );
 
     sgui_window_make_current( NULL );
 
