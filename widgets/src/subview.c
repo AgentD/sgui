@@ -46,12 +46,11 @@ sgui_subview;
 
 
 /* processes events from the parent canvas containing a subview widget */
-static void subview_on_parent_event( sgui_widget* w, int type,
-                                     sgui_event* event )
+static void subview_on_parent_event( sgui_widget* w, sgui_event* e )
 {
     sgui_subview* view = (sgui_subview*)w;
 
-    switch( type )
+    switch( e->type )
     {
     case SGUI_TAB_DESELECTED:
         /* subview is inside a tab that got deselected, hide the subwindow */
@@ -68,18 +67,15 @@ static void subview_on_parent_event( sgui_widget* w, int type,
     case SGUI_FOCUS_EVENT:
     case SGUI_FOCUS_LOSE_EVENT:
         if( view->window_fun )
-            view->window_fun( w, type, event );
+            view->window_fun( w, e );
         break;
     }
 }
 
 /* processes events from a sub window managed by a subview widget */
-static void subview_on_subwindow_event( sgui_window* wnd, int type,
-                                        sgui_event* event )
+static void subview_on_subwindow_event( sgui_subview* view, sgui_event* e )
 {
-    sgui_subview* view = sgui_window_get_userptr( wnd );
-
-    switch( type )
+    switch( e->type )
     {
     case SGUI_USER_CLOSED_EVENT:    /* sub window -> not possible */
     case SGUI_API_DESTROY_EVENT:    /* caused by sgui_widget_destroy */
@@ -95,7 +91,7 @@ static void subview_on_subwindow_event( sgui_window* wnd, int type,
         }
     default:
         if( view->window_fun )
-            view->window_fun( (sgui_widget*)view, type, event );
+            view->window_fun( (sgui_widget*)view, e );
     }
 }
 
@@ -186,7 +182,8 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     }
 
     /* register callbacks */
-    sgui_window_on_event( view->subwnd, subview_on_subwindow_event );
+    sgui_window_on_event( view->subwnd,
+                          (sgui_window_callback)subview_on_subwindow_event );
     sgui_window_set_userptr( view->subwnd, view );
 
     return (sgui_widget*)view;

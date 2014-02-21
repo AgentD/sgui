@@ -66,8 +66,6 @@
 
 
 #define TO_X11( window ) ((sgui_window_xlib*)window)
-#define SEND_EVENT( WND, ID, E )\
-        sgui_internal_window_fire_event( (sgui_window*)WND, ID, E )
 
 
 

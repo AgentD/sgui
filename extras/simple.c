@@ -4,17 +4,16 @@
 
 
 
-void window_callback( sgui_window* wnd, int type, sgui_event* event )
+void window_callback( void* user, sgui_event* event )
 {
-    (void)event;
-
-    if( type == SGUI_CHAR_EVENT )
+    (void)user;
+    if( event->type == SGUI_CHAR_EVENT )
     {
-        printf( "%s\n", event->char_event.as_utf8_str );
+        printf( "%s\n", event->arg.char_event.as_utf8_str );
     }
-    else if( type == SGUI_BUTTON_CLICK_EVENT )
+    else if( event->type == SGUI_BUTTON_CLICK_EVENT )
     {
-        sgui_window_set_visible( wnd, SGUI_INVISIBLE );
+        sgui_window_set_visible( event->window, SGUI_INVISIBLE );
     }
 }
 

@@ -237,59 +237,63 @@ void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
     }
 }
 
-void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
-                                    sgui_event* e )
+void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
 {
     sgui_widget* i;
+    sgui_event ev;
     int x, y;
 
     if( !canvas || !canvas->root.children )
         return;
 
     /* don't handle events that the canvas generates */
-    if( event==SGUI_FOCUS_EVENT || event==SGUI_MOUSE_ENTER_EVENT ||
-        event==SGUI_MOUSE_ENTER_EVENT || event==SGUI_MOUSE_LEAVE_EVENT )
+    if( e->type==SGUI_FOCUS_EVENT || e->type==SGUI_MOUSE_ENTER_EVENT ||
+        e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT )
         return;
 
-    if( event == SGUI_MOUSE_MOVE_EVENT )
+    if( e->type == SGUI_MOUSE_MOVE_EVENT )
     {
         /* find the widget under the mouse cursor */
-        i = sgui_widget_get_child_from_point( &canvas->root, e->mouse_move.x,
-                                                             e->mouse_move.y);
+        i = sgui_widget_get_child_from_point( &canvas->root,
+                                              e->arg.mouse_move.x,
+                                              e->arg.mouse_move.y );
 
         /* generate mouse enter/leave events */
         if( canvas->mouse_over != i )
         {
-            sgui_widget_send_event( i, SGUI_MOUSE_ENTER_EVENT, NULL, 0 );
+            ev.window = e->window;
+            ev.type = SGUI_MOUSE_ENTER_EVENT;
+            sgui_widget_send_event( i, &ev, 0 );
 
-            sgui_widget_send_event( canvas->mouse_over,
-                                    SGUI_MOUSE_LEAVE_EVENT, NULL, 0 );
+            ev.type = SGUI_MOUSE_LEAVE_EVENT;
+            sgui_widget_send_event( canvas->mouse_over, &ev, 0 );
 
             canvas->mouse_over = i;
         }
     }
 
-    switch( event )
+    switch( e->type )
     {
     case SGUI_MOUSE_PRESS_EVENT:
     case SGUI_MOUSE_RELEASE_EVENT:
         /* transform to widget local coordinates */
         sgui_widget_get_absolute_position( canvas->mouse_over, &x, &y );
 
-        e->mouse_press.x -= x;
-        e->mouse_press.y -= y;
+        e->arg.mouse_press.x -= x;
+        e->arg.mouse_press.y -= y;
 
         /* inject event */
-        sgui_widget_send_event( canvas->mouse_over, event, e, 0 );
+        sgui_widget_send_event( canvas->mouse_over, e, 0 );
 
         /* give clicked widget focus */
         if( canvas->focus != canvas->mouse_over )
         {
-            sgui_widget_send_event( canvas->focus, SGUI_FOCUS_LOSE_EVENT,
-                                    NULL, 0 );
+            ev.widget = canvas->mouse_over;
+            ev.type = SGUI_FOCUS_LOSE_EVENT;
+            sgui_widget_send_event( canvas->focus, &ev, 0 );
 
-            sgui_widget_send_event( canvas->mouse_over, SGUI_FOCUS_EVENT,
-                                    NULL, 0 );
+            ev.type = SGUI_FOCUS_EVENT;
+            sgui_widget_send_event( canvas->mouse_over, &ev, 0 );
 
             canvas->focus = canvas->mouse_over;
         }
@@ -298,28 +302,28 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
         /* transform to widget local coordinates */
         sgui_widget_get_absolute_position( canvas->mouse_over, &x, &y );
 
-        e->mouse_move.x -= x;
-        e->mouse_move.y -= y;
+        e->arg.mouse_move.x -= x;
+        e->arg.mouse_move.y -= y;
 
         /* inject event */
-        sgui_widget_send_event( canvas->mouse_over, event, e, 0 );
+        sgui_widget_send_event( canvas->mouse_over, e, 0 );
         break;
 
     /* only send to mouse over widget */
     case SGUI_MOUSE_WHEEL_EVENT:
-        sgui_widget_send_event( canvas->mouse_over, event, e, 0 );
+        sgui_widget_send_event( canvas->mouse_over, e, 0 );
         break;
 
     /* only send keyboard events to widget that has focus */
     case SGUI_KEY_PRESSED_EVENT:
     case SGUI_KEY_RELEASED_EVENT:
     case SGUI_CHAR_EVENT:
-        sgui_widget_send_event( canvas->focus, event, e, 0 );
+        sgui_widget_send_event( canvas->focus, e, 0 );
         break;
 
     /* propagate all other events */
     default:
-        sgui_widget_send_event( &canvas->root, event, e, 1 );
+        sgui_widget_send_event( &canvas->root, e, 1 );
         break;
     }
 }
@@ -334,11 +338,10 @@ void sgui_canvas_on_event( sgui_canvas* canvas, sgui_widget_callback fun,
     }
 }
 
-void sgui_canvas_fire_widget_event( sgui_canvas* canvas, sgui_widget* widget,
-                                    int event )
+void sgui_canvas_fire_widget_event( sgui_canvas* canvas, sgui_event* event )
 {
-    if( canvas && canvas->fun && widget )
-        canvas->fun( widget, event, canvas->fun_user );
+    if( canvas && canvas->fun && event )
+        canvas->fun( canvas->fun_user, event );
 }
 
 /****************************************************************************/

@@ -208,40 +208,43 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     Status stat;
     KeySym sym;
 
+    se.window = super;
+
     switch( e->type )
     {
     case KeyRelease:
         sym = XLookupKeysym( &e->xkey, 0 );
-        se.keyboard_event.code = key_entries_translate( sym );
-
-        SEND_EVENT( this, SGUI_KEY_RELEASED_EVENT, &se );
+        se.arg.keyboard_event.code = key_entries_translate( sym );
+        se.type = SGUI_KEY_RELEASED_EVENT;
+        sgui_internal_window_fire_event( super, &se );
         break;
     case KeyPress:
-        memset( se.char_event.as_utf8_str, 0,
-                sizeof(se.char_event.as_utf8_str) );
+        memset( se.arg.char_event.as_utf8_str, 0,
+                sizeof(se.arg.char_event.as_utf8_str) );
 
         /* try to convert composed character to UTF8 string */
         Xutf8LookupString( this->ic, &e->xkey,
-                           (char*)se.char_event.as_utf8_str,
-                           sizeof(se.char_event.as_utf8_str),
+                           (char*)se.arg.char_event.as_utf8_str,
+                           sizeof(se.arg.char_event.as_utf8_str),
                            &sym, &stat );
 
         /* send a char event if it worked */
         if( stat==XLookupChars || stat==XLookupBoth )
         {
-            if( (se.char_event.as_utf8_str[0] & 0x80) ||
-                !iscntrl( se.char_event.as_utf8_str[0] ) )
+            if( (se.arg.char_event.as_utf8_str[0] & 0x80) ||
+                !iscntrl( se.arg.char_event.as_utf8_str[0] ) )
             {
-                SEND_EVENT( this, SGUI_CHAR_EVENT, &se );
+                se.type = SGUI_CHAR_EVENT;
+                sgui_internal_window_fire_event( super, &se );
             }
         }
 
         /* send a key pressed event if we have a key sym */
         if( stat==XLookupKeySym || stat==XLookupBoth )
         {
-            se.keyboard_event.code = key_entries_translate( sym );
-
-            SEND_EVENT( this, SGUI_KEY_PRESSED_EVENT, &se );
+            se.arg.keyboard_event.code = key_entries_translate( sym );
+            se.type = SGUI_KEY_PRESSED_EVENT;
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     case ButtonPress:
@@ -251,9 +254,11 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         {
             if( e->type==ButtonPress )
             {
-                se.mouse_wheel.direction = (e->xbutton.button==Button4)?1:-1;
+                se.type = SGUI_MOUSE_WHEEL_EVENT;
+                se.arg.mouse_wheel.direction =
+                (e->xbutton.button==Button4) ? 1 : -1;
 
-                SEND_EVENT( this, SGUI_MOUSE_WHEEL_EVENT, &se );
+                sgui_internal_window_fire_event( super, &se );
             }
         }
         else
@@ -261,23 +266,22 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
             switch( e->xbutton.button )
             {
             case Button1:
-                se.mouse_press.button=SGUI_MOUSE_BUTTON_LEFT;
+                se.arg.mouse_press.button=SGUI_MOUSE_BUTTON_LEFT;
                 break;
             case Button2:
-                se.mouse_press.button=SGUI_MOUSE_BUTTON_MIDDLE;
+                se.arg.mouse_press.button=SGUI_MOUSE_BUTTON_MIDDLE;
                 break;
             case Button3:
-                se.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+                se.arg.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
                 break;
             }
 
-            se.mouse_press.x = e->xbutton.x;
-            se.mouse_press.y = e->xbutton.y;
+            se.arg.mouse_press.x = e->xbutton.x;
+            se.arg.mouse_press.y = e->xbutton.y;
+            se.type = e->type==ButtonPress ? SGUI_MOUSE_PRESS_EVENT :
+                                             SGUI_MOUSE_RELEASE_EVENT;
 
-            if( e->type==ButtonPress )
-                SEND_EVENT( this, SGUI_MOUSE_PRESS_EVENT, &se );
-            else
-                SEND_EVENT( this, SGUI_MOUSE_RELEASE_EVENT, &se );
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     case MotionNotify:
@@ -288,25 +292,27 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         else
         {
-            se.mouse_move.x = e->xmotion.x<0 ? 0 : e->xmotion.x;
-            se.mouse_move.y = e->xmotion.y<0 ? 0 : e->xmotion.y;
-            SEND_EVENT( this, SGUI_MOUSE_MOVE_EVENT, &se );
+            se.arg.mouse_move.x = e->xmotion.x<0 ? 0 : e->xmotion.x;
+            se.arg.mouse_move.y = e->xmotion.y<0 ? 0 : e->xmotion.y;
+            se.type = SGUI_MOUSE_MOVE_EVENT;
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     case ConfigureNotify:
-        se.size.new_width  = e->xconfigure.width;
-        se.size.new_height = e->xconfigure.height;
+        se.arg.size.new_width  = e->xconfigure.width;
+        se.arg.size.new_height = e->xconfigure.height;
+        se.type = SGUI_SIZE_CHANGE_EVENT;
 
         /* store the new position */
         super->x = e->xconfigure.x;
         super->y = e->xconfigure.y;
 
         /* do not accept zero size window */
-        if( !se.size.new_width || !se.size.new_height )
+        if( !se.arg.size.new_width || !se.arg.size.new_height )
             break;
 
         /* ignore if the size didn't change at all */
-        if( se.size.new_width==super->w && se.size.new_height==super->h )
+        if(se.arg.size.new_width==super->w&&se.arg.size.new_height==super->h)
             break;
 
         /* store the new size */
@@ -317,7 +323,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         sgui_canvas_resize( super->canvas, super->w, super->h );
 
         /* send a size change event */
-        SEND_EVENT( this, SGUI_SIZE_CHANGE_EVENT, &se );
+        sgui_internal_window_fire_event( super, &se );
 
         /* redraw everything */
         sgui_canvas_draw_widgets( super->canvas, 1 );
@@ -330,24 +336,27 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         if( super->backend==SGUI_OPENGL_CORE ||
             super->backend==SGUI_OPENGL_COMPAT )
         {
-            sgui_rect_set_size( &se.expose_event, 0, 0, super->w, super->h );
-            SEND_EVENT( this, SGUI_EXPOSE_EVENT, &se );
+            sgui_rect_set_size(&se.arg.expose_event,0,0,super->w,super->h);
+            se.type = SGUI_EXPOSE_EVENT;
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     case UnmapNotify:
         if( e->xunmap.window==this->wnd && this->is_child )
         {
+            se.type = SGUI_USER_CLOSED_EVENT;
             super->visible = 0;
-            SEND_EVENT( this, SGUI_USER_CLOSED_EVENT, NULL );
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     case ClientMessage:
         if( e->xclient.data.l[0] == (long)atom_wm_delete )
         {
+            se.type = SGUI_USER_CLOSED_EVENT;
             super->visible = 0;
             XUnmapWindow( dpy, this->wnd );
             XUnmapSubwindows( dpy, this->wnd );
-            SEND_EVENT( this, SGUI_USER_CLOSED_EVENT, NULL );
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     case Expose:
@@ -360,8 +369,9 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         if( super->backend==SGUI_OPENGL_CORE ||
             super->backend==SGUI_OPENGL_COMPAT )
         {
-            sgui_rect_set_size( &se.expose_event, 0, 0, super->w, super->h );
-            SEND_EVENT( this, SGUI_EXPOSE_EVENT, &se );
+            se.type = SGUI_EXPOSE_EVENT;
+            sgui_rect_set_size(&se.arg.expose_event,0,0,super->w,super->h);
+            sgui_internal_window_fire_event( super, &se );
         }
         break;
     };

@@ -75,17 +75,17 @@ static void tab_group_destroy( sgui_widget* tab )
     free( t );
 }
 
-static void tab_group_on_event( sgui_widget* widget, int type,
-                                sgui_event* event )
+static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
 {
     sgui_tab_group* g = (sgui_tab_group*)widget;
     sgui_tab *i, *j;
+    sgui_event ev;
     int x;
 
-    if( type == SGUI_MOUSE_PRESS_EVENT )
+    if( e->type == SGUI_MOUSE_PRESS_EVENT )
     {
         /* determine which tab caption was clicked */
-        for( x=event->mouse_press.x, i=g->tabs; i!=NULL; i=i->next )
+        for( x=e->arg.mouse_press.x, i=g->tabs; i!=NULL; i=i->next )
         {
             if( x>=0 && x<(int)i->caption_width )
                 break;
@@ -96,17 +96,20 @@ static void tab_group_on_event( sgui_widget* widget, int type,
         /* select coresponding tab and deselect the current one */
         if( i && !i->dummy.visible )
         {
+            ev.widget = widget;
+
             for( j=g->tabs; j!=NULL && !j->dummy.visible; j=j->next );
 
             if( j )
             {
+                ev.type = SGUI_TAB_DESELECTED;
                 sgui_widget_set_visible( &j->dummy, 0 );
-                sgui_widget_send_event( &j->dummy, SGUI_TAB_DESELECTED,
-                                        NULL, 1 );
+                sgui_widget_send_event( &j->dummy, &ev, 1 );
             }
 
+            ev.type = SGUI_TAB_SELECTED;
             sgui_widget_set_visible( &i->dummy, 1 );
-            sgui_widget_send_event( &i->dummy, SGUI_TAB_SELECTED, NULL, 1 );
+            sgui_widget_send_event( &i->dummy, &ev, 1 );
         }
     }
 }
@@ -225,6 +228,7 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
 
 void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
 {
+    sgui_event ev;
     sgui_tab* i;
     int count;
 
@@ -241,10 +245,10 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
         sgui_widget_add_child( &i->dummy, w );
 
         /* send a tab select/deselect event */
-        if( i->dummy.visible )
-            sgui_widget_send_event( w, SGUI_TAB_SELECTED, NULL, 1 );
-        else
-            sgui_widget_send_event( w, SGUI_TAB_DESELECTED, NULL, 1 );
+        ev.widget = tab;
+        ev.type = i->dummy.visible ? SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
+
+        sgui_widget_send_event( w, &ev, 1 );
     }
 }
 

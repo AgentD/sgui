@@ -139,17 +139,15 @@ void event_manager_connect( event_manager* mgr, int event,
     va_end( ap );
 }
 
-void event_manager_event_callback( sgui_window* window, int type,
-                                   sgui_event* event )
+void event_manager_event_callback( event_manager* mgr, sgui_event* event )
 {
-    event_manager* mgr = sgui_window_get_userptr( window );
     listener* l;
 
-    if( mgr && event && type>SGUI_MAX_CANVAS_EVENT )
+    if( mgr && event && event->type>SGUI_MAX_CANVAS_EVENT )
     {
         /* call the process function on every listener */
         for( l=mgr->listeners; l!=NULL; l=l->next )
-            listener_process( l, type, event->source );
+            listener_process( l, event->type, event->widget );
     }
 }
 
@@ -205,7 +203,8 @@ int main( void )
     mgr = event_manager_create( );
 
     sgui_window_set_userptr( wnd, mgr );
-    sgui_window_on_event( wnd, event_manager_event_callback );
+    sgui_window_on_event( wnd,
+                          (sgui_window_callback)event_manager_event_callback);
 
     event_manager_connect( mgr, SGUI_BUTTON_CLICK_EVENT, b1, img,
                            (callback_function)sgui_widget_set_visible,

@@ -34,15 +34,13 @@
 
 
 
-static void window_redirect_event( sgui_widget* widget, int type, void* user )
+static void window_redirect_event( void* user, sgui_event* event )
 {
     sgui_window* this = (sgui_window*)user;
-    sgui_event e;
-
-    e.source = widget;
+    event->window = this;
 
     if( this && this->event_fun )
-        this->event_fun( this, type, &e );
+        this->event_fun( this->userptr, event );
 }
 
 
@@ -64,15 +62,14 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
     }
 }
 
-void sgui_internal_window_fire_event( sgui_window* wnd, int event,
-                                      sgui_event* e )
+void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
 {
     if( wnd )
     {
         if( wnd->event_fun )
-            wnd->event_fun( wnd, event, e );
+            wnd->event_fun( wnd->userptr, e );
 
-        sgui_canvas_send_window_event( wnd->canvas, event, e );
+        sgui_canvas_send_window_event( wnd->canvas, e );
     }
 }
 
@@ -126,15 +123,19 @@ void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
 
         if( send_event )
         {
-            e.mouse_move.x = x;
-            e.mouse_move.y = y;
-            sgui_internal_window_fire_event( wnd, SGUI_MOUSE_MOVE_EVENT, &e );
+            e.arg.mouse_move.x = x;
+            e.arg.mouse_move.y = y;
+            e.window = wnd;
+            e.type = SGUI_MOUSE_MOVE_EVENT;
+            sgui_internal_window_fire_event( wnd, &e );
         }
     }
 }
 
 void sgui_window_set_visible( sgui_window* wnd, int visible )
 {
+    sgui_event ev;
+ 
     if( !wnd || (wnd->visible==visible) )
         return;
 
@@ -142,7 +143,11 @@ void sgui_window_set_visible( sgui_window* wnd, int visible )
     wnd->visible = visible;
 
     if( !visible )
-        sgui_internal_window_fire_event(wnd, SGUI_API_INVISIBLE_EVENT, NULL);
+    {
+        ev.window = wnd;
+        ev.type = SGUI_API_INVISIBLE_EVENT;
+        sgui_internal_window_fire_event( wnd, &ev );
+    }
 }
 
 void sgui_window_set_title( sgui_window* wnd, const char* title )
@@ -192,9 +197,13 @@ void sgui_window_swap_buffers( sgui_window* wnd )
 
 void sgui_window_destroy( sgui_window* wnd )
 {
+    sgui_event ev;
+
     if( wnd )
     {
-        sgui_internal_window_fire_event( wnd, SGUI_API_DESTROY_EVENT, NULL );
+        ev.window = wnd;
+        ev.type = SGUI_API_DESTROY_EVENT;
+        sgui_internal_window_fire_event( wnd, &ev );
 
         wnd->destroy( wnd );
     }

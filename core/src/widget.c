@@ -215,21 +215,21 @@ void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r )
     }
 }
 
-void sgui_widget_send_event( sgui_widget* widget, int type,
-                             sgui_event* event, int propagate )
+void sgui_widget_send_event( sgui_widget* widget, sgui_event* event,
+                             int propagate )
 {
     sgui_widget* i;
 
     if( widget )
     {
         if( widget->window_event_callback )
-            widget->window_event_callback( widget, type, event );
+            widget->window_event_callback( widget, event );
 
         if( propagate )
         {
             for( i=widget->children; i!=NULL; i=i->next )
             {
-                sgui_widget_send_event( i, type, event, 1 );
+                sgui_widget_send_event( i, event, 1 );
             }
         }
     }

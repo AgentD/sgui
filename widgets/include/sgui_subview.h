@@ -43,10 +43,9 @@ typedef void (* sgui_subview_draw_fun )( sgui_widget* subview );
  * \brief subview window event callback
  *
  * \param subview The subview widget that triggered the event
- * \param type    The type of event that occoured
  * \param event   A pointer to an event structure with more information
  */
-typedef void (* sgui_subview_window_fun )( sgui_widget* subview, int type,
+typedef void (* sgui_subview_window_fun )( sgui_widget* subview,
                                            sgui_event* event );
 
 

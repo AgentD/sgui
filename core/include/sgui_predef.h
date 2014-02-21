@@ -57,7 +57,7 @@ typedef struct sgui_skin sgui_skin;
 
 typedef struct sgui_filesystem sgui_filesystem;
 
-typedef union sgui_event sgui_event;
+typedef struct sgui_event sgui_event;
 
 
 

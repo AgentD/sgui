@@ -31,12 +31,10 @@ void glview_on_draw( sgui_widget* glview )
     glEnd( );
 }
 
-void window_callback( sgui_window* wnd, int type, sgui_event* event )
+void window_callback( void* user, sgui_event* event )
 {
-    (void)wnd;
-    (void)event;
-
-    if( type == SGUI_BUTTON_CLICK_EVENT )
+    (void)user;
+    if( event->type == SGUI_BUTTON_CLICK_EVENT )
     {
         sgui_subview_refresh( gl_view );
     }

@@ -128,13 +128,12 @@ SGUI_DLL void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r );
  * deselect notifications.
  *
  * \param widget    The widget to send the event to
- * \param type      The event type
  * \param event     The event to send
  * \param propagate Nonzero if the event should be propagate to the widgets
  *                  children, zero if it should not
  */
-SGUI_DLL void sgui_widget_send_event( sgui_widget* widget, int type,
-                                      sgui_event* event, int propagate );
+SGUI_DLL void sgui_widget_send_event( sgui_widget* widget, sgui_event* event,
+                                      int propagate );
 
 /**
  * \brief Draw a widget

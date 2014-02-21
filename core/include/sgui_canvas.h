@@ -41,12 +41,10 @@ extern "C"
 /**
  * \brief A callback for listening to widget events
  *
- * \param widget The widget that triggered the event
- * \param type   An identifyer describing the event
- * \param user   User data that was registered with the callback function
+ * \param user  User data that was registered with the callback function
+ * \param event A pointer to an event structure
  */
-typedef void (* sgui_widget_callback ) ( sgui_widget* widget, int type,
-                                         void* user );
+typedef void (* sgui_widget_callback ) ( void* user, sgui_event* event );
 
 
 
@@ -133,10 +131,9 @@ SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
  * enter, mouse leave, focus and focus lost events for the widgets it holds.
  *
  * \param canvas The canvas
- * \param event  The event type to send
  * \param e      The event data to send
  */
-SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas, int event,
+SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
                                              sgui_event* e );
 
 /**
@@ -154,11 +151,10 @@ SGUI_DLL void sgui_canvas_on_event( sgui_canvas* canvas,
  * \brief Trigger a widget event
  *
  * \param canvas The canvas
- * \param widget The widget that triggered the event (must not be NULL)
- * \param event  The event that got triggered
+ * \param event  A pointer to an event structure
  */
 SGUI_DLL void sgui_canvas_fire_widget_event( sgui_canvas* canvas,
-                                             sgui_widget* widget, int event );
+                                             sgui_event* event );
 
 /**
  * \brief Change the size of a canvas

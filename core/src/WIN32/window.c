@@ -247,68 +247,81 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
     WCHAR c[2];
     UINT key;
 
+    e.window = super;
+
     switch( msg )
     {
     case WM_DESTROY:
         super->visible = 0;
-        sgui_internal_window_fire_event(super, SGUI_USER_CLOSED_EVENT, NULL);
+        e.type = SGUI_USER_CLOSED_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_MOUSEMOVE:
-        e.mouse_move.x = LOWORD( lp );
-        e.mouse_move.y = HIWORD( lp );
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_MOVE_EVENT, &e );
+        e.arg.mouse_move.x = LOWORD( lp );
+        e.arg.mouse_move.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_MOVE_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_MOUSEWHEEL:
-        e.mouse_wheel.direction = GET_WHEEL_DELTA_WPARAM( wp )/120;
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_WHEEL_EVENT, &e );
+        e.arg.mouse_wheel.direction = GET_WHEEL_DELTA_WPARAM( wp )/120;
+        e.type = SGUI_MOUSE_WHEEL_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_LBUTTONDOWN:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-        e.mouse_press.x = LOWORD( lp );
-        e.mouse_press.y = HIWORD( lp );
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_PRESS_EVENT, &e );
+        e.arg.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
+        e.arg.mouse_press.x = LOWORD( lp );
+        e.arg.mouse_press.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_PRESS_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_LBUTTONUP:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
-        e.mouse_press.x = LOWORD( lp );
-        e.mouse_press.y = HIWORD( lp );
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_RELEASE_EVENT, &e );
+        e.arg.mouse_press.button = SGUI_MOUSE_BUTTON_LEFT;
+        e.arg.mouse_press.x = LOWORD( lp );
+        e.arg.mouse_press.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_RELEASE_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_MBUTTONDOWN:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-        e.mouse_press.x = LOWORD( lp );
-        e.mouse_press.y = HIWORD( lp );
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_PRESS_EVENT, &e );
+        e.arg.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
+        e.arg.mouse_press.x = LOWORD( lp );
+        e.arg.mouse_press.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_PRESS_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_MBUTTONUP:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
-        e.mouse_press.x = LOWORD( lp );
-        e.mouse_press.y = HIWORD( lp );
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_RELEASE_EVENT, &e );
+        e.arg.mouse_press.button = SGUI_MOUSE_BUTTON_MIDDLE;
+        e.arg.mouse_press.x = LOWORD( lp );
+        e.arg.mouse_press.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_RELEASE_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_RBUTTONDOWN:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-        e.mouse_press.x = LOWORD( lp );
-        e.mouse_press.y = HIWORD( lp );
-        sgui_internal_window_fire_event( super, SGUI_MOUSE_PRESS_EVENT, &e );
+        e.arg.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+        e.arg.mouse_press.x = LOWORD( lp );
+        e.arg.mouse_press.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_PRESS_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_RBUTTONUP:
-        e.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-        e.mouse_press.x = LOWORD( lp );
-        e.mouse_press.y = HIWORD( lp );
-        sgui_internal_window_fire_event(super, SGUI_MOUSE_RELEASE_EVENT, &e);
+        e.arg.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
+        e.arg.mouse_press.x = LOWORD( lp );
+        e.arg.mouse_press.y = HIWORD( lp );
+        e.type = SGUI_MOUSE_RELEASE_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_CHAR:
         c[0] = (WCHAR)wp;
         c[1] = '\0';
 
         WideCharToMultiByte( CP_UTF8, 0, c, 2,
-                             (LPSTR)e.char_event.as_utf8_str, 8, NULL, NULL );
+                             (LPSTR)e.arg.char_event.as_utf8_str, 8,
+                             NULL, NULL );
 
-        if( (e.char_event.as_utf8_str[0] & 0x80) ||
-            !iscntrl( e.char_event.as_utf8_str[0] ) )
+        if( (e.arg.char_event.as_utf8_str[0] & 0x80) ||
+            !iscntrl( e.arg.char_event.as_utf8_str[0] ) )
         {
-            sgui_internal_window_fire_event( super, SGUI_CHAR_EVENT, &e );
+            e.type = SGUI_CHAR_EVENT;
+            sgui_internal_window_fire_event( super, &e );
         }
         break;
     case WM_SYSKEYUP:
@@ -327,12 +340,13 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
             key = VK_RMENU;
 
         /* Send event */
-        e.keyboard_event.code = key;
-
         if( msg==WM_KEYDOWN || msg==WM_SYSKEYDOWN )
-            sgui_internal_window_fire_event(super,SGUI_KEY_PRESSED_EVENT, &e);
+            e.type = SGUI_KEY_PRESSED_EVENT;
         else
-            sgui_internal_window_fire_event(super,SGUI_KEY_RELEASED_EVENT,&e);
+            e.type = SGUI_KEY_RELEASED_EVENT;
+
+        e.arg.keyboard_event.code = key;
+        sgui_internal_window_fire_event( super, &e );
 
         /* let DefWindowProc handle system keys, except ALT */
         if( (msg==WM_SYSKEYUP || msg==WM_SYSKEYDOWN) &&
@@ -343,8 +357,9 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         break;
     case WM_SIZE:
         /* send size change event */
-        e.size.new_width  = super->w = LOWORD( lp );
-        e.size.new_height = super->h = HIWORD( lp );
+        e.arg.size.new_width  = super->w = LOWORD( lp );
+        e.arg.size.new_height = super->h = HIWORD( lp );
+        e.type = SGUI_SIZE_CHANGE_EVENT;
 
         /* resize canvas and redraw everything */
         if( super->backend==SGUI_NATIVE )
@@ -354,7 +369,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         }
 
         /* fire a resize event */
-        sgui_internal_window_fire_event( super, SGUI_SIZE_CHANGE_EVENT, &e );
+        sgui_internal_window_fire_event( super, &e );
 
         /* redraw the widgets */
         if( super->canvas )
@@ -367,7 +382,8 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
     case WM_PAINT:
         if( super->canvas )
         {
-            sgui_internal_window_fire_event( super, SGUI_EXPOSE_EVENT, &e );
+            e.type = SGUI_EXPOSE_EVENT;
+            sgui_internal_window_fire_event( super, &e );
 
             ftn.BlendOp = AC_SRC_OVER;
             ftn.BlendFlags = 0;
@@ -388,8 +404,9 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         if( super->backend==SGUI_OPENGL_CORE ||
             super->backend==SGUI_OPENGL_COMPAT )
         {
-            sgui_rect_set_size( &e.expose_event, 0, 0, super->w, super->h );
-            sgui_internal_window_fire_event( super, SGUI_EXPOSE_EVENT, &e );
+            e.type = SGUI_EXPOSE_EVENT;
+            sgui_rect_set_size(&e.arg.expose_event, 0, 0, super->w, super->h);
+            sgui_internal_window_fire_event( super, &e );
         }
     default:
         return -1;

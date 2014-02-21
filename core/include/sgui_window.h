@@ -109,12 +109,10 @@ sgui_window_description;
 /**
  * \brief A callback for listening to window events
  *
- * \param wnd   The window that triggered the event
- * \param type  An identifyer describing the event
+ * \param user  The user pointer data added to the window
  * \param event Additional data to the event
  */
-typedef void (* sgui_window_callback ) ( sgui_window* wnd, int type,
-                                         sgui_event* event );
+typedef void (* sgui_window_callback ) ( void* user, sgui_event* event );
 
 
 

@@ -210,11 +210,9 @@ struct sgui_widget
      * \brief Callback that is called to inject window events
      *
      * \param widget A pointer to the widget to update.
-     * \param type   The event type.
      * \param event  The window event that occoured.
      */
-    void (* window_event_callback )( sgui_widget* widget, int type,
-                                     sgui_event* event );
+    void (* window_event_callback )( sgui_widget* widget, sgui_event* event );
 
     /**
      * \brief Callback that is called when the internal state of a widget
@@ -551,10 +549,9 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
  * \brief Propagate a window event
  *
  * \param wnd   The window that trigered the event
- * \param event The event that got triggered
  * \param e     A pointer ot a struct with additional information for an event
  */
-SGUI_DLL void sgui_internal_window_fire_event( sgui_window* wnd, int event,
+SGUI_DLL void sgui_internal_window_fire_event( sgui_window* wnd,
                                                sgui_event* e );
 
 /**

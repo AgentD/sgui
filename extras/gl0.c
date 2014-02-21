@@ -5,15 +5,15 @@
 
 
 
-void window_callback( sgui_window* wnd, int type, sgui_event* event )
+void window_callback( void* user, sgui_event* event )
 {
     unsigned int w, h;
-    (void)wnd; (void)event;
+    (void)user;
 
-    if( type == SGUI_EXPOSE_EVENT )
+    if( event->type == SGUI_EXPOSE_EVENT )
     {
-        sgui_window_get_size( wnd, &w, &h );
-        sgui_window_make_current( wnd );
+        sgui_window_get_size( event->window, &w, &h );
+        sgui_window_make_current( event->window );
 
         glViewport( 0, 0, w, h );
         glClear( GL_COLOR_BUFFER_BIT );
@@ -30,7 +30,7 @@ void window_callback( sgui_window* wnd, int type, sgui_event* event )
         glVertex2f(  0.0f,  0.5f );
         glEnd( );
 
-        sgui_window_swap_buffers( wnd );
+        sgui_window_swap_buffers( event->window );
         sgui_window_make_current( NULL );
 
         printf( "Readraw!\n" );

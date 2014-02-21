@@ -89,23 +89,34 @@
 
 
 
-union sgui_event
+struct sgui_event
 {
-    struct { unsigned int new_width, new_height; } size;
+    union
+    {
+        struct { unsigned int new_width, new_height; } size;
 
-    struct { int x, y; } mouse_move;
+        struct { int x, y; } mouse_move;
 
-    struct { int button, x, y; } mouse_press;
+        struct { int button, x, y; } mouse_press;
 
-    struct { int direction; } mouse_wheel;
+        struct { int direction; } mouse_wheel;
 
-    struct { int code; } keyboard_event;
+        struct { int code; } keyboard_event;
 
-    struct { char as_utf8_str[8]; } char_event;
+        struct { char as_utf8_str[8]; } char_event;
 
-    sgui_rect expose_event;
+        sgui_rect expose_event;
+    }
+    arg;
 
-    sgui_widget* source;
+    /** \brief A pointer to the widget that caused the event */
+    sgui_widget* widget;
+
+    /** \brief A pointer to the window that caused the event */
+    sgui_window* window;
+
+    /** \brief Event type identifyer */
+    int type;
 };
 
 #endif /* SGUI_EVENT_H */

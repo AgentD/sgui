@@ -221,18 +221,19 @@ static void radio_button_select( sgui_button* b )
     }
 }
 
-static void radio_on_event( sgui_widget* widget, int type, sgui_event* event )
+static void radio_on_event( sgui_widget* widget, sgui_event* e )
 {
     sgui_button* b = (sgui_button*)widget;
-    (void)event;
+    sgui_event ev;
 
     /* the radio button got clicked and is not selected */
-    if( type==SGUI_MOUSE_RELEASE_EVENT && b->type==SGUI_RADIO_BUTTON )
+    if( e->type==SGUI_MOUSE_RELEASE_EVENT && b->type==SGUI_RADIO_BUTTON )
     {
         radio_button_select( b );
 
-        sgui_canvas_fire_widget_event( widget->canvas, widget,
-                                       SGUI_RADIO_BUTTON_SELECT_EVENT );
+        ev.widget = widget;
+        ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
+        sgui_canvas_fire_widget_event( widget->canvas, &ev );
     }
 }
 
@@ -269,26 +270,26 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
 }
 
 /****************************** checkbox code ******************************/
-static void checkbox_on_event( sgui_widget* widget, int type,
-                               sgui_event* event )
+static void checkbox_on_event( sgui_widget* widget, sgui_event* e )
 {
     sgui_button* b = (sgui_button*)widget;
+    sgui_event ev;
     sgui_rect r;
-    int e;
-    (void)event;
 
-    if( type == SGUI_MOUSE_RELEASE_EVENT )  /* the check box got clicked */
+    if( e->type == SGUI_MOUSE_RELEASE_EVENT ) /* the check box got clicked */
     {
+        ev.widget = widget;
+
         /* invert state, set event type */
         if( b->type==SGUI_CHECKBOX )
         {
             b->type = SGUI_CHECKBOX_SELECTED;
-            e = SGUI_CHECKBOX_CHECK_EVENT;
+            ev.type = SGUI_CHECKBOX_CHECK_EVENT;
         }
         else
         {
             b->type = SGUI_CHECKBOX;
-            e = SGUI_CHECKBOX_UNCHECK_EVENT;
+            ev.type = SGUI_CHECKBOX_UNCHECK_EVENT;
         }
 
         /* flag dirty */
@@ -296,7 +297,7 @@ static void checkbox_on_event( sgui_widget* widget, int type,
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
 
         /* fire event */
-        sgui_canvas_fire_widget_event( widget->canvas, widget, e );
+        sgui_canvas_fire_widget_event( widget->canvas, &ev );
     }
 }
 
@@ -311,31 +312,31 @@ sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 }
 
 /******************************* button code *******************************/
-static void button_on_event( sgui_widget* widget, int type,
-                             sgui_event* event )
+static void button_on_event( sgui_widget* widget, sgui_event* e )
 {
     sgui_button* b = (sgui_button*)widget;
+    sgui_event ev;
     sgui_rect r;
-    (void)event;
 
     /* the mouse left a pressed button */
-    if( type == SGUI_MOUSE_LEAVE_EVENT && b->type != SGUI_BUTTON )
+    if( e->type == SGUI_MOUSE_LEAVE_EVENT && b->type != SGUI_BUTTON )
     {
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
         b->type = SGUI_BUTTON;
     }
-    else if( type == SGUI_MOUSE_PRESS_EVENT )   /* a button got pressed */
+    else if( e->type == SGUI_MOUSE_PRESS_EVENT )   /* a button got pressed */
     {
         b->type = SGUI_BUTTON_SELECTED;
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
     }
-    else if( type == SGUI_MOUSE_RELEASE_EVENT && b->type != SGUI_BUTTON )
+    else if( e->type == SGUI_MOUSE_RELEASE_EVENT && b->type != SGUI_BUTTON )
     {
         /* a pressed button got released */
-        sgui_canvas_fire_widget_event( widget->canvas, widget,
-                                       SGUI_BUTTON_CLICK_EVENT );
+        ev.widget = widget;
+        ev.type = SGUI_BUTTON_CLICK_EVENT;
+        sgui_canvas_fire_widget_event( widget->canvas, &ev );
 
         b->type = SGUI_BUTTON;
         sgui_widget_get_absolute_rect( widget, &r );
