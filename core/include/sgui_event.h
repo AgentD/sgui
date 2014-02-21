@@ -93,19 +93,44 @@ struct sgui_event
 {
     union
     {
-        struct { unsigned int new_width, new_height; } size;
+        /**
+         * \brief Unsigned int vector. Used by SGUI_SIZE_CHANGE_EVENT
+         */
+        struct { unsigned int x, y; } ui2;
 
-        struct { int x, y; } mouse_move;
+        /**
+         * \brief Int vector. Used by SGUI_MOUSE_MOVE_EVENT
+         */
+        struct { int x, y; } i2;
 
-        struct { int button, x, y; } mouse_press;
+        /**
+         * \brief Int vector. Used by SGUI_MOUSE_PRESS_EVENT with z being a
+         *        mouse button identifyer.
+         */
+        struct { int x, y, z; } i3;
 
-        struct { int direction; } mouse_wheel;
+        /**
+         * \brief Int parameter
+         *
+         * Used by SGUI_MOUSE_WHEEL_EVENT as direction (1=up, -1=donw).
+         * Used by SGUI_KEY_PRESSED_EVENT and SGUI_KEY_RELEASED_EVENT as
+         * keycode.
+         */
+        int i;
 
-        struct { int code; } keyboard_event;
+        /**
+         * \brief UTF8 string fraction
+         *
+         * Used by SGUI_CHAR_EVENT as translated utf8 string
+         */
+        char utf8[8];
 
-        struct { char as_utf8_str[8]; } char_event;
-
-        sgui_rect expose_event;
+        /**
+         * \brief Rect paramter
+         *
+         * Used by SGUI_EXPOSE_EVENT as expose rectangle
+         */
+        sgui_rect rect;
     }
     arg;
 

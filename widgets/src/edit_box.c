@@ -186,13 +186,13 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         sgui_canvas_fire_widget_event( widget->canvas, &se );
     }
     else if( (e->type == SGUI_MOUSE_RELEASE_EVENT) &&
-             (e->arg.mouse_press.button == SGUI_MOUSE_BUTTON_LEFT) &&
+             (e->arg.i3.z == SGUI_MOUSE_BUTTON_LEFT) &&
              b->num_entered )
     {
         unsigned int new_cur;
 
         /* get the cursor offset from the mouse position */
-        new_cur = cursor_from_mouse( b, e->arg.mouse_press.x );
+        new_cur = cursor_from_mouse( b, e->arg.i3.x );
 
         /* store new position and flag area dirty if the
            cursor position changed */
@@ -206,8 +206,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     else if( e->type == SGUI_KEY_PRESSED_EVENT )
     {
         /* backspace pressed, characters have been entered, cursor is not 0 */
-        if( (e->arg.keyboard_event.code==SGUI_KC_BACK) &&
-            b->num_entered && b->cursor )
+        if( e->arg.i==SGUI_KC_BACK && b->num_entered && b->cursor )
         {
             unsigned int old = b->cursor;   /* store old cursor position */
 
@@ -227,7 +226,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             determine_offset( b );
         }
         /* delete pressed, cursor is not at end, chars have been entered */
-        else if( (e->arg.keyboard_event.code==SGUI_KC_DELETE) &&
+        else if( (e->arg.i==SGUI_KC_DELETE) &&
                  (b->cursor < b->end) && b->num_entered )
         {
             unsigned int offset = b->cursor;  /* store old cursor position */
@@ -248,7 +247,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             determine_offset( b );
         }
         /* move cursor left pressed and cursor is not 0 */
-        else if( (e->arg.keyboard_event.code==SGUI_KC_LEFT) && b->cursor )
+        else if( (e->arg.i==SGUI_KC_LEFT) && b->cursor )
         {
             ROLL_BACK_UTF8( b->buffer, b->cursor );
 
@@ -257,7 +256,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             determine_offset( b );
         }
         /* move cursor right pressed and cursor is not at the end */
-        else if( (e->arg.keyboard_event.code==SGUI_KC_RIGHT) &&
+        else if( (e->arg.i==SGUI_KC_RIGHT) &&
                  (b->cursor < b->end) )
         {
             ADVANCE_UTF8( b->buffer, b->cursor );
@@ -267,7 +266,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             determine_offset( b );
         }
         /* home key pressed and we have an offset OR the cursor is not */
-        else if( (e->arg.keyboard_event.code==SGUI_KC_HOME) &&
+        else if( (e->arg.i==SGUI_KC_HOME) &&
                  (b->offset || b->cursor) )
         {
             b->cursor = 0;
@@ -276,7 +275,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
         /* end key pressed and the cursor is not at the end */
-        else if( (e->arg.keyboard_event.code==SGUI_KC_END) &&
+        else if( (e->arg.i==SGUI_KC_END) &&
                  (b->cursor < b->end) )
         {
             b->cursor = b->end;
@@ -286,7 +285,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             determine_offset( b );
         }
         /* ENTER key pressed */
-        else if( e->arg.keyboard_event.code==SGUI_KC_RETURN )
+        else if( e->arg.i==SGUI_KC_RETURN )
         {
             se.type = SGUI_EDIT_BOX_TEXT_ENTERED;
             sgui_canvas_fire_widget_event( widget->canvas, &se );
@@ -297,14 +296,14 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         unsigned int len;
 
         /* get the length of the UTF8 string to insert */
-        len = strlen( e->arg.char_event.as_utf8_str );
+        len = strlen( e->arg.utf8 );
 
         /* move entire text block after curser right by that length */
         memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
                  b->end - b->cursor + 1 );
 
         /* insert the character */
-        memcpy( b->buffer+b->cursor, e->arg.char_event.as_utf8_str, len );
+        memcpy( b->buffer+b->cursor, e->arg.utf8, len );
 
         /* update state */
         b->end += len;

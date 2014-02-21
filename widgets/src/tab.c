@@ -85,7 +85,7 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
     if( e->type == SGUI_MOUSE_PRESS_EVENT )
     {
         /* determine which tab caption was clicked */
-        for( x=e->arg.mouse_press.x, i=g->tabs; i!=NULL; i=i->next )
+        for( x=e->arg.i3.x, i=g->tabs; i!=NULL; i=i->next )
         {
             if( x>=0 && x<(int)i->caption_width )
                 break;

@@ -57,7 +57,7 @@ static void scroll_bar_on_event_h( sgui_widget* widget, sgui_event* e )
     {
         old = b->v_offset;
 
-        if( e->arg.mouse_wheel.direction < 0 )
+        if( e->arg.i < 0 )
         {
             if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
                 ((b->p_offset + b->p_length + b->p_length/4) < l) )
@@ -110,9 +110,8 @@ static void scroll_bar_on_event_h( sgui_widget* widget, sgui_event* e )
     else if( e->type==SGUI_MOUSE_PRESS_EVENT )
     {
         /* update button state, request redraw */
-        b->dec_button_state = e->arg.mouse_press.x < (int)b->bw;
-        b->inc_button_state = e->arg.mouse_press.x >
-                              ((int)b->length-(int)b->bw);
+        b->dec_button_state = e->arg.i3.x < (int)b->bw;
+        b->inc_button_state = e->arg.i3.x > ((int)b->length-(int)b->bw);
 
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
@@ -164,7 +163,7 @@ static void scroll_bar_on_event_v( sgui_widget* widget, sgui_event* e )
     {
         old = b->v_offset;
 
-        if( e->arg.mouse_wheel.direction < 0 )
+        if( e->arg.i < 0 )
         {
             if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
                 ((b->p_offset + b->p_length + b->p_length/4) < l) )
@@ -217,9 +216,8 @@ static void scroll_bar_on_event_v( sgui_widget* widget, sgui_event* e )
     else if( e->type==SGUI_MOUSE_PRESS_EVENT )
     {
         /* update button state, request redraw */
-        b->dec_button_state = e->arg.mouse_press.y < (int)b->bh;
-        b->inc_button_state = e->arg.mouse_press.y >
-                              ((int)b->length-(int)b->bh);
+        b->dec_button_state = e->arg.i3.y < (int)b->bh;
+        b->inc_button_state = e->arg.i3.y > ((int)b->length-(int)b->bh);
 
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );

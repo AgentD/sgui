@@ -255,8 +255,7 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
     {
         /* find the widget under the mouse cursor */
         i = sgui_widget_get_child_from_point( &canvas->root,
-                                              e->arg.mouse_move.x,
-                                              e->arg.mouse_move.y );
+                                              e->arg.i2.x, e->arg.i2.y );
 
         /* generate mouse enter/leave events */
         if( canvas->mouse_over != i )
@@ -279,8 +278,8 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
         /* transform to widget local coordinates */
         sgui_widget_get_absolute_position( canvas->mouse_over, &x, &y );
 
-        e->arg.mouse_press.x -= x;
-        e->arg.mouse_press.y -= y;
+        e->arg.i3.x -= x;
+        e->arg.i3.y -= y;
 
         /* inject event */
         sgui_widget_send_event( canvas->mouse_over, e, 0 );
@@ -302,8 +301,8 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
         /* transform to widget local coordinates */
         sgui_widget_get_absolute_position( canvas->mouse_over, &x, &y );
 
-        e->arg.mouse_move.x -= x;
-        e->arg.mouse_move.y -= y;
+        e->arg.i2.x -= x;
+        e->arg.i2.y -= y;
 
         /* inject event */
         sgui_widget_send_event( canvas->mouse_over, e, 0 );

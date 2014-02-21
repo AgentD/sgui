@@ -123,8 +123,8 @@ void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
 
         if( send_event )
         {
-            e.arg.mouse_move.x = x;
-            e.arg.mouse_move.y = y;
+            e.arg.i2.x = x;
+            e.arg.i2.y = y;
             e.window = wnd;
             e.type = SGUI_MOUSE_MOVE_EVENT;
             sgui_internal_window_fire_event( wnd, &e );

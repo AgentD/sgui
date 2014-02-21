@@ -9,7 +9,7 @@ void window_callback( void* user, sgui_event* event )
     (void)user;
     if( event->type == SGUI_CHAR_EVENT )
     {
-        printf( "%s\n", event->arg.char_event.as_utf8_str );
+        printf( "%s\n", event->arg.utf8 );
     }
     else if( event->type == SGUI_BUTTON_CLICK_EVENT )
     {

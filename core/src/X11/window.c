@@ -214,25 +214,22 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     {
     case KeyRelease:
         sym = XLookupKeysym( &e->xkey, 0 );
-        se.arg.keyboard_event.code = key_entries_translate( sym );
+        se.arg.i = key_entries_translate( sym );
         se.type = SGUI_KEY_RELEASED_EVENT;
         sgui_internal_window_fire_event( super, &se );
         break;
     case KeyPress:
-        memset( se.arg.char_event.as_utf8_str, 0,
-                sizeof(se.arg.char_event.as_utf8_str) );
+        memset( se.arg.utf8, 0, sizeof(se.arg.utf8) );
 
         /* try to convert composed character to UTF8 string */
         Xutf8LookupString( this->ic, &e->xkey,
-                           (char*)se.arg.char_event.as_utf8_str,
-                           sizeof(se.arg.char_event.as_utf8_str),
+                           (char*)se.arg.utf8, sizeof(se.arg.utf8),
                            &sym, &stat );
 
         /* send a char event if it worked */
         if( stat==XLookupChars || stat==XLookupBoth )
         {
-            if( (se.arg.char_event.as_utf8_str[0] & 0x80) ||
-                !iscntrl( se.arg.char_event.as_utf8_str[0] ) )
+            if( (se.arg.utf8[0] & 0x80) || !iscntrl( se.arg.utf8[0] ) )
             {
                 se.type = SGUI_CHAR_EVENT;
                 sgui_internal_window_fire_event( super, &se );
@@ -242,7 +239,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         /* send a key pressed event if we have a key sym */
         if( stat==XLookupKeySym || stat==XLookupBoth )
         {
-            se.arg.keyboard_event.code = key_entries_translate( sym );
+            se.arg.i = key_entries_translate( sym );
             se.type = SGUI_KEY_PRESSED_EVENT;
             sgui_internal_window_fire_event( super, &se );
         }
@@ -255,9 +252,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
             if( e->type==ButtonPress )
             {
                 se.type = SGUI_MOUSE_WHEEL_EVENT;
-                se.arg.mouse_wheel.direction =
-                (e->xbutton.button==Button4) ? 1 : -1;
-
+                se.arg.i = (e->xbutton.button==Button4) ? 1 : -1;
                 sgui_internal_window_fire_event( super, &se );
             }
         }
@@ -265,19 +260,13 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         {
             switch( e->xbutton.button )
             {
-            case Button1:
-                se.arg.mouse_press.button=SGUI_MOUSE_BUTTON_LEFT;
-                break;
-            case Button2:
-                se.arg.mouse_press.button=SGUI_MOUSE_BUTTON_MIDDLE;
-                break;
-            case Button3:
-                se.arg.mouse_press.button = SGUI_MOUSE_BUTTON_RIGHT;
-                break;
+            case Button1: se.arg.i3.z = SGUI_MOUSE_BUTTON_LEFT;   break;
+            case Button2: se.arg.i3.z = SGUI_MOUSE_BUTTON_MIDDLE; break;
+            case Button3: se.arg.i3.z = SGUI_MOUSE_BUTTON_RIGHT;  break;
             }
 
-            se.arg.mouse_press.x = e->xbutton.x;
-            se.arg.mouse_press.y = e->xbutton.y;
+            se.arg.i3.x = e->xbutton.x;
+            se.arg.i3.y = e->xbutton.y;
             se.type = e->type==ButtonPress ? SGUI_MOUSE_PRESS_EVENT :
                                              SGUI_MOUSE_RELEASE_EVENT;
 
@@ -292,15 +281,15 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         else
         {
-            se.arg.mouse_move.x = e->xmotion.x<0 ? 0 : e->xmotion.x;
-            se.arg.mouse_move.y = e->xmotion.y<0 ? 0 : e->xmotion.y;
+            se.arg.i2.x = e->xmotion.x<0 ? 0 : e->xmotion.x;
+            se.arg.i2.y = e->xmotion.y<0 ? 0 : e->xmotion.y;
             se.type = SGUI_MOUSE_MOVE_EVENT;
             sgui_internal_window_fire_event( super, &se );
         }
         break;
     case ConfigureNotify:
-        se.arg.size.new_width  = e->xconfigure.width;
-        se.arg.size.new_height = e->xconfigure.height;
+        se.arg.ui2.x = e->xconfigure.width;
+        se.arg.ui2.y = e->xconfigure.height;
         se.type = SGUI_SIZE_CHANGE_EVENT;
 
         /* store the new position */
@@ -308,11 +297,11 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         super->y = e->xconfigure.y;
 
         /* do not accept zero size window */
-        if( !se.arg.size.new_width || !se.arg.size.new_height )
+        if( !se.arg.ui2.x || !se.arg.ui2.y )
             break;
 
         /* ignore if the size didn't change at all */
-        if(se.arg.size.new_width==super->w&&se.arg.size.new_height==super->h)
+        if( se.arg.ui2.x==super->w && se.arg.ui2.y==super->h )
             break;
 
         /* store the new size */
@@ -336,7 +325,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         if( super->backend==SGUI_OPENGL_CORE ||
             super->backend==SGUI_OPENGL_COMPAT )
         {
-            sgui_rect_set_size(&se.arg.expose_event,0,0,super->w,super->h);
+            sgui_rect_set_size( &se.arg.rect, 0, 0, super->w, super->h );
             se.type = SGUI_EXPOSE_EVENT;
             sgui_internal_window_fire_event( super, &se );
         }
@@ -370,7 +359,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
             super->backend==SGUI_OPENGL_COMPAT )
         {
             se.type = SGUI_EXPOSE_EVENT;
-            sgui_rect_set_size(&se.arg.expose_event,0,0,super->w,super->h);
+            sgui_rect_set_size( &se.arg.rect, 0, 0, super->w, super->h );
             sgui_internal_window_fire_event( super, &se );
         }
         break;
