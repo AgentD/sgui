@@ -23,6 +23,12 @@ if( NOT OPENGL )
   add_definitions( -DSGUI_NO_OPENGL )
 endif( )
 
+option( NOFLOAT "Disable all use of floatingpoint data types" OFF )
+
+if( NOFLOAT )
+  add_definitions( -DSGUI_NO_FLOAT )
+endif( )
+
 #----------------------------------------------------------------------
 # Compiler detection and configuration
 #----------------------------------------------------------------------
