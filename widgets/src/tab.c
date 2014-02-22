@@ -82,6 +82,8 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
     sgui_event ev;
     int x;
 
+    ev.widget = widget;
+
     if( e->type == SGUI_MOUSE_PRESS_EVENT )
     {
         sgui_internal_lock_mutex( );
@@ -98,8 +100,6 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
         /* select coresponding tab and deselect the current one */
         if( i && !i->dummy.visible )
         {
-            ev.widget = widget;
-
             for( j=g->tabs; j!=NULL && !j->dummy.visible; j=j->next );
 
             if( j )
@@ -113,6 +113,53 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
             sgui_widget_set_visible( &i->dummy, 1 );
             sgui_widget_send_event( &i->dummy, &ev, 1 );
         }
+
+        sgui_internal_unlock_mutex( );
+    }
+    else if( e->type == SGUI_KEY_RELEASED_EVENT )
+    {
+        if( e->arg.i!=SGUI_KC_LEFT && e->arg.i!=SGUI_KC_RIGHT )
+            return;
+
+        sgui_internal_lock_mutex( );
+
+        if( e->arg.i==SGUI_KC_LEFT )
+        {
+            if( g->tabs->dummy.visible )
+            {
+                sgui_internal_unlock_mutex( );
+                return;
+            }
+
+            /* find currently selected and tab and its predecessor */
+            for( i=g->tabs; i!=NULL && !i->next->dummy.visible; i=i->next );
+
+            j = i->next;
+        }
+        else
+        {
+            /* find currently selected and tab and its successor */
+            for( j=g->tabs; j!=NULL && !j->dummy.visible; j=j->next );
+
+            i = j->next;
+        }
+
+        /* sanity check */
+        if( !i || !j )
+        {
+            sgui_internal_unlock_mutex( );
+            return;
+        }
+
+        /* deselect the currently selected tab */
+        ev.type = SGUI_TAB_DESELECTED;
+        sgui_widget_set_visible( &j->dummy, 0 );
+        sgui_widget_send_event( &j->dummy, &ev, 1 );
+
+        /* select the other tab */
+        ev.type = SGUI_TAB_SELECTED;
+        sgui_widget_set_visible( &i->dummy, 1 );
+        sgui_widget_send_event( &i->dummy, &ev, 1 );
 
         sgui_internal_unlock_mutex( );
     }
