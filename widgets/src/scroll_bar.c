@@ -53,6 +53,8 @@ static void scroll_bar_on_event_h( sgui_widget* widget, sgui_event* e )
     unsigned int l = b->length - 2*b->bw, old;
     sgui_rect r;
 
+    sgui_internal_lock_mutex( );
+
     if( e->type==SGUI_MOUSE_WHEEL_EVENT )
     {
         old = b->v_offset;
@@ -151,6 +153,8 @@ static void scroll_bar_on_event_h( sgui_widget* widget, sgui_event* e )
         if( b->scroll_fun && (b->v_offset!=old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void scroll_bar_on_event_v( sgui_widget* widget, sgui_event* e )
@@ -158,6 +162,8 @@ static void scroll_bar_on_event_v( sgui_widget* widget, sgui_event* e )
     sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
     unsigned int l = b->length - 2*b->bh, old;
     sgui_rect r;
+
+    sgui_internal_lock_mutex( );
 
     if( e->type==SGUI_MOUSE_WHEEL_EVENT )
     {
@@ -257,6 +263,8 @@ static void scroll_bar_on_event_v( sgui_widget* widget, sgui_event* e )
         if( b->scroll_fun && (b->v_offset!=old) )
             b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void scroll_bar_draw( sgui_widget* super )
@@ -341,11 +349,14 @@ void sgui_scroll_bar_on_scroll( sgui_widget* bar, sgui_scrollbar_callback fun,
 void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
 {
     sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    unsigned int l;
     sgui_rect r;
 
     if( b )
     {
-        unsigned int l = b->length - 2*(b->horizontal ? b->bh : b->bw);
+        sgui_internal_lock_mutex( );
+
+        l = b->length - 2*(b->horizontal ? b->bh : b->bw);
 
         if( (offset + b->v_length) < b->v_max )
         {
@@ -360,6 +371,8 @@ void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
 
         sgui_widget_get_absolute_rect( bar, &r );
         sgui_canvas_add_dirty_rect( bar->canvas, &r );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -377,6 +390,8 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
 
     if( b )
     {
+        sgui_internal_lock_mutex( );
+
         b->v_length = disp_area_length;
         b->v_max    = scroll_area_length;
         b->p_length = ((b->v_length<<8) / b->v_max) *
@@ -386,6 +401,8 @@ void sgui_scroll_bar_set_area( sgui_widget* bar,
 
         sgui_widget_get_absolute_rect( bar, &r );
         sgui_canvas_add_dirty_rect( bar->canvas, &r );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -396,6 +413,8 @@ void sgui_scroll_bar_set_length( sgui_widget* bar, unsigned int length )
 
     if( b && length!=b->length )
     {
+        sgui_internal_lock_mutex( );
+
         /* if the bar is shrinked, add old area as dirty rect */
         if( b->length < length )
         {
@@ -426,6 +445,8 @@ void sgui_scroll_bar_set_length( sgui_widget* bar, unsigned int length )
             sgui_widget_get_absolute_rect( bar, &r );
             sgui_canvas_add_dirty_rect( bar->canvas, &r );
         }
+
+        sgui_internal_unlock_mutex( );
     }
 }
 

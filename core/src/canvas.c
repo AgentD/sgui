@@ -141,11 +141,16 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r )
     if( !canvas || !r )
         return;
 
+    sgui_internal_lock_mutex( );
+
     /* try to find an existing diry rect it touches */
     for( i=0; i<canvas->num_dirty; ++i )
     {
         if( sgui_rect_join( canvas->dirty + i, r, 1 ) )
+        {
+            sgui_internal_unlock_mutex( );
             return;
+        }
     }
 
     /* add a new one if posible, join all existing if not */
@@ -161,6 +166,8 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r )
         sgui_rect_copy( canvas->dirty + 1, r );
         canvas->num_dirty = 2;
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 unsigned int sgui_canvas_num_dirty_rects( sgui_canvas* canvas )
@@ -171,14 +178,22 @@ unsigned int sgui_canvas_num_dirty_rects( sgui_canvas* canvas )
 void sgui_canvas_get_dirty_rect( sgui_canvas* canvas, sgui_rect* rect,
                                  unsigned int i )
 {
+    sgui_internal_lock_mutex( );
+
     if( canvas && (i < canvas->num_dirty) )
         sgui_rect_copy( rect, canvas->dirty + i );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas )
 {
     if( canvas )
+    {
+        sgui_internal_lock_mutex( );
         canvas->num_dirty = 0;
+        sgui_internal_unlock_mutex( );
+    }
 }
 
 void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear )
@@ -188,6 +203,8 @@ void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear )
 
     if( canvas )
     {
+        sgui_internal_lock_mutex( );
+
         if( !canvas->began )
         {
             sgui_canvas_begin( canvas, NULL );
@@ -207,6 +224,8 @@ void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear )
             sgui_canvas_end( canvas );
 
         canvas->num_dirty = 0;
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -217,6 +236,8 @@ void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
 
     if( canvas )
     {
+        sgui_internal_lock_mutex( );
+
         sgui_rect_set_size( &r1, 0, 0, canvas->width, canvas->height );
         canvas->num_dirty = 0;
 
@@ -234,6 +255,8 @@ void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
 
         if( need_end )
             sgui_canvas_end( canvas );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -250,6 +273,8 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
     if( e->type==SGUI_FOCUS_EVENT || e->type==SGUI_MOUSE_ENTER_EVENT ||
         e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT )
         return;
+
+    sgui_internal_lock_mutex( );
 
     if( e->type == SGUI_MOUSE_MOVE_EVENT )
     {
@@ -325,6 +350,8 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
         sgui_widget_send_event( &canvas->root, e, 1 );
         break;
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 /****************************************************************************/
@@ -347,6 +374,8 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 {
     if( canvas && (canvas->width!=width || canvas->height!=height) )
     {
+        sgui_internal_lock_mutex( );
+
         if( canvas->resize )
             canvas->resize( canvas, width, height );
 
@@ -355,6 +384,8 @@ void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 
         canvas->root.area.right  = width-1;
         canvas->root.area.bottom = height-1;
+
+        sgui_internal_unlock_mutex( );
     }
 }
 

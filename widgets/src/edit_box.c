@@ -191,6 +191,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     {
         unsigned int new_cur;
 
+        sgui_internal_lock_mutex( );
+
         /* get the cursor offset from the mouse position */
         new_cur = cursor_from_mouse( b, e->arg.i3.x );
 
@@ -202,9 +204,13 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
+
+        sgui_internal_unlock_mutex( );
     }
     else if( e->type == SGUI_KEY_PRESSED_EVENT )
     {
+        sgui_internal_lock_mutex( );
+
         /* backspace pressed, characters have been entered, cursor is not 0 */
         if( e->arg.i==SGUI_KC_BACK && b->num_entered && b->cursor )
         {
@@ -290,6 +296,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             se.type = SGUI_EDIT_BOX_TEXT_ENTERED;
             sgui_event_post( &se );
         }
+
+        sgui_internal_unlock_mutex( );
     }
     else if( (e->type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )
     {   
@@ -297,6 +305,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
 
         /* get the length of the UTF8 string to insert */
         len = strlen( e->arg.utf8 );
+
+        sgui_internal_lock_mutex( );
 
         /* move entire text block after curser right by that length */
         memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
@@ -314,6 +324,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
         determine_offset( b );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -374,6 +386,8 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     if( !box )
         return;
 
+    sgui_internal_lock_mutex( );
+
     /* text = NULL means clear */
     if( !text )
     {
@@ -405,5 +419,7 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
         sgui_widget_get_absolute_rect( box, &r );
         sgui_canvas_add_dirty_rect( box->canvas, &r );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 

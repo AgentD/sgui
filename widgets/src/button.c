@@ -102,8 +102,10 @@ static void button_destroy( sgui_widget* button )
     sgui_button* b = (sgui_button*)button;
 
     /* detatch from linked list */
+    sgui_internal_lock_mutex( );
     if( b->prev ) b->prev->next = b->next;
     if( b->next ) b->next->prev = b->prev;
+    sgui_internal_unlock_mutex( );
 
     /* free memory of text buffer and button */
     free( b->text );
@@ -192,6 +194,8 @@ static void radio_button_select( sgui_button* b )
     sgui_button* i;
     sgui_rect r;
 
+    sgui_internal_lock_mutex( );
+
     b->type = SGUI_RADIO_BUTTON_SELECTED;
     sgui_widget_get_absolute_rect( &b->widget, &r );
     sgui_canvas_add_dirty_rect( b->widget.canvas, &r );
@@ -204,7 +208,7 @@ static void radio_button_select( sgui_button* b )
             sgui_widget_get_absolute_rect( &i->widget, &r );
             sgui_canvas_add_dirty_rect( i->widget.canvas, &r );
             i->type = SGUI_RADIO_BUTTON;
-            return;
+            goto done;
         }
     }
 
@@ -216,9 +220,12 @@ static void radio_button_select( sgui_button* b )
             sgui_widget_get_absolute_rect( &i->widget, &r );
             sgui_canvas_add_dirty_rect( i->widget.canvas, &r );
             i->type = SGUI_RADIO_BUTTON;
-            return;
+            goto done;
         }
     }
+
+done:
+    sgui_internal_unlock_mutex( );
 }
 
 static void radio_on_event( sgui_widget* widget, sgui_event* e )
@@ -255,6 +262,8 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
     if( b && (b->type==SGUI_RADIO_BUTTON ||
               b->type==SGUI_RADIO_BUTTON_SELECTED) )
     {
+        sgui_internal_lock_mutex( );
+
         /* disconnect from existing linked list */
         if( b->prev ) b->prev->next = b->next;
         if( b->next ) b->next->prev = b->prev;
@@ -266,6 +275,8 @@ void sgui_radio_button_connect( sgui_widget* radio, sgui_widget* previous,
         /* connect previous and next to the given pointer */
         if( b->prev ) b->prev->next = b;
         if( b->next ) b->next->prev = b;
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -373,6 +384,8 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
     text_width = SGUI_RECT_WIDTH( r );
     text_height = SGUI_RECT_HEIGHT( r );
 
+    sgui_internal_lock_mutex( );
+
     /* determine text position */
     if( b->type==SGUI_BUTTON || b->type==SGUI_BUTTON_SELECTED )
     {
@@ -390,12 +403,19 @@ void sgui_button_set_text( sgui_widget* button, const char* text )
 
     if( b->text )
         memcpy( b->text, text, len + 1 );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_button_set_state( sgui_widget* button, int state )
 {
     sgui_button* b = (sgui_button*)button;
     sgui_rect r;
+
+    if( !b || b->type==SGUI_BUTTON || b->type==SGUI_BUTTON_SELECTED )
+        return;
+
+    sgui_internal_lock_mutex( );
 
     if( b->type==SGUI_RADIO_BUTTON )
     {
@@ -413,6 +433,8 @@ void sgui_button_set_state( sgui_widget* button, int state )
         sgui_widget_get_absolute_rect( button, &r );
         sgui_canvas_add_dirty_rect( button->canvas, &r );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 int sgui_button_get_state( sgui_widget* button )

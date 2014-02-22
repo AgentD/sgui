@@ -104,6 +104,7 @@ void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
 
     if( wnd && wnd->visible )
     {
+        sgui_internal_lock_mutex( );
         x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
         y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
 
@@ -117,6 +118,7 @@ void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
             e.type = SGUI_MOUSE_MOVE_EVENT;
             sgui_internal_window_fire_event( wnd, &e );
         }
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -127,6 +129,7 @@ void sgui_window_set_visible( sgui_window* wnd, int visible )
     if( !wnd || (wnd->visible==visible) )
         return;
 
+    sgui_internal_lock_mutex( );
     wnd->set_visible( wnd, visible );
     wnd->visible = visible;
 
@@ -136,6 +139,8 @@ void sgui_window_set_visible( sgui_window* wnd, int visible )
         ev.type = SGUI_API_INVISIBLE_EVENT;
         sgui_internal_window_fire_event( wnd, &ev );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_window_set_title( sgui_window* wnd, const char* title )
@@ -153,11 +158,7 @@ void sgui_window_set_size( sgui_window* wnd,
 
         /* resize the canvas */
         sgui_canvas_resize( wnd->canvas, wnd->w, wnd->h );
-
-        if( wnd->backend==SGUI_NATIVE )
-        {
-            sgui_canvas_draw_widgets( wnd->canvas, 1 );
-        }
+        sgui_canvas_draw_widgets( wnd->canvas, 1 );
     }
 }
 
@@ -171,9 +172,11 @@ void sgui_window_move( sgui_window* wnd, int x, int y )
 {
     if( wnd )
     {
+        sgui_internal_lock_mutex( );
         wnd->move( wnd, x, y );
         wnd->x = x;
         wnd->y = y;
+        sgui_internal_unlock_mutex( );
     }
 }
 

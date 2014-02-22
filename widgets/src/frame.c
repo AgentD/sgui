@@ -61,6 +61,7 @@ static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
     int x, y;
     (void)new_offset;
 
+    sgui_internal_lock_mutex( );
     sgui_widget_get_absolute_rect( frame, &r );
     sgui_canvas_add_dirty_rect( frame->canvas, &r );
 
@@ -73,6 +74,8 @@ static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
             sgui_widget_set_position( i, x, y );
         }
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
@@ -83,6 +86,7 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
     int x, y;
     (void)new_offset;
 
+    sgui_internal_lock_mutex( );
     sgui_widget_get_absolute_rect( frame, &r );
     sgui_canvas_add_dirty_rect( frame->canvas, &r );
 
@@ -95,6 +99,8 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
             sgui_widget_set_position( i, x, y );
         }
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void frame_draw( sgui_widget* super )
@@ -118,6 +124,8 @@ static void frame_on_state_change( sgui_widget* frame, int change )
     sgui_widget* i;
     sgui_rect r;
     int wx, wy;
+
+    sgui_internal_lock_mutex( );
 
     if( change & (WIDGET_CHILD_ADDED|WIDGET_CHILD_REMOVED) )
     {
@@ -188,6 +196,8 @@ static void frame_on_state_change( sgui_widget* frame, int change )
             sgui_widget_set_visible( f->h_bar, 0 );
         }
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 /****************************************************************************/

@@ -84,6 +84,8 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
 
     if( e->type == SGUI_MOUSE_PRESS_EVENT )
     {
+        sgui_internal_lock_mutex( );
+
         /* determine which tab caption was clicked */
         for( x=e->arg.i3.x, i=g->tabs; i!=NULL; i=i->next )
         {
@@ -111,6 +113,8 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
             sgui_widget_set_visible( &i->dummy, 1 );
             sgui_widget_send_event( &i->dummy, &ev, 1 );
         }
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -124,6 +128,8 @@ static void tab_group_draw( sgui_widget* widget )
     sgui_tab* i;
 
     /* draw tab captions. TODO: what if there are too many captions? */
+    sgui_internal_lock_mutex( );
+
     for( i=g->tabs; i!=NULL; i=i->next )
     {
         sgui_skin_draw_tab_caption( cv, x, y, i->caption, i->caption_width );
@@ -148,6 +154,8 @@ static void tab_group_draw( sgui_widget* widget )
         r.top += g->tab_cap_height;
         sgui_skin_draw_tab( cv, &r, gap, gap_w );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 
@@ -202,6 +210,8 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     }
 
     strcpy( t->caption, caption );
+
+    sgui_internal_lock_mutex( );
     t->caption_width = g->tab_cap_width +
                        sgui_skin_default_font_extents( caption, -1, 0, 0 );
 
@@ -219,10 +229,12 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
         for( index=0, i=g->tabs; i->next; i=i->next, ++index );
 
         i->next = t;
+        sgui_internal_unlock_mutex( );
         return index + 1;
     }
 
     g->tabs = t;
+    sgui_internal_unlock_mutex( );
     return 0;
 }
 
@@ -234,12 +246,17 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
 
     if( tab && index>=0 && w )
     {
+        sgui_internal_lock_mutex( );
+
         /* find the tab for the number */
         i = ((sgui_tab_group*)tab)->tabs;
         for( count=0; count<index && i; i=i->next, ++count );
 
         if( count!=index || !i )
+        {
+            sgui_internal_unlock_mutex( );
             return;
+        }
 
         /* add the widget */
         sgui_widget_add_child( &i->dummy, w );
@@ -249,6 +266,8 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
         ev.type = i->dummy.visible ? SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
 
         sgui_widget_send_event( w, &ev, 1 );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 

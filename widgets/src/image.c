@@ -81,6 +81,8 @@ static void image_on_state_change( sgui_widget* widget, int change )
 
     if( change & WIDGET_CANVAS_CHANGED )
     {
+        sgui_internal_lock_mutex( );
+
         sgui_widget_get_size( widget, &w, &h );
 
         sgui_pixmap_destroy( img->pixmap );
@@ -90,6 +92,8 @@ static void image_on_state_change( sgui_widget* widget, int change )
 
         sgui_pixmap_load( img->pixmap, 0, 0, img->data, 0, 0, w, h,
                           w, img->format );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 

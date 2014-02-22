@@ -276,6 +276,8 @@ int sgui_font_cache_draw_glyph( sgui_font_cache* cache, sgui_font* font,
 
     if( cache && font && cv && color )
     {
+        sgui_internal_lock_mutex( );
+
         g = find_glyph( cache->root, font, codepoint );
 
         if( !g )
@@ -283,6 +285,8 @@ int sgui_font_cache_draw_glyph( sgui_font_cache* cache, sgui_font* font,
             g = create_glyph( cache, font, codepoint );
             insert_glyph( cache, g );
         }
+
+        sgui_internal_unlock_mutex( );
 
         if( g )
         {
@@ -307,6 +311,8 @@ void sgui_font_cache_load_glyph( sgui_font_cache* cache, sgui_font* font,
 
     if( cache && font )
     {
+        sgui_internal_lock_mutex( );
+
         g = find_glyph( cache->root, font, codepoint );
 
         if( !g )
@@ -314,6 +320,8 @@ void sgui_font_cache_load_glyph( sgui_font_cache* cache, sgui_font* font,
             g = create_glyph( cache, font, codepoint );
             insert_glyph( cache, g );
         }
+
+        sgui_internal_unlock_mutex( );
     }
 }
 

@@ -82,6 +82,8 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
 
     if( w )
     {
+        sgui_internal_lock_mutex( );
+
         visible = sgui_widget_is_absolute_visible( w );
 
         /* flag the old area dirty */
@@ -104,6 +106,8 @@ void sgui_widget_set_position( sgui_widget* w, int x, int y )
         /* call the state change callback if there is one */
         if( w->state_change_callback )
             w->state_change_callback( w, WIDGET_POSITION_CHANGED );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -126,11 +130,15 @@ void sgui_widget_get_absolute_position( sgui_widget* w, int* x, int* y )
     sgui_widget* i;
     int X, Y;
 
+    sgui_internal_lock_mutex( );
+
     for( X=0, Y=0, i=w; i!=NULL; i=i->parent )
     {
         X += i->area.left;
         Y += i->area.top;
     }
+
+    sgui_internal_unlock_mutex( );
 
     if( x ) *x = X;
     if( y ) *y = Y;
@@ -158,12 +166,18 @@ int sgui_widget_is_visible( sgui_widget* w )
 
 int sgui_widget_is_absolute_visible( sgui_widget* w )
 {
+    sgui_internal_lock_mutex( );
+
     for( ; w!=NULL; w=w->parent )
     {
         if( !w->visible )
+        {
+            sgui_internal_unlock_mutex( );
             return 0;
+        }
     }
 
+    sgui_internal_unlock_mutex( );
     return 1;
 }
 
@@ -173,6 +187,8 @@ void sgui_widget_set_visible( sgui_widget* w, int visible )
 
     if( w && w->visible!=visible )
     {
+        sgui_internal_lock_mutex( );
+
         w->visible = visible;
 
         if( w->state_change_callback )
@@ -183,6 +199,8 @@ void sgui_widget_set_visible( sgui_widget* w, int visible )
         /* flag area as dirty */ 
         sgui_widget_get_absolute_rect( w, &r );
         sgui_canvas_add_dirty_rect( w->canvas, &r );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -198,6 +216,7 @@ void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r )
 
     if( w && r )
     {
+        sgui_internal_lock_mutex( );
         sgui_rect_copy( r, &w->area );
 
         for( i=w->parent; i!=NULL; i=i->parent )
@@ -210,8 +229,10 @@ void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r )
 
             /* clip against the parent rectangle */
             if( !sgui_rect_get_intersection( r, r, &i->area ) )
-                return;
+                break;
         }
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -227,10 +248,14 @@ void sgui_widget_send_event( sgui_widget* widget, sgui_event* event,
 
         if( propagate )
         {
+            sgui_internal_lock_mutex( );
+
             for( i=widget->children; i!=NULL; i=i->next )
             {
                 sgui_widget_send_event( i, event, 1 );
             }
+
+            sgui_internal_unlock_mutex( );
         }
     }
 }
@@ -249,6 +274,8 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
 
     if( widget && widget->parent )
     {
+        sgui_internal_lock_mutex( );
+
         i = widget->parent->children;
 
         SGUI_REMOVE_FROM_LIST( widget->parent->children, i, widget );
@@ -282,6 +309,8 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
 
         if( change & WIDGET_CANVAS_CHANGED )
             propagat_state_change( widget->children, WIDGET_CANVAS_CHANGED );
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
@@ -296,6 +325,8 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
     /* add canvas change flag if the widget had a different canvas before */
     if( child->canvas != parent->canvas )
         change |= WIDGET_CANVAS_CHANGED;
+
+    sgui_internal_lock_mutex( );
 
     /* add widget */
     child->parent = parent;
@@ -321,6 +352,8 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
 
     if( change & WIDGET_CANVAS_CHANGED )
         propagat_state_change( child->children, WIDGET_CANVAS_CHANGED );
+
+    sgui_internal_unlock_mutex( );
 }
 
 sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
@@ -332,6 +365,8 @@ sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
     /* check if the given widget exists and the point is inside */
     if( !widget || !sgui_rect_is_point_inside( &widget->area, x, y ) )
         return NULL;
+
+    sgui_internal_lock_mutex( );
 
     do
     {
@@ -351,6 +386,8 @@ sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
         }
     }
     while( candidate );
+
+    sgui_internal_unlock_mutex( );
 
     return widget;
 }

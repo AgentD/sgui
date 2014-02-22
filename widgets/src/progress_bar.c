@@ -112,10 +112,12 @@ void sgui_progress_bar_set_progress( sgui_widget* bar, unsigned int progress )
 
     if( bar )
     {
+        sgui_internal_lock_mutex( );
         sgui_widget_get_absolute_rect( bar, &r );
         sgui_canvas_add_dirty_rect( bar->canvas, &r );
 
         ((sgui_progress_bar*)bar)->progress = progress > 100 ? 100 : progress;
+        sgui_internal_unlock_mutex( );
     }
 }
 
