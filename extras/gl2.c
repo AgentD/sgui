@@ -5,10 +5,6 @@
 
 
 
-sgui_widget* gl_view;
-
-
-
 void glview_on_draw( sgui_widget* glview )
 {
     unsigned int w, h;
@@ -31,21 +27,13 @@ void glview_on_draw( sgui_widget* glview )
     glEnd( );
 }
 
-void window_callback( void* user, sgui_event* event )
-{
-    (void)user;
-    if( event->type == SGUI_BUTTON_CLICK_EVENT )
-    {
-        sgui_subview_refresh( gl_view );
-    }
-}
-
 int main( void )
 {
     sgui_window* wnd;
     sgui_widget* button;
     sgui_widget* text;
     sgui_font* font;
+    sgui_widget* gl_view;
 
     sgui_init( );
 
@@ -69,7 +57,8 @@ int main( void )
 
     /* hook callbacks */
     sgui_subview_set_draw_callback( gl_view, glview_on_draw );
-    sgui_window_on_event( wnd, window_callback );
+    sgui_event_connect( button, SGUI_BUTTON_CLICK_EVENT, 1,
+                        sgui_subview_refresh, gl_view, SGUI_VOID );
 
     /* add widgets to the window */
     sgui_window_add_widget( wnd, text );

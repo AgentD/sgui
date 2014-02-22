@@ -245,9 +245,6 @@ struct sgui_canvas
     sgui_rect dirty[ CANVAS_MAX_DIRTY ];
     unsigned int num_dirty;
 
-    sgui_widget_callback fun;
-    void* fun_user;
-
     /**
      * \brief Gets called by sgui_canvas_destroy
      *
@@ -505,6 +502,15 @@ SGUI_DLL void sgui_internal_lock_mutex( void );
  * \brief Unlock the global sgui mutex
  */
 SGUI_DLL void sgui_internal_unlock_mutex( void );
+
+/** \brief Call this in sgui_init/sgui_deinit to reset event connections */
+SGUI_DLL void sgui_internal_reset_events( void );
+
+/**
+ * \brief Call this in sgui_main_loop/sgui_main_loop_step to process the
+ *        event queue and event connections
+ */
+SGUI_DLL void sgui_internal_process_events( void );
 
 /**
  * \brief Initialise a widget structure

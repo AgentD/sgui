@@ -183,7 +183,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
 
         /* fire a text changed event */
         se.type = SGUI_EDIT_BOX_TEXT_CHANGED;
-        sgui_canvas_fire_widget_event( widget->canvas, &se );
+        sgui_event_post( &se );
     }
     else if( (e->type == SGUI_MOUSE_RELEASE_EVENT) &&
              (e->arg.i3.z == SGUI_MOUSE_BUTTON_LEFT) &&
@@ -288,7 +288,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         else if( e->arg.i==SGUI_KC_RETURN )
         {
             se.type = SGUI_EDIT_BOX_TEXT_ENTERED;
-            sgui_canvas_fire_widget_event( widget->canvas, &se );
+            sgui_event_post( &se );
         }
     }
     else if( (e->type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )

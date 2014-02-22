@@ -327,22 +327,6 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
     }
 }
 
-void sgui_canvas_on_event( sgui_canvas* canvas, sgui_widget_callback fun,
-                           void* user )
-{
-    if( canvas )
-    {
-        canvas->fun = fun;
-        canvas->fun_user = user;
-    }
-}
-
-void sgui_canvas_fire_widget_event( sgui_canvas* canvas, sgui_event* event )
-{
-    if( canvas && canvas->fun && event )
-        canvas->fun( canvas->fun_user, event );
-}
-
 /****************************************************************************/
 
 void sgui_canvas_destroy( sgui_canvas* canvas )

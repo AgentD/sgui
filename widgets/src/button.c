@@ -233,7 +233,7 @@ static void radio_on_event( sgui_widget* widget, sgui_event* e )
 
         ev.widget = widget;
         ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
-        sgui_canvas_fire_widget_event( widget->canvas, &ev );
+        sgui_event_post( &ev );
     }
 }
 
@@ -297,7 +297,7 @@ static void checkbox_on_event( sgui_widget* widget, sgui_event* e )
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
 
         /* fire event */
-        sgui_canvas_fire_widget_event( widget->canvas, &ev );
+        sgui_event_post( &ev );
     }
 }
 
@@ -336,7 +336,7 @@ static void button_on_event( sgui_widget* widget, sgui_event* e )
         /* a pressed button got released */
         ev.widget = widget;
         ev.type = SGUI_BUTTON_CLICK_EVENT;
-        sgui_canvas_fire_widget_event( widget->canvas, &ev );
+        sgui_event_post( &ev );
 
         b->type = SGUI_BUTTON;
         sgui_widget_get_absolute_rect( widget, &r );

@@ -34,17 +34,6 @@
 
 
 
-static void window_redirect_event( void* user, sgui_event* event )
-{
-    sgui_window* this = (sgui_window*)user;
-    event->window = this;
-
-    if( this && this->event_fun )
-        this->event_fun( this->userptr, event );
-}
-
-
-
 void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
                                      unsigned int height, int backend )
 {
@@ -53,8 +42,6 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
         window->w       = width;
         window->h       = height;
         window->backend = backend;
-
-        sgui_canvas_on_event( window->canvas, window_redirect_event, window );
 
         sgui_canvas_begin( window->canvas, NULL );
         sgui_canvas_clear( window->canvas, NULL );
@@ -69,6 +56,7 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
         if( wnd->event_fun )
             wnd->event_fun( wnd->userptr, e );
 
+        sgui_event_post( e );
         sgui_canvas_send_window_event( wnd->canvas, e );
     }
 }

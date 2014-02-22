@@ -134,6 +134,8 @@ int sgui_init( void )
 
     /* initialise default GUI skin */
     sgui_skin_set( NULL );
+
+    sgui_internal_reset_events( );
     return 1;
 failure:
     sgui_deinit( );
@@ -142,6 +144,8 @@ failure:
 
 void sgui_deinit( void )
 {
+    sgui_internal_reset_events( );
+
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 
@@ -169,6 +173,8 @@ int sgui_main_loop_step( void )
         DispatchMessage( &msg );
     }
 
+    sgui_internal_process_events( );
+
     return is_window_active( );
 }
 
@@ -182,6 +188,7 @@ void sgui_main_loop( void )
         GetMessage( &msg, 0, 0, 0 );
         TranslateMessage( &msg );
         DispatchMessage( &msg );
+        sgui_internal_process_events( );
     }
 }
 

@@ -144,5 +144,119 @@ struct sgui_event
     int type;
 };
 
+
+
+
+#define SGUI_FROM_EVENT 0x10
+#define SGUI_EVENT 0x10
+#define SGUI_WIDGET 0x11
+#define SGUI_WINDOW 0x12
+#define SGUI_TYPE 0x13
+#define SGUI_I 0x14
+#define SGUI_I2_X 0x15
+#define SGUI_I2_Y 0x16
+#define SGUI_I2_XY 0x17
+#define SGUI_I2_YX 0x18
+#define SGUI_I3_X 0x19
+#define SGUI_I3_Y 0x1A
+#define SGUI_I3_Z 0x1B
+#define SGUI_I3_XY 0x1C
+#define SGUI_I3_XZ 0x1D
+#define SGUI_I3_YX 0x1E
+#define SGUI_I3_YZ 0x1F
+#define SGUI_I3_ZX 0x20
+#define SGUI_I3_ZY 0x21
+#define SGUI_I3_XYZ 0x22
+#define SGUI_I3_XZY 0x23
+#define SGUI_I3_YXZ 0x24
+#define SGUI_I3_YZX 0x25
+#define SGUI_I3_ZXY 0x26
+#define SGUI_I3_ZYX 0x27
+#define SGUI_UI2_X 0x28
+#define SGUI_UI2_Y 0x29
+#define SGUI_UI2_XY 0x2A
+#define SGUI_UI2_YX 0x2B
+#define SGUI_UTF8 0x2C
+#define SGUI_RECT 0x2D
+
+#define SGUI_VOID 0x00
+#define SGUI_CHAR 0x01
+#define SGUI_SHORT 0x02
+#define SGUI_INT 0x03
+#define SGUI_INT2 0x04
+#define SGUI_INT3 0x06
+#define SGUI_LONG 0x07
+#define SGUI_POINTER 0x08
+
+#ifndef SGUI_NO_FLOAT
+    #define SGUI_FLOAT 0x0A
+    #define SGUI_DOUBLE 0x0B
+#endif
+
+
+
+/**
+ * \brief A generic function pointer type
+ *
+ * \param object A pointer to the object instance ("this pointer")
+ * \param ...    Possible arguments to the function
+ */
+typedef void (* sgui_function )( void* object, ... );
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * \brief Connect an event with a callback
+ *
+ * To supply arguments to a callback function, simply pass a datatype
+ * identifyer after the callback (e.g. SGUI_CHAR for char, SGUI_INT for int
+ * or SGUI_INT2 for two int arguments), followed by the arguments to pass to
+ * the callback, or SGUI_VOID for no arguments.
+ * If the argument should be an field from the event structure, pass
+ * SGUI_FROM_EVENT instead of a datatype, followed by an identifyer for the
+ * event field (e.g. SGUI_WIDGET or SGUI_UTF8).
+ *
+ * When the callback is called, the receiver object is passed as first
+ * argument, followed by the supplied arguments.
+ *
+ * \param sender    A pointer to the sender object, or NULL for any
+ * \param eventtype The event identifyer to listen to
+ * \param iswidget  Non-zero if the sender is a widget, zero if it is a window
+ * \param ...       A pointer to a callback function, followed by a pointer to
+ *                  the receiver object and an optional argument
+ */
+SGUI_DLL void sgui_event_connect( void* sender, int eventtype, int iswidget,
+                                  ... );
+
+/**
+ * \brief Disconnect an event from a callback
+ *
+ * Given a sender, event type, receiver and callback, this function runs
+ * through the internal list of event connections and disconnects all matching
+ * connections.
+ *
+ * \param sender    A pointer to the sender object
+ * \param eventtype The event identifyer to listen to
+ * \param callback  A pointer to a callback function
+ * \param receiver  A pointer to the receiver object
+ */
+SGUI_DLL void sgui_event_disconnect( void* sender, int eventtype,
+                                     sgui_function callback, void* receiver );
+
+/**
+ * \brief Post an event to the event queue
+ *
+ * \param event A pointer to an event structure
+ */
+SGUI_DLL void sgui_event_post( sgui_event* event );
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* SGUI_EVENT_H */
 

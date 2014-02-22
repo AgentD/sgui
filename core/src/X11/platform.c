@@ -178,6 +178,8 @@ int sgui_init( void )
 
     /* initialise default GUI skin */
     sgui_skin_set( NULL );
+
+    sgui_internal_reset_events( );
     return 1;
 failure:
     sgui_deinit( );
@@ -186,6 +188,8 @@ failure:
 
 void sgui_deinit( void )
 {
+    sgui_internal_reset_events( );
+
     pthread_mutex_destroy( &mutex );
     sgui_font_cache_destroy( glyph_cache );
 
@@ -212,6 +216,8 @@ int sgui_main_loop_step( void )
     XFlush( dpy );
     sgui_internal_unlock_mutex( );
 
+    sgui_internal_process_events( );
+
     return have_active_windows( );
 }
 
@@ -230,6 +236,8 @@ void sgui_main_loop( void )
         update_windows( );
         XFlush( dpy );
         sgui_internal_unlock_mutex( );
+
+        sgui_internal_process_events( );
 
         /* wait for X11 events, one second time out */
         FD_ZERO( &in_fds );

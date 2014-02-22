@@ -38,16 +38,6 @@ extern "C"
 
 
 
-/**
- * \brief A callback for listening to widget events
- *
- * \param user  User data that was registered with the callback function
- * \param event A pointer to an event structure
- */
-typedef void (* sgui_widget_callback ) ( void* user, sgui_event* event );
-
-
-
 #define SGUI_A8    0
 #define SGUI_RGB8  1
 #define SGUI_RGBA8 2
@@ -135,26 +125,6 @@ SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
  */
 SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
                                              sgui_event* e );
-
-/**
- * \brief Register a callback to be called on a widget event
- *
- * \param canvas The canvas
- * \param fun    The function to call when a widget event occours
- * \param user   A user data pointer that is passed to the given function
- */
-SGUI_DLL void sgui_canvas_on_event( sgui_canvas* canvas,
-                                    sgui_widget_callback fun,
-                                    void* user );
-
-/**
- * \brief Trigger a widget event
- *
- * \param canvas The canvas
- * \param event  A pointer to an event structure
- */
-SGUI_DLL void sgui_canvas_fire_widget_event( sgui_canvas* canvas,
-                                             sgui_event* event );
 
 /**
  * \brief Change the size of a canvas
