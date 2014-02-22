@@ -57,6 +57,16 @@ SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
 SGUI_DLL sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas );
 
 /**
+ * \brief Override the widget that currently has keyboard focus
+ *
+ * \param canvas A pointer to a canvas object
+ * \param widget A pointer to a widget that should receive focus instead, or
+ *               NULL to drop focus alltogether
+ */
+SGUI_DLL void sgui_canvas_set_focus( sgui_canvas* canvas,
+                                     sgui_widget* widget );
+
+/**
  * \brief Add a dirty rect (area that needs redraw) to a canvas
  *
  * \param canvas The canvas

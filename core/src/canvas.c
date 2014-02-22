@@ -134,6 +134,31 @@ sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas )
     return canvas ? &(canvas->root) : NULL;
 }
 
+void sgui_canvas_set_focus( sgui_canvas* canvas, sgui_widget* widget )
+{
+    sgui_widget* i;
+
+    if( !canvas )
+        return;
+
+    sgui_internal_lock_mutex( );
+
+    /* test if the widget actually belongs to the canvas */
+    if( widget )
+    {
+        for( i=widget; i!=NULL && i!=&(canvas->root); i=i->parent );
+
+        if( !i )
+        {
+            sgui_internal_unlock_mutex( );
+            return;
+        }
+    }
+
+    canvas->focus = widget;
+    sgui_internal_unlock_mutex( );
+}
+
 void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r )
 {
     unsigned int i;

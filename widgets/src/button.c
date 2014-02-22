@@ -233,7 +233,8 @@ static void radio_on_event( sgui_widget* widget, sgui_event* e )
     sgui_button* b = (sgui_button*)widget;
     sgui_event ev;
 
-    /* the radio button got clicked and is not selected */
+    sgui_internal_lock_mutex( );
+
     if( e->type==SGUI_MOUSE_RELEASE_EVENT && b->type==SGUI_RADIO_BUTTON )
     {
         radio_button_select( b );
@@ -242,6 +243,28 @@ static void radio_on_event( sgui_widget* widget, sgui_event* e )
         ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
         sgui_event_post( &ev );
     }
+    else if( e->type==SGUI_KEY_RELEASED_EVENT &&
+             b->type==SGUI_RADIO_BUTTON_SELECTED )
+    {
+        if( (e->arg.i==SGUI_KC_UP || e->arg.i==SGUI_KC_LEFT) && b->prev )
+        {
+            sgui_canvas_set_focus( widget->canvas, (sgui_widget*)b->prev );
+            radio_button_select( b->prev );
+            ev.widget = (sgui_widget*)b->prev;
+            ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
+            sgui_event_post( &ev );
+        }
+        else if( (e->arg.i==SGUI_KC_DOWN||e->arg.i==SGUI_KC_RIGHT)&&b->next )
+        {
+            sgui_canvas_set_focus( widget->canvas, (sgui_widget*)b->next );
+            radio_button_select( b->next );
+            ev.widget = (sgui_widget*)b->next;
+            ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
+            sgui_event_post( &ev );
+        }
+    }
+
+    sgui_internal_unlock_mutex( );
 }
 
 sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
@@ -287,7 +310,9 @@ static void checkbox_on_event( sgui_widget* widget, sgui_event* e )
     sgui_event ev;
     sgui_rect r;
 
-    if( e->type == SGUI_MOUSE_RELEASE_EVENT ) /* the check box got clicked */
+    if( (e->type == SGUI_MOUSE_RELEASE_EVENT) ||
+        (e->type==SGUI_KEY_RELEASED_EVENT &&
+         (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
     {
         ev.widget = widget;
 
@@ -336,13 +361,19 @@ static void button_on_event( sgui_widget* widget, sgui_event* e )
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
         b->type = SGUI_BUTTON;
     }
-    else if( e->type == SGUI_MOUSE_PRESS_EVENT )   /* a button got pressed */
+    else if( (e->type == SGUI_MOUSE_PRESS_EVENT) ||
+             (e->type==SGUI_KEY_PRESSED_EVENT &&
+              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
     {
+        /* the button got pressed */
         b->type = SGUI_BUTTON_SELECTED;
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
     }
-    else if( e->type == SGUI_MOUSE_RELEASE_EVENT && b->type != SGUI_BUTTON )
+    else if( ((e->type == SGUI_MOUSE_RELEASE_EVENT) ||
+              (e->type==SGUI_KEY_RELEASED_EVENT &&
+              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE))) &&
+              b->type != SGUI_BUTTON )
     {
         /* a pressed button got released */
         ev.widget = widget;
