@@ -52,6 +52,7 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 
     cv->width = width;
     cv->height = height;
+    cv->draw_focus = 0;
 
     cv->root.area.right = width-1;
     cv->root.area.bottom = height-1;
@@ -61,9 +62,10 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
 
 /****************************************************************************/
 
-static void draw_children( sgui_widget* widget, sgui_rect* r )
+static void draw_children( sgui_canvas* canvas, sgui_widget* widget,
+                           sgui_rect* r )
 {
-    int old_ox, old_oy;
+    int old_ox, old_oy, fbw;
     sgui_widget* i;
     sgui_rect wr, old_sc;
 
@@ -86,17 +88,34 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
             if( wr.left>=wr.right || wr.top>=wr.bottom )
                 continue;
 
-            if( sgui_rect_get_intersection( &wr, r, &wr ) )
+            if( !sgui_rect_get_intersection( &wr, r, &wr ) )
+                continue;
+
+            old_sc = widget->canvas->sc;
+            sgui_rect_get_intersection( &widget->canvas->sc,
+                                        &widget->canvas->sc, &wr );
+
+            sgui_widget_draw( i );
+            draw_children( canvas, i, &wr );
+
+            /* draw focus box */
+            if( i==canvas->focus && (i->focus_policy & SGUI_FOCUS_DRAW) &&
+                canvas->draw_focus )
             {
-                old_sc = widget->canvas->sc;
+                fbw = sgui_skin_get_focus_box_width( );
+                sgui_widget_get_absolute_rect( i, &wr );
+                wr.left -= fbw; wr.top -= fbw;
+                wr.right += fbw; wr.bottom += fbw;
                 sgui_rect_get_intersection( &widget->canvas->sc,
-                                            &widget->canvas->sc, &wr );
-
-                sgui_widget_draw( i );
-                draw_children( i, &wr );
-
-                widget->canvas->sc = old_sc;
+                                            &old_sc, &wr );
+                wr.left -= widget->canvas->ox;
+                wr.right -= widget->canvas->ox;
+                wr.top -= widget->canvas->oy;
+                wr.bottom -= widget->canvas->oy;
+                sgui_skin_draw_focus_box( canvas, &wr );
             }
+
+            widget->canvas->sc = old_sc;
         }
     }
     else
@@ -104,22 +123,40 @@ static void draw_children( sgui_widget* widget, sgui_rect* r )
         /* draw all widgets */
         for( i=widget->children; i!=NULL; i=i->next )
         {
-            if( sgui_widget_is_visible( i ) )
+            if( !sgui_widget_is_visible( i ) )
+                continue;
+
+            sgui_widget_get_absolute_rect( i, &wr );
+
+            if( wr.left>=wr.right || wr.top>=wr.bottom )
+                continue;
+
+            old_sc = widget->canvas->sc;
+            sgui_rect_get_intersection( &widget->canvas->sc,
+                                        &widget->canvas->sc, &wr );
+
+            sgui_widget_draw( i );
+            draw_children( canvas, i, NULL );
+
+            /* draw focus box */
+            if( i==canvas->focus && (i->focus_policy & SGUI_FOCUS_DRAW) &&
+                canvas->draw_focus )
             {
+                fbw = sgui_skin_get_focus_box_width( );
                 sgui_widget_get_absolute_rect( i, &wr );
+                wr.left -= fbw; wr.top -= fbw;
+                wr.right += fbw; wr.bottom += fbw;
+                sgui_rect_get_intersection( &widget->canvas->sc,
+                                            &old_sc, &wr );
 
-                if( wr.left<wr.right && wr.top<wr.bottom )
-                {
-                    old_sc = widget->canvas->sc;
-                    sgui_rect_get_intersection( &widget->canvas->sc,
-                                                &widget->canvas->sc, &wr );
-
-                    sgui_widget_draw( i );
-                    draw_children( i, NULL );
-
-                    widget->canvas->sc = old_sc;
-                }
+                wr.left -= widget->canvas->ox;
+                wr.right -= widget->canvas->ox;
+                wr.top -= widget->canvas->oy;
+                wr.bottom -= widget->canvas->oy;
+                sgui_skin_draw_focus_box( canvas, &wr );
             }
+
+            widget->canvas->sc = old_sc;
         }
     }
 
@@ -136,7 +173,10 @@ sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas )
 
 void sgui_canvas_set_focus( sgui_canvas* canvas, sgui_widget* widget )
 {
+    unsigned int fbw;
     sgui_widget* i;
+    sgui_event ev;
+    sgui_rect r;
 
     if( !canvas )
         return;
@@ -155,7 +195,47 @@ void sgui_canvas_set_focus( sgui_canvas* canvas, sgui_widget* widget )
         }
     }
 
-    canvas->focus = widget;
+    /* make sure the focus box gets redrawn */
+    fbw = sgui_skin_get_focus_box_width( );
+
+    if( canvas->focus && (canvas->focus->focus_policy & SGUI_FOCUS_DRAW) &&
+        canvas->draw_focus )
+    {
+        sgui_widget_get_absolute_rect( canvas->focus, &r );
+        r.left -= fbw;
+        r.top -= fbw;
+        r.right += fbw;
+        r.bottom += fbw;
+        sgui_canvas_add_dirty_rect( canvas, &r );
+    }
+
+    if( widget && (widget->focus_policy & SGUI_FOCUS_DRAW) &&
+        (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+    {
+        sgui_widget_get_absolute_rect( widget, &r );
+        r.left -= fbw;
+        r.top -= fbw;
+        r.right += fbw;
+        r.bottom += fbw;
+        sgui_canvas_add_dirty_rect( canvas, &r );
+    }
+
+    /* send events */
+    ev.widget = widget;
+    ev.type = SGUI_FOCUS_LOSE_EVENT;
+    sgui_widget_send_event( canvas->focus, &ev, 0 );
+
+    if( widget && (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+    {
+        ev.type = SGUI_FOCUS_EVENT;
+        sgui_widget_send_event( widget, &ev, 0 );
+
+        canvas->focus = widget;
+    }
+    else
+    {
+        canvas->focus = NULL;
+    }
     sgui_internal_unlock_mutex( );
 }
 
@@ -242,7 +322,7 @@ void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear )
                 canvas->clear( canvas, canvas->dirty + i );
 
             if( canvas->root.children )
-                draw_children( &canvas->root, canvas->dirty + i );
+                draw_children( canvas, &canvas->root, canvas->dirty + i );
         }
 
         if( need_end )
@@ -276,7 +356,7 @@ void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
             canvas->clear( canvas, &r1 );
 
         if( canvas->root.children )
-            draw_children( &canvas->root, NULL );
+            draw_children( canvas, &canvas->root, NULL );
 
         if( need_end )
             sgui_canvas_end( canvas );
@@ -287,8 +367,10 @@ void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
 
 void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
 {
+    unsigned int fbw;
     sgui_widget* i;
     sgui_event ev;
+    sgui_rect r;
     int x, y;
 
     if( !canvas || !canvas->root.children )
@@ -337,14 +419,37 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
         /* give clicked widget focus */
         if( canvas->focus != canvas->mouse_over )
         {
+            /* make sure the focus box gets redrawn */
+            if( canvas->focus &&
+                (canvas->focus->focus_policy & SGUI_FOCUS_DRAW) )
+            {
+                fbw = sgui_skin_get_focus_box_width( );
+                sgui_widget_get_absolute_rect( canvas->focus, &r );
+                r.left -= fbw;
+                r.top -= fbw;
+                r.right += fbw;
+                r.bottom += fbw;
+                sgui_canvas_add_dirty_rect( canvas, &r );
+            }
+
+            /* send events */
             ev.widget = canvas->mouse_over;
             ev.type = SGUI_FOCUS_LOSE_EVENT;
             sgui_widget_send_event( canvas->focus, &ev, 0 );
 
-            ev.type = SGUI_FOCUS_EVENT;
-            sgui_widget_send_event( canvas->mouse_over, &ev, 0 );
+            if( canvas->mouse_over &&
+                (canvas->mouse_over->focus_policy & SGUI_FOCUS_ACCEPT) )
+            {
+                ev.type = SGUI_FOCUS_EVENT;
+                sgui_widget_send_event( canvas->mouse_over, &ev, 0 );
+                canvas->focus = canvas->mouse_over;
+            }
+            else
+            {
+                canvas->focus = NULL;
+            }
 
-            canvas->focus = canvas->mouse_over;
+            canvas->draw_focus = 0;
         }
         break;
     case SGUI_MOUSE_MOVE_EVENT:
@@ -367,7 +472,67 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
     case SGUI_KEY_PRESSED_EVENT:
     case SGUI_KEY_RELEASED_EVENT:
     case SGUI_CHAR_EVENT:
+        /* escape key pressed -> lose focus if policy says so */
+        if( canvas->focus && e->arg.i==SGUI_KC_ESCAPE &&
+            (canvas->focus->focus_policy & SGUI_FOCUS_DROP_ESC) )
+        {
+            if( (canvas->focus->focus_policy & SGUI_FOCUS_DRAW) &&
+                canvas->draw_focus )
+            {
+                fbw = sgui_skin_get_focus_box_width( );
+                sgui_widget_get_absolute_rect( canvas->focus, &r );
+                r.left -= fbw;
+                r.top -= fbw;
+                r.right += fbw;
+                r.bottom += fbw;
+                sgui_canvas_add_dirty_rect( canvas, &r );
+            }
+
+            ev.widget = NULL;
+            ev.type = SGUI_FOCUS_LOSE_EVENT;
+            sgui_widget_send_event( canvas->focus, &ev, 0 );
+            canvas->focus = NULL;
+            break;
+        }
+
+        /* tab key pressed -> lose focus if policy says so */
+        if( canvas->focus && e->arg.i==SGUI_KC_TAB &&
+            (canvas->focus->focus_policy & SGUI_FOCUS_DROP_TAB) )
+        {
+            if( (canvas->focus->focus_policy & SGUI_FOCUS_DRAW) &&
+                canvas->draw_focus )
+            {
+                fbw = sgui_skin_get_focus_box_width( );
+                sgui_widget_get_absolute_rect( canvas->focus, &r );
+                r.left -= fbw;
+                r.top -= fbw;
+                r.right += fbw;
+                r.bottom += fbw;
+                sgui_canvas_add_dirty_rect( canvas, &r );
+            }
+
+            ev.widget = NULL;
+            ev.type = SGUI_FOCUS_LOSE_EVENT;
+            sgui_widget_send_event( canvas->focus, &ev, 0 );
+            canvas->focus = NULL;
+            break;
+        }
+
+        /* send the event */
         sgui_widget_send_event( canvas->focus, e, 0 );
+
+        /* make sure the focus box gets drawn */
+        if( canvas->focus && !canvas->draw_focus )
+        {
+            canvas->draw_focus = 1;
+            sgui_widget_get_absolute_rect( canvas->focus, &r );
+            fbw = sgui_skin_get_focus_box_width( );
+            r.left -= fbw;
+            r.top -= fbw;
+            r.right += fbw;
+            r.bottom += fbw;
+            sgui_canvas_add_dirty_rect( canvas, &r );
+        }
         break;
 
     /* propagate all other events */

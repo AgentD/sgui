@@ -84,6 +84,7 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
 
     t->widget.draw_callback = static_text_draw;
     t->widget.destroy       = static_text_destroy;
+    t->widget.focus_policy  = 0;
 
     /* copy the text */
     strcpy( t->text, text );

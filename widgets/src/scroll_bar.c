@@ -322,6 +322,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 
     b->widget.draw_callback = scroll_bar_draw;
     b->widget.destroy       = scroll_bar_destroy;
+    b->widget.focus_policy  = 0;
     b->horizontal           = horizontal;
     b->length               = length;
     b->v_length             = disp_area_length;

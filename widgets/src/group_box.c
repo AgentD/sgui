@@ -85,6 +85,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
 
     b->widget.draw_callback = group_box_draw;
     b->widget.destroy = group_box_destroy;
+    b->widget.focus_policy = 0;
 
     return (sgui_widget*)b;
 }

@@ -43,6 +43,8 @@ void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
     widget->draw_callback         = NULL;
     widget->window_event_callback = NULL;
     widget->state_change_callback = NULL;
+    widget->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
+                                    SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB;
 }
 
 /****************************************************************************/

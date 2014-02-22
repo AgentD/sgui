@@ -159,8 +159,8 @@ int main( int argc, char** argv )
 
     f = sgui_frame_create( 10, 25, 150, 150 );
     r0 = sgui_radio_button_create( 10, 100, "Option 1" );
-    r1 = sgui_radio_button_create( 10, 125, "Option 2" );
-    r2 = sgui_radio_button_create( 10, 150, "Option 3" );
+    r1 = sgui_radio_button_create( 10, 126, "Option 2" );
+    r2 = sgui_radio_button_create( 10, 152, "Option 3" );
     c0 = sgui_checkbox_create( 10,  10, "Checkbox 1" );
     c1 = sgui_checkbox_create( 10,  35, "Checkbox 2" );
     c2 = sgui_checkbox_create( 10,  60, "Checkbox 3" );
@@ -179,8 +179,8 @@ int main( int argc, char** argv )
 
     gb = sgui_group_box_create( 200, 25, 130, 110, "Group Box" );
     ra = sgui_radio_button_create( 10, 25, "Option 1" );
-    rb = sgui_radio_button_create( 10, 50, "Option 2" );
-    rc = sgui_radio_button_create( 10, 75, "Option 3" );
+    rb = sgui_radio_button_create( 10, 51, "Option 2" );
+    rc = sgui_radio_button_create( 10, 77, "Option 3" );
 
     sgui_radio_button_connect( ra, NULL,   rb );
     sgui_radio_button_connect( rb, ra,     rc );

@@ -72,6 +72,12 @@ static unsigned int default_get_scroll_bar_width( sgui_skin* this )
     return 20;
 }
 
+static unsigned int default_get_focus_box_width( sgui_skin* skin )
+{
+    (void)skin;
+    return 3;
+}
+
 static void default_get_scroll_bar_button_extents( sgui_skin* this,
                                                    sgui_rect* r )
 {
@@ -458,6 +464,31 @@ static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
     sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, black, SGUI_RGB8 );
 }
 
+static void default_draw_focus_box( sgui_skin* skin, sgui_canvas* canvas,
+                                    sgui_rect* r )
+{
+    unsigned char color[4] = { 0xFF, 0x80, 0x25, 0xFF };
+    int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    int i, l;
+    (void)skin;
+
+    for( i=0; i<w-2; i+=6 )
+    {
+        l = w-2-i;
+        l = l>=6 ? 3 : l;
+        sgui_canvas_draw_line( canvas, x+1+i, y+1,   l, 1, color, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+1+i, y+h-2, l, 1, color, SGUI_RGB8 );
+    }
+
+    for( i=0; i<h-2; i+=6 )
+    {
+        l = h-2-i;
+        l = l>=6 ? 3 : l;
+        sgui_canvas_draw_line( canvas, x+1,   y+1+i, 3, 0, color, SGUI_RGB8 );
+        sgui_canvas_draw_line( canvas, x+w-2, y+1+i, 3, 0, color, SGUI_RGB8 );
+    }
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( void )
@@ -482,6 +513,8 @@ void sgui_interal_skin_init_default( void )
     sgui_default_skin.get_scroll_bar_width = default_get_scroll_bar_width;
     sgui_default_skin.draw_tab_caption = default_draw_tab_caption;
     sgui_default_skin.draw_tab = default_draw_tab;
+    sgui_default_skin.get_focus_box_width = default_get_focus_box_width;
+    sgui_default_skin.draw_focus_box = default_draw_focus_box;
     sgui_default_skin.get_edit_box_border_width =
     default_get_edit_box_border_width;
     sgui_default_skin.get_scroll_bar_button_extents =

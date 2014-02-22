@@ -134,6 +134,7 @@ sgui_widget* sgui_image_create( int x, int y,
     img->widget.draw_callback         = image_draw;
     img->widget.state_change_callback = image_on_state_change;
     img->widget.destroy               = image_destroy;
+    img->widget.focus_policy          = 0;
     img->pixmap  = NULL;
     img->format  = format;
     img->blend   = blend;

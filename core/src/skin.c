@@ -233,6 +233,11 @@ unsigned int sgui_skin_get_scroll_bar_width( void )
     return skin->get_scroll_bar_width( skin );
 }
 
+unsigned int sgui_skin_get_focus_box_width( void )
+{
+    return skin->get_focus_box_width( skin );
+}
+
 void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r )
 {
     if( r )
@@ -243,6 +248,12 @@ void sgui_skin_get_tap_caption_extents( sgui_rect* r )
 {
     if( r )
         skin->get_tap_caption_extents( skin, r );
+}
+
+void sgui_skin_draw_focus_box( sgui_canvas* canvas, sgui_rect* r )
+{
+    if( canvas && r )
+        skin->draw_focus_box( skin, canvas, r );
 }
 
 void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y, int checked )

@@ -128,9 +128,13 @@ SGUI_DLL unsigned int sgui_skin_get_progess_bar_width( void );
 
 SGUI_DLL unsigned int sgui_skin_get_scroll_bar_width( void );
 
+SGUI_DLL unsigned int sgui_skin_get_focus_box_width( void );
+
 SGUI_DLL void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r );
 
 SGUI_DLL void sgui_skin_get_tap_caption_extents( sgui_rect* r );
+
+SGUI_DLL void sgui_skin_draw_focus_box( sgui_canvas* canvas, sgui_rect* r );
 
 SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
                                        int checked );

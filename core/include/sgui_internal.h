@@ -76,6 +76,12 @@
 #define WIDGET_CHILD_REMOVED        0x10
 #define WIDGET_CANVAS_CHANGED       0x20
 
+/* flags for widget focus polocy */
+#define SGUI_FOCUS_ACCEPT           0x01    /* the widget accepts focus */
+#define SGUI_FOCUS_DRAW             0x02    /* draw focus box */
+#define SGUI_FOCUS_DROP_ESC         0x04    /* drop focus on ESC-key */
+#define SGUI_FOCUS_DROP_TAB         0x08    /* drop focus on TAB-key */
+
 
 
 struct sgui_skin
@@ -104,9 +110,14 @@ struct sgui_skin
 
     unsigned int(* get_scroll_bar_width )( sgui_skin* skin );
 
+    unsigned int(* get_focus_box_width )( sgui_skin* skin );
+
     void(* get_scroll_bar_button_extents )( sgui_skin* skin, sgui_rect* r );
 
     void(* get_tap_caption_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* draw_focus_box )( sgui_skin* skin, sgui_canvas* canvas,
+                             sgui_rect* r );
 
     void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
                             int x, int y, int checked );
@@ -180,6 +191,8 @@ struct sgui_widget
 
     int visible;     /**< \brief zero if the widget should not be rendered */
 
+    int focus_policy;   /**< \brief widget focus policy flags */
+
     /** \brief The canvas that the widget is attached to */
     sgui_canvas* canvas;
 
@@ -241,6 +254,8 @@ struct sgui_canvas
                                                 cursor */
     sgui_widget* focus;             /**< \brief The widget with keyboad
                                                 focus */
+
+    int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
 
     sgui_rect dirty[ CANVAS_MAX_DIRTY ];
     unsigned int num_dirty;

@@ -368,6 +368,8 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     b->widget.draw_callback         = edit_box_draw;
     b->max_chars                    = max_chars;
     b->buffer[0]                    = '\0';
+    b->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                      SGUI_FOCUS_DROP_TAB;
 
     return (sgui_widget*)b;
 }

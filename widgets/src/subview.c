@@ -151,6 +151,8 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     view->widget.window_event_callback = subview_on_parent_event;
     view->widget.state_change_callback = subview_on_state_change;
     view->widget.destroy               = subview_destroy;
+    view->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                         SGUI_FOCUS_DROP_TAB;
     view->window_fun                   = NULL;
     view->draw_fun                     = NULL;
 

@@ -222,6 +222,8 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     g->widget.draw_callback         = tab_group_draw;
     g->widget.window_event_callback = tab_group_on_event;
     g->widget.destroy               = tab_group_destroy;
+    g->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                      SGUI_FOCUS_DROP_TAB;
     g->tabs                         = NULL;
     g->tab_cap_height               = SGUI_RECT_HEIGHT( r );
     g->tab_cap_width                = SGUI_RECT_WIDTH( r );
@@ -267,6 +269,8 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     t->dummy.area.bottom = t->dummy.area.top+tab->area.bottom-tab->area.top;
     t->dummy.visible = (g->tabs==NULL);     /* first is visible by default */
     t->dummy.canvas = tab->canvas;
+    t->dummy.focus_policy = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                            SGUI_FOCUS_DROP_TAB;
 
     sgui_widget_add_child( tab, &t->dummy );
 
