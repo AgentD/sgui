@@ -200,6 +200,78 @@ static void frame_on_state_change( sgui_widget* frame, int change )
     sgui_internal_unlock_mutex( );
 }
 
+static void frame_on_event( sgui_widget* widget, sgui_event* event )
+{
+    sgui_frame* f = (sgui_frame*)widget;
+    int page, new_offset, old_offset;
+
+    if( event->type == SGUI_MOUSE_WHEEL_EVENT )
+    {
+        sgui_internal_lock_mutex( );
+
+        /* determine scroll page size and current offset */
+        page = SGUI_RECT_HEIGHT( widget->area );
+        old_offset = sgui_scroll_bar_get_offset( f->v_bar );
+
+        /* compute new offset */
+        new_offset = event->arg.i<0 ? (old_offset + (page >> 2)) :
+                                      (old_offset - (page >> 2));
+        new_offset = new_offset<0 ? 0 : new_offset;
+
+        /* udpate offset and call scroll handler */
+        sgui_scroll_bar_set_offset( f->v_bar, new_offset );
+        new_offset = sgui_scroll_bar_get_offset( f->v_bar );
+        frame_on_scroll_v( widget, new_offset, new_offset-old_offset );
+
+        sgui_internal_unlock_mutex( );
+    }
+    else if( event->type == SGUI_KEY_RELEASED_EVENT )
+    {
+        if( event->arg.i==SGUI_KC_LEFT || event->arg.i==SGUI_KC_RIGHT )
+        {
+            sgui_internal_lock_mutex( );
+
+            /* determine scroll page size and current offset */
+            page = SGUI_RECT_WIDTH( widget->area );
+            old_offset = sgui_scroll_bar_get_offset( f->h_bar );
+
+            /* compute new offset */
+            new_offset = event->arg.i==SGUI_KC_RIGHT ?
+                         (old_offset + (page >> 2)) :
+                         (old_offset - (page >> 2));
+            new_offset = new_offset<0 ? 0 : new_offset;
+
+            /* udpate offset and call scroll handler */
+            sgui_scroll_bar_set_offset( f->h_bar, new_offset );
+            new_offset = sgui_scroll_bar_get_offset( f->h_bar );
+            frame_on_scroll_h( widget, new_offset, new_offset-old_offset );
+
+            sgui_internal_unlock_mutex( );
+        }
+        else if( event->arg.i==SGUI_KC_UP || event->arg.i==SGUI_KC_DOWN )
+        {
+            sgui_internal_lock_mutex( );
+
+            /* determine scroll page size and current offset */
+            page = SGUI_RECT_HEIGHT( widget->area );
+            old_offset = sgui_scroll_bar_get_offset( f->v_bar );
+
+            /* compute new offset */
+            new_offset = event->arg.i==SGUI_KC_DOWN ?
+                         (old_offset + (page >> 2)) :
+                         (old_offset - (page >> 2));
+            new_offset = new_offset<0 ? 0 : new_offset;
+
+            /* udpate offset and call scroll handler */
+            sgui_scroll_bar_set_offset( f->v_bar, new_offset );
+            new_offset = sgui_scroll_bar_get_offset( f->v_bar );
+            frame_on_scroll_v( widget, new_offset, new_offset-old_offset );
+
+            sgui_internal_unlock_mutex( );
+        }
+    }
+}
+
 /****************************************************************************/
 
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
@@ -259,6 +331,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     sgui_widget_add_child( (sgui_widget*)f, f->h_bar );
 
     /* finish initialisation */
+    f->widget.window_event_callback = frame_on_event;
     f->widget.draw_callback         = frame_draw;
     f->widget.state_change_callback = frame_on_state_change;
     f->widget.destroy               = frame_destroy;
