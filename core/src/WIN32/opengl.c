@@ -25,84 +25,68 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_event.h"
 #include "internal.h"
+#include "opengl.h"
 
 #ifndef SGUI_NO_OPENGL
-typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
-typedef int   (* WGLCHOOSEPIXELFORMATARBPROC )( HDC, const int*, const FLOAT*,
-                                                UINT, int*, UINT* );
-typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
+static int glversions[][2] = { {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
+                                      {3,3}, {3,2}, {3,1}, {3,0} };
 
 
-#define WGL_CONTEXT_MAJOR_VERSION_ARB   0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB   0x2092
-#define WGL_CONTEXT_LAYER_PLANE_ARB     0x2093
-#define WGL_CONTEXT_FLAGS_ARB           0x2094
-#define WGL_CONTEXT_PROFILE_MASK_ARB    0x9126
+/* transform a pixel attribute array into a pixelformat descriptor */
+static int get_descriptor_from_array( PIXELFORMATDESCRIPTOR* pfd,
+                                      int* pixel_attribs )
+{
+    int i, need_new = 0;
 
-#define WGL_CONTEXT_DEBUG_BIT_ARB               0x0001
-#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+#define ATTRIB( field ) (field) = pixel_attribs[ ++i ]
+#define FLAG( flag )\
+        pfd->dwFlags=pixel_attribs[++i] ? (pfd->dwFlags | (flag)) :\
+                                          (pfd->dwFlags & ~(flag))
 
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+    ZeroMemory( pfd, sizeof(PIXELFORMATDESCRIPTOR) );
+    pfd->nSize = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd->nVersion = 1;
 
-
-
-#define WGL_NUMBER_PIXEL_FORMATS_ARB            0x2000
-#define WGL_DRAW_TO_WINDOW_ARB                  0x2001
-#define WGL_DRAW_TO_BITMAP_ARB                  0x2002
-#define WGL_ACCELERATION_ARB                    0x2003
-#define WGL_NEED_PALETTE_ARB                    0x2004
-#define WGL_NEED_SYSTEM_PALETTE_ARB             0x2005
-#define WGL_SWAP_LAYER_BUFFERS_ARB              0x2006
-#define WGL_SWAP_METHOD_ARB                     0x2007
-#define WGL_NUMBER_OVERLAYS_ARB                 0x2008
-#define WGL_NUMBER_UNDERLAYS_ARB                0x2009
-#define WGL_TRANSPARENT_ARB                     0x200A
-#define WGL_TRANSPARENT_RED_VALUE_ARB           0x2037
-#define WGL_TRANSPARENT_GREEN_VALUE_ARB         0x2038
-#define WGL_TRANSPARENT_BLUE_VALUE_ARB          0x2039
-#define WGL_TRANSPARENT_ALPHA_VALUE_ARB         0x203A
-#define WGL_TRANSPARENT_INDEX_VALUE_ARB         0x203B
-#define WGL_SHARE_DEPTH_ARB                     0x200C
-#define WGL_SHARE_STENCIL_ARB                   0x200D
-#define WGL_SHARE_ACCUM_ARB                     0x200E
-#define WGL_SUPPORT_GDI_ARB                     0x200F
-#define WGL_SUPPORT_OPENGL_ARB                  0x2010
-#define WGL_DOUBLE_BUFFER_ARB                   0x2011
-#define WGL_STEREO_ARB                          0x2012
-#define WGL_PIXEL_TYPE_ARB                      0x2013
-#define WGL_COLOR_BITS_ARB                      0x2014
-#define WGL_RED_BITS_ARB                        0x2015
-#define WGL_RED_SHIFT_ARB                       0x2016
-#define WGL_GREEN_BITS_ARB                      0x2017
-#define WGL_GREEN_SHIFT_ARB                     0x2018
-#define WGL_BLUE_BITS_ARB                       0x2019
-#define WGL_BLUE_SHIFT_ARB                      0x201A
-#define WGL_ALPHA_BITS_ARB                      0x201B
-#define WGL_ALPHA_SHIFT_ARB                     0x201C
-#define WGL_ACCUM_BITS_ARB                      0x201D
-#define WGL_ACCUM_RED_BITS_ARB                  0x201E
-#define WGL_ACCUM_GREEN_BITS_ARB                0x201F
-#define WGL_ACCUM_BLUE_BITS_ARB                 0x2020
-#define WGL_ACCUM_ALPHA_BITS_ARB                0x2021
-#define WGL_DEPTH_BITS_ARB                      0x2022
-#define WGL_STENCIL_BITS_ARB                    0x2023
-#define WGL_AUX_BUFFERS_ARB                     0x2024
-#define WGL_SAMPLE_BUFFERS_ARB                  0x2041
-#define WGL_SAMPLES_ARB                         0x2042
-
-#define WGL_NO_ACCELERATION_ARB                 0x2025
-#define WGL_GENERIC_ACCELERATION_ARB            0x2026
-#define WGL_FULL_ACCELERATION_ARB               0x2027
-
-#define WGL_SWAP_EXCHANGE_ARB                   0x2028
-#define WGL_SWAP_COPY_ARB                       0x2029
-#define WGL_SWAP_UNDEFINED_ARB                  0x202A
-
-#define WGL_TYPE_RGBA_ARB                       0x202B
-#define WGL_TYPE_COLORINDEX_ARB                 0x202C
-
-
+    for( i=0; pixel_attribs[i]; ++i )
+    {
+        switch( pixel_attribs[i] )
+        {
+        case WGL_DRAW_TO_WINDOW_ARB:   FLAG( PFD_DRAW_TO_WINDOW ); break;
+        case WGL_DRAW_TO_BITMAP_ARB:   FLAG( PFD_DRAW_TO_BITMAP ); break;
+        case WGL_SUPPORT_OPENGL_ARB:   FLAG( PFD_SUPPORT_OPENGL ); break;
+        case WGL_DOUBLE_BUFFER_ARB:    FLAG( PFD_DOUBLEBUFFER   ); break;
+        case WGL_SUPPORT_GDI_ARB:      FLAG( PFD_SUPPORT_GDI    ); break;
+        case WGL_STEREO_ARB:           FLAG( PFD_STEREO         ); break;
+        case WGL_COLOR_BITS_ARB:       ATTRIB( pfd->cColorBits      ); break;
+        case WGL_DEPTH_BITS_ARB:       ATTRIB( pfd->cDepthBits      ); break;
+        case WGL_STENCIL_BITS_ARB:     ATTRIB( pfd->cStencilBits    ); break;
+        case WGL_RED_BITS_ARB:         ATTRIB( pfd->cRedBits        ); break;
+        case WGL_RED_SHIFT_ARB:        ATTRIB( pfd->cRedShift       ); break;
+        case WGL_GREEN_BITS_ARB:       ATTRIB( pfd->cGreenBits      ); break;
+        case WGL_GREEN_SHIFT_ARB:      ATTRIB( pfd->cGreenShift     ); break;
+        case WGL_BLUE_BITS_ARB:        ATTRIB( pfd->cBlueBits       ); break;
+        case WGL_BLUE_SHIFT_ARB:       ATTRIB( pfd->cBlueShift      ); break;
+        case WGL_ALPHA_BITS_ARB:       ATTRIB( pfd->cAlphaBits      ); break;
+        case WGL_ALPHA_SHIFT_ARB:      ATTRIB( pfd->cAlphaShift     ); break;
+        case WGL_ACCUM_BITS_ARB:       ATTRIB( pfd->cAccumBits      ); break;
+        case WGL_ACCUM_RED_BITS_ARB:   ATTRIB( pfd->cAccumRedBits   ); break;
+        case WGL_ACCUM_GREEN_BITS_ARB: ATTRIB( pfd->cAccumGreenBits ); break;
+        case WGL_ACCUM_BLUE_BITS_ARB:  ATTRIB( pfd->cAccumBlueBits  ); break;
+        case WGL_ACCUM_ALPHA_BITS_ARB: ATTRIB( pfd->cAccumAlphaBits ); break;
+        case WGL_AUX_BUFFERS_ARB:      ATTRIB( pfd->cAuxBuffers     ); break;
+        case WGL_PIXEL_TYPE_ARB:
+            pfd->iPixelType = pixel_attribs[ ++i ]==WGL_TYPE_RGBA_ARB ?
+                              PFD_TYPE_RGBA : PFD_TYPE_COLORINDEX;
+            break;
+        default:
+            ++i;
+            need_new = 1;
+        };
+    }
+#undef FLAG
+#undef ATTRIB
+    return need_new;
+}
 
 /*
     On Windows, the ChosePixelFormat / SetPixelFormat functions were used to
@@ -127,86 +111,51 @@ typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
 static int determine_pixel_format( int* pixel_attribs, int only_new )
 {
     WGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-    int pixelformat, format, i, need_new = 0;
+    int pixelformat, format, need_new = 0;
     PIXELFORMATDESCRIPTOR pfd;
-    HWND tempwnd;
-    HGLRC temprc;
-    HDC tempdc;
+    HGLRC temprc, oldctx;
+    HDC tempdc, olddc;
     UINT numFormats;
+    HWND tempwnd;
 
     /* Generate an old style pixel format descriptor */
-    ZeroMemory( &pfd, sizeof(PIXELFORMATDESCRIPTOR) );
-
-    pfd.nSize    = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;
-
-    for( i=0; pixel_attribs[i]; ++i )
-    {
-        switch( pixel_attribs[i] )
-        {
-        case WGL_DRAW_TO_WINDOW_ARB:   pfd.dwFlags = pixel_attribs[ ++i ] ? pfd.dwFlags | PFD_DRAW_TO_WINDOW : pfd.dwFlags & ~PFD_DRAW_TO_WINDOW; break;
-        case WGL_DRAW_TO_BITMAP_ARB:   pfd.dwFlags = pixel_attribs[ ++i ] ? pfd.dwFlags | PFD_DRAW_TO_BITMAP : pfd.dwFlags & ~PFD_DRAW_TO_BITMAP; break;
-        case WGL_SUPPORT_OPENGL_ARB:   pfd.dwFlags = pixel_attribs[ ++i ] ? pfd.dwFlags | PFD_SUPPORT_OPENGL : pfd.dwFlags & ~PFD_SUPPORT_OPENGL; break;
-        case WGL_DOUBLE_BUFFER_ARB:    pfd.dwFlags = pixel_attribs[ ++i ] ? pfd.dwFlags | PFD_DOUBLEBUFFER   : pfd.dwFlags & ~PFD_DOUBLEBUFFER;   break;
-        case WGL_SUPPORT_GDI_ARB:      pfd.dwFlags = pixel_attribs[ ++i ] ? pfd.dwFlags | PFD_SUPPORT_GDI    : pfd.dwFlags & ~PFD_SUPPORT_GDI;    break;
-        case WGL_STEREO_ARB:           pfd.dwFlags = pixel_attribs[ ++i ] ? pfd.dwFlags | PFD_STEREO         : pfd.dwFlags & ~PFD_STEREO;         break;
-        case WGL_PIXEL_TYPE_ARB:       pfd.iPixelType = pixel_attribs[ ++i ]==WGL_TYPE_RGBA_ARB ? PFD_TYPE_RGBA : PFD_TYPE_COLORINDEX; break;
-        case WGL_COLOR_BITS_ARB:       pfd.cColorBits      = pixel_attribs[ ++i ]; break;
-        case WGL_DEPTH_BITS_ARB:       pfd.cDepthBits      = pixel_attribs[ ++i ]; break;
-        case WGL_STENCIL_BITS_ARB:     pfd.cStencilBits    = pixel_attribs[ ++i ]; break;
-        case WGL_RED_BITS_ARB:         pfd.cRedBits        = pixel_attribs[ ++i ]; break;
-        case WGL_RED_SHIFT_ARB:        pfd.cRedShift       = pixel_attribs[ ++i ]; break;
-        case WGL_GREEN_BITS_ARB:       pfd.cGreenBits      = pixel_attribs[ ++i ]; break;
-        case WGL_GREEN_SHIFT_ARB:      pfd.cGreenShift     = pixel_attribs[ ++i ]; break;
-        case WGL_BLUE_BITS_ARB:        pfd.cBlueBits       = pixel_attribs[ ++i ]; break;
-        case WGL_BLUE_SHIFT_ARB:       pfd.cBlueShift      = pixel_attribs[ ++i ]; break;
-        case WGL_ALPHA_BITS_ARB:       pfd.cAlphaBits      = pixel_attribs[ ++i ]; break;
-        case WGL_ALPHA_SHIFT_ARB:      pfd.cAlphaShift     = pixel_attribs[ ++i ]; break;
-        case WGL_ACCUM_BITS_ARB:       pfd.cAccumBits      = pixel_attribs[ ++i ]; break;
-        case WGL_ACCUM_RED_BITS_ARB:   pfd.cAccumRedBits   = pixel_attribs[ ++i ]; break;
-        case WGL_ACCUM_GREEN_BITS_ARB: pfd.cAccumGreenBits = pixel_attribs[ ++i ]; break;
-        case WGL_ACCUM_BLUE_BITS_ARB:  pfd.cAccumBlueBits  = pixel_attribs[ ++i ]; break;
-        case WGL_ACCUM_ALPHA_BITS_ARB: pfd.cAccumAlphaBits = pixel_attribs[ ++i ]; break;
-        case WGL_AUX_BUFFERS_ARB:      pfd.cAuxBuffers     = pixel_attribs[ ++i ]; break;
-        default:
-            need_new = 1;
-        };
-    }
+    need_new = get_descriptor_from_array( &pfd, pixel_attribs );
 
     /* Create a dummy window */
-    tempwnd = CreateWindow( wndclass, "", 0, 0, 0, 100, 100,
-                            0, 0, hInstance, 0 );
-
-    /* Create a dummy OpenGL context */
+    tempwnd = CreateWindow(wndclass,"",0,0,0,100,100,0,0,hInstance,0);
     tempdc = GetWindowDC( tempwnd );
     pixelformat = ChoosePixelFormat( tempdc, &pfd );
     SetPixelFormat( tempdc, pixelformat, NULL );
-    temprc = wglCreateContext( tempdc );
-    wglMakeCurrent( tempdc, temprc );
 
-    /* Try to use the extension to determine the format from the array */
-    wglChoosePixelFormatARB = (WGLCHOOSEPIXELFORMATARBPROC)
-                               wglGetProcAddress( "wglChoosePixelFormatARB" );
-
+    /* try to get a pixel format descriptor from the array if required */
     if( need_new )
     {
+        /* Create a dummy OpenGL context */
+        oldctx = wglGetCurrentContext( );
+        olddc = wglGetCurrentDC( );
+        temprc = wglCreateContext( tempdc );
+        wglMakeCurrent( tempdc, temprc );
+
+        /* Try to use the extension to determine the format from the array */
+        wglChoosePixelFormatARB = (WGLCHOOSEPIXELFORMATARBPROC)
+        wglGetProcAddress( "wglChoosePixelFormatARB" );
+
+        pixelformat = only_new ? 0 : pixelformat;
+
         if( wglChoosePixelFormatARB )
         {
             wglChoosePixelFormatARB( tempdc, pixel_attribs, NULL,
                                      1, &format, &numFormats );
 
-            if( numFormats>=1 )
-                pixelformat = format;
+            pixelformat = numFormats>=1 ? format : pixelformat;
         }
-        else if( only_new )
-        {
-            pixelformat = 0;
-        }
+
+        /* reset and destroy dummy context */
+        wglMakeCurrent( olddc, oldctx );
+        wglDeleteContext( temprc );
     }
 
     /* Clean up */
-    wglMakeCurrent( 0, 0 );
-    wglDeleteContext( temprc );
     ReleaseDC( tempwnd, tempdc );
     DestroyWindow( tempwnd );
 
@@ -218,72 +167,47 @@ static void set_attributes( int* attr, int bpp, int depth, int stencil,
 {
     int i=0;
 
-    if( bpp!=16 || bpp!=24 || bpp!=32 )
-        bpp = 32;
+    bpp = (bpp!=16 && bpp!=24 && bpp!=32) ? 32 : bpp;
+    depth = (depth!=0 && depth!=16 && depth!=24 && depth!=32) ? 24 : depth;
+    stencil = (stencil!=0 && stencil!=8) ? 8 : stencil;
 
-    attr[ i++ ] = WGL_DRAW_TO_WINDOW_ARB;
-    attr[ i++ ] = GL_TRUE;
-    attr[ i++ ] = WGL_SUPPORT_OPENGL_ARB;
-    attr[ i++ ] = GL_TRUE;
-    attr[ i++ ] = WGL_COLOR_BITS_ARB;
-    attr[ i++ ] = bpp;
-    attr[ i++ ] = WGL_RED_BITS_ARB;
-    attr[ i++ ] = bpp==16 ? 5 : 8;
-    attr[ i++ ] = WGL_GREEN_BITS_ARB;
-    attr[ i++ ] = bpp==16 ? 6 : 8;
-    attr[ i++ ] = WGL_BLUE_BITS_ARB;
-    attr[ i++ ] = bpp==16 ? 5 : 8;
+#define ATTRIB( name, value ) attr[ i++ ] = (name); attr[ i++ ] = (value)
+    ATTRIB( WGL_DRAW_TO_WINDOW_ARB, GL_TRUE         );
+    ATTRIB( WGL_SUPPORT_OPENGL_ARB, GL_TRUE         );
+    ATTRIB( WGL_COLOR_BITS_ARB,     bpp             );
+    ATTRIB( WGL_RED_BITS_ARB,       bpp==16 ? 5 : 8 );
+    ATTRIB( WGL_GREEN_BITS_ARB,     bpp==16 ? 6 : 8 );
+    ATTRIB( WGL_BLUE_BITS_ARB,      bpp==16 ? 5 : 8 );
 
-    if( bpp==32 )
-    {
-        attr[ i++ ] = WGL_ALPHA_BITS_ARB;
-        attr[ i++ ] = 8;
-    }
-
-    if( depth )
-    {
-        attr[ i++ ] = WGL_DEPTH_BITS_ARB;
-        attr[ i++ ] = depth;
-    }
-
-    if( stencil )
-    {
-        attr[ i++ ] = WGL_STENCIL_BITS_ARB;
-        attr[ i++ ] = stencil;
-    }
-
-    if( doublebuffer )
-    {
-        attr[ i++ ] = WGL_DOUBLE_BUFFER_ARB;
-        attr[ i++ ] = GL_TRUE;
-    }
+    if( bpp==32      ) { ATTRIB( WGL_ALPHA_BITS_ARB,    8       ); }
+    if( depth        ) { ATTRIB( WGL_DEPTH_BITS_ARB,    depth   ); }
+    if( stencil      ) { ATTRIB( WGL_STENCIL_BITS_ARB,  stencil ); }
+    if( doublebuffer ) { ATTRIB( WGL_DOUBLE_BUFFER_ARB, GL_TRUE ); }
 
     if( samples )
     {
-        attr[ i++ ] = WGL_SAMPLE_BUFFERS_ARB;
-        attr[ i++ ] = GL_TRUE;
-        attr[ i++ ] = WGL_SAMPLES_ARB;
-        attr[ i++ ] = samples;
+        ATTRIB( WGL_SAMPLE_BUFFERS_ARB, GL_TRUE );
+        ATTRIB( WGL_SAMPLES_ARB,        samples );
     }
 
-    attr[ i++ ] = 0;
+    ATTRIB( 0, 0 );
+#undef ATTRIB
 }
 
 
 int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-    int attribs[20], major, minor, samples, format;
+    int attribs[20], samples, format;
     HGLRC temp, oldctx;
+    unsigned int i;
     HDC olddc;
 
-    /* get a device context */
-    wnd->hDC = GetDC( wnd->hWnd );
-
-    if( !wnd->hDC )
+    /********** get a device context **********/
+    if( !(wnd->hDC = GetDC( wnd->hWnd )) )
         return 0;
 
-    /* try to set a pixel format */
+    /********** try to set a pixel format **********/
     samples = desc->samples;
 
     do
@@ -299,97 +223,70 @@ int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
         format = determine_pixel_format( attribs, 0 );
 
     if( !format )
-    {
-        ReleaseDC( wnd->hWnd, wnd->hDC );
-        return 0;
-    }
+        goto bail;
 
     SetPixelFormat( wnd->hDC, format, NULL );
 
-    /* create an old fashioned OpenGL temporary context */
-    temp = wglCreateContext( wnd->hDC );
+    /********** create an old fashioned OpenGL temporary context **********/
+    if( !(temp = wglCreateContext( wnd->hDC )) )
+        goto bail;
 
-    if( !temp )
-        return 0;
+    if( desc->backend!=SGUI_OPENGL_CORE )
+    {
+        wnd->hRC = temp;
+        return 1;
+    }
 
-    /* try to make it current */
+    /********** try to create a new context **********/
+    wnd->hRC = 0;
+
+    /* make the temporary context current */
     oldctx = wglGetCurrentContext( );
     olddc = wglGetCurrentDC( );
+    wglMakeCurrent( wnd->hDC, temp );
 
-    if( !wglMakeCurrent( wnd->hDC, temp ) )
-        return 0;
-
-    /* load the new context creation function */
+    /* try to load the context creation funciont */
     wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
     wglGetProcAddress( "wglCreateContextAttribsARB" );
 
-    /* try to create a new context */
-    wnd->hRC = 0;
-
-    if( wglCreateContextAttribsARB )
+    if( !wglCreateContextAttribsARB )
     {
-        /* fill attrib array */
-        attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-        attribs[1] = 0;
-        attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-        attribs[3] = 0;
-        attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+        wglMakeCurrent( olddc, oldctx );
+        wnd->hRC = temp;
+        return 1;
+    }
 
-        if( desc->backend==SGUI_OPENGL_COMPAT )
-        {
-            attribs[5] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-            attribs[6] = 0;
-        }
-        else
-        {
-            attribs[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-            attribs[6] = WGL_CONTEXT_FLAGS_ARB;
-            attribs[7] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-            attribs[8] = 0;
-        }
+    /* fill attrib array */
+    attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+    attribs[1] = 0;
+    attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+    attribs[3] = 0;
+    attribs[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+    attribs[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+    attribs[6] = WGL_CONTEXT_FLAGS_ARB;
+    attribs[7] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+    attribs[8] = 0;
 
-        /* try to create 4.3 down to 3.0 context */
-        for( major=4; !wnd->hRC && major>=3; --major )
-        {
-            for( minor=3; !wnd->hRC && minor>=0; --minor )
-            {
-                attribs[1] = major;
-                attribs[3] = minor;
-                wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
-            }
-        }
-
-        /* try to create 2.x context */
-        for( minor=1; !wnd->hRC && minor>=0; --minor )
-        {
-            attribs[1] = 2;
-            attribs[3] = minor;
-            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
-        }
-
-        /* try to create 1.x context */
-        for( minor=5; !wnd->hRC && minor>=0; --minor )
-        {
-            attribs[1] = 1;
-            attribs[3] = minor;
-            wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
-        }
+    /* try to create 4.3 down to 3.0 context */
+    for( i=0; !wnd->hRC && i<sizeof(glversions)/sizeof(glversions[0]); ++i )
+    {
+        attribs[1] = glversions[i][0];
+        attribs[3] = glversions[i][1];
+        wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
     }
 
     /* restore the privous context */
     wglMakeCurrent( olddc, oldctx );
 
-    /* delete the temporary context on success, use it instead otherwise */
     if( wnd->hRC )
-    {
         wglDeleteContext( temp );
-    }
     else
-    {
         wnd->hRC = temp;
-    }
 
     return 1;
+bail:
+    ReleaseDC( wnd->hWnd, wnd->hDC );
+    return 0;
 }
 
 void destroy_gl_context( sgui_window_w32* wnd )
