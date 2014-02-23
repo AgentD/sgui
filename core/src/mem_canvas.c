@@ -266,7 +266,7 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
         R *= A;
         G *= A;
         B *= A;
-        A *= A;
+        A = A<<8;
 
         for( j=r->top; j<=r->bottom; ++j, dst+=super->width*4 )
         {
@@ -405,7 +405,7 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
             row[0] = (row[0] * iA + color[0] * A)>>8;
             row[1] = (row[1] * iA + color[1] * A)>>8;
             row[2] = (row[2] * iA + color[2] * A)>>8;
-            row[3] = (row[3] * iA + 0xFF * A) >> 8;
+            row[3] = (row[3] * iA + (A<<8)      ) >> 8;
         }
     }
 }
