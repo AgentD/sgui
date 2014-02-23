@@ -72,7 +72,7 @@ static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
     int i;
 
     dst = this->data + (r->top*super->width + r->left)*this->bpp;
-    deltax = (r->right - r->left + 1)*this->bpp;
+    deltax = SGUI_RECT_WIDTH_V(r)*this->bpp;
     deltay = super->width*this->bpp;
 
     /* clear */
@@ -88,7 +88,7 @@ static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
                                      unsigned char* color, int format )
 {
     mem_canvas* this = (mem_canvas*)super;
-    unsigned int R, G, B, A, iA;
+    unsigned int R=0, G=0, B=0, A=0, iA=0;
     unsigned char *dst, *row;
     int i, j;
 
@@ -246,7 +246,7 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
                                       unsigned char* color, int format )
 {
     mem_canvas* this = (mem_canvas*)super;
-    unsigned int R, G, B, A, iA;
+    unsigned int R=0, G=0, B=0, A=0, iA=0;
     unsigned char *dst, *row;
     int i, j;
 

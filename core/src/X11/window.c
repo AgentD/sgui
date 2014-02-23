@@ -467,7 +467,9 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
         super->canvas = NULL;
         super->swap_buffers = gl_swap_buffers;
 
+#ifndef SGUI_NO_OPENGL
         this->is_singlebuffered = (desc->doublebuffer==SGUI_SINGLEBUFFERED);
+#endif
     }
     else
     {
@@ -575,6 +577,8 @@ void sgui_window_get_platform_data( sgui_window* this,
                 *((GLXContext*)context) = TO_X11(this)->gl;
             }
         }
+    #else
+        (void)context;
     #endif
     }
 }

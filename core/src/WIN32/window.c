@@ -565,7 +565,9 @@ void sgui_window_get_platform_data( sgui_window* this,
                                     void* window, void* context )
 {
     HWND* phWnd;
+#ifndef SGUI_NO_OPENGL
     HGLRC* phRC;
+#endif
 
     if( this )
     {
@@ -585,6 +587,8 @@ void sgui_window_get_platform_data( sgui_window* this,
                 *phRC = TO_W32(this)->hRC;
             }
         }
+    #else
+        (void)context;
     #endif
     }
 }
