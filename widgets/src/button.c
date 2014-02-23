@@ -235,7 +235,10 @@ static void radio_on_event( sgui_widget* widget, sgui_event* e )
 
     sgui_internal_lock_mutex( );
 
-    if( e->type==SGUI_MOUSE_RELEASE_EVENT && b->type==SGUI_RADIO_BUTTON )
+    if( (e->type==SGUI_MOUSE_RELEASE_EVENT ||
+         (e->type==SGUI_KEY_RELEASED_EVENT &&
+          (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE))) &&
+        b->type==SGUI_RADIO_BUTTON )
     {
         radio_button_select( b );
 

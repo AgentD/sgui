@@ -319,6 +319,7 @@ void sgui_widget_remove_from_parent( sgui_widget* widget )
 void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
 {
     sgui_rect r;
+    sgui_widget* i;
     int change = WIDGET_PARENT_CHANGED;
 
     if( !child || !parent )
@@ -334,7 +335,16 @@ void sgui_widget_add_child( sgui_widget* parent, sgui_widget* child )
     child->parent = parent;
     child->canvas = parent->canvas;
 
-    SGUI_ADD_TO_LIST( parent->children, child );
+    if( parent->children )
+    {
+        for( i=parent->children; i->next; i=i->next );
+        i->next = child;
+        child->next = NULL;
+    }
+    else
+    {
+        parent->children = child;
+    }
 
     propagate_canvas( child->children );
 

@@ -337,7 +337,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     f->widget.destroy               = frame_destroy;
     f->override_scrollbars          = 0;
     f->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                                      SGUI_FOCUS_DROP_TAB;
+                                      SGUI_FOCUS_DROP_TAB|SGUI_FOCUS_DRAW;
 
     return (sgui_widget*)f;
 }

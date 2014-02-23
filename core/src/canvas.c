@@ -58,6 +58,7 @@ void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
     cv->root.area.bottom = height-1;
     cv->root.visible = 1;
     cv->root.canvas = cv;
+    cv->root.focus_policy = 0;
 }
 
 /****************************************************************************/
@@ -162,6 +163,72 @@ static void draw_children( sgui_canvas* canvas, sgui_widget* widget,
 
     widget->canvas->ox = old_ox;
     widget->canvas->oy = old_oy;
+}
+
+static sgui_widget* find_child_focus( sgui_widget* widget )
+{
+    sgui_widget* candidate;
+    sgui_widget* w;
+
+    for( w=widget->children; w!=NULL; w=w->next )
+    {
+        if( !w->visible )
+            continue;
+
+        if( (w->focus_policy & SGUI_FOCUS_ACCEPT) )
+            return w;
+    }
+
+    for( w=widget->children; w!=NULL; w=w->next )
+    {
+        if( !w->visible )
+            continue;
+
+        if( (candidate = find_child_focus( w )) )
+            return candidate;
+    }
+
+    return NULL;
+}
+
+static sgui_widget* find_next_focus( sgui_widget* widget )
+{
+    sgui_widget* w;
+    sgui_widget* v;
+
+    while( widget )
+    {
+        /* try to find a child of the current widget that accepts focus */
+        if( (w = find_child_focus( widget )) )
+            return w;
+
+        /*
+            try to find a right neightbour that accepts focus or has a child
+            that accepts focus.
+         */
+        for( w=widget->next; w!=NULL; w=w->next )
+        {
+            if( !w->visible )
+                continue;
+
+            if( w && (w->focus_policy & SGUI_FOCUS_ACCEPT) )
+                return w;
+
+            if( (v = find_child_focus( w )) )
+                return v;
+        }
+
+        /* go to the right uncle, check if it accepts focus, reiterate */
+        widget = widget->parent ? widget->parent->next : NULL;
+
+        while( widget && !widget->visible )
+            widget = widget->next;
+
+        if( widget && (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+            return widget;
+    }
+
+    return NULL;
 }
 
 /****************************************************************************/
@@ -469,35 +536,85 @@ void sgui_canvas_send_window_event( sgui_canvas* canvas, sgui_event* e )
         break;
 
     /* only send keyboard events to widget that has focus */
-    case SGUI_KEY_PRESSED_EVENT:
     case SGUI_KEY_RELEASED_EVENT:
+        if( e->arg.i==SGUI_KC_TAB )
+        {
+            /* tab key pressed -> lose focus if policy says so */
+            if( canvas->focus &&
+                (canvas->focus->focus_policy & SGUI_FOCUS_DROP_TAB) )
+            {
+                i = find_next_focus( canvas->focus );
+
+                if( i )
+                {
+                    canvas->draw_focus = 1;
+
+                    /* make the focus widget loose focus */
+                    if( canvas->focus->focus_policy & SGUI_FOCUS_DRAW )
+                    {
+                        fbw = sgui_skin_get_focus_box_width( );
+                        sgui_widget_get_absolute_rect( canvas->focus, &r );
+                        r.left -= fbw;
+                        r.top -= fbw;
+                        r.right += fbw;
+                        r.bottom += fbw;
+                        sgui_canvas_add_dirty_rect( canvas, &r );
+                    }
+
+                    ev.widget = NULL;
+                    ev.type = SGUI_FOCUS_LOSE_EVENT;
+                    sgui_widget_send_event( canvas->focus, &ev, 0 );
+
+                    /* give the new widget focus */
+                    if( i->focus_policy & SGUI_FOCUS_DRAW )
+                    {
+                        fbw = sgui_skin_get_focus_box_width( );
+                        sgui_widget_get_absolute_rect( i, &r );
+                        r.left -= fbw;
+                        r.top -= fbw;
+                        r.right += fbw;
+                        r.bottom += fbw;
+                        sgui_canvas_add_dirty_rect( canvas, &r );
+                    }
+
+                    ev.widget = NULL;
+                    ev.type = SGUI_FOCUS_EVENT;
+                    sgui_widget_send_event( i, &ev, 0 );
+                    canvas->focus = i;
+                    break;
+                }
+            }
+            else if( !canvas->focus )
+            {
+                canvas->focus = find_next_focus( &canvas->root );
+
+                if( canvas->focus )
+                {
+                    canvas->draw_focus = 1;
+
+                    if( canvas->focus->focus_policy & SGUI_FOCUS_DRAW )
+                    {
+                        fbw = sgui_skin_get_focus_box_width( );
+                        sgui_widget_get_absolute_rect( canvas->focus, &r );
+                        r.left -= fbw;
+                        r.top -= fbw;
+                        r.right += fbw;
+                        r.bottom += fbw;
+                        sgui_canvas_add_dirty_rect( canvas, &r );
+                    }
+
+                    ev.widget = NULL;
+                    ev.type = SGUI_FOCUS_EVENT;
+                    sgui_widget_send_event( canvas->focus, &ev, 0 );
+                    break;
+                }
+            }
+        }
+    case SGUI_KEY_PRESSED_EVENT:
     case SGUI_CHAR_EVENT:
         /* escape key pressed -> lose focus if policy says so */
         if( canvas->focus && e->arg.i==SGUI_KC_ESCAPE &&
             (canvas->focus->focus_policy & SGUI_FOCUS_DROP_ESC) )
-        {
-            if( (canvas->focus->focus_policy & SGUI_FOCUS_DRAW) &&
-                canvas->draw_focus )
-            {
-                fbw = sgui_skin_get_focus_box_width( );
-                sgui_widget_get_absolute_rect( canvas->focus, &r );
-                r.left -= fbw;
-                r.top -= fbw;
-                r.right += fbw;
-                r.bottom += fbw;
-                sgui_canvas_add_dirty_rect( canvas, &r );
-            }
-
-            ev.widget = NULL;
-            ev.type = SGUI_FOCUS_LOSE_EVENT;
-            sgui_widget_send_event( canvas->focus, &ev, 0 );
-            canvas->focus = NULL;
-            break;
-        }
-
-        /* tab key pressed -> lose focus if policy says so */
-        if( canvas->focus && e->arg.i==SGUI_KC_TAB &&
-            (canvas->focus->focus_policy & SGUI_FOCUS_DROP_TAB) )
         {
             if( (canvas->focus->focus_policy & SGUI_FOCUS_DRAW) &&
                 canvas->draw_focus )
