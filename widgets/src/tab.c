@@ -234,7 +234,7 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     sgui_tab_group* g = (sgui_tab_group*)tab;
     sgui_tab* i;
     sgui_tab* t;
-    int index = -1;
+    int idx = -1;
 
     if( !g || !caption )
         return -1;
@@ -274,11 +274,11 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     /* add the tab to the end, if we already have tabs */
     if( g->tabs )
     {
-        for( index=0, i=g->tabs; i->next; i=i->next, ++index );
+        for( idx=0, i=g->tabs; i->next; i=i->next, ++idx );
 
         i->next = t;
         sgui_internal_unlock_mutex( );
-        return index + 1;
+        return idx + 1;
     }
 
     g->tabs = t;
@@ -286,21 +286,21 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     return 0;
 }
 
-void sgui_tab_group_add_widget( sgui_widget* tab, int index, sgui_widget* w )
+void sgui_tab_group_add_widget( sgui_widget* tab, int idx, sgui_widget* w )
 {
     sgui_event ev;
     sgui_tab* i;
     int count;
 
-    if( tab && index>=0 && w )
+    if( tab && idx>=0 && w )
     {
         sgui_internal_lock_mutex( );
 
         /* find the tab for the number */
         i = ((sgui_tab_group*)tab)->tabs;
-        for( count=0; count<index && i; i=i->next, ++count );
+        for( count=0; count<idx && i; i=i->next, ++count );
 
-        if( count!=index || !i )
+        if( count!=idx || !i )
         {
             sgui_internal_unlock_mutex( );
             return;

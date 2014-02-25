@@ -62,11 +62,11 @@ SGUI_DLL int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption );
 /**
  * \brief Add a widget to a tab in a tab group
  *
- * \param tab   The tab group widget
- * \param index The index of the tab in the tab group
- * \param w     The widget to add
+ * \param tab The tab group widget
+ * \param idx The index of the tab in the tab group
+ * \param w   The widget to add
  */
-SGUI_DLL void sgui_tab_group_add_widget( sgui_widget* tab, int index,
+SGUI_DLL void sgui_tab_group_add_widget( sgui_widget* tab, int idx,
                                          sgui_widget* w );
 
 #ifdef __cplusplus

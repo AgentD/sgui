@@ -128,15 +128,15 @@ unsigned int sgui_font_get_height( sgui_font* this )
 
 void sgui_font_load_glyph( sgui_font* this, unsigned int codepoint )
 {
-    FT_UInt index;
+    FT_UInt i;
 
     if( this )
     {
         this->current_glyph = codepoint;
 
-        index = FT_Get_Char_Index( this->face, codepoint );
+        i = FT_Get_Char_Index( this->face, codepoint );
 
-        FT_Load_Glyph( this->face, index, FT_LOAD_DEFAULT );
+        FT_Load_Glyph( this->face, i, FT_LOAD_DEFAULT );
         FT_Render_Glyph( this->face->glyph, FT_RENDER_MODE_NORMAL );
     }
 }
