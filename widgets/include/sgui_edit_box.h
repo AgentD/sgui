@@ -33,6 +33,7 @@
 
 #define SGUI_EDIT_NORMAL 0
 #define SGUI_EDIT_NUMERIC 1
+#define SGUI_EDIT_PASSWORD 2
 
 
 

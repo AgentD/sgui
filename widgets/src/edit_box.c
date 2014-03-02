@@ -36,6 +36,10 @@
 
 
 
+#define PASSWD_DISPLAY '*'
+
+
+
 typedef struct
 {
     sgui_widget widget;
@@ -61,6 +65,21 @@ typedef struct
     int mode;           /* editing mode */
 }
 sgui_edit_box;
+
+/* password mode edit box, derived from edit box */
+typedef struct
+{
+    sgui_edit_box super;
+
+    char* shadow;           /* buffer with actual text */
+
+    /* BYTE OFFSET of the last character in the shadow buffer */
+    unsigned int end;
+
+    /* BYTE OFFSET of the shadow character after which to draw the cursor */
+    unsigned int cursor;
+}
+sgui_edit_box_passwd;
 
 
 
@@ -152,6 +171,25 @@ static unsigned int cursor_from_mouse( sgui_edit_box* b, int mouse_x )
     return cur;
 }
 
+static void sync_cursors( sgui_edit_box* b )
+{
+    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)b;
+    unsigned int i;
+
+    if( b->mode==SGUI_EDIT_PASSWORD )
+    {
+        pw->cursor = 0;
+
+        for( pw->cursor=0, i=0; i<b->cursor; ++i )
+        {
+            ++pw->cursor;
+
+            while( (pw->shadow[ pw->cursor ] & 0xC0) == 0x80 )
+                ++pw->cursor;
+        }
+    }
+}
+
 
 
 static void edit_box_draw( sgui_widget* super )
@@ -165,6 +203,7 @@ static void edit_box_draw( sgui_widget* super )
 
 static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
 {
+    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)widget;
     sgui_edit_box* b = (sgui_edit_box*)widget;
     sgui_event se;
     sgui_rect r;
@@ -175,6 +214,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     {
         /* enable cursor drawing, flag area as dirty */
         b->draw_cursor = 1;
+        sync_cursors( b );
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_canvas_add_dirty_rect( widget->canvas, &r );
     }
@@ -209,6 +249,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
 
+        sync_cursors( b );
         sgui_internal_unlock_mutex( );
     }
     else if( e->type == SGUI_KEY_PRESSED_EVENT )
@@ -234,6 +275,19 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
             determine_offset( b );
+
+            if( b->mode==SGUI_EDIT_PASSWORD )
+            {
+                /* move back by one character */
+                old = pw->cursor;
+                ROLL_BACK_UTF8( pw->shadow, pw->cursor );
+
+                /* move entire text block back by the difference */
+                memmove(pw->shadow+pw->cursor, pw->shadow+old, pw->end-old+1);
+
+                /* update state */
+                pw->end -= (old - pw->cursor);
+            }
         }
         /* delete pressed, cursor is not at end, chars have been entered */
         else if( (e->arg.i==SGUI_KC_DELETE) &&
@@ -255,11 +309,26 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
             determine_offset( b );
+
+            if( b->mode==SGUI_EDIT_PASSWORD )
+            {
+                /* move forward by one character */
+                offset = pw->cursor;
+                ADVANCE_UTF8( pw->shadow, offset );
+
+                /* move entire text block back by difference */
+                memmove( pw->shadow+pw->cursor, pw->shadow+offset,
+                         pw->end-offset+1 );
+
+                /* update state */
+                pw->end -= (offset - pw->cursor);
+            }
         }
         /* move cursor left pressed and cursor is not 0 */
         else if( (e->arg.i==SGUI_KC_LEFT) && b->cursor )
         {
             ROLL_BACK_UTF8( b->buffer, b->cursor );
+            sync_cursors( b );
 
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
@@ -270,6 +339,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
                  (b->cursor < b->end) )
         {
             ADVANCE_UTF8( b->buffer, b->cursor );
+            sync_cursors( b );
 
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
@@ -281,6 +351,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         {
             b->cursor = 0;
             b->offset = 0;
+            sync_cursors( b );
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
         }
@@ -290,6 +361,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         {
             b->cursor = b->end;
             b->offset = b->end;
+            sync_cursors( b );
             sgui_widget_get_absolute_rect( widget, &r );
             sgui_canvas_add_dirty_rect( widget->canvas, &r );
             determine_offset( b );
@@ -309,43 +381,77 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
 
         sgui_internal_lock_mutex( );
 
-        if( b->mode == SGUI_EDIT_NUMERIC )
-        {
-            /* determine length of numbers entered */
-            for( len=0, i=0; e->arg.utf8[i]; ++i )
-            {
-                if( !isdigit( e->arg.utf8[i] ) )
-                {
-                    sgui_internal_unlock_mutex( );
-                    return;
-                }
-
-                ++len;
-            }
-        }
-        else
+        if( b->mode == SGUI_EDIT_PASSWORD )
         {
             /* get the length of the UTF8 string to insert */
             len = strlen( e->arg.utf8 );
-        }
 
-        if( !len )
+            if( !len )
+            {
+                sgui_internal_unlock_mutex( );
+                return;                
+            }
+
+            /* move entire text block after curser right by that length */
+            memmove( pw->shadow + pw->cursor + len, pw->shadow + pw->cursor,
+                     pw->end - pw->cursor + 1 );
+
+            /* insert the character */
+            memcpy( pw->shadow+pw->cursor, e->arg.utf8, len );
+            pw->cursor += len;
+            pw->end += len;
+            b->num_entered += len;
+
+            /* update display buffer */
+            len = sgui_utf8_strlen( e->arg.utf8 );
+
+            for( i=0; i<len; ++i )
+                b->buffer[ i+b->end ] = PASSWD_DISPLAY;
+
+            b->buffer[ i+b->end ] = '\0';
+            b->end += len;
+            b->cursor += len;
+        }
+        else
         {
-            sgui_internal_unlock_mutex( );
-            return;                
+            if( b->mode == SGUI_EDIT_NUMERIC )
+            {
+                /* determine length of numbers entered */
+                for( len=0, i=0; e->arg.utf8[i]; ++i )
+                {
+                    if( !isdigit( e->arg.utf8[i] ) )
+                    {
+                        sgui_internal_unlock_mutex( );
+                        return;
+                    }
+
+                    ++len;
+                }
+            }
+            else
+            {
+                /* get the length of the UTF8 string to insert */
+                len = strlen( e->arg.utf8 );
+            }
+
+            if( !len )
+            {
+                sgui_internal_unlock_mutex( );
+                return;                
+            }
+
+            /* move entire text block after curser right by that length */
+            memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
+                     b->end - b->cursor + 1 );
+
+            /* insert the character */
+            memcpy( b->buffer+b->cursor, e->arg.utf8, len );
+
+            /* update state */
+            b->end += len;
+            b->cursor += len;
+            b->num_entered += sgui_utf8_strlen( e->arg.utf8 );
         }
-
-        /* move entire text block after curser right by that length */
-        memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
-                 b->end - b->cursor + 1 );
-
-        /* insert the character */
-        memcpy( b->buffer+b->cursor, e->arg.utf8, len );
-
-        /* update state */
-        b->end += len;
-        b->cursor += len;
-        b->num_entered += sgui_utf8_strlen( e->arg.utf8 );
 
         /* flag dirty and determine cursor position */
         sgui_widget_get_absolute_rect( widget, &r );
@@ -367,15 +473,21 @@ static void edit_box_destroy( sgui_widget* box )
 sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                    unsigned int max_chars, int mode )
 {
+    sgui_edit_box_passwd* pw;
+    unsigned int size;
     sgui_edit_box* b;
 
     /* allocate structure */
-    b = malloc( sizeof(sgui_edit_box) );
+    size = mode==SGUI_EDIT_PASSWORD ? sizeof(sgui_edit_box_passwd) :
+                                      sizeof(sgui_edit_box);
+
+    b = malloc( size );
+    pw = (sgui_edit_box_passwd*)b;
 
     if( !b )
         return NULL;
 
-    memset( b, 0, sizeof(sgui_edit_box) );
+    memset( b, 0, size );
 
     /* allocate storage for the text buffer */
     b->buffer = malloc( max_chars * 6 + 1 );
@@ -384,6 +496,22 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     {
         free( b );
         return NULL;
+    }
+
+    /* allocate shadow buffer for password edit box */
+    if( mode==SGUI_EDIT_PASSWORD )
+    {
+        pw->shadow = b->buffer;
+        b->buffer = malloc( max_chars + 1 );
+
+        if( !b->buffer )
+        {
+            free( pw->shadow );
+            free( b );
+            return NULL;
+        }
+
+        pw->shadow[0] = '\0';
     }
 
     /* initialise and store state */
@@ -404,7 +532,17 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 
 const char* sgui_edit_box_get_text( sgui_widget* box )
 {
-    return box ? ((sgui_edit_box*)box)->buffer : NULL;
+    sgui_edit_box* b = (sgui_edit_box*)b;
+
+    if( box )
+    {
+        if( ((sgui_edit_box*)box)->mode == SGUI_EDIT_PASSWORD )
+            return ((sgui_edit_box_passwd*)box)->shadow;
+
+        return ((sgui_edit_box*)box)->buffer;
+    }
+
+    return NULL;
 }
 
 void sgui_edit_box_set_text( sgui_widget* box, const char* text )
@@ -412,6 +550,7 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     sgui_rect r;
     unsigned int i;
     sgui_edit_box* b = (sgui_edit_box*)box;
+    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)box;
 
     if( !box )
         return;
@@ -421,11 +560,40 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     /* text = NULL means clear */
     if( !text )
     {
+        if( b->mode == SGUI_EDIT_PASSWORD )
+        {
+            ((sgui_edit_box_passwd*)box)->shadow[ 0 ] = '\0';
+            ((sgui_edit_box_passwd*)box)->cursor = 0;
+        }
+
         b->num_entered = 0;
         b->buffer[ 0 ] = '\0';
         b->end = 0;
-        b->cursor = 0;
-        b->offset = 0;
+    }
+    else if( b->mode == SGUI_EDIT_PASSWORD )
+    {
+        /* copy text and count entered characters (UTF8!!) */
+        for( b->num_entered=0, i=0; b->num_entered<b->max_chars && *text;
+             ++b->num_entered )
+        {
+            pw->shadow[ i++ ] = *(text++);
+
+            while( (*text & 0xC0) == 0x80 )
+                pw->shadow[ i++ ] = *(text++);
+        }
+
+        pw->shadow[ i ] = '\0'; /* append null-terminator */
+        pw->end = i;            /* store offset of end */
+        pw->cursor = 0;         /* reset shadow cursor */
+
+        /* generate sequence of display characters */
+        for( i=0; i<b->num_entered; ++i )
+        {
+            b->buffer[ i ] = PASSWD_DISPLAY;
+        }
+
+        b->buffer[ i ] = '\0'; /* append null-terminator */
+        b->end = i;            /* store offset of end */
     }
     else
     {
@@ -456,14 +624,14 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
 
         b->buffer[ i ] = '\0';  /* append null-terminator */
         b->end = i;             /* store offset of end */
-
-        b->cursor = 0;          /* set cursor to the beginning */
-        b->offset = 0;
-
-        /* flag area dirt */
-        sgui_widget_get_absolute_rect( box, &r );
-        sgui_canvas_add_dirty_rect( box->canvas, &r );
     }
+
+    b->cursor = 0;          /* set cursor to the beginning */
+    b->offset = 0;
+
+    /* flag area dirt */
+    sgui_widget_get_absolute_rect( box, &r );
+    sgui_canvas_add_dirty_rect( box->canvas, &r );
 
     sgui_internal_unlock_mutex( );
 }
