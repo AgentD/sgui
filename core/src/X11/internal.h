@@ -42,6 +42,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 
 #include <X11/extensions/Xrender.h>
 
@@ -103,6 +104,12 @@ extern Display* dpy;
 extern Window root;
 extern Atom atom_wm_delete;
 extern FT_Library freetype;
+
+/* in platform.c: implementation of window clipboard_write */
+void xlib_window_clipboard_write( sgui_window* super, const char* text );
+
+/* in platform.c: implementation of window clipboard_read */
+const char* xlib_window_clipboard_read( sgui_window* super );
 
 /* in platform.c: returns a pointer to the global font cache */
 sgui_font_cache* get_glyph_cache( void );

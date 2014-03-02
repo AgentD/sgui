@@ -210,6 +210,62 @@ static void w32_window_destroy( sgui_window* this )
     free( this );
 }
 
+static void w32_window_write_clipboard( sgui_window* wnd, const char* text )
+{
+    unsigned int length;
+	HGLOBAL hDATA;
+	(void)wnd;
+
+    /* try to open and empty the clipboard */
+    sgui_internal_lock_mutex( );
+
+	if( !OpenClipboard( NULL ) )
+	{
+	    sgui_internal_unlock_mutex( );
+		return;
+	}
+
+	EmptyClipboard( );
+
+    /* alocate buffer handle and copy text */
+    length = strlen( text ) + 1;
+
+	hDATA = GlobalAlloc( GMEM_MOVEABLE, length );
+	memcpy( GlobalLock( hDATA ), text, length );
+	GlobalUnlock( hDATA );
+
+    /* set clipboard data and close */
+	SetClipboardData( CF_TEXT, hDATA );
+	CloseClipboard( );
+	sgui_internal_unlock_mutex( );
+}
+
+static const char* w32_window_read_clipboard( sgui_window* wnd )
+{
+    char* buffer = NULL;
+    HANDLE hDATA;
+    (void)wnd;
+
+    /* try to open the clipboard */
+    sgui_internal_lock_mutex( );
+
+	if( !OpenClipboard( NULL ) )
+	{
+	    sgui_internal_unlock_mutex( );
+		return NULL;
+	}
+
+    /* get a pointer to the data */
+	hDATA = GetClipboardData( CF_TEXT );
+	buffer = (char*)GlobalLock( hDATA );
+	GlobalUnlock( hDATA );
+
+    /* close the clipboard and return the data */
+	CloseClipboard( );
+	sgui_internal_unlock_mutex( );
+	return buffer;
+}
+
 /****************************************************************************/
 
 void update_window( sgui_window_w32* this )
@@ -522,6 +578,8 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->move               = w32_window_move;
     super->force_redraw       = w32_window_force_redraw;
     super->destroy            = w32_window_destroy;
+    super->write_clipboard    = w32_window_write_clipboard;
+    super->read_clipboard     = w32_window_read_clipboard;
 
     sgui_internal_unlock_mutex( );
     return (sgui_window*)this;

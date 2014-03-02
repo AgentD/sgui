@@ -493,6 +493,10 @@ struct sgui_window
      * \param r   Pointer to a rect to redraw (clamped to window dimesions)
      */
     void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
+
+    void (* write_clipboard )( sgui_window* wnd, const char* text );
+
+    const char* (* read_clipboard )( sgui_window* wnd );
 };
 
 

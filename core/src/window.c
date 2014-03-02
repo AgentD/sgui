@@ -215,6 +215,17 @@ void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r )
     }
 }
 
+void sgui_window_write_clipboard( sgui_window* wnd, const char* text )
+{
+    if( wnd && text && wnd->write_clipboard )
+        wnd->write_clipboard( wnd, text );
+}
+
+const char* sgui_window_read_clipboard( sgui_window* wnd )
+{
+    return (wnd && wnd->read_clipboard) ? wnd->read_clipboard( wnd ) : NULL;
+}
+
 /****************************************************************************/
 
 int sgui_window_is_visible( sgui_window* wnd )

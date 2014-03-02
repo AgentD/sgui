@@ -364,6 +364,11 @@ SGUI_DLL void* sgui_window_get_userptr( sgui_window* wnd );
  */
 SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
 
+SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
+                                           const char* text );
+
+SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
+
 /** \brief Get a pointer to the back buffer canvas object of the window */
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 

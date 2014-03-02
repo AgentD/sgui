@@ -445,7 +445,7 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     /* tell X11 what events we will handle */
     XSelectInput( dpy, this->wnd, ExposureMask | StructureNotifyMask |
                                   KeyPressMask | KeyReleaseMask |
-                                  PointerMotionMask |
+                                  PointerMotionMask | PropertyChangeMask |
                                   ButtonPressMask | ButtonReleaseMask );
 
     XSetWMProtocols( dpy, this->wnd, &atom_wm_delete, 1 );
@@ -502,6 +502,8 @@ sgui_window* sgui_window_create_desc( sgui_window_description* desc )
     super->move_center        = xlib_window_move_center;
     super->move               = xlib_window_move;
     super->force_redraw       = xlib_window_force_redraw;
+    super->write_clipboard    = xlib_window_clipboard_write;
+    super->read_clipboard     = xlib_window_clipboard_read;
     super->destroy            = xlib_window_destroy;
 
     sgui_internal_unlock_mutex( );
