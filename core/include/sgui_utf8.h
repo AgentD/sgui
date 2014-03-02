@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 /**
- * \brief Get the unicode code point for an UTF8 encoded character
+ * \brief Get the unicode code point for a UTF8 encoded character
  *
  * \param utf8   A string holding the UTF8 character
  * \param length An optional pointer to an integer returning the length of the
@@ -46,6 +46,17 @@ extern "C" {
  */
 SGUI_DLL unsigned int sgui_utf8_decode( const char* utf8,
                                         unsigned int* length );
+
+/**
+ * \brief Get the UTF8 encoding of a unicode code point
+ *
+ * \param cp  The unicode code point
+ * \param str A pointer to a buffer to write the UTF8 encoding to. Buffer
+ *            must be able to hold at least 4 bytes.
+ *
+ * \return The number of bytes written to the buffer
+ */
+SGUI_DLL unsigned int sgui_utf8_encode( unsigned int cp, char* str );
 
 /**
  * \brief Get the number of characters in an UTF8 encoded string

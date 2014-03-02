@@ -29,6 +29,7 @@
 
 static sgui_window_w32* list = NULL;
 static CRITICAL_SECTION mutex;
+static char* clipboard = NULL;
 
 FT_Library freetype;
 HINSTANCE hInstance;
@@ -76,6 +77,164 @@ static void update_windows( void )
        update_window( i );
 
     sgui_internal_unlock_mutex( );
+}
+
+/****************************************************************************/
+
+static WCHAR* utf8_to_utf16( const char* utf8 )
+{
+    unsigned int slength, length, cp, i;
+    WCHAR* ptr;
+
+    /* compute number of WCHAR elements required */
+    for( slength=0, i=0; utf8[i]; i+=length )
+    {
+        cp = sgui_utf8_decode( utf8+i, &length );
+        slength += (cp>0x0000FFFF && cp<0x00110000) ? 2 : 1;
+    }
+
+    /* allocate destination buffer */
+    ptr = malloc( sizeof(WCHAR)*(slength+1) );
+
+    /* convert */
+    if( ptr )
+    {
+        for( i=0; *utf8; ++i, utf8+=length )
+        {
+            cp = sgui_utf8_decode( utf8, &length );
+
+            if( cp<0x0800 || (cp>0xDFFF && cp<0xF000) )
+            {
+                ptr[i] = cp;
+            }
+            else if( cp>0x0000FFFF && cp<0x00110000 )
+            {
+                ptr[i++] = 0xD800|((((cp>>16)&0x0F)-1)<<6)|((cp>>10)&0x3F);
+                ptr[i] = 0xDC00 | (cp & 0x03FF);
+            }
+            else
+            {
+                ptr[i] = '?';
+            }
+        }
+
+        ptr[i] = 0;
+    }
+
+    return ptr;
+}
+
+static char* utf16_to_utf8( WCHAR* utf16 )
+{
+    unsigned int i, cp, length;
+    unsigned char* ptr;
+    char temp[ 8 ];
+
+    /* compute the number of bytes required */
+    for( length=0, i=0; utf16[i]; ++i )
+    {
+        if( (utf16[i] & 0xFC00) == 0xD800 )
+        {
+            cp  = (((utf16[i] >> 6) & 0x0F) + 1) << 16;
+            cp |= (utf16[i] & 0x003F) << 10;
+            cp |= utf16[++i] & 0x03FF;
+        }
+        else
+        {
+            cp = utf16[i];
+        }
+
+        length += sgui_utf8_encode( cp, temp );
+    }
+
+    /* allocate the destination buffer */
+    ptr = malloc( length+1 );
+
+    /* convert */
+    if( ptr )
+    {
+        for( i=0; *utf16; ++utf16 )
+        {
+            if( (*utf16 & 0xFC00) == 0xD800 )
+            {
+                cp  = (((*utf16 >> 6) & 0x0F) + 1) << 16;
+                cp |= (*utf16 & 0x003F) << 10;
+                cp |= *(++utf16) & 0x03FF;
+            }
+            else
+            {
+                cp = *utf16;
+            }
+
+            i += sgui_utf8_encode( cp, (char*)(ptr+i) );
+        }
+
+        ptr[i] = 0;
+    }
+
+    return (char*)ptr;
+}
+
+void w32_window_write_clipboard( sgui_window* wnd, const char* text )
+{
+    unsigned int i;
+	HGLOBAL hDATA;
+	WCHAR* ptr;
+	(void)wnd;
+
+    /* try to open and empty the clipboard */
+    sgui_internal_lock_mutex( );
+
+	if( !OpenClipboard( NULL ) )
+	{
+	    sgui_internal_unlock_mutex( );
+		return;
+	}
+
+	EmptyClipboard( );
+
+    /* convert text to utf16 and measure length */
+    ptr = utf8_to_utf16( text );
+    for( i=0; ptr[i]; ++i ) { }
+
+    /* alocate buffer handle and copy the converted text */
+	hDATA = GlobalAlloc( GMEM_MOVEABLE, sizeof(WCHAR)*(i+1) );
+	memcpy( GlobalLock( hDATA ), ptr, sizeof(WCHAR)*(i+1) );
+	GlobalUnlock( hDATA );
+	free( ptr );
+
+    /* set clipboard data and close */
+	SetClipboardData( CF_UNICODETEXT, hDATA );
+	CloseClipboard( );
+	sgui_internal_unlock_mutex( );
+}
+
+const char* w32_window_read_clipboard( sgui_window* wnd )
+{
+    WCHAR* buffer = NULL;
+    HANDLE hDATA;
+    (void)wnd;
+
+    /* try to open the clipboard */
+    sgui_internal_lock_mutex( );
+
+	if( !OpenClipboard( NULL ) )
+	{
+	    sgui_internal_unlock_mutex( );
+		return NULL;
+	}
+
+    /* get a pointer to the data */
+	hDATA = GetClipboardData( CF_UNICODETEXT );
+	buffer = (WCHAR*)GlobalLock( hDATA );
+    free( clipboard );
+    clipboard = utf16_to_utf8( buffer );
+    GlobalUnlock( hDATA );
+
+    /* close the clipboard and return the data */
+	CloseClipboard( );
+	sgui_internal_unlock_mutex( );
+	return clipboard;
 }
 
 /****************************************************************************/
@@ -155,10 +314,14 @@ void sgui_deinit( void )
     /* destroy global mutex */
     DeleteCriticalSection( &mutex );
 
+    /* destroy global clipboard conversion buffer */
+    free( clipboard );
+
     /* reset values */
     freetype = 0;
     hInstance = 0;
     list = NULL;
+    clipboard = NULL;
 }
 
 int sgui_main_loop_step( void )

@@ -27,6 +27,10 @@
 
 
 
+#define INVALID_CHARACTER '?'
+
+
+
 unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
 {
     unsigned int ch = 0, i = 0, len = 0;
@@ -53,6 +57,55 @@ unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
         *length = len;
 
     return ch;
+}
+
+unsigned int sgui_utf8_encode( unsigned int cp, char* str )
+{
+    /* 0x00000000 - 0x00000080: 0aaaaaaa */
+    if( cp < 0x80 )
+    {
+        *str = cp;
+        return 1;
+    }
+
+    /* invalid characters */
+    if( cp > 0x10FFFF || cp==0xFFFE || cp==0xFFFF )
+    {
+        *str = INVALID_CHARACTER;
+        return 1;
+    }
+
+    /* UTF16 surrogate pairs */
+    if( cp==0xD800 || cp==0xDB7F || cp==0xDB80 || cp==0xDBFF ||
+        cp==0xDC00 || cp==0xDF80 || cp==0xDFFF )
+    {
+        *str = INVALID_CHARACTER;
+        return 1;
+    }
+
+    /* 0x00000080 - 0x000007FF: 110aaaaa 10bbbbbb */
+    if( cp < 0x800 )
+    {
+        *(str++) = (0xC0 | (cp >> 6));
+        *(str++) = 0x80 | (cp & 0x3F);
+        return 2;
+    }
+
+    /* 0x00000800 - 0x0000FFFF: 1110aaaa 10bbbbbb 10cccccc */
+    if( cp < 0x10000 )
+    {
+        *(str++) = 0xE0 | (cp >> 12);
+        *(str++) = 0x80 | ((cp >> 6) & 0x3F);
+        *(str++) = 0x80 | (cp & 0x3F);
+        return 3;
+    }
+
+    /* 0x00010000 - 0x0010FFFF: 11110aaa 10bbbbbb 10cccccc 10dddddd */
+    *(str++) = 0xF0 | (cp >> 18);
+    *(str++) = 0x80 | ((cp >> 12) & 0x3F);
+    *(str++) = 0x80 | ((cp >> 6) & 0x3F);
+    *(str++) = 0x80 | (cp & 0x3F);
+    return 4;
 }
 
 unsigned int sgui_utf8_strlen( const char* utf8 )
