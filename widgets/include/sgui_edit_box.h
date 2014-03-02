@@ -31,6 +31,11 @@
 
 
 
+#define SGUI_EDIT_NORMAL 0
+#define SGUI_EDIT_NUMERIC 1
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,9 +47,13 @@ extern "C" {
  * \param y         Distance from the top of the window.
  * \param width     The width of the edit box.
  * \param max_chars The maximum number of characters that can be entered.
+ * \param mode      The edit box editing mode. 0 or SGUI_EDIT_NORMAL for
+ *                  normal editing mode, SGUI_EDIT_NUMERIC for numeric input
+ *                  only.
  */
 SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
-                                            unsigned int max_chars );
+                                            unsigned int max_chars,
+                                            int mode );
 
 /**
  * \brief Get a pointer to the text in an edit box

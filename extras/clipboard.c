@@ -42,7 +42,7 @@ int main( void )
     /* create some widgets */
     rb = sgui_button_create( 30, 30, 120, 30, "Read Clipboard" );
     wb = sgui_button_create( 30, 70, 120, 30, "Write Clipboard" );
-    eb = sgui_edit_box_create( 160, 70, 120, 128 );
+    eb = sgui_edit_box_create( 160, 70, 120, 128, 0 );
 
     /* add widgets to the window */
     sgui_window_add_widget( wnd, rb );

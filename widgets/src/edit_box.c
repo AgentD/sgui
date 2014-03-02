@@ -28,9 +28,11 @@
 #include "sgui_event.h"
 #include "sgui_internal.h"
 #include "sgui_widget.h"
+#include "sgui_utf8.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 
 
@@ -55,6 +57,8 @@ typedef struct
     int draw_cursor;    /* boolean: draw the cursor? */
 
     char* buffer;       /* text buffer */
+
+    int mode;           /* editing mode */
 }
 sgui_edit_box;
 
@@ -301,12 +305,35 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     }
     else if( (e->type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )
     {   
-        unsigned int len;
-
-        /* get the length of the UTF8 string to insert */
-        len = strlen( e->arg.utf8 );
+        unsigned int i, len;
 
         sgui_internal_lock_mutex( );
+
+        if( b->mode == SGUI_EDIT_NUMERIC )
+        {
+            /* determine length of numbers entered */
+            for( len=0, i=0; e->arg.utf8[i]; ++i )
+            {
+                if( !isdigit( e->arg.utf8[i] ) )
+                {
+                    sgui_internal_unlock_mutex( );
+                    return;
+                }
+
+                ++len;
+            }
+        }
+        else
+        {
+            /* get the length of the UTF8 string to insert */
+            len = strlen( e->arg.utf8 );
+        }
+
+        if( !len )
+        {
+            sgui_internal_unlock_mutex( );
+            return;                
+        }
 
         /* move entire text block after curser right by that length */
         memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
@@ -318,7 +345,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         /* update state */
         b->end += len;
         b->cursor += len;
-        b->num_entered += 1;
+        b->num_entered += sgui_utf8_strlen( e->arg.utf8 );
 
         /* flag dirty and determine cursor position */
         sgui_widget_get_absolute_rect( widget, &r );
@@ -338,7 +365,7 @@ static void edit_box_destroy( sgui_widget* box )
 
 
 sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
-                                   unsigned int max_chars )
+                                   unsigned int max_chars, int mode )
 {
     sgui_edit_box* b;
 
@@ -366,6 +393,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     b->widget.window_event_callback = edit_box_on_event;
     b->widget.destroy               = edit_box_destroy;
     b->widget.draw_callback         = edit_box_draw;
+    b->mode                         = mode;
     b->max_chars                    = max_chars;
     b->buffer[0]                    = '\0';
     b->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
@@ -401,14 +429,29 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     }
     else
     {
-        /* copy text and count entered characters (UTF8!!) */
-        for( b->num_entered=0, i=0; b->num_entered<b->max_chars && *text;
-             ++b->num_entered )
+        if( b->mode == SGUI_EDIT_NUMERIC )
         {
-            b->buffer[ i++ ] = *(text++);
-
-            while( (*text & 0xC0) == 0x80 )
+            /* copy text and count entered */
+            for( b->num_entered=0, i=0; b->num_entered<b->max_chars && *text;
+                 ++b->num_entered, ++text )
+            {
+                if( isdigit( *text ) )
+                {
+                    b->buffer[ i++ ] = *text;
+                }
+            }
+        }
+        else
+        {
+            /* copy text and count entered characters (UTF8!!) */
+            for( b->num_entered=0, i=0; b->num_entered<b->max_chars && *text;
+                 ++b->num_entered )
+            {
                 b->buffer[ i++ ] = *(text++);
+
+                while( (*text & 0xC0) == 0x80 )
+                    b->buffer[ i++ ] = *(text++);
+            }
         }
 
         b->buffer[ i ] = '\0';  /* append null-terminator */

@@ -31,7 +31,7 @@
 
 sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
-sgui_widget *r0, *r1, *r2, *eb, *f, *gb, *ra, *rb, *rc, *tab;
+sgui_widget *r0, *r1, *r2, *eb, *ebn, *f, *gb, *ra, *rb, *rc, *tab;
 sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
 unsigned char image[128*128*4];
 int running = 1;
@@ -152,10 +152,12 @@ int main( int argc, char** argv )
     /* input widget tab */
     sgui_tab_group_add_tab( tab, "Input" );
 
-    butt = sgui_button_create( 10, 245, 80, 30, "Button" );
-    eb = sgui_edit_box_create( 10, 195, 100, 100 );
+    butt = sgui_button_create( 10, 275, 80, 30, "Button" );
+    eb = sgui_edit_box_create( 10, 195, 100, 100, 0 );
+    ebn = sgui_edit_box_create( 10, 235, 100, 100, SGUI_EDIT_NUMERIC );
 
     sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
+    sgui_edit_box_set_text( ebn, "1337" );
 
     f = sgui_frame_create( 10, 25, 150, 150 );
     r0 = sgui_radio_button_create( 10, 100, "Option 1" );
@@ -195,6 +197,7 @@ int main( int argc, char** argv )
     sgui_tab_group_add_widget( tab, 0, gb );
     sgui_tab_group_add_widget( tab, 0, f );
     sgui_tab_group_add_widget( tab, 0, eb );
+    sgui_tab_group_add_widget( tab, 0, ebn );
 
     /* static widget tab */
     sgui_tab_group_add_tab( tab, "Static" );
@@ -266,6 +269,7 @@ int main( int argc, char** argv )
     sgui_widget_destroy( tex );
 
     sgui_widget_destroy( eb );
+    sgui_widget_destroy( ebn );
 
     sgui_widget_destroy( butt );
     sgui_widget_destroy( c0 );
