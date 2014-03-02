@@ -67,3 +67,33 @@ unsigned int sgui_utf8_strlen( const char* utf8 )
     return len;
 }
 
+unsigned int sgui_utf8_from_latin1_length( const char* in )
+{
+    unsigned int length = 0;
+
+    while( *in )
+    {
+        length += (*(in++) & 0x80) ? 2 : 1;
+    }
+
+    return length;
+}
+
+void sgui_utf8_from_latin1( char* out, const char* in )
+{
+    for( ; *in; ++in )
+    {
+        if( *in & 0x80 )
+        {
+            *out++ = 0xC2 + ((unsigned char)*in > 0xBF);
+            *out++ = 0x80 + (*in & 0x3F);
+        }
+        else
+        {
+            *out++ = *in;
+        }
+    }
+
+    *out = '\0';
+}
+

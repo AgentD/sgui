@@ -90,7 +90,7 @@ static void handle_events( void )
         /* process selection requests */
         if( e.type==SelectionRequest )
         {
-            if( e.xselectionrequest.target == XA_STRING )
+            if( e.xselectionrequest.target == atom_UTF8 )
             {
                 XChangeProperty( dpy, e.xselectionrequest.requestor,
                                  e.xselectionrequest.property,
@@ -103,7 +103,7 @@ static void handle_events( void )
             else if( e.xselectionrequest.target == atom_targets )
             {
                 data[0] = atom_text;
-                data[1] = XA_STRING;
+                data[1] = atom_UTF8;
 
                 XChangeProperty( dpy, e.xselectionrequest.requestor,
                                  e.xselectionrequest.property,
@@ -222,7 +222,7 @@ void xlib_window_clipboard_write( sgui_window* wnd, const char* text )
 const char* xlib_window_clipboard_read( sgui_window* wnd )
 {
     Atom pty_type;
-    int pty_format;
+    int pty_format, convert = 0;
     unsigned char* buffer;
     unsigned long pty_size, pty_items;
     Atom target = atom_UTF8;
@@ -261,6 +261,7 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
                            TO_X11(wnd)->wnd, CurrentTime );
         XFlush( dpy );
         wait_for_event( &evt, SelectionNotify );
+        convert = 1;
     }
 
     /* determine how to convert the selection */
@@ -351,6 +352,21 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
     	memcpy( clipboard_buffer, buffer, pty_items );
     	clipboard_buffer[ clipboard_strlen ] = '\0';
         XFree( buffer );
+    }
+
+    if( convert )
+    {
+        pty_size = sgui_utf8_from_latin1_length( clipboard_buffer );
+
+        if( pty_size > clipboard_strlen )
+        {
+            buffer = malloc( pty_size + 1 );
+            sgui_utf8_from_latin1( (char*)buffer, clipboard_buffer );
+            free( clipboard_buffer );
+            clipboard_buffer = (char*)buffer;
+            clipboard_size = pty_size+1;
+            clipboard_strlen = pty_size;
+        }
     }
 
     sgui_internal_unlock_mutex( );
