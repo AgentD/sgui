@@ -14,7 +14,7 @@ void read_clipboard( sgui_window* wnd )
 
 void write_clipboard( sgui_window* wnd, sgui_widget* editbox )
 {
-    sgui_window_write_clipboard( wnd, sgui_edit_box_get_text( editbox ) );
+    sgui_window_write_clipboard( wnd, sgui_edit_box_get_text( editbox ), -1 );
 }
 
 int main( void )

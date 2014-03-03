@@ -108,7 +108,7 @@ static void determine_offset( sgui_edit_box* b )
     unsigned int cx, w;
 
     /* only adjust if there are characters entered */
-    if( !b->num_entered )
+    if( !b->num_entered || !b->cursor )
     {
         b->offset = 0;
         return;
@@ -229,7 +229,73 @@ static void remove_selection( sgui_edit_box* b )
     }
 }
 
+static int insert( sgui_edit_box* b, unsigned int len, const char* utf8 )
+{
+    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)b;
+    unsigned int i, ulen;
 
+    /* clip length to maximum allowed characters */
+    ulen = sgui_utf8_strlen( utf8 );
+
+    if( (ulen+b->num_entered) > b->max_chars )
+    {
+        ulen = b->max_chars - b->num_entered;
+
+        for( len=0, i=0; i<ulen && utf8[len]; ++i )
+        {
+            ADVANCE_UTF8( utf8, len );
+        }
+    }
+
+    /* sanity check */
+    if( !len || !ulen )
+        return 0;
+
+    if( b->mode == SGUI_EDIT_NUMERIC )
+    {
+        for( i=0; i<len; ++i )
+        {
+            if( !isdigit( utf8[i] ) )
+                return 0;
+        }
+    }
+
+    /* copy data */
+    remove_selection( b );
+
+    if( b->mode == SGUI_EDIT_PASSWORD )
+    {
+        /* move text block after curser to the right */
+        memmove( pw->shadow + pw->cursor + len, pw->shadow + pw->cursor,
+                 pw->end - pw->cursor + 1 );
+
+        /* insert */
+        memcpy( pw->shadow+pw->cursor, utf8, len );
+        pw->cursor += len;
+        pw->end += len;
+
+        /* update display buffer */
+        memset( b->buffer + b->end, PASSWD_DISPLAY, ulen );
+        b->buffer[ b->end+ulen ] = '\0';
+        len = ulen;
+    }
+    else
+    {
+        /* move text block after curser to the right */
+        memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
+                 b->end - b->cursor + 1 );
+
+        /* insert */
+        memcpy( b->buffer+b->cursor, utf8, len );
+    }
+
+    b->num_entered += ulen;
+    b->end += len;
+    b->cursor += len;
+    return 1;
+}
+
+/****************************************************************************/
 
 static void edit_box_draw( sgui_widget* super )
 {
@@ -243,8 +309,8 @@ static void edit_box_draw( sgui_widget* super )
 
 static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
 {
-    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)widget;
     sgui_edit_box* b = (sgui_edit_box*)widget;
+    const char* ptr;
     int update = 0;
     sgui_event se;
     sgui_rect r;
@@ -284,7 +350,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         update = 1;
     }
     else if( e->type == SGUI_KEY_RELEASED_EVENT &&
-             (e->arg.i==SGUI_KC_LSHIFT || e->arg.i==SGUI_KC_RSHIFT) )
+             (e->arg.i==SGUI_KC_LSHIFT || e->arg.i==SGUI_KC_RSHIFT ||
+              e->arg.i==SGUI_KC_SHIFT) )
     {
         b->selecting = 0;
     }
@@ -292,8 +359,52 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     {
         switch( e->arg.i )
         {
+        case SGUI_KC_SELECT_ALL:
+            if( b->num_entered )
+            {
+                b->selecting = 0;
+                b->cursor = 0;
+                b->selection = b->end;
+                sync_cursors( b );
+                determine_offset( b );
+                update = 1;
+            }
+            break;
+        case SGUI_KC_COPY:
+            if( b->num_entered && b->selection!=b->cursor )
+            {
+                int start = MIN(b->selection,b->cursor);
+                int end = MAX(b->selection,b->cursor);
+                sgui_window_write_clipboard( e->window, b->buffer+start,
+                                             end-start );
+            }
+            break;
+        case SGUI_KC_PASTE:
+            ptr = sgui_window_read_clipboard( e->window );
+
+            if( insert( b, strlen( ptr ), ptr ) )
+            {
+                b->selection = b->cursor;
+                sync_cursors( b );
+                determine_offset( b );
+                update = 1;
+            }
+            break;
+        case SGUI_KC_CUT:
+            if( b->num_entered && b->selection!=b->cursor )
+            {
+                int start = MIN(b->selection,b->cursor);
+                int end = MAX(b->selection,b->cursor);
+                sgui_window_write_clipboard( e->window, b->buffer+start,
+                                             end-start );
+                remove_selection( b );
+                determine_offset( b );
+                update = 1;
+            }
+            break;
         case SGUI_KC_LSHIFT:
         case SGUI_KC_RSHIFT:
+        case SGUI_KC_SHIFT:
             b->selection = b->selecting ? b->selection : b->cursor;
             b->selecting = 1;
             break;
@@ -376,62 +487,15 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     }
     else if( (e->type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )
     {   
-        unsigned int i, len = strlen( e->arg.utf8 );
-
-        /* sanity check */
-        if( !len )
-            goto end;
-
-        if( b->mode == SGUI_EDIT_NUMERIC )
+        if( insert( b, strlen( e->arg.utf8 ), e->arg.utf8 ) )
         {
-            for( i=0; i<len; ++i )
-            {
-                if( !isdigit( e->arg.utf8[i] ) )
-                    goto end;
-            }
+            b->selection = b->cursor;
+            sync_cursors( b );
+            determine_offset( b );
+            update = 1;
         }
-
-        /* copy data */
-        remove_selection( b );
-
-        if( b->mode == SGUI_EDIT_PASSWORD )
-        {
-            /* move entire text block after curser right by that length */
-            memmove( pw->shadow + pw->cursor + len, pw->shadow + pw->cursor,
-                     pw->end - pw->cursor + 1 );
-
-            /* insert the character */
-            memcpy( pw->shadow+pw->cursor, e->arg.utf8, len );
-            pw->cursor += len;
-            pw->end += len;
-            b->num_entered += len;
-
-            /* update display buffer */
-            len = sgui_utf8_strlen( e->arg.utf8 );
-            memset( b->buffer + b->end, PASSWD_DISPLAY, len );
-            b->buffer[ b->end+len ] = '\0';
-        }
-        else
-        {
-            /* move entire text block after curser right by that length */
-            memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
-                     b->end - b->cursor + 1 );
-
-            /* insert the character */
-            memcpy( b->buffer+b->cursor, e->arg.utf8, len );
-            b->num_entered += sgui_utf8_strlen( e->arg.utf8 );
-        }
-
-        /* flag dirty and determine cursor position */
-        b->end += len;
-        b->cursor += len;
-        b->selection = b->cursor;
-        sync_cursors( b );
-        determine_offset( b );
-        update = 1;
     }
 
-end:
     if( update )
     {
         sgui_widget_get_absolute_rect( widget, &r );

@@ -81,13 +81,13 @@ static void update_windows( void )
 
 /****************************************************************************/
 
-static WCHAR* utf8_to_utf16( const char* utf8 )
+static WCHAR* utf8_to_utf16( const char* utf8, unsigned int rdbytes )
 {
     unsigned int slength, length, cp, i;
     WCHAR* ptr;
 
     /* compute number of WCHAR elements required */
-    for( slength=0, i=0; utf8[i]; i+=length )
+    for( slength=0, i=0; utf8[i] && i<rdbytes; i+=length )
     {
         cp = sgui_utf8_decode( utf8+i, &length );
         slength += (cp>0x0000FFFF && cp<0x00110000) ? 2 : 1;
@@ -99,7 +99,8 @@ static WCHAR* utf8_to_utf16( const char* utf8 )
     /* convert */
     if( ptr )
     {
-        for( i=0; *utf8; ++i, utf8+=length )
+        for( slength=0, i=0; *utf8 && slength<rdbytes; ++i, utf8+=length,
+                                                       slength+=length )
         {
             cp = sgui_utf8_decode( utf8, &length );
 
@@ -175,7 +176,8 @@ static char* utf16_to_utf8( WCHAR* utf16 )
     return (char*)ptr;
 }
 
-void w32_window_write_clipboard( sgui_window* wnd, const char* text )
+void w32_window_write_clipboard( sgui_window* wnd, const char* text,
+                                 unsigned int length )
 {
     unsigned int i;
 	HGLOBAL hDATA;
@@ -194,7 +196,7 @@ void w32_window_write_clipboard( sgui_window* wnd, const char* text )
 	EmptyClipboard( );
 
     /* convert text to utf16 and measure length */
-    ptr = utf8_to_utf16( text );
+    ptr = utf8_to_utf16( text, length );
     for( i=0; ptr[i]; ++i ) { }
 
     /* alocate buffer handle and copy the converted text */

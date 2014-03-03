@@ -364,9 +364,25 @@ SGUI_DLL void* sgui_window_get_userptr( sgui_window* wnd );
  */
 SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
 
+/**
+ * \brief Write a fraction of text to the system clipboard
+ *
+ * \param wnd    A pointer to a window through which to access the clipboard
+ * \param text   A pointer to a text to write to the clipboard
+ * \param length The number of bytes to read from the text buffer
+ */
 SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
-                                           const char* text );
+                                           const char* text,
+                                           unsigned int length );
 
+/**
+ * \brief Read a text string from the system clipboard
+ *
+ * \param wnd A pointer to a window through which to access the clipboard
+ *
+ * \return A pointer to a global text buffer. DO NOT FREE THIS POINTER OR
+ *         ALTER THE UNDERLYING DATA
+ */
 SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
 
 /** \brief Get a pointer to the back buffer canvas object of the window */

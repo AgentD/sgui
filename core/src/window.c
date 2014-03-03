@@ -110,6 +110,7 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
              e->type==SGUI_KEY_RELEASED_EVENT) )
         {
             ev.type = e->type;
+            ev.window = e->window;
 
             switch( e->arg.i )
             {
@@ -282,10 +283,11 @@ void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r )
     }
 }
 
-void sgui_window_write_clipboard( sgui_window* wnd, const char* text )
+void sgui_window_write_clipboard( sgui_window* wnd, const char* text,
+                                  unsigned int length )
 {
     if( wnd && text && wnd->write_clipboard )
-        wnd->write_clipboard( wnd, text );
+        wnd->write_clipboard( wnd, text, length );
 }
 
 const char* sgui_window_read_clipboard( sgui_window* wnd )

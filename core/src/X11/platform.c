@@ -198,11 +198,12 @@ sgui_font_cache* get_glyph_cache( void )
 
 /****************************************************************************/
 
-void xlib_window_clipboard_write( sgui_window* wnd, const char* text )
+void xlib_window_clipboard_write( sgui_window* wnd, const char* text,
+                                  unsigned int length )
 {
     sgui_internal_lock_mutex( );
 
-    clipboard_strlen = strlen( text );
+    clipboard_strlen = length;
 
     if( clipboard_size <= clipboard_strlen )
     {
@@ -210,7 +211,7 @@ void xlib_window_clipboard_write( sgui_window* wnd, const char* text )
         clipboard_buffer = realloc( clipboard_buffer, clipboard_size );
     }
 
-    memcpy( clipboard_buffer, text, clipboard_strlen );
+    strncpy( clipboard_buffer, text, clipboard_strlen );
     clipboard_buffer[ clipboard_strlen ] = '\0';
 
     XSetSelectionOwner( dpy, atom_clipboard, TO_X11(wnd)->wnd, CurrentTime );

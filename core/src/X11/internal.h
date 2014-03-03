@@ -106,7 +106,8 @@ extern Atom atom_wm_delete;
 extern FT_Library freetype;
 
 /* in platform.c: implementation of window clipboard_write */
-void xlib_window_clipboard_write( sgui_window* super, const char* text );
+void xlib_window_clipboard_write( sgui_window* super, const char* text,
+                                  unsigned int length );
 
 /* in platform.c: implementation of window clipboard_read */
 const char* xlib_window_clipboard_read( sgui_window* super );

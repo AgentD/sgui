@@ -497,7 +497,8 @@ struct sgui_window
      */
     void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
 
-    void (* write_clipboard )( sgui_window* wnd, const char* text );
+    void (* write_clipboard )( sgui_window* wnd, const char* text,
+                               unsigned int length );
 
     const char* (* read_clipboard )( sgui_window* wnd );
 };

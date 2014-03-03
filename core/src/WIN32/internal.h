@@ -96,7 +96,8 @@ extern const char* wndclass;
 extern FT_Library freetype;
 
 /* in platform.c: implementation of the clipboard write function */
-void w32_window_write_clipboard( sgui_window* wnd, const char* text );
+void w32_window_write_clipboard( sgui_window* wnd, const char* text,
+                                 unsigned int length );
 
 /* in platform.c: implementation of the clipboard read function */
 const char* w32_window_read_clipboard( sgui_window* wnd );
