@@ -98,8 +98,9 @@ SGUI_DLL sgui_filesystem* sgui_filesystem_get_default( void );
  * \param buffer A pointer to a buffer to read to
  * \param size   The size of the given read buffer
  */
-SGUI_DLL void sgui_filesystem_read_line( sgui_filesystem* fs, void* file,
-                                         char* buffer, unsigned int size );
+SGUI_DLL void sgui_filesystem_read_line( const sgui_filesystem* fs,
+                                         void* file, char* buffer,
+                                         unsigned int size );
 
 #ifdef __cplusplus
 }

@@ -66,7 +66,7 @@ SGUI_DLL sgui_font* sgui_font_load_memory( const void* data,
 SGUI_DLL void sgui_font_destroy( sgui_font* font );
 
 /** \brief Get the rendering height of a font in pixels */
-SGUI_DLL unsigned int sgui_font_get_height( sgui_font* font );
+SGUI_DLL unsigned int sgui_font_get_height( const sgui_font* font );
 
 /**
  * \brief Get the kerning distance between to characters

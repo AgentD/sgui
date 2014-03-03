@@ -36,26 +36,26 @@
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
     char* caption;
 }
 sgui_group_box;
 
 
 
-static void group_box_draw( sgui_widget* widget )
+static void group_box_draw( sgui_widget* super )
 {
-    sgui_group_box* gb = (sgui_group_box*)widget;
+    sgui_group_box* this = (sgui_group_box*)super;
 
-    sgui_skin_draw_group_box( widget->canvas, &(widget->area), gb->caption );
+    sgui_skin_draw_group_box( super->canvas, &(super->area), this->caption );
 }
 
-static void group_box_destroy( sgui_widget* box )
+static void group_box_destroy( sgui_widget* super )
 {
-    sgui_group_box* b = (sgui_group_box*)box;
+    sgui_group_box* this = (sgui_group_box*)super;
 
-    free( b->caption );
-    free( b );
+    free( this->caption );
+    free( this );
 }
 
 
@@ -64,29 +64,30 @@ sgui_widget* sgui_group_box_create( int x, int y,
                                     unsigned int width, unsigned int height,
                                     const char* caption )
 {
-    sgui_group_box* b = malloc( sizeof(sgui_group_box) );
+    sgui_group_box* this = malloc( sizeof(sgui_group_box) );
+    sgui_widget* super = (sgui_widget*)this;
 
-    if( !b )
+    if( !this )
         return NULL;
 
     /* try to store the caption string */
-    b->caption = malloc( strlen( caption ) + 1 );
+    this->caption = malloc( strlen( caption ) + 1 );
 
-    if( !b->caption )
+    if( !this->caption )
     {
-        free( b );
+        free( this );
         return NULL;
     }
 
-    strcpy( b->caption, caption );
+    strcpy( this->caption, caption );
 
     /* initialize widget base struct */
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width, height );
+    sgui_internal_widget_init( super, x, y, width, height );
 
-    b->widget.draw_callback = group_box_draw;
-    b->widget.destroy = group_box_destroy;
-    b->widget.focus_policy = 0;
+    super->draw_callback = group_box_draw;
+    super->destroy = group_box_destroy;
+    super->focus_policy = 0;
 
-    return (sgui_widget*)b;
+    return super;
 }
 

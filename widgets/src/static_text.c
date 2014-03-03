@@ -37,7 +37,7 @@
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
 
     char* text;
 }
@@ -45,54 +45,57 @@ sgui_static_text;
 
 
 
-static void static_text_draw( sgui_widget* w )
+static void static_text_draw( sgui_widget* super )
 {
-    sgui_static_text* t = (sgui_static_text*)w;
+    sgui_static_text* this = (sgui_static_text*)super;
 
-    sgui_canvas_draw_text( w->canvas, w->area.left, w->area.top, t->text );
+    sgui_canvas_draw_text( super->canvas, super->area.left, super->area.top,
+                           this->text );
 }
 
-static void static_text_destroy( sgui_widget* widget )
+static void static_text_destroy( sgui_widget* this )
 {
-    free( ((sgui_static_text*)widget)->text );
-    free( widget );
+    free( ((sgui_static_text*)this)->text );
+    free( this );
 }
 
 
 
 sgui_widget* sgui_static_text_create( int x, int y, const char* text )
 {
-    sgui_static_text* t;
+    sgui_static_text* this;
+    sgui_widget* super;
 
     /* create widget */
-    t = malloc( sizeof(sgui_static_text) );
+    this = malloc( sizeof(sgui_static_text) );
+    super = (sgui_widget*)this;
 
-    if( !t )
+    if( !this )
         return NULL;
 
     /* allocate space for the text */
-    t->text = malloc( strlen(text)+1 );
+    this->text = malloc( strlen(text)+1 );
 
-    if( !t->text )
+    if( !this->text )
     {
-        free( t );
+        free( this );
         return NULL;
     }
 
     /* initialise the base widget */
-    sgui_internal_widget_init( (sgui_widget*)t, 0, 0, 0, 0 );
+    sgui_internal_widget_init( (sgui_widget*)this, 0, 0, 0, 0 );
 
-    t->widget.draw_callback = static_text_draw;
-    t->widget.destroy       = static_text_destroy;
-    t->widget.focus_policy  = 0;
+    super->draw_callback = static_text_draw;
+    super->destroy       = static_text_destroy;
+    super->focus_policy  = 0;
 
     /* copy the text */
-    strcpy( t->text, text );
+    strcpy( this->text, text );
 
     /* compute the text area */
-    sgui_skin_get_text_extents( text, &t->widget.area );
-    sgui_rect_set_position( &t->widget.area, x, y );
+    sgui_skin_get_text_extents( text, &super->area );
+    sgui_rect_set_position( &super->area, x, y );
 
-    return (sgui_widget*)t;
+    return (sgui_widget*)this;
 }
 

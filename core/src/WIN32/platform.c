@@ -176,13 +176,13 @@ static char* utf16_to_utf8( WCHAR* utf16 )
     return (char*)ptr;
 }
 
-void w32_window_write_clipboard( sgui_window* wnd, const char* text,
+void w32_window_write_clipboard( sgui_window* this, const char* text,
                                  unsigned int length )
 {
     unsigned int i;
 	HGLOBAL hDATA;
 	WCHAR* ptr;
-	(void)wnd;
+	(void)this;
 
     /* try to open and empty the clipboard */
     sgui_internal_lock_mutex( );
@@ -211,11 +211,11 @@ void w32_window_write_clipboard( sgui_window* wnd, const char* text,
 	sgui_internal_unlock_mutex( );
 }
 
-const char* w32_window_read_clipboard( sgui_window* wnd )
+const char* w32_window_read_clipboard( sgui_window* this )
 {
     WCHAR* buffer = NULL;
     HANDLE hDATA;
-    (void)wnd;
+    (void)this;
 
     /* try to open the clipboard */
     sgui_internal_lock_mutex( );
@@ -241,16 +241,16 @@ const char* w32_window_read_clipboard( sgui_window* wnd )
 
 /****************************************************************************/
 
-void add_window( sgui_window_w32* wnd )
+void add_window( sgui_window_w32* this )
 {
-    SGUI_ADD_TO_LIST( list, wnd );
+    SGUI_ADD_TO_LIST( list, this );
 }
 
-void remove_window( sgui_window_w32* wnd )
+void remove_window( sgui_window_w32* this )
 {
     sgui_window_w32* i;
 
-    SGUI_REMOVE_FROM_LIST( list, i, wnd );
+    SGUI_REMOVE_FROM_LIST( list, i, this );
 }
 
 /****************************************************************************/

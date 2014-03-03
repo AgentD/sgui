@@ -60,7 +60,8 @@ SGUI_DLL void sgui_widget_set_position( sgui_widget* w, int x, int y );
  * \param x Returns the x component of the position
  * \param y Returns the y component of the position
  */
-SGUI_DLL void sgui_widget_get_position( sgui_widget* w, int* x, int* y );
+SGUI_DLL void sgui_widget_get_position( const sgui_widget* w,
+                                        int* x, int* y );
 
 /**
  * \brief Get the absolute position of a widget (i.e. not parent relative
@@ -70,7 +71,7 @@ SGUI_DLL void sgui_widget_get_position( sgui_widget* w, int* x, int* y );
  * \param x Returns the x component of the position
  * \param y Returns the y component of the position
  */
-SGUI_DLL void sgui_widget_get_absolute_position( sgui_widget* w,
+SGUI_DLL void sgui_widget_get_absolute_position( const sgui_widget* w,
                                                  int* x, int* y );
 
 /**
@@ -80,20 +81,20 @@ SGUI_DLL void sgui_widget_get_absolute_position( sgui_widget* w,
  * \param width  Returns the width of the widget
  * \param height Returns the height of the widget
  */
-SGUI_DLL void sgui_widget_get_size( sgui_widget* w,
+SGUI_DLL void sgui_widget_get_size( const sgui_widget* w,
                                     unsigned int* width,
                                     unsigned int* height );
 
 /**
  * \brief Returns non-zero if the given widget is configured to be rendered
  */
-SGUI_DLL int sgui_widget_is_visible( sgui_widget* w );
+SGUI_DLL int sgui_widget_is_visible( const sgui_widget* w );
 
 /**
  * \brief Returns non-zero if the given widget is visible and all its parents
  *        are visible too
  */
-SGUI_DLL int sgui_widget_is_absolute_visible( sgui_widget* w );
+SGUI_DLL int sgui_widget_is_absolute_visible( const sgui_widget* w );
 
 /**
  * \brief Set whether a given widget should be rendered or not
@@ -109,7 +110,7 @@ SGUI_DLL void sgui_widget_set_visible( sgui_widget* w, int visible );
  * \param w The widget
  * \param r Returns the rectangle
  */
-SGUI_DLL void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
+SGUI_DLL void sgui_widget_get_rect( const sgui_widget* w, sgui_rect* r );
 
 /**
  * \brief Get the bounding box of a widget in absolute coordinates (i.e. not
@@ -118,7 +119,8 @@ SGUI_DLL void sgui_widget_get_rect( sgui_widget* w, sgui_rect* r );
  * \param w The widget to get the position from
  * \param r Returns the rect
  */
-SGUI_DLL void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r );
+SGUI_DLL void sgui_widget_get_absolute_rect( const sgui_widget* w,
+                                             sgui_rect* r );
 
 /**
  * \brief Send a parent widget or window event to a widget
@@ -132,7 +134,8 @@ SGUI_DLL void sgui_widget_get_absolute_rect( sgui_widget* w, sgui_rect* r );
  * \param propagate Nonzero if the event should be propagate to the widgets
  *                  children, zero if it should not
  */
-SGUI_DLL void sgui_widget_send_event( sgui_widget* widget, sgui_event* event,
+SGUI_DLL void sgui_widget_send_event( sgui_widget* widget,
+                                      const sgui_event* event,
                                       int propagate );
 
 /**
@@ -187,8 +190,9 @@ SGUI_DLL void sgui_widget_remove_from_parent( sgui_widget* widget );
  * \return A pointer to a widget or NULL if the point does not lie inside any
  *         widget.
  */
-SGUI_DLL sgui_widget* sgui_widget_get_child_from_point( sgui_widget* widget,
-                                                        int x, int y );
+SGUI_DLL sgui_widget* sgui_widget_get_child_from_point(
+                                            const sgui_widget* widget,
+                                            int x, int y );
 
 
 

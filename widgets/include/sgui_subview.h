@@ -46,7 +46,7 @@ typedef void (* sgui_subview_draw_fun )( sgui_widget* subview );
  * \param event   A pointer to an event structure with more information
  */
 typedef void (* sgui_subview_window_fun )( sgui_widget* subview,
-                                           sgui_event* event );
+                                           const sgui_event* event );
 
 
 

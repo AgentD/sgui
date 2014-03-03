@@ -41,27 +41,27 @@
 
 
 
-void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
+void sgui_internal_window_post_init( sgui_window* this, unsigned int width,
                                      unsigned int height, int backend )
 {
-    if( window )
+    if( this )
     {
-        window->w       = width;
-        window->h       = height;
-        window->backend = backend;
-        window->modmask = 0;
+        this->w       = width;
+        this->h       = height;
+        this->backend = backend;
+        this->modmask = 0;
 
-        sgui_canvas_begin( window->canvas, NULL );
-        sgui_canvas_clear( window->canvas, NULL );
-        sgui_canvas_end( window->canvas );
+        sgui_canvas_begin( this->canvas, NULL );
+        sgui_canvas_clear( this->canvas, NULL );
+        sgui_canvas_end( this->canvas );
     }
 }
 
-void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
+void sgui_internal_window_fire_event( sgui_window* this, const sgui_event* e )
 {
     sgui_event ev;
 
-    if( wnd )
+    if( this )
     {
         if( e->type == SGUI_KEY_PRESSED_EVENT )
         {
@@ -69,15 +69,15 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
             {
             case SGUI_KC_SHIFT:
             case SGUI_KC_LSHIFT:
-            case SGUI_KC_RSHIFT:    wnd->modmask |= SGUI_MOD_SHIFT; break;
+            case SGUI_KC_RSHIFT:    this->modmask |= SGUI_MOD_SHIFT; break;
             case SGUI_KC_CONTROL:
             case SGUI_KC_LCONTROL:
-            case SGUI_KC_RCONTROL:  wnd->modmask |= SGUI_MOD_CTRL; break;
+            case SGUI_KC_RCONTROL:  this->modmask |= SGUI_MOD_CTRL; break;
             case SGUI_KC_ALT:
             case SGUI_KC_LALT:
-            case SGUI_KC_RALT:      wnd->modmask |= SGUI_MOD_ALT; break;
+            case SGUI_KC_RALT:      this->modmask |= SGUI_MOD_ALT; break;
             case SGUI_KC_LSUPER:
-            case SGUI_KC_RSUPER:    wnd->modmask |= SGUI_MOD_SUPER; break;
+            case SGUI_KC_RSUPER:    this->modmask |= SGUI_MOD_SUPER; break;
             }
         }
         else if( e->type == SGUI_KEY_RELEASED_EVENT )
@@ -86,26 +86,26 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
             {
             case SGUI_KC_SHIFT:
             case SGUI_KC_LSHIFT:
-            case SGUI_KC_RSHIFT:    wnd->modmask &= ~SGUI_MOD_SHIFT; break;
+            case SGUI_KC_RSHIFT:    this->modmask &= ~SGUI_MOD_SHIFT; break;
             case SGUI_KC_CONTROL:
             case SGUI_KC_LCONTROL:
-            case SGUI_KC_RCONTROL:  wnd->modmask &= ~SGUI_MOD_CTRL; break;
+            case SGUI_KC_RCONTROL:  this->modmask &= ~SGUI_MOD_CTRL; break;
             case SGUI_KC_ALT:
             case SGUI_KC_LALT:
-            case SGUI_KC_RALT:      wnd->modmask &= ~SGUI_MOD_ALT; break;
+            case SGUI_KC_RALT:      this->modmask &= ~SGUI_MOD_ALT; break;
             case SGUI_KC_LSUPER:
-            case SGUI_KC_RSUPER:    wnd->modmask &= ~SGUI_MOD_SUPER; break;
+            case SGUI_KC_RSUPER:    this->modmask &= ~SGUI_MOD_SUPER; break;
             }
         }
 
-        if( wnd->event_fun )
-            wnd->event_fun( wnd->userptr, e );
+        if( this->event_fun )
+            this->event_fun( this->userptr, e );
 
         sgui_event_post( e );
-        sgui_canvas_send_window_event( wnd->canvas, e );
+        sgui_canvas_send_window_event( this->canvas, e );
 
         /* generate events for special key combinations */
-        if( (wnd->modmask==SGUI_MOD_CTRL) &&
+        if( (this->modmask==SGUI_MOD_CTRL) &&
             (e->type==SGUI_KEY_PRESSED_EVENT ||
              e->type==SGUI_KEY_RELEASED_EVENT) )
         {
@@ -120,11 +120,11 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
             case CUT_KEY:    ev.arg.i = SGUI_KC_CUT;        break;
             }
 
-            if( wnd->event_fun )
-                wnd->event_fun( wnd->userptr, &ev );
+            if( this->event_fun )
+                this->event_fun( this->userptr, &ev );
 
             sgui_event_post( &ev );
-            sgui_canvas_send_window_event( wnd->canvas, &ev );
+            sgui_canvas_send_window_event( this->canvas, &ev );
         }
     }
 }
@@ -149,170 +149,170 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     return sgui_window_create_desc( &desc );
 }
 
-void sgui_window_get_mouse_position( sgui_window* wnd, int* x, int* y )
+void sgui_window_get_mouse_position( sgui_window* this, int* x, int* y )
 {
     int mx = 0, my = 0;
 
-    if( wnd )
+    if( this )
     {
-        wnd->get_mouse_position( wnd, &mx, &my );
+        this->get_mouse_position( this, &mx, &my );
 
-        mx = mx<0 ? 0 : (mx>=(int)wnd->w ? ((int)wnd->w-1) : mx);
-        my = my<0 ? 0 : (my>=(int)wnd->h ? ((int)wnd->h-1) : my);
+        mx = mx<0 ? 0 : (mx>=(int)this->w ? ((int)this->w-1) : mx);
+        my = my<0 ? 0 : (my>=(int)this->h ? ((int)this->h-1) : my);
     }
 
     if( x ) *x = mx;
     if( y ) *y = my;
 }
 
-void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
+void sgui_window_set_mouse_position( sgui_window* this, int x, int y,
                                      int send_event )
 {
     sgui_event e;
 
-    if( wnd && wnd->visible )
+    if( this && this->visible )
     {
         sgui_internal_lock_mutex( );
-        x = x<0 ? 0 : (x>=(int)wnd->w ? ((int)wnd->w-1) : x);
-        y = y<0 ? 0 : (y>=(int)wnd->h ? ((int)wnd->h-1) : y);
+        x = x<0 ? 0 : (x>=(int)this->w ? ((int)this->w-1) : x);
+        y = y<0 ? 0 : (y>=(int)this->h ? ((int)this->h-1) : y);
 
-        wnd->set_mouse_position( wnd, x, y );
+        this->set_mouse_position( this, x, y );
 
         if( send_event )
         {
             e.arg.i2.x = x;
             e.arg.i2.y = y;
-            e.window = wnd;
+            e.window = this;
             e.type = SGUI_MOUSE_MOVE_EVENT;
-            sgui_internal_window_fire_event( wnd, &e );
+            sgui_internal_window_fire_event( this, &e );
         }
         sgui_internal_unlock_mutex( );
     }
 }
 
-void sgui_window_set_visible( sgui_window* wnd, int visible )
+void sgui_window_set_visible( sgui_window* this, int visible )
 {
     sgui_event ev;
  
-    if( !wnd || (wnd->visible==visible) )
+    if( !this || (this->visible==visible) )
         return;
 
     sgui_internal_lock_mutex( );
-    wnd->set_visible( wnd, visible );
-    wnd->visible = visible;
+    this->set_visible( this, visible );
+    this->visible = visible;
 
     if( !visible )
     {
-        ev.window = wnd;
+        ev.window = this;
         ev.type = SGUI_API_INVISIBLE_EVENT;
-        sgui_internal_window_fire_event( wnd, &ev );
+        sgui_internal_window_fire_event( this, &ev );
     }
 
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_window_set_title( sgui_window* wnd, const char* title )
+void sgui_window_set_title( sgui_window* this, const char* title )
 {
-    if( wnd && title )
-        wnd->set_title( wnd, title );
+    if( this && title )
+        this->set_title( this, title );
 }
 
-void sgui_window_set_size( sgui_window* wnd,
+void sgui_window_set_size( sgui_window* this,
                            unsigned int width, unsigned int height )
 {
-    if( wnd && width && height && (width!=wnd->w || height!=wnd->h) )
+    if( this && width && height && (width!=this->w || height!=this->h) )
     {
-        wnd->set_size( wnd, width, height );
+        this->set_size( this, width, height );
 
         /* resize the canvas */
-        sgui_canvas_resize( wnd->canvas, wnd->w, wnd->h );
-        sgui_canvas_draw_widgets( wnd->canvas, 1 );
+        sgui_canvas_resize( this->canvas, this->w, this->h );
+        sgui_canvas_draw_widgets( this->canvas, 1 );
     }
 }
 
-void sgui_window_move_center( sgui_window* wnd )
+void sgui_window_move_center( sgui_window* this )
 {
-    if( wnd )
-        wnd->move_center( wnd );
+    if( this )
+        this->move_center( this );
 }
 
-void sgui_window_move( sgui_window* wnd, int x, int y )
+void sgui_window_move( sgui_window* this, int x, int y )
 {
-    if( wnd )
+    if( this )
     {
         sgui_internal_lock_mutex( );
-        wnd->move( wnd, x, y );
-        wnd->x = x;
-        wnd->y = y;
+        this->move( this, x, y );
+        this->x = x;
+        this->y = y;
         sgui_internal_unlock_mutex( );
     }
 }
 
-void sgui_window_swap_buffers( sgui_window* wnd )
+void sgui_window_swap_buffers( sgui_window* this )
 {
-    if( wnd && wnd->swap_buffers )
-        wnd->swap_buffers( wnd );
+    if( this && this->swap_buffers )
+        this->swap_buffers( this );
 }
 
-void sgui_window_destroy( sgui_window* wnd )
+void sgui_window_destroy( sgui_window* this )
 {
     sgui_event ev;
 
-    if( wnd )
+    if( this )
     {
-        ev.window = wnd;
+        ev.window = this;
         ev.type = SGUI_API_DESTROY_EVENT;
-        sgui_internal_window_fire_event( wnd, &ev );
+        sgui_internal_window_fire_event( this, &ev );
 
-        wnd->destroy( wnd );
+        this->destroy( this );
     }
 }
 
-void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r )
+void sgui_window_force_redraw( sgui_window* this, sgui_rect* r )
 {
     sgui_rect r0;
 
-    if( wnd && r )
+    if( this && r )
     {
-        r0.left   = r->left  <           0 ?               0 : r->left;
-        r0.top    = r->top   <           0 ?               0 : r->top;
-        r0.right  = r->right >=(int)wnd->w ? ((int)wnd->w-1) : r->right;
-        r0.bottom = r->bottom>=(int)wnd->h ? ((int)wnd->h-1) : r->bottom;
+        r0.left   = r->left  <            0 ?                0 : r->left;
+        r0.top    = r->top   <            0 ?                0 : r->top;
+        r0.right  = r->right >=(int)this->w ? ((int)this->w-1) : r->right;
+        r0.bottom = r->bottom>=(int)this->h ? ((int)this->h-1) : r->bottom;
 
-        wnd->force_redraw( wnd, &r0 );
+        this->force_redraw( this, &r0 );
     }
 }
 
-void sgui_window_write_clipboard( sgui_window* wnd, const char* text,
+void sgui_window_write_clipboard( sgui_window* this, const char* text,
                                   unsigned int length )
 {
-    if( wnd && text && wnd->write_clipboard )
-        wnd->write_clipboard( wnd, text, length );
+    if( this && text && this->write_clipboard )
+        this->write_clipboard( this, text, length );
 }
 
-const char* sgui_window_read_clipboard( sgui_window* wnd )
+const char* sgui_window_read_clipboard( sgui_window* this )
 {
-    return (wnd && wnd->read_clipboard) ? wnd->read_clipboard( wnd ) : NULL;
+    return (this && this->read_clipboard) ? this->read_clipboard( this ) : 0;
 }
 
 /****************************************************************************/
 
-int sgui_window_get_modifyer_mask( sgui_window* wnd )
+int sgui_window_get_modifyer_mask( const sgui_window* this )
 {
-    return wnd ? wnd->modmask : 0;
+    return this ? this->modmask : 0;
 }
 
-int sgui_window_is_visible( sgui_window* wnd )
+int sgui_window_is_visible( const sgui_window* this )
 {
-    return wnd ? wnd->visible : 0;
+    return this ? this->visible : 0;
 }
 
-void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
+void sgui_window_get_position( const sgui_window* this, int* x, int* y )
 {
-    if( wnd )
+    if( this )
     {
-        if( x ) *x = wnd->x;
-        if( y ) *y = wnd->y;
+        if( x ) *x = this->x;
+        if( y ) *y = this->y;
     }
     else
     {
@@ -321,13 +321,13 @@ void sgui_window_get_position( sgui_window* wnd, int* x, int* y )
     }
 }
 
-void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
+void sgui_window_get_size( const sgui_window* this, unsigned int* width,
                            unsigned int* height )
 {
-    if( wnd )
+    if( this )
     {
-        if( width  ) *width  = wnd->w;
-        if( height ) *height = wnd->h;
+        if( width  ) *width  = this->w;
+        if( height ) *height = this->h;
     }
     else
     {
@@ -336,31 +336,31 @@ void sgui_window_get_size( sgui_window* wnd, unsigned int* width,
     }
 }
 
-void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget )
+void sgui_window_add_widget( sgui_window* this, sgui_widget* widget )
 {
-    if( wnd )
-        sgui_widget_add_child( sgui_canvas_get_root(wnd->canvas), widget );
+    if( this )
+        sgui_widget_add_child( sgui_canvas_get_root(this->canvas), widget );
 }
 
-void sgui_window_on_event( sgui_window* wnd, sgui_window_callback fun )
+void sgui_window_on_event( sgui_window* this, sgui_window_callback fun )
 {
-    if( wnd )
-        wnd->event_fun = fun;
+    if( this )
+        this->event_fun = fun;
 }
 
-sgui_canvas* sgui_window_get_canvas( sgui_window* wnd )
+sgui_canvas* sgui_window_get_canvas( const sgui_window* this )
 {
-    return wnd ? wnd->canvas : NULL;
+    return this ? this->canvas : NULL;
 }
 
-void sgui_window_set_userptr( sgui_window* wnd, void* ptr )
+void sgui_window_set_userptr( sgui_window* this, void* ptr )
 {
-    if( wnd )
-        wnd->userptr = ptr;
+    if( this )
+        this->userptr = ptr;
 }
 
-void* sgui_window_get_userptr( sgui_window* wnd )
+void* sgui_window_get_userptr( const sgui_window* this )
 {
-    return wnd ? wnd->userptr : NULL;
+    return this ? this->userptr : NULL;
 }
 

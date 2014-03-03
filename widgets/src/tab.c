@@ -48,7 +48,7 @@ sgui_tab;
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
 
     sgui_tab* tabs;
     unsigned int tab_cap_width, tab_cap_height;
@@ -57,12 +57,12 @@ sgui_tab_group;
 
 
 
-static void tab_group_destroy( sgui_widget* tab )
+static void tab_group_destroy( sgui_widget* super )
 {
-    sgui_tab_group* t = (sgui_tab_group*)tab;
+    sgui_tab_group* this = (sgui_tab_group*)super;
     sgui_tab *i, *old;
 
-    i = t->tabs;
+    i = this->tabs;
 
     while( i!=NULL )
     {
@@ -72,24 +72,24 @@ static void tab_group_destroy( sgui_widget* tab )
         free( old );
     }
 
-    free( t );
+    free( this );
 }
 
-static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
+static void tab_group_on_event( sgui_widget* super, const sgui_event* e )
 {
-    sgui_tab_group* g = (sgui_tab_group*)widget;
+    sgui_tab_group* this = (sgui_tab_group*)super;
     sgui_tab *i, *j;
     sgui_event ev;
     int x;
 
-    ev.widget = widget;
+    ev.widget = super;
 
     if( e->type == SGUI_MOUSE_PRESS_EVENT )
     {
         sgui_internal_lock_mutex( );
 
         /* determine which tab caption was clicked */
-        for( x=e->arg.i3.x, i=g->tabs; i!=NULL; i=i->next )
+        for( x=e->arg.i3.x, i=this->tabs; i!=NULL; i=i->next )
         {
             if( x>=0 && x<(int)i->caption_width )
                 break;
@@ -100,7 +100,7 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
         /* select coresponding tab and deselect the current one */
         if( i && !i->dummy.visible )
         {
-            for( j=g->tabs; j!=NULL && !j->dummy.visible; j=j->next );
+            for( j=this->tabs; j!=NULL && !j->dummy.visible; j=j->next );
 
             if( j )
             {
@@ -125,21 +125,21 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
 
         if( e->arg.i==SGUI_KC_LEFT )
         {
-            if( g->tabs->dummy.visible )
+            if( this->tabs->dummy.visible )
             {
                 sgui_internal_unlock_mutex( );
                 return;
             }
 
             /* find currently selected and tab and its predecessor */
-            for( i=g->tabs; i!=NULL && !i->next->dummy.visible; i=i->next );
+            for(i=this->tabs; i!=NULL && !i->next->dummy.visible; i=i->next);
 
             j = i->next;
         }
         else
         {
             /* find currently selected and tab and its successor */
-            for( j=g->tabs; j!=NULL && !j->dummy.visible; j=j->next );
+            for( j=this->tabs; j!=NULL && !j->dummy.visible; j=j->next );
 
             i = j->next;
         }
@@ -165,11 +165,11 @@ static void tab_group_on_event( sgui_widget* widget, sgui_event* e )
     }
 }
 
-static void tab_group_draw( sgui_widget* widget )
+static void tab_group_draw( sgui_widget* super )
 {
-    sgui_tab_group* g = (sgui_tab_group*)widget;
-    int x = g->widget.area.left, y = g->widget.area.top;
-    sgui_canvas* cv = g->widget.canvas;
+    sgui_tab_group* this = (sgui_tab_group*)super;
+    int x = super->area.left, y = super->area.top;
+    sgui_canvas* cv = super->canvas;
     unsigned int gap, gap_w;
     sgui_rect r;
     sgui_tab* i;
@@ -177,14 +177,14 @@ static void tab_group_draw( sgui_widget* widget )
     /* draw tab captions. TODO: what if there are too many captions? */
     sgui_internal_lock_mutex( );
 
-    for( i=g->tabs; i!=NULL; i=i->next )
+    for( i=this->tabs; i!=NULL; i=i->next )
     {
         sgui_skin_draw_tab_caption( cv, x, y, i->caption, i->caption_width );
         x += i->caption_width;
     }
 
     /* draw selected tab */
-    for( i=g->tabs, gap=0; i!=NULL; i=i->next )
+    for( i=this->tabs, gap=0; i!=NULL; i=i->next )
     {
         if( i->dummy.visible )
         {
@@ -197,8 +197,8 @@ static void tab_group_draw( sgui_widget* widget )
 
     if( i )
     {
-        r = widget->area;
-        r.top += g->tab_cap_height;
+        r = super->area;
+        r.top += this->tab_cap_height;
         sgui_skin_draw_tab( cv, &r, gap, gap_w );
     }
 
@@ -219,24 +219,24 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
     sgui_skin_get_tap_caption_extents( &r );
 
-    g->widget.draw_callback         = tab_group_draw;
-    g->widget.window_event_callback = tab_group_on_event;
-    g->widget.destroy               = tab_group_destroy;
-    g->tabs                         = NULL;
-    g->tab_cap_height               = SGUI_RECT_HEIGHT( r );
-    g->tab_cap_width                = SGUI_RECT_WIDTH( r );
+    g->super.draw_callback         = tab_group_draw;
+    g->super.window_event_callback = tab_group_on_event;
+    g->super.destroy               = tab_group_destroy;
+    g->tabs                        = NULL;
+    g->tab_cap_height              = SGUI_RECT_HEIGHT( r );
+    g->tab_cap_width               = SGUI_RECT_WIDTH( r );
 
     return (sgui_widget*)g;
 }
 
-int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
+int sgui_tab_group_add_tab( sgui_widget* super, const char* caption )
 {
-    sgui_tab_group* g = (sgui_tab_group*)tab;
+    sgui_tab_group* this = (sgui_tab_group*)super;
     sgui_tab* i;
     sgui_tab* t;
     int idx = -1;
 
-    if( !g || !caption )
+    if( !this || !caption )
         return -1;
 
     /* allocate a new tab */
@@ -259,45 +259,46 @@ int sgui_tab_group_add_tab( sgui_widget* tab, const char* caption )
     strcpy( t->caption, caption );
 
     sgui_internal_lock_mutex( );
-    t->caption_width = g->tab_cap_width +
+    t->caption_width = this->tab_cap_width +
                        sgui_skin_default_font_extents( caption, -1, 0, 0 );
 
-    t->dummy.area.top = g->tab_cap_height;
-    t->dummy.area.right = tab->area.right - tab->area.left;
-    t->dummy.area.bottom = t->dummy.area.top+tab->area.bottom-tab->area.top;
-    t->dummy.visible = (g->tabs==NULL);     /* first is visible by default */
-    t->dummy.canvas = tab->canvas;
+    t->dummy.area.top = this->tab_cap_height;
+    t->dummy.area.right = super->area.right - super->area.left;
+    t->dummy.area.bottom = t->dummy.area.top + super->area.bottom -
+                           super->area.top;
+    t->dummy.visible = (this->tabs==NULL);  /* first is visible by default */
+    t->dummy.canvas = super->canvas;
     t->dummy.focus_policy = 0;
 
-    sgui_widget_add_child( tab, &t->dummy );
+    sgui_widget_add_child( super, &t->dummy );
 
     /* add the tab to the end, if we already have tabs */
-    if( g->tabs )
+    if( this->tabs )
     {
-        for( idx=0, i=g->tabs; i->next; i=i->next, ++idx );
+        for( idx=0, i=this->tabs; i->next; i=i->next, ++idx );
 
         i->next = t;
         sgui_internal_unlock_mutex( );
         return idx + 1;
     }
 
-    g->tabs = t;
+    this->tabs = t;
     sgui_internal_unlock_mutex( );
     return 0;
 }
 
-void sgui_tab_group_add_widget( sgui_widget* tab, int idx, sgui_widget* w )
+void sgui_tab_group_add_widget( sgui_widget* this, int idx, sgui_widget* w )
 {
     sgui_event ev;
     sgui_tab* i;
     int count;
 
-    if( tab && idx>=0 && w )
+    if( this && idx>=0 && w )
     {
         sgui_internal_lock_mutex( );
 
         /* find the tab for the number */
-        i = ((sgui_tab_group*)tab)->tabs;
+        i = ((sgui_tab_group*)this)->tabs;
         for( count=0; count<idx && i; i=i->next, ++count );
 
         if( count!=idx || !i )
@@ -310,7 +311,7 @@ void sgui_tab_group_add_widget( sgui_widget* tab, int idx, sgui_widget* w )
         sgui_widget_add_child( &i->dummy, w );
 
         /* send a tab select/deselect event */
-        ev.widget = tab;
+        ev.widget = this;
         ev.type = i->dummy.visible ? SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
 
         sgui_widget_send_event( w, &ev, 1 );

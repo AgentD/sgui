@@ -69,7 +69,7 @@ void sgui_rect_set_position( sgui_rect* r, int left, int top )
     }
 }
 
-void sgui_rect_copy( sgui_rect* dst, sgui_rect* src )
+void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src )
 {
     if( dst && src )
     {
@@ -80,7 +80,8 @@ void sgui_rect_copy( sgui_rect* dst, sgui_rect* src )
     }
 }
 
-int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a, sgui_rect*b )
+int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
+                                const sgui_rect* b )
 {
     do
     {
@@ -117,7 +118,7 @@ int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a, sgui_rect*b )
     return 0;
 }
 
-int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch )
+int sgui_rect_join( sgui_rect* acc, const sgui_rect* r, int only_if_touch )
 {
     if( !acc )      /* joining to a non-existant rectangle always fails */
         return 0;
@@ -142,7 +143,7 @@ int sgui_rect_join( sgui_rect* acc, sgui_rect* r, int only_if_touch )
     return 1;
 }
 
-int sgui_rect_is_point_inside( sgui_rect* r, int x, int y )
+int sgui_rect_is_point_inside( const sgui_rect* r, int x, int y )
 {
     return (r && x>=r->left && x<=r->right && y>=r->top && y<=r->bottom);
 }

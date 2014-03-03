@@ -104,7 +104,7 @@ static void set_attributes( int* attr, int bpp, int depth, int stencil,
 }
 
 int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
-                         sgui_window_description* desc )
+                         const sgui_window_description* desc )
 {
     GLXFBConfig* fbl;
     int fbcount, attr[20], samples;
@@ -189,9 +189,9 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
     return (wnd->gl!=0);
 }
 
-void gl_swap_buffers( sgui_window* wnd )
+void gl_swap_buffers( sgui_window* this )
 {
-    if( TO_X11(wnd)->is_singlebuffered )
+    if( TO_X11(this)->is_singlebuffered )
     {
         /*
             For singlebuffered contexts, glXSwapBuffers is a no-op and thus
@@ -206,13 +206,13 @@ void gl_swap_buffers( sgui_window* wnd )
     else
     {
         sgui_internal_lock_mutex( );
-        glXSwapBuffers( dpy, TO_X11(wnd)->wnd );
+        glXSwapBuffers( dpy, TO_X11(this)->wnd );
         sgui_internal_unlock_mutex( );
     }
 }
 #else
 int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
-                         sgui_window_description* desc )
+                         const sgui_window_description* desc )
 {
     (void)fbc; (void)vi; (void)cmap; (void)desc;
     return 0;

@@ -415,7 +415,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
 
 /****************************************************************************/
 
-sgui_window* sgui_window_create_desc( sgui_window_description* desc )
+sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 {
     sgui_window_w32* this;
     sgui_window* super;
@@ -563,7 +563,7 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_window_get_platform_data( sgui_window* this,
+void sgui_window_get_platform_data( const sgui_window* this,
                                     void* window, void* context )
 {
     HWND* phWnd;

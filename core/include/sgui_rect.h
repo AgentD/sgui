@@ -101,7 +101,7 @@ SGUI_DLL void sgui_rect_set_position( sgui_rect* r, int left, int top );
  * \param dst The rectangle to copy to
  * \param src The rectangle to copy from
  */
-SGUI_DLL void sgui_rect_copy( sgui_rect* dst, sgui_rect* src );
+SGUI_DLL void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src );
 
 /**
  * \brief Get the intersection between to rectangles
@@ -118,8 +118,8 @@ SGUI_DLL void sgui_rect_copy( sgui_rect* dst, sgui_rect* src );
  *
  * \return Non-zero if the rectangles intersect, zero if they don't
  */
-SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
-                                         sgui_rect* b );
+SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
+                                         const sgui_rect* b );
 
 /**
  * \brief Join two rectangles
@@ -131,7 +131,7 @@ SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, sgui_rect* a,
  *
  * \return Non-zero on success, zero otherwise.
  */
-SGUI_DLL int sgui_rect_join( sgui_rect* acc, sgui_rect* r,
+SGUI_DLL int sgui_rect_join( sgui_rect* acc, const sgui_rect* r,
                              int only_if_touch );
 
 /**
@@ -141,7 +141,7 @@ SGUI_DLL int sgui_rect_join( sgui_rect* acc, sgui_rect* r,
  * \param x The hotizontal component of the position
  * \param y The vertical component of the position
  */
-SGUI_DLL int sgui_rect_is_point_inside( sgui_rect* r, int x, int y );
+SGUI_DLL int sgui_rect_is_point_inside( const sgui_rect* r, int x, int y );
 
 #ifdef __cplusplus
 }

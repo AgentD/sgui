@@ -64,7 +64,7 @@ sgui_filesystem* sgui_filesystem_get_default( void )
     return &stdio;
 }
 
-void sgui_filesystem_read_line( sgui_filesystem* fs, void* file,
+void sgui_filesystem_read_line( const sgui_filesystem* fs, void* file,
                                 char* buffer, unsigned int size )
 {
     if( !fs || !file || !buffer || !size )

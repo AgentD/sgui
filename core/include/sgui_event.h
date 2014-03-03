@@ -252,7 +252,7 @@ SGUI_DLL void sgui_event_disconnect( void* sender, int eventtype,
  *
  * \param event A pointer to an event structure
  */
-SGUI_DLL void sgui_event_post( sgui_event* event );
+SGUI_DLL void sgui_event_post( const sgui_event* event );
 
 #ifdef __cplusplus
 }

@@ -112,7 +112,7 @@ sgui_window_description;
  * \param user  The user pointer data added to the window
  * \param event Additional data to the event
  */
-typedef void (* sgui_window_callback ) ( void* user, sgui_event* event );
+typedef void (* sgui_window_callback ) (void* user, const sgui_event* event);
 
 
 
@@ -162,7 +162,9 @@ SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
-SGUI_DLL sgui_window* sgui_window_create_desc(sgui_window_description* desc);
+SGUI_DLL sgui_window* sgui_window_create_desc(
+                                        const sgui_window_description* desc
+                                             );
 
 /**
  * \brief Make the rendering context for the window current
@@ -246,7 +248,7 @@ SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
 SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
 
 /** \brief Returns non-zero if a given window is visible, zero otherwise */
-SGUI_DLL int sgui_window_is_visible( sgui_window* wnd );
+SGUI_DLL int sgui_window_is_visible( const sgui_window* wnd );
 
 /**
  * \brief Change the title of a window
@@ -282,7 +284,7 @@ SGUI_DLL void sgui_window_set_size( sgui_window* wnd,
  * \param height Returns height of the window. Pass NULL if you're not
  *               iteressted in it.
  */
-SGUI_DLL void sgui_window_get_size( sgui_window* wnd,
+SGUI_DLL void sgui_window_get_size( const sgui_window* wnd,
                                     unsigned int* width,
                                     unsigned int* height );
 
@@ -307,7 +309,8 @@ SGUI_DLL void sgui_window_move( sgui_window* wnd, int x, int y );
  * \param y   The distance to the top of the window to the top of the screen.
  *            Pass NULL if you're not interessted in it.
  */
-SGUI_DLL void sgui_window_get_position( sgui_window* wnd, int* x, int* y );
+SGUI_DLL void sgui_window_get_position( const sgui_window* wnd,
+                                        int* x, int* y );
 
 /**
  * \brief Force redrawing of a portion of a window
@@ -352,7 +355,7 @@ SGUI_DLL void sgui_window_set_userptr( sgui_window* wnd, void* ptr );
  *
  * \return The user supplied pointer stored in the window structure
  */
-SGUI_DLL void* sgui_window_get_userptr( sgui_window* wnd );
+SGUI_DLL void* sgui_window_get_userptr( const sgui_window* wnd );
 
 /**
  * \brief Add a widget to a window
@@ -386,10 +389,10 @@ SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
 SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
 
 /** \brief Get a pointer to the back buffer canvas object of the window */
-SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
+SGUI_DLL sgui_canvas* sgui_window_get_canvas( const sgui_window* wnd );
 
 /** \brief Get a combination of SGUI_MOD_ flags for the current modifiers */
-SGUI_DLL int sgui_window_get_modifyer_mask( sgui_window* wnd );
+SGUI_DLL int sgui_window_get_modifyer_mask( const sgui_window* wnd );
 
 /**
  * \brief This function returns the platform specific objects of a window
@@ -407,7 +410,7 @@ SGUI_DLL int sgui_window_get_modifyer_mask( sgui_window* wnd );
  *                OpenGL context and receives the value of the internal
  *                context field. (HGLRC on Windows, GLXContext for Xlib).
  */
-SGUI_DLL void sgui_window_get_platform_data( sgui_window* wnd,
+SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
                                              void* window, void* context );
 
 

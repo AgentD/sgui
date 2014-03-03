@@ -163,16 +163,16 @@ static void update_windows( void )
 
 /****************************************************************************/
 
-void add_window( sgui_window_xlib* wnd )
+void add_window( sgui_window_xlib* this )
 {
-    SGUI_ADD_TO_LIST( list, wnd );
+    SGUI_ADD_TO_LIST( list, this );
 }
 
-void remove_window( sgui_window_xlib* wnd )
+void remove_window( sgui_window_xlib* this )
 {
     sgui_window_xlib* i;
 
-    SGUI_REMOVE_FROM_LIST( list, i, wnd );
+    SGUI_REMOVE_FROM_LIST( list, i, this );
 }
 
 sgui_font_cache* get_glyph_cache( void )
@@ -198,7 +198,7 @@ sgui_font_cache* get_glyph_cache( void )
 
 /****************************************************************************/
 
-void xlib_window_clipboard_write( sgui_window* wnd, const char* text,
+void xlib_window_clipboard_write( sgui_window* this, const char* text,
                                   unsigned int length )
 {
     sgui_internal_lock_mutex( );
@@ -214,13 +214,13 @@ void xlib_window_clipboard_write( sgui_window* wnd, const char* text,
     strncpy( clipboard_buffer, text, clipboard_strlen );
     clipboard_buffer[ clipboard_strlen ] = '\0';
 
-    XSetSelectionOwner( dpy, atom_clipboard, TO_X11(wnd)->wnd, CurrentTime );
+    XSetSelectionOwner( dpy, atom_clipboard, TO_X11(this)->wnd, CurrentTime );
     XFlush( dpy );
 
     sgui_internal_unlock_mutex( );
 }
 
-const char* xlib_window_clipboard_read( sgui_window* wnd )
+const char* xlib_window_clipboard_read( sgui_window* this )
 {
     Atom pty_type;
     int pty_format, convert = 0;
@@ -235,7 +235,7 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
     /* sanity check clipboard owner */
     owner = XGetSelectionOwner( dpy, atom_clipboard );
 
-    if( owner==TO_X11(wnd)->wnd )
+    if( owner==TO_X11(this)->wnd )
     {
         sgui_internal_unlock_mutex( );
         return clipboard_buffer;
@@ -249,7 +249,7 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
 
     /* try to convert the selection to an UTF8 string */
     XConvertSelection( dpy, atom_clipboard, target, atom_pty,
-                       TO_X11(wnd)->wnd, CurrentTime );
+                       TO_X11(this)->wnd, CurrentTime );
     XFlush( dpy );
 
     wait_for_event( &evt, SelectionNotify );
@@ -259,14 +259,14 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
     {
         target = XA_STRING;
         XConvertSelection( dpy, atom_clipboard, target, atom_pty,
-                           TO_X11(wnd)->wnd, CurrentTime );
+                           TO_X11(this)->wnd, CurrentTime );
         XFlush( dpy );
         wait_for_event( &evt, SelectionNotify );
         convert = 1;
     }
 
     /* determine how to convert the selection */
-    XGetWindowProperty( dpy, TO_X11(wnd)->wnd, atom_pty, 0, 0, False,
+    XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, 0, False,
                         AnyPropertyType, &pty_type, &pty_format, &pty_items,
                         &pty_size, &buffer );
     XFree( buffer );
@@ -275,7 +275,7 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
     /* increment method */
     if( pty_type == atom_inc )
     {
-        XDeleteProperty( dpy, TO_X11(wnd)->wnd, atom_pty );
+        XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
         XFlush( dpy );
 
 	    while( 1 )
@@ -287,28 +287,28 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
                 continue;
 
             /* get data format and size */
-        	XGetWindowProperty( dpy, TO_X11(wnd)->wnd, atom_pty, 0, 0, False,
+        	XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, 0, False,
         	                    AnyPropertyType, &pty_type, &pty_format,
         	                    &pty_items, &pty_size, &buffer );
 
             if( pty_format != 8 )
             {
         	    XFree( buffer );
-                XDeleteProperty( dpy, TO_X11(wnd)->wnd, atom_pty );
+                XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
                 continue;
             }
 
             if( pty_size == 0 )
             {
         	    XFree( buffer );
-                XDeleteProperty( dpy, TO_X11(wnd)->wnd, atom_pty );
+                XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
                 break;
             }
 
             XFree( buffer );
 
             /* get data */
-        	XGetWindowProperty( dpy, TO_X11(wnd)->wnd, atom_pty, 0, pty_size,
+        	XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, pty_size,
         	                    False, AnyPropertyType, &pty_type,
         	                    &pty_format, &pty_items, &pty_size, &buffer );
 
@@ -325,7 +325,7 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
         	clipboard_buffer[ clipboard_strlen ] = '\0';
         	XFree( buffer );
 
-        	XDeleteProperty( dpy, TO_X11(wnd)->wnd, atom_pty );
+        	XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
         	XFlush( dpy );
 	    }
     }
@@ -337,11 +337,11 @@ const char* xlib_window_clipboard_read( sgui_window* wnd )
             return NULL;
         }
 
-        XGetWindowProperty( dpy, TO_X11(wnd)->wnd, atom_pty, 0, pty_size,
+        XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, pty_size,
                             False, AnyPropertyType, &pty_type, &pty_format,
                             &pty_items, &pty_size, &buffer );
 
-        XDeleteProperty( dpy, TO_X11(wnd)->wnd, atom_pty );
+        XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
 
         if( (pty_items + 1) > clipboard_size )
         {

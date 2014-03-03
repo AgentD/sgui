@@ -59,7 +59,8 @@ SGUI_DLL void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
  * \param width  Returns the width of the pixmap
  * \param height Returns the height of the pixmap
  */
-SGUI_DLL void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
+SGUI_DLL void sgui_pixmap_get_size( const sgui_pixmap* pixmap,
+                                    unsigned int* width,
                                     unsigned int* height );
 
 /** \brief Destroy a pixmap */

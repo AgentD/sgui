@@ -368,7 +368,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
 
 /****************************************************************************/
 
-sgui_window* sgui_window_create_desc( sgui_window_description* desc )
+sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 {
     sgui_window_xlib* this;
     sgui_window* super;
@@ -560,7 +560,7 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
 }
 
 
-void sgui_window_get_platform_data( sgui_window* this,
+void sgui_window_get_platform_data( const sgui_window* this,
                                     void* window, void* context )
 {
     if( this )

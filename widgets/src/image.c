@@ -36,7 +36,7 @@
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
 
     void* data;
     int format, blend, backend, useptr;
@@ -47,51 +47,51 @@ sgui_image;
 
 
 
-static void image_draw( sgui_widget* widget )
+static void image_draw( sgui_widget* super )
 {
-    sgui_image* img = (sgui_image*)widget;
+    sgui_image* this = (sgui_image*)super;
 
-    if( img->blend )
+    if( this->blend )
     {
-        sgui_canvas_blend(widget->canvas, widget->area.left, widget->area.top,
-                          img->pixmap, NULL );
+        sgui_canvas_blend( super->canvas, super->area.left, super->area.top,
+                           this->pixmap, NULL );
     }
     else
     {
-        sgui_canvas_blit( widget->canvas, widget->area.left, widget->area.top,
-                          img->pixmap, NULL );
+        sgui_canvas_blit( super->canvas, super->area.left, super->area.top,
+                          this->pixmap, NULL );
     }
 }
 
-static void image_destroy( sgui_widget* widget )
+static void image_destroy( sgui_widget* super )
 {
-    sgui_image* img = (sgui_image*)widget;
+    sgui_image* this = (sgui_image*)super;
 
-    if( !img->useptr )
-        free( img->data );
+    if( !this->useptr )
+        free( this->data );
 
-    sgui_pixmap_destroy( img->pixmap );
-    free( img );
+    sgui_pixmap_destroy( this->pixmap );
+    free( this );
 }
 
-static void image_on_state_change( sgui_widget* widget, int change )
+static void image_on_state_change( sgui_widget* super, int change )
 {
-    sgui_image* img = (sgui_image*)widget;
+    sgui_image* this = (sgui_image*)super;
     unsigned int w, h;
 
     if( change & WIDGET_CANVAS_CHANGED )
     {
         sgui_internal_lock_mutex( );
 
-        sgui_widget_get_size( widget, &w, &h );
+        sgui_widget_get_size( super, &w, &h );
 
-        sgui_pixmap_destroy( img->pixmap );
+        sgui_pixmap_destroy( this->pixmap );
 
-        img->pixmap = sgui_canvas_create_pixmap( widget->canvas, w, h,
-                                                 img->format );
+        this->pixmap = sgui_canvas_create_pixmap( super->canvas, w, h,
+                                                  this->format );
 
-        sgui_pixmap_load( img->pixmap, 0, 0, img->data, 0, 0, w, h,
-                          w, img->format );
+        sgui_pixmap_load( this->pixmap, 0, 0, this->data, 0, 0, w, h,
+                          w, this->format );
 
         sgui_internal_unlock_mutex( );
     }
@@ -104,42 +104,43 @@ sgui_widget* sgui_image_create( int x, int y,
                                 const void* data, int format,
                                 int blend, int useptr )
 {
-    sgui_image* img = malloc( sizeof(sgui_image) );
+    sgui_image* this = malloc( sizeof(sgui_image) );
+    sgui_widget* super = (sgui_widget*)this;
     unsigned int num_bytes;
 
-    if( !img )
+    if( !this )
         return NULL;
 
-    sgui_internal_widget_init( (sgui_widget*)img, x, y, width, height );
+    sgui_internal_widget_init( super, x, y, width, height );
 
     if( !useptr )
     {
         num_bytes = width*height*(format==SGUI_RGBA8 ? 4 :
                                   (format==SGUI_RGB8 ? 3 : 1));
-        img->data = malloc( num_bytes );
+        this->data = malloc( num_bytes );
 
-        if( !img->data )
+        if( !this->data )
         {
-            free( img );
+            free( this );
             return NULL;
         }
 
-        memcpy( img->data, data, num_bytes );
+        memcpy( this->data, data, num_bytes );
     }
     else
     {
-        img->data = (unsigned char*)data;
+        this->data = (unsigned char*)data;
     }
 
-    img->widget.draw_callback         = image_draw;
-    img->widget.state_change_callback = image_on_state_change;
-    img->widget.destroy               = image_destroy;
-    img->widget.focus_policy          = 0;
-    img->pixmap  = NULL;
-    img->format  = format;
-    img->blend   = blend;
-    img->useptr  = useptr;
+    super->draw_callback         = image_draw;
+    super->state_change_callback = image_on_state_change;
+    super->destroy               = image_destroy;
+    super->focus_policy          = 0;
+    this->pixmap  = NULL;
+    this->format  = format;
+    this->blend   = blend;
+    this->useptr  = useptr;
 
-    return (sgui_widget*)img;
+    return super;
 }
 

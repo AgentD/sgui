@@ -226,7 +226,8 @@ struct sgui_widget
      * \param widget A pointer to the widget to update.
      * \param event  The window event that occoured.
      */
-    void (* window_event_callback )( sgui_widget* widget, sgui_event* event );
+    void (* window_event_callback )( sgui_widget* widget,
+                                     const sgui_event* event );
 
     /**
      * \brief Callback that is called when the internal state of a widget
@@ -581,7 +582,7 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
  * \param e     A pointer ot a struct with additional information for an event
  */
 SGUI_DLL void sgui_internal_window_fire_event( sgui_window* wnd,
-                                               sgui_event* e );
+                                               const sgui_event* e );
 
 /**
  * \brief Initialise the sgui_default_skin structue with the default skin

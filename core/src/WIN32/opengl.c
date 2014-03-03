@@ -195,7 +195,8 @@ static void set_attributes( int* attr, int bpp, int depth, int stencil,
 }
 
 
-int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
+int create_gl_context( sgui_window_w32* this,
+                       const sgui_window_description* desc )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
     int attribs[20], samples, format;
@@ -204,7 +205,7 @@ int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
     HDC olddc;
 
     /********** get a device context **********/
-    if( !(wnd->hDC = GetDC( wnd->hWnd )) )
+    if( !(this->hDC = GetDC( this->hWnd )) )
         return 0;
 
     /********** try to set a pixel format **********/
@@ -225,25 +226,25 @@ int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
     if( !format )
         goto bail;
 
-    SetPixelFormat( wnd->hDC, format, NULL );
+    SetPixelFormat( this->hDC, format, NULL );
 
     /********** create an old fashioned OpenGL temporary context **********/
-    if( !(temp = wglCreateContext( wnd->hDC )) )
+    if( !(temp = wglCreateContext( this->hDC )) )
         goto bail;
 
     if( desc->backend!=SGUI_OPENGL_CORE )
     {
-        wnd->hRC = temp;
+        this->hRC = temp;
         return 1;
     }
 
     /********** try to create a new context **********/
-    wnd->hRC = 0;
+    this->hRC = 0;
 
     /* make the temporary context current */
     oldctx = wglGetCurrentContext( );
     olddc = wglGetCurrentDC( );
-    wglMakeCurrent( wnd->hDC, temp );
+    wglMakeCurrent( this->hDC, temp );
 
     /* try to load the context creation funciont */
     wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
@@ -252,7 +253,7 @@ int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
     if( !wglCreateContextAttribsARB )
     {
         wglMakeCurrent( olddc, oldctx );
-        wnd->hRC = temp;
+        this->hRC = temp;
         return 1;
     }
 
@@ -268,53 +269,53 @@ int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
     attribs[8] = 0;
 
     /* try to create 4.3 down to 3.0 context */
-    for( i=0; !wnd->hRC && i<sizeof(glversions)/sizeof(glversions[0]); ++i )
+    for( i=0; !this->hRC && i<sizeof(glversions)/sizeof(glversions[0]); ++i )
     {
         attribs[1] = glversions[i][0];
         attribs[3] = glversions[i][1];
-        wnd->hRC = wglCreateContextAttribsARB( wnd->hDC, 0, attribs );
+        this->hRC = wglCreateContextAttribsARB( this->hDC, 0, attribs );
     }
 
     /* restore the privous context */
     wglMakeCurrent( olddc, oldctx );
 
-    if( wnd->hRC )
+    if( this->hRC )
         wglDeleteContext( temp );
     else
-        wnd->hRC = temp;
+        this->hRC = temp;
 
     return 1;
 bail:
-    ReleaseDC( wnd->hWnd, wnd->hDC );
+    ReleaseDC( this->hWnd, this->hDC );
     return 0;
 }
 
-void destroy_gl_context( sgui_window_w32* wnd )
+void destroy_gl_context( sgui_window_w32* this )
 {
-    if( wnd->hRC )
-        wglDeleteContext( wnd->hRC );
+    if( this->hRC )
+        wglDeleteContext( this->hRC );
 
-    if( wnd->hDC )
-        ReleaseDC( wnd->hWnd, wnd->hDC );
+    if( this->hDC )
+        ReleaseDC( this->hWnd, this->hDC );
 }
 
-void gl_swap_buffers( sgui_window* wnd )
+void gl_swap_buffers( sgui_window* this )
 {
-    SwapBuffers( ((sgui_window_w32*)wnd)->hDC );
+    SwapBuffers( ((sgui_window_w32*)this)->hDC );
 }
 
-void gl_make_current( sgui_window_w32* wnd )
+void gl_make_current( sgui_window_w32* this )
 {
-    if( wnd )
-        wglMakeCurrent( wnd->hDC, wnd->hRC );
+    if( this )
+        wglMakeCurrent( this->hDC, this->hRC );
     else
         wglMakeCurrent( NULL, NULL );
 }
 
-void gl_set_vsync( sgui_window_w32* wnd, int vsync_on )
+void gl_set_vsync( sgui_window_w32* this, int vsync_on )
 {
     WGLSWAPINTERVALEXT wglSwapIntervalEXT;
-    (void)wnd;
+    (void)this;
 
     wglSwapIntervalEXT = (WGLSWAPINTERVALEXT)
                          wglGetProcAddress( "wglSwapIntervalEXT" );
@@ -323,31 +324,32 @@ void gl_set_vsync( sgui_window_w32* wnd, int vsync_on )
         wglSwapIntervalEXT( vsync_on ? 1 : 0 );
 }
 #else
-int create_gl_context( sgui_window_w32* wnd, sgui_window_description* desc )
+int create_gl_context( sgui_window_w32* this,
+                       const sgui_window_description* desc )
 {
-    (void)wnd;
+    (void)this;
     (void)desc;
     return 0;
 }
 
-void destroy_gl_context( sgui_window_w32* wnd )
+void destroy_gl_context( sgui_window_w32* this )
 {
-    (void)wnd;
+    (void)this;
 }
 
-void gl_swap_buffers( sgui_window* wnd )
+void gl_swap_buffers( sgui_window* this )
 {
-    (void)wnd;
+    (void)this;
 }
 
-void gl_make_current( sgui_window_w32* wnd )
+void gl_make_current( sgui_window_w32* this )
 {
-    (void)wnd;
+    (void)this;
 }
 
-void gl_set_vsync( sgui_window_w32* wnd, int vsync_on )
+void gl_set_vsync( sgui_window_w32* this, int vsync_on )
 {
-    (void)wnd;
+    (void)this;
     (void)vsync_on;
 }
 #endif

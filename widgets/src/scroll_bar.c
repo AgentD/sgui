@@ -35,7 +35,7 @@
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
     unsigned int bw, bh, length, p_length, v_length, p_offset, v_offset,
                  v_max;
     int horizontal, inc_button_state, dec_button_state;
@@ -47,221 +47,231 @@ sgui_scroll_bar;
 
 
 
-static void scroll_bar_on_event_h( sgui_widget* widget, sgui_event* e )
+static void scroll_bar_on_event_h( sgui_widget* super, const sgui_event* e )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
-    unsigned int l = b->length - 2*b->bw, old;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
+    unsigned int l = this->length - 2*this->bw, old;
     sgui_rect r;
 
     sgui_internal_lock_mutex( );
 
     if( e->type==SGUI_MOUSE_WHEEL_EVENT )
     {
-        old = b->v_offset;
+        old = this->v_offset;
 
         if( e->arg.i < 0 )
         {
-            if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
-                ((b->p_offset + b->p_length + b->p_length/4) < l) )
+            if( ((this->v_offset+this->v_length+this->v_length/4)<this->v_max)
+                &&
+                ((this->p_offset+this->p_length+this->p_length/4)<l) )
             {
-                b->p_offset += b->p_length / 4;
-                b->v_offset += b->v_length / 4;
+                this->p_offset += this->p_length / 4;
+                this->v_offset += this->v_length / 4;
             }
             else
             {
-                b->p_offset = l - b->p_length;
-                b->v_offset = b->v_max - b->v_length;
+                this->p_offset = l - this->p_length;
+                this->v_offset = this->v_max - this->v_length;
             }
         }
         else
         {
-            if( (b->p_offset > (b->p_length/4)) &&
-                (b->v_offset > (b->v_length/4)) )
+            if( (this->p_offset > (this->p_length/4)) &&
+                (this->v_offset > (this->v_length/4)) )
             {
-                b->p_offset -= b->p_length / 4;
-                b->v_offset -= b->v_length / 4;
+                this->p_offset -= this->p_length / 4;
+                this->v_offset -= this->v_length / 4;
             }
             else
             {
-                b->p_offset = 0;
-                b->v_offset = 0;            
+                this->p_offset = 0;
+                this->v_offset = 0;            
             }
         }
 
-        if( b->v_offset!=old )
+        if( this->v_offset!=old )
         {
-            if( b->scroll_fun )
-                b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
+            if( this->scroll_fun )
+                this->scroll_fun( this->userptr, this->v_offset,
+                                  this->v_offset-old );
 
-            sgui_widget_get_absolute_rect( widget, &r );
-            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
     }
     else if( e->type==SGUI_MOUSE_RELEASE_EVENT ||
              e->type==SGUI_MOUSE_LEAVE_EVENT )
     {
         /* buttons return to out state, need redraw */
-        if( b->dec_button_state || b->inc_button_state )
+        if( this->dec_button_state || this->inc_button_state )
         {
-            sgui_widget_get_absolute_rect( widget, &r );
-            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
 
-        b->dec_button_state = b->inc_button_state = 0;
+        this->dec_button_state = this->inc_button_state = 0;
     }
     else if( e->type==SGUI_MOUSE_PRESS_EVENT )
     {
         /* update button state, request redraw */
-        b->dec_button_state = e->arg.i3.x < (int)b->bw;
-        b->inc_button_state = e->arg.i3.x > ((int)b->length-(int)b->bw);
+        this->dec_button_state = e->arg.i3.x < (int)this->bw;
+        this->inc_button_state = e->arg.i3.x >
+                                 ((int)this->length-(int)this->bw);
 
-        sgui_widget_get_absolute_rect( widget, &r );
-        sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
 
         /* modify offset accordingly if a button was pressed */
-        old = b->v_offset;
+        old = this->v_offset;
 
-        if( b->inc_button_state )
+        if( this->inc_button_state )
         {
-            if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
-                ((b->p_offset + b->p_length + b->p_length/4) < l) )
+            if( ((this->v_offset+this->v_length+this->v_length/4)<this->v_max)
+                &&
+                ((this->p_offset+this->p_length+this->p_length/4)<l) )
             {
-                b->p_offset += b->p_length / 4;
-                b->v_offset += b->v_length / 4;
+                this->p_offset += this->p_length / 4;
+                this->v_offset += this->v_length / 4;
             }
             else
             {
-                b->p_offset = l - b->p_length;
-                b->v_offset = b->v_max - b->v_length;
+                this->p_offset = l - this->p_length;
+                this->v_offset = this->v_max - this->v_length;
             }
         }
-        else if( b->dec_button_state )
+        else if( this->dec_button_state )
         {
-            if( (b->p_offset > (b->p_length/4)) &&
-                (b->v_offset > (b->v_length/4)) )
+            if( (this->p_offset > (this->p_length/4)) &&
+                (this->v_offset > (this->v_length/4)) )
             {
-                b->p_offset -= b->p_length / 4;
-                b->v_offset -= b->v_length / 4;
+                this->p_offset -= this->p_length / 4;
+                this->v_offset -= this->v_length / 4;
             }
             else
             {
-                b->p_offset = 0;
-                b->v_offset = 0;            
+                this->p_offset = 0;
+                this->v_offset = 0;            
             }
         }
 
-        if( b->scroll_fun && (b->v_offset!=old) )
-            b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
+        if( this->scroll_fun && (this->v_offset!=old) )
+            this->scroll_fun( this->userptr, this->v_offset,
+                              this->v_offset-old );
     }
 
     sgui_internal_unlock_mutex( );
 }
 
-static void scroll_bar_on_event_v( sgui_widget* widget, sgui_event* e )
+static void scroll_bar_on_event_v( sgui_widget* super, const sgui_event* e )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)widget;
-    unsigned int l = b->length - 2*b->bh, old;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
+    unsigned int l = this->length - 2*this->bh, old;
     sgui_rect r;
 
     sgui_internal_lock_mutex( );
 
     if( e->type==SGUI_MOUSE_WHEEL_EVENT )
     {
-        old = b->v_offset;
+        old = this->v_offset;
 
         if( e->arg.i < 0 )
         {
-            if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
-                ((b->p_offset + b->p_length + b->p_length/4) < l) )
+            if( ((this->v_offset+this->v_length+this->v_length/4)<this->v_max)
+                &&
+                ((this->p_offset+this->p_length+this->p_length/4)<l) )
             {
-                b->p_offset += b->p_length / 4;
-                b->v_offset += b->v_length / 4;
+                this->p_offset += this->p_length / 4;
+                this->v_offset += this->v_length / 4;
             }
             else
             {
-                b->p_offset = l - b->p_length;
-                b->v_offset = b->v_max - b->v_length;
+                this->p_offset = l - this->p_length;
+                this->v_offset = this->v_max - this->v_length;
             }
         }
         else
         {
-            if( (b->p_offset > (b->p_length/4)) &&
-                (b->v_offset > (b->v_length/4)) )
+            if( (this->p_offset > (this->p_length/4)) &&
+                (this->v_offset > (this->v_length/4)) )
             {
-                b->p_offset -= b->p_length / 4;
-                b->v_offset -= b->v_length / 4;
+                this->p_offset -= this->p_length / 4;
+                this->v_offset -= this->v_length / 4;
             }
             else
             {
-                b->p_offset = 0;
-                b->v_offset = 0;
+                this->p_offset = 0;
+                this->v_offset = 0;
             }
         }
 
-        if( b->v_offset!=old )
+        if( this->v_offset!=old )
         {
-            if( b->scroll_fun )
-                b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
+            if( this->scroll_fun )
+                this->scroll_fun( this->userptr, this->v_offset,
+                                  this->v_offset-old );
 
-            sgui_widget_get_absolute_rect( widget, &r );
-            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
     }
     else if( e->type==SGUI_MOUSE_RELEASE_EVENT ||
              e->type==SGUI_MOUSE_LEAVE_EVENT )
     {
         /* buttons return to out state, need redraw */
-        if( b->dec_button_state || b->inc_button_state )
+        if( this->dec_button_state || this->inc_button_state )
         {
-            sgui_widget_get_absolute_rect( widget, &r );
-            sgui_canvas_add_dirty_rect( widget->canvas, &r );
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
 
-        b->dec_button_state = b->inc_button_state = 0;
+        this->dec_button_state = this->inc_button_state = 0;
     }
     else if( e->type==SGUI_MOUSE_PRESS_EVENT )
     {
         /* update button state, request redraw */
-        b->dec_button_state = e->arg.i3.y < (int)b->bh;
-        b->inc_button_state = e->arg.i3.y > ((int)b->length-(int)b->bh);
+        this->dec_button_state = e->arg.i3.y < (int)this->bh;
+        this->inc_button_state = e->arg.i3.y >
+                                 ((int)this->length-(int)this->bh);
 
-        sgui_widget_get_absolute_rect( widget, &r );
-        sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
 
         /* modify offset accordingly if a button was pressed */
-        old = b->v_offset;
+        old = this->v_offset;
 
-        if( b->inc_button_state )
+        if( this->inc_button_state )
         {
-            if( ((b->v_offset + b->v_length + b->v_length/4) < b->v_max) &&
-                ((b->p_offset + b->p_length + b->p_length/4) < l) )
+            if( ((this->v_offset+this->v_length+this->v_length/4)<this->v_max)
+                &&
+                ((this->p_offset+this->p_length+this->p_length/4)<l) )
             {
-                b->p_offset += b->p_length / 4;
-                b->v_offset += b->v_length / 4;
+                this->p_offset += this->p_length / 4;
+                this->v_offset += this->v_length / 4;
             }
             else
             {
-                b->p_offset = l - b->p_length;
-                b->v_offset = b->v_max - b->v_length;
+                this->p_offset = l - this->p_length;
+                this->v_offset = this->v_max - this->v_length;
             }
         }
-        else if( b->dec_button_state )
+        else if( this->dec_button_state )
         {
-            if( (b->p_offset > (b->p_length/4)) &&
-                (b->v_offset > (b->v_length/4)) )
+            if( (this->p_offset > (this->p_length/4)) &&
+                (this->v_offset > (this->v_length/4)) )
             {
-                b->p_offset -= b->p_length / 4;
-                b->v_offset -= b->v_length / 4;
+                this->p_offset -= this->p_length / 4;
+                this->v_offset -= this->v_length / 4;
             }
             else
             {
-                b->p_offset = 0;
-                b->v_offset = 0;
+                this->p_offset = 0;
+                this->v_offset = 0;
             }
         }
 
-        if( b->scroll_fun && (b->v_offset!=old) )
-            b->scroll_fun( b->userptr, b->v_offset, b->v_offset-old );
+        if( this->scroll_fun && (this->v_offset!=old) )
+            this->scroll_fun( this->userptr, this->v_offset,
+                              this->v_offset-old );
     }
 
     sgui_internal_unlock_mutex( );
@@ -279,9 +289,9 @@ static void scroll_bar_draw( sgui_widget* super )
                                this->dec_button_state );
 }
 
-static void scroll_bar_destroy( sgui_widget* bar )
+static void scroll_bar_destroy( sgui_widget* this )
 {
-    free( bar );
+    free( this );
 }
 
 
@@ -291,18 +301,19 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
                                      unsigned int scroll_area_length,
                                      unsigned int disp_area_length )
 {
-    sgui_scroll_bar* b = malloc( sizeof(sgui_scroll_bar) );
+    sgui_scroll_bar* this = malloc( sizeof(sgui_scroll_bar) );
+    sgui_widget* super = (sgui_widget*)this;
     unsigned int w=0, h=0;
     sgui_rect r;
 
-    if( !b )
+    if( !this )
         return NULL;
 
-    memset( b, 0, sizeof(sgui_scroll_bar) );
+    memset( this, 0, sizeof(sgui_scroll_bar) );
     sgui_skin_get_scroll_bar_button_extents( &r );
 
-    b->bw = SGUI_RECT_WIDTH( r );
-    b->bh = SGUI_RECT_HEIGHT( r );
+    this->bw = SGUI_RECT_WIDTH( r );
+    this->bh = SGUI_RECT_HEIGHT( r );
 
     if( horizontal )
     {
@@ -315,136 +326,138 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
         h = length;
     }
 
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, w, h );
+    sgui_internal_widget_init( super, x, y, w, h );
 
-    b->widget.window_event_callback = horizontal ? scroll_bar_on_event_h :
-                                                   scroll_bar_on_event_v;
+    this->super.window_event_callback = horizontal ? scroll_bar_on_event_h :
+                                                     scroll_bar_on_event_v;
 
-    b->widget.draw_callback = scroll_bar_draw;
-    b->widget.destroy       = scroll_bar_destroy;
-    b->widget.focus_policy  = 0;
-    b->horizontal           = horizontal;
-    b->length               = length;
-    b->v_length             = disp_area_length;
-    b->v_max                = scroll_area_length;
-    b->p_length             = ((b->v_length<<8) / b->v_max) *
-                               (length - 2*(horizontal ? b->bw : b->bh));
+    super->draw_callback  = scroll_bar_draw;
+    super->destroy        = scroll_bar_destroy;
+    super->focus_policy   = 0;
+    this->horizontal      = horizontal;
+    this->length          = length;
+    this->v_length        = disp_area_length;
+    this->v_max           = scroll_area_length;
+    this->p_length        = ((this->v_length<<8) / this->v_max) *
+                            (length - 2*(horizontal ? this->bw : this->bh));
 
-    b->p_length >>= 8;
+    this->p_length >>= 8;
 
-    return (sgui_widget*)b;
+    return super;
 }
 
-void sgui_scroll_bar_on_scroll( sgui_widget* bar, sgui_scrollbar_callback fun,
-                                void* userptr )
+void sgui_scroll_bar_on_scroll( sgui_widget* super,
+                                sgui_scrollbar_callback fun, void* userptr )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
 
-    if( b )
+    if( this )
     {
-        b->scroll_fun = fun;
-        b->userptr = userptr;
+        this->scroll_fun = fun;
+        this->userptr = userptr;
     }
 }
 
-void sgui_scroll_bar_set_offset( sgui_widget* bar, unsigned int offset )
+void sgui_scroll_bar_set_offset( sgui_widget* super, unsigned int offset )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
     unsigned int l;
     sgui_rect r;
 
-    if( b )
+    if( this )
     {
         sgui_internal_lock_mutex( );
 
-        l = b->length - 2*(b->horizontal ? b->bh : b->bw);
+        l = this->length - 2*(this->horizontal ? this->bh : this->bw);
 
-        if( (offset + b->v_length) < b->v_max )
+        if( (offset + this->v_length) < this->v_max )
         {
-            b->v_offset = offset;
-            b->p_offset = (((offset<<8)/b->v_max) * l) >> 8;
+            this->v_offset = offset;
+            this->p_offset = (((offset<<8)/this->v_max) * l) >> 8;
         }
         else
         {
-            b->v_offset = b->v_max - b->v_length;
-            b->p_offset = l - b->p_length;
+            this->v_offset = this->v_max - this->v_length;
+            this->p_offset = l - this->p_length;
         }
 
-        sgui_widget_get_absolute_rect( bar, &r );
-        sgui_canvas_add_dirty_rect( bar->canvas, &r );
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
 
         sgui_internal_unlock_mutex( );
     }
 }
 
-unsigned int sgui_scroll_bar_get_offset( sgui_widget* bar )
+unsigned int sgui_scroll_bar_get_offset( sgui_widget* this )
 {
-    return bar ? (((sgui_scroll_bar*)bar)->v_offset) : 0;
+    return this ? (((sgui_scroll_bar*)this)->v_offset) : 0;
 }
 
-void sgui_scroll_bar_set_area( sgui_widget* bar,
+void sgui_scroll_bar_set_area( sgui_widget* super,
                                unsigned int scroll_area_length,
                                unsigned int disp_area_length )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
     sgui_rect r;
 
-    if( b )
+    if( this )
     {
         sgui_internal_lock_mutex( );
 
-        b->v_length = disp_area_length;
-        b->v_max    = scroll_area_length;
-        b->p_length = ((b->v_length<<8) / b->v_max) *
-                       (b->length - 2*(b->horizontal ? b->bw : b->bh));
+        this->v_length = disp_area_length;
+        this->v_max    = scroll_area_length;
+        this->p_length = ((this->v_length<<8) / this->v_max) *
+                         (this->length -
+                          2*(this->horizontal ? this->bw : this->bh));
 
-        b->p_length >>= 8;
+        this->p_length >>= 8;
 
-        sgui_widget_get_absolute_rect( bar, &r );
-        sgui_canvas_add_dirty_rect( bar->canvas, &r );
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
 
         sgui_internal_unlock_mutex( );
     }
 }
 
-void sgui_scroll_bar_set_length( sgui_widget* bar, unsigned int length )
+void sgui_scroll_bar_set_length( sgui_widget* super, unsigned int length )
 {
-    sgui_scroll_bar* b = (sgui_scroll_bar*)bar;
+    sgui_scroll_bar* this = (sgui_scroll_bar*)super;
     sgui_rect r;
 
-    if( b && length!=b->length )
+    if( this && length!=this->length )
     {
         sgui_internal_lock_mutex( );
 
         /* if the bar is shrinked, add old area as dirty rect */
-        if( b->length < length )
+        if( this->length < length )
         {
-            sgui_widget_get_absolute_rect( bar, &r );
-            sgui_canvas_add_dirty_rect( bar->canvas, &r );
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
 
         /* update length and pane dimension */
-        b->length = length;
-        b->p_length = ((b->v_length<<8) / b->v_max) *
-                       (b->length - 2*(b->horizontal ? b->bw : b->bh));
+        this->length = length;
+        this->p_length = ((this->v_length<<8) / this->v_max) *
+                          (this->length -
+                           2*(this->horizontal ? this->bw : this->bh));
 
-        b->p_length >>= 8;
+        this->p_length >>= 8;
 
         /* update widget area */
-        if( b->horizontal )
+        if( this->horizontal )
         {
-            bar->area.right = bar->area.left + length;
+            super->area.right = super->area.left + length;
         }
         else
         {
-            bar->area.bottom = bar->area.top + length;
+            super->area.bottom = super->area.top + length;
         }
 
         /* if the bar is enlarged, add new area as dirty rect */
-        if( b->length > length )
+        if( this->length > length )
         {
-            sgui_widget_get_absolute_rect( bar, &r );
-            sgui_canvas_add_dirty_rect( bar->canvas, &r );
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
 
         sgui_internal_unlock_mutex( );

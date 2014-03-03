@@ -121,7 +121,7 @@ void sgui_font_destroy( sgui_font* this )
     }
 }
 
-unsigned int sgui_font_get_height( sgui_font* this )
+unsigned int sgui_font_get_height( const sgui_font* this )
 {
     return this ? this->height : 0;
 }

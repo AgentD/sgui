@@ -54,7 +54,7 @@ SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
  *
  * \return A pointer to the root widget
  */
-SGUI_DLL sgui_widget* sgui_canvas_get_root( sgui_canvas* canvas );
+SGUI_DLL sgui_widget* sgui_canvas_get_root( const sgui_canvas* canvas );
 
 /**
  * \brief Override the widget that currently has keyboard focus
@@ -81,7 +81,7 @@ SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r );
  *
  * \return The number of dirty rectangles
  */
-SGUI_DLL unsigned int sgui_canvas_num_dirty_rects( sgui_canvas* canvas );
+SGUI_DLL unsigned int sgui_canvas_num_dirty_rects(const sgui_canvas* canvas);
 
 /**
  * \brief Get a dirty rectangle from a canvas by index
@@ -90,7 +90,7 @@ SGUI_DLL unsigned int sgui_canvas_num_dirty_rects( sgui_canvas* canvas );
  * \param rect   A pointer to a rectangle to write to
  * \param i      The index of the dirty rectangle
  */
-SGUI_DLL void sgui_canvas_get_dirty_rect( sgui_canvas* canvas,
+SGUI_DLL void sgui_canvas_get_dirty_rect( const sgui_canvas* canvas,
                                           sgui_rect* rect, unsigned int i );
 
 /**
@@ -134,7 +134,7 @@ SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
  * \param e      The event data to send
  */
 SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
-                                             sgui_event* e );
+                                             const sgui_event* e );
 
 /**
  * \brief Change the size of a canvas
@@ -153,7 +153,8 @@ SGUI_DLL void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
  * \param width  Returns the width of the canvas
  * \param height Returns the height of the canvas
  */
-SGUI_DLL void sgui_canvas_get_size( sgui_canvas* canvas, unsigned int* width,
+SGUI_DLL void sgui_canvas_get_size( const sgui_canvas* canvas,
+                                    unsigned int* width,
                                     unsigned int* height );
 
 /**

@@ -28,13 +28,13 @@
 
 
 
-void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
+void sgui_pixmap_get_size( const sgui_pixmap* this, unsigned int* width,
                            unsigned int* height )
 {
-    if( pixmap )
+    if( this )
     {
-        if( width  ) *width  = pixmap->width;
-        if( height ) *height = pixmap->height;
+        if( width  ) *width  = this->width;
+        if( height ) *height = this->height;
     }
     else
     {
@@ -43,7 +43,7 @@ void sgui_pixmap_get_size( sgui_pixmap* pixmap, unsigned int* width,
     }
 }
 
-void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
+void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
                        const unsigned char* data, int srcx, int srcy,
                        unsigned int width, unsigned int height,
                        unsigned int scan, int format )
@@ -51,30 +51,30 @@ void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
     int bpp =  format==SGUI_RGBA8 ? 4 :
               (format==SGUI_RGB8  ? 3 : 1);
 
-    if( !pixmap || !width || !height || !data || srcx>=(int)scan )
+    if( !this || !width || !height || !data || srcx>=(int)scan )
         return;
 
-    if( dstx>=(int)pixmap->width || dsty>=(int)pixmap->height )
+    if( dstx>=(int)this->width || dsty>=(int)this->height )
         return;
 
     if( (srcx+width)>=scan )
         width = scan - srcx;
 
-    if( (dstx+width)>=pixmap->width )
-        width = pixmap->width - dstx;
+    if( (dstx+width)>=this->width )
+        width = this->width - dstx;
 
-    if( (dsty+height)>=pixmap->height )
-        height = pixmap->height - dsty;
+    if( (dsty+height)>=this->height )
+        height = this->height - dsty;
 
     if( data )
         data += (srcy*scan + srcx) * bpp;
 
-    pixmap->load( pixmap, dstx, dsty, data, scan, width, height, format );
+    this->load( this, dstx, dsty, data, scan, width, height, format );
 }
 
-void sgui_pixmap_destroy( sgui_pixmap* pixmap )
+void sgui_pixmap_destroy( sgui_pixmap* this )
 {
-    if( pixmap )
-        pixmap->destroy( pixmap );
+    if( this )
+        this->destroy( this );
 }
 

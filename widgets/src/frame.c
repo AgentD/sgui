@@ -38,7 +38,7 @@
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
 
     sgui_widget* v_bar;         /* vertical scroll bar */
     sgui_widget* h_bar;         /* horizontal scroll bar */
@@ -55,19 +55,19 @@ sgui_frame;
 
 static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
 {
-    sgui_widget* frame = userptr;
+    sgui_widget* this = userptr;
     sgui_widget* i;
     sgui_rect r;
     int x, y;
     (void)new_offset;
 
     sgui_internal_lock_mutex( );
-    sgui_widget_get_absolute_rect( frame, &r );
-    sgui_canvas_add_dirty_rect( frame->canvas, &r );
+    sgui_widget_get_absolute_rect( this, &r );
+    sgui_canvas_add_dirty_rect( this->canvas, &r );
 
-    for( i=frame->children; i!=NULL; i=i->next )
+    for( i=this->children; i!=NULL; i=i->next )
     {
-        if( i!=((sgui_frame*)frame)->v_bar && i!=((sgui_frame*)frame)->h_bar )
+        if( i!=((sgui_frame*)this)->v_bar && i!=((sgui_frame*)this)->h_bar )
         {
             sgui_widget_get_position( i, &x, &y );
             y -= delta;
@@ -80,19 +80,19 @@ static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
 
 static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
 {
-    sgui_widget* frame = userptr;
+    sgui_widget* this = userptr;
     sgui_widget* i;
     sgui_rect r;
     int x, y;
     (void)new_offset;
 
     sgui_internal_lock_mutex( );
-    sgui_widget_get_absolute_rect( frame, &r );
-    sgui_canvas_add_dirty_rect( frame->canvas, &r );
+    sgui_widget_get_absolute_rect( this, &r );
+    sgui_canvas_add_dirty_rect( this->canvas, &r );
 
-    for( i=frame->children; i!=NULL; i=i->next )
+    for( i=this->children; i!=NULL; i=i->next )
     {
-        if( i!=((sgui_frame*)frame)->v_bar && i!=((sgui_frame*)frame)->h_bar )
+        if( i!=((sgui_frame*)this)->v_bar && i!=((sgui_frame*)this)->h_bar )
         {
             sgui_widget_get_position( i, &x, &y );
             x -= delta;
@@ -103,23 +103,23 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
     sgui_internal_unlock_mutex( );
 }
 
-static void frame_draw( sgui_widget* super )
+static void frame_draw( sgui_widget* this )
 {
-    sgui_skin_draw_frame( super->canvas, &(super->area) );
+    sgui_skin_draw_frame( this->canvas, &(this->area) );
 }
 
-static void frame_destroy( sgui_widget* frame )
+static void frame_destroy( sgui_widget* super )
 {
-    sgui_frame* f = (sgui_frame*)frame;
+    sgui_frame* this = (sgui_frame*)super;
 
-    sgui_widget_destroy( f->v_bar );
-    sgui_widget_destroy( f->h_bar );
-    free( f );
+    sgui_widget_destroy( this->v_bar );
+    sgui_widget_destroy( this->h_bar );
+    free( this );
 }
 
-static void frame_on_state_change( sgui_widget* frame, int change )
+static void frame_on_state_change( sgui_widget* super, int change )
 {
-    sgui_frame* f = (sgui_frame*)frame;
+    sgui_frame* this = (sgui_frame*)super;
     unsigned int w, ww, wh, width, height, new_height, new_width;
     sgui_widget* i;
     sgui_rect r;
@@ -129,15 +129,15 @@ static void frame_on_state_change( sgui_widget* frame, int change )
 
     if( change & (WIDGET_CHILD_ADDED|WIDGET_CHILD_REMOVED) )
     {
-        width = SGUI_RECT_WIDTH( frame->area );
-        height = SGUI_RECT_HEIGHT( frame->area );
+        width = SGUI_RECT_WIDTH( super->area );
+        height = SGUI_RECT_HEIGHT( super->area );
         new_height = 0;
         new_width = 0;
 
         /* determine the required frame size */
-        for( i=frame->children; i!=NULL; i=i->next )
+        for( i=super->children; i!=NULL; i=i->next )
         {
-            if( i!=f->v_bar && i!=f->h_bar )
+            if( i!=this->v_bar && i!=this->h_bar )
             {
                 sgui_widget_get_position( i, &wx, &wy );
                 sgui_widget_get_size( i, &ww, &wh );
@@ -157,14 +157,14 @@ static void frame_on_state_change( sgui_widget* frame, int change )
                 new_height += SGUI_RECT_HEIGHT( r );
             }
 
-            sgui_scroll_bar_set_area( f->v_bar, new_height+10, height );
+            sgui_scroll_bar_set_area( this->v_bar, new_height+10, height );
 
-            if( !f->override_scrollbars )
-                sgui_widget_set_visible( f->v_bar, 1 );
+            if( !this->override_scrollbars )
+                sgui_widget_set_visible( this->v_bar, 1 );
         }
-        else if( !f->override_scrollbars )
+        else if( !this->override_scrollbars )
         {
-            sgui_widget_set_visible( f->v_bar, 0 );
+            sgui_widget_set_visible( this->v_bar, 0 );
         }
 
         /* draw the horizontal scroll bar if the required width is larger */
@@ -177,32 +177,33 @@ static void frame_on_state_change( sgui_widget* frame, int change )
                 new_width += SGUI_RECT_WIDTH( r );
                 ww = SGUI_RECT_WIDTH( r );
 
-                w = SGUI_RECT_WIDTH(frame->area);
-                sgui_scroll_bar_set_length( f->h_bar, w-2*f->v_border-ww );
+                w = SGUI_RECT_WIDTH(super->area);
+                sgui_scroll_bar_set_length( this->h_bar,
+                                            w-2*this->v_border-ww );
             }
             else
             {
-                w = SGUI_RECT_WIDTH(frame->area);
-                sgui_scroll_bar_set_length( f->h_bar, w-2*f->h_border );
+                w = SGUI_RECT_WIDTH(super->area);
+                sgui_scroll_bar_set_length( this->h_bar, w-2*this->h_border );
             }
 
-            sgui_scroll_bar_set_area( f->h_bar, new_width+10, width );
+            sgui_scroll_bar_set_area( this->h_bar, new_width+10, width );
 
-            if( !f->override_scrollbars )
-                sgui_widget_set_visible( f->h_bar, 1 );
+            if( !this->override_scrollbars )
+                sgui_widget_set_visible( this->h_bar, 1 );
         }
-        else if( !f->override_scrollbars )
+        else if( !this->override_scrollbars )
         {
-            sgui_widget_set_visible( f->h_bar, 0 );
+            sgui_widget_set_visible( this->h_bar, 0 );
         }
     }
 
     sgui_internal_unlock_mutex( );
 }
 
-static void frame_on_event( sgui_widget* widget, sgui_event* event )
+static void frame_on_event( sgui_widget* super, const sgui_event* event )
 {
-    sgui_frame* f = (sgui_frame*)widget;
+    sgui_frame* this = (sgui_frame*)super;
     int page, new_offset, old_offset;
 
     if( event->type == SGUI_MOUSE_WHEEL_EVENT )
@@ -210,8 +211,8 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
         sgui_internal_lock_mutex( );
 
         /* determine scroll page size and current offset */
-        page = SGUI_RECT_HEIGHT( widget->area );
-        old_offset = sgui_scroll_bar_get_offset( f->v_bar );
+        page = SGUI_RECT_HEIGHT( super->area );
+        old_offset = sgui_scroll_bar_get_offset( this->v_bar );
 
         /* compute new offset */
         new_offset = event->arg.i<0 ? (old_offset + (page >> 2)) :
@@ -219,9 +220,9 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
         new_offset = new_offset<0 ? 0 : new_offset;
 
         /* udpate offset and call scroll handler */
-        sgui_scroll_bar_set_offset( f->v_bar, new_offset );
-        new_offset = sgui_scroll_bar_get_offset( f->v_bar );
-        frame_on_scroll_v( widget, new_offset, new_offset-old_offset );
+        sgui_scroll_bar_set_offset( this->v_bar, new_offset );
+        new_offset = sgui_scroll_bar_get_offset( this->v_bar );
+        frame_on_scroll_v( super, new_offset, new_offset-old_offset );
 
         sgui_internal_unlock_mutex( );
     }
@@ -232,8 +233,8 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
             sgui_internal_lock_mutex( );
 
             /* determine scroll page size and current offset */
-            page = SGUI_RECT_WIDTH( widget->area );
-            old_offset = sgui_scroll_bar_get_offset( f->h_bar );
+            page = SGUI_RECT_WIDTH( super->area );
+            old_offset = sgui_scroll_bar_get_offset( this->h_bar );
 
             /* compute new offset */
             new_offset = event->arg.i==SGUI_KC_RIGHT ?
@@ -242,9 +243,9 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
             new_offset = new_offset<0 ? 0 : new_offset;
 
             /* udpate offset and call scroll handler */
-            sgui_scroll_bar_set_offset( f->h_bar, new_offset );
-            new_offset = sgui_scroll_bar_get_offset( f->h_bar );
-            frame_on_scroll_h( widget, new_offset, new_offset-old_offset );
+            sgui_scroll_bar_set_offset( this->h_bar, new_offset );
+            new_offset = sgui_scroll_bar_get_offset( this->h_bar );
+            frame_on_scroll_h( super, new_offset, new_offset-old_offset );
 
             sgui_internal_unlock_mutex( );
         }
@@ -253,8 +254,8 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
             sgui_internal_lock_mutex( );
 
             /* determine scroll page size and current offset */
-            page = SGUI_RECT_HEIGHT( widget->area );
-            old_offset = sgui_scroll_bar_get_offset( f->v_bar );
+            page = SGUI_RECT_HEIGHT( super->area );
+            old_offset = sgui_scroll_bar_get_offset( this->v_bar );
 
             /* compute new offset */
             new_offset = event->arg.i==SGUI_KC_DOWN ?
@@ -263,9 +264,9 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
             new_offset = new_offset<0 ? 0 : new_offset;
 
             /* udpate offset and call scroll handler */
-            sgui_scroll_bar_set_offset( f->v_bar, new_offset );
-            new_offset = sgui_scroll_bar_get_offset( f->v_bar );
-            frame_on_scroll_v( widget, new_offset, new_offset-old_offset );
+            sgui_scroll_bar_set_offset( this->v_bar, new_offset );
+            new_offset = sgui_scroll_bar_get_offset( this->v_bar );
+            frame_on_scroll_v( super, new_offset, new_offset-old_offset );
 
             sgui_internal_unlock_mutex( );
         }
@@ -277,31 +278,32 @@ static void frame_on_event( sgui_widget* widget, sgui_event* event )
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                 unsigned int height )
 {
-    sgui_frame* f = malloc( sizeof(sgui_frame) );
+    sgui_frame* this = malloc( sizeof(sgui_frame) );
+    sgui_widget* super = (sgui_widget*)this;
     unsigned int w, h;
     sgui_rect r;
 
-    if( !f )
+    if( !this )
         return NULL;
 
-    sgui_internal_widget_init( (sgui_widget*)f, x, y, width, height );
+    sgui_internal_widget_init( (sgui_widget*)this, x, y, width, height );
 
     /* try to create a vertical scroll bar */
     sgui_skin_get_scroll_bar_button_extents( &r );
     w = SGUI_RECT_WIDTH( r );
     h = SGUI_RECT_HEIGHT( r ) + height;
 
-    f->h_border = sgui_skin_get_frame_border_width( );
-    f->v_border = sgui_skin_get_frame_border_width( );
-    f->v_bar_dist = width - w - f->v_border;
-    f->v_bar = sgui_scroll_bar_create( f->v_bar_dist, f->v_border, 0,
-                                       height-2*f->v_border,
-                                       height-2*f->v_border,
-                                       height-2*f->v_border );
+    this->h_border = sgui_skin_get_frame_border_width( );
+    this->v_border = sgui_skin_get_frame_border_width( );
+    this->v_bar_dist = width - w - this->v_border;
+    this->v_bar = sgui_scroll_bar_create( this->v_bar_dist, this->v_border, 0,
+                                          height-2*this->v_border,
+                                          height-2*this->v_border,
+                                          height-2*this->v_border );
 
-    if( !f->v_bar )
+    if( !this->v_bar )
     {
-        free( f );
+        free( this );
         return NULL;
     }
 
@@ -310,48 +312,48 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     w = SGUI_RECT_WIDTH( r ) + width;
     h = SGUI_RECT_HEIGHT( r );
 
-    f->h_bar_dist = height - h - f->v_border;
-    f->h_bar = sgui_scroll_bar_create( f->h_border, f->h_bar_dist, 1,
-                                       width-2*f->h_border,
-                                       width-2*f->h_border,
-                                       width-2*f->h_border );
+    this->h_bar_dist = height - h - this->v_border;
+    this->h_bar = sgui_scroll_bar_create( this->h_border, this->h_bar_dist, 1,
+                                          width-2*this->h_border,
+                                          width-2*this->h_border,
+                                          width-2*this->h_border );
 
-    if( !f->h_bar )
+    if( !this->h_bar )
     {
-        free( f );
+        free( this );
         return NULL;
     }
 
     /* add scroll bars to frame */
-    sgui_scroll_bar_on_scroll( f->v_bar, frame_on_scroll_v, f );
-    sgui_scroll_bar_on_scroll( f->h_bar, frame_on_scroll_h, f );
-    sgui_widget_set_visible( f->v_bar, 0 );
-    sgui_widget_set_visible( f->h_bar, 0 );
-    sgui_widget_add_child( (sgui_widget*)f, f->v_bar );
-    sgui_widget_add_child( (sgui_widget*)f, f->h_bar );
+    sgui_scroll_bar_on_scroll( this->v_bar, frame_on_scroll_v, this );
+    sgui_scroll_bar_on_scroll( this->h_bar, frame_on_scroll_h, this );
+    sgui_widget_set_visible( this->v_bar, 0 );
+    sgui_widget_set_visible( this->h_bar, 0 );
+    sgui_widget_add_child( super, this->v_bar );
+    sgui_widget_add_child( super, this->h_bar );
 
     /* finish initialisation */
-    f->widget.window_event_callback = frame_on_event;
-    f->widget.draw_callback         = frame_draw;
-    f->widget.state_change_callback = frame_on_state_change;
-    f->widget.destroy               = frame_destroy;
-    f->override_scrollbars          = 0;
-    f->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                                      SGUI_FOCUS_DROP_TAB|SGUI_FOCUS_DRAW;
+    super->window_event_callback = frame_on_event;
+    super->draw_callback         = frame_draw;
+    super->state_change_callback = frame_on_state_change;
+    super->destroy               = frame_destroy;
+    this->override_scrollbars    = 0;
+    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                   SGUI_FOCUS_DROP_TAB|SGUI_FOCUS_DRAW;
 
-    return (sgui_widget*)f;
+    return super;
 }
 
-void sgui_frame_override_scrollbars( sgui_widget* frame, int always_draw )
+void sgui_frame_override_scrollbars( sgui_widget* super, int always_draw )
 {
-    sgui_frame* f = (sgui_frame*)frame;
+    sgui_frame* this = (sgui_frame*)super;
 
-    if( f )
+    if( this )
     {
-        f->override_scrollbars = always_draw;
+        this->override_scrollbars = always_draw;
 
-        sgui_widget_set_visible( f->v_bar, 1 );
-        sgui_widget_set_visible( f->h_bar, 1 );
+        sgui_widget_set_visible( this->v_bar, 1 );
+        sgui_widget_set_visible( this->h_bar, 1 );
     }
 }
 

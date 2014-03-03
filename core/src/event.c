@@ -177,7 +177,7 @@ void sgui_event_disconnect( void* sender, int eventtype,
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_event_post( sgui_event* event )
+void sgui_event_post( const sgui_event* event )
 {
     if( event )
     {

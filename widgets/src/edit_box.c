@@ -42,7 +42,7 @@
 
 typedef struct
 {
-    sgui_widget widget;
+    sgui_widget super;
 
     /* maximum number of UTF8 characters the user can enter and
        the number of UTF8 characters that have already been entered */
@@ -103,143 +103,145 @@ sgui_edit_box_passwd;
 
 
 /* Adjust text render offset after moving the cursor */
-static void determine_offset( sgui_edit_box* b )
+static void determine_offset( sgui_edit_box* this )
 {
     unsigned int cx, w;
 
     /* only adjust if there are characters entered */
-    if( !b->num_entered || !b->cursor )
+    if( !this->num_entered || !this->cursor )
     {
-        b->offset = 0;
+        this->offset = 0;
         return;
     }
 
-    w = SGUI_RECT_WIDTH( b->widget.area );
+    w = SGUI_RECT_WIDTH( this->super.area );
     w -= sgui_skin_get_edit_box_border_width( ) << 1;
 
     /* if the cursor moved out of the edit box to the left */
-    if( b->offset && (b->cursor <= b->offset) )
+    if( this->offset && (this->cursor <= this->offset) )
     {
-        b->offset = b->cursor;
+        this->offset = this->cursor;
 
         /* roll offset back until the cursor moves out to the right */
         do
         {
-            ROLL_BACK_UTF8( b->buffer, b->offset );
+            ROLL_BACK_UTF8( this->buffer, this->offset );
 
-            cx = sgui_skin_default_font_extents( b->buffer + b->offset,
-                                                 b->cursor - b->offset,
+            cx = sgui_skin_default_font_extents( this->buffer + this->offset,
+                                                 this->cursor - this->offset,
                                                  0, 0 );
         }
-        while( b->offset && (cx < w) );
+        while( this->offset && (cx < w) );
 
         /* move offset forward by one, so the cursor is at the far right */
-        if( b->offset )
+        if( this->offset )
         {
-            ADVANCE_UTF8( b->buffer, b->offset );
+            ADVANCE_UTF8( this->buffer, this->offset );
         }
     }
     else
     {
         /* get the extents of the text from the left of the
            edit box to the cursor */
-        cx = sgui_skin_default_font_extents( b->buffer + b->offset,
-                                             b->cursor - b->offset, 0, 0 );
+        cx = sgui_skin_default_font_extents( this->buffer + this->offset,
+                                             this->cursor - this->offset,
+                                             0, 0 );
 
         /* the cursor has moved outside the edit box to the right */
         if( cx > w )
         {
             /* adjust the rendered region, so the cursor
               is at the left after the first character */
-            b->offset = b->cursor;
+            this->offset = this->cursor;
 
-            ROLL_BACK_UTF8( b->buffer, b->offset );
+            ROLL_BACK_UTF8( this->buffer, this->offset );
         }
     }
 }
 
 /* get a cursor position from a mouse offset */
-static unsigned int cursor_from_mouse( sgui_edit_box* b, int mouse_x )
+static unsigned int cursor_from_mouse( sgui_edit_box* this, int mouse_x )
 {
-    unsigned int len = 0, cur = b->offset;
+    unsigned int len = 0, cur = this->offset;
 
     mouse_x -= sgui_skin_get_edit_box_border_width( );
 
     /* move 'cur' to the right until it the text extents from
        the beginning to 'cur' catch up with the mouse offset */
-    while( (len < (unsigned int)mouse_x) && (cur < b->end) )
+    while( (len < (unsigned int)mouse_x) && (cur < this->end) )
     {
-        ADVANCE_UTF8( b->buffer, cur );
+        ADVANCE_UTF8( this->buffer, cur );
 
         /* get the text extents from the rendering offset to 'cur' */
-        len = sgui_skin_default_font_extents( b->buffer+b->offset,
-                                              cur      -b->offset, 0, 0 );
+        len = sgui_skin_default_font_extents( this->buffer+this->offset,
+                                              cur         -this->offset,
+                                              0, 0 );
     }
 
     return cur;
 }
 
-static void sync_cursors( sgui_edit_box* b )
+static void sync_cursors( sgui_edit_box* super )
 {
-    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)b;
+    sgui_edit_box_passwd* this = (sgui_edit_box_passwd*)super;
     unsigned int i;
 
-    if( b->mode==SGUI_EDIT_PASSWORD )
+    if( super->mode==SGUI_EDIT_PASSWORD )
     {
-        for( pw->cursor=0, i=0; i<b->cursor; ++i )
+        for( this->cursor=0, i=0; i<super->cursor; ++i )
         {
-            ADVANCE_UTF8( pw->shadow, pw->cursor );
+            ADVANCE_UTF8( this->shadow, this->cursor );
         }
 
-        for( pw->selection=0, i=0; i<b->selection; ++i )
+        for( this->selection=0, i=0; i<super->selection; ++i )
         {
-            ADVANCE_UTF8( pw->shadow, pw->selection );
+            ADVANCE_UTF8( this->shadow, this->selection );
         }
     }
 }
 
-static void remove_selection( sgui_edit_box* b )
+static void remove_selection( sgui_edit_box* super )
 {
-    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)b;
+    sgui_edit_box_passwd* this = (sgui_edit_box_passwd*)super;
     int start, end, i, len;
 
-    start = MIN( b->cursor, b->selection );
-    end = MAX( b->cursor, b->selection );
+    start = MIN( super->cursor, super->selection );
+    end = MAX( super->cursor, super->selection );
 
     for( len=0, i=start; i<end; ++len )
     {
         ++i;
-        while( (b->buffer[i] & 0xC0)==0x80 )
+        while( (super->buffer[i] & 0xC0)==0x80 )
             ++i;
     }
 
-    memmove( b->buffer+start, b->buffer+end, b->end-end+1 );
-    b->num_entered -= len;
-    b->end -= (end - start);
-    b->selection = b->cursor = start;
+    memmove( super->buffer+start, super->buffer+end, super->end-end+1 );
+    super->num_entered -= len;
+    super->end -= (end - start);
+    super->selection = super->cursor = start;
 
-    if( b->mode==SGUI_EDIT_PASSWORD )
+    if( super->mode==SGUI_EDIT_PASSWORD )
     {
-        start = MIN( pw->cursor, pw->selection );
-        end = MAX( pw->cursor, pw->selection );
+        start = MIN( this->cursor, this->selection );
+        end = MAX( this->cursor, this->selection );
 
-        memmove( pw->shadow+start, pw->shadow+end, pw->end-end+1 );
-        pw->end -= (end - start);
-        pw->selection = pw->cursor = start;
+        memmove( this->shadow+start, this->shadow+end, this->end-end+1 );
+        this->end -= (end - start);
+        this->selection = this->cursor = start;
     }
 }
 
-static int insert( sgui_edit_box* b, unsigned int len, const char* utf8 )
+static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
 {
-    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)b;
+    sgui_edit_box_passwd* this = (sgui_edit_box_passwd*)super;
     unsigned int i, ulen;
 
     /* clip length to maximum allowed characters */
     ulen = sgui_utf8_strlen( utf8 );
 
-    if( (ulen+b->num_entered) > b->max_chars )
+    if( (ulen+super->num_entered) > super->max_chars )
     {
-        ulen = b->max_chars - b->num_entered;
+        ulen = super->max_chars - super->num_entered;
 
         for( len=0, i=0; i<ulen && utf8[len]; ++i )
         {
@@ -251,7 +253,7 @@ static int insert( sgui_edit_box* b, unsigned int len, const char* utf8 )
     if( !len || !ulen )
         return 0;
 
-    if( b->mode == SGUI_EDIT_NUMERIC )
+    if( super->mode == SGUI_EDIT_NUMERIC )
     {
         for( i=0; i<len; ++i )
         {
@@ -261,37 +263,39 @@ static int insert( sgui_edit_box* b, unsigned int len, const char* utf8 )
     }
 
     /* copy data */
-    remove_selection( b );
+    remove_selection( super );
 
-    if( b->mode == SGUI_EDIT_PASSWORD )
+    if( super->mode == SGUI_EDIT_PASSWORD )
     {
         /* move text block after curser to the right */
-        memmove( pw->shadow + pw->cursor + len, pw->shadow + pw->cursor,
-                 pw->end - pw->cursor + 1 );
+        memmove( this->shadow + this->cursor + len,
+                 this->shadow + this->cursor,
+                 this->end - this->cursor + 1 );
 
         /* insert */
-        memcpy( pw->shadow+pw->cursor, utf8, len );
-        pw->cursor += len;
-        pw->end += len;
+        memcpy( this->shadow+this->cursor, utf8, len );
+        this->cursor += len;
+        this->end += len;
 
         /* update display buffer */
-        memset( b->buffer + b->end, PASSWD_DISPLAY, ulen );
-        b->buffer[ b->end+ulen ] = '\0';
+        memset( super->buffer + super->end, PASSWD_DISPLAY, ulen );
+        super->buffer[ super->end+ulen ] = '\0';
         len = ulen;
     }
     else
     {
         /* move text block after curser to the right */
-        memmove( b->buffer + b->cursor + len, b->buffer + b->cursor,
-                 b->end - b->cursor + 1 );
+        memmove( super->buffer + super->cursor + len,
+                 super->buffer + super->cursor,
+                 super->end - super->cursor + 1 );
 
         /* insert */
-        memcpy( b->buffer+b->cursor, utf8, len );
+        memcpy( super->buffer+super->cursor, utf8, len );
     }
 
-    b->num_entered += ulen;
-    b->end += len;
-    b->cursor += len;
+    super->num_entered += ulen;
+    super->end += len;
+    super->cursor += len;
     return 1;
 }
 
@@ -307,33 +311,33 @@ static void edit_box_draw( sgui_widget* super )
                             this->selection );
 }
 
-static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
+static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
 {
-    sgui_edit_box* b = (sgui_edit_box*)widget;
+    sgui_edit_box* this = (sgui_edit_box*)super;
     const char* ptr;
     int update = 0;
     sgui_event se;
     sgui_rect r;
 
-    se.widget = widget;
+    se.widget = super;
 
     sgui_internal_lock_mutex( );
 
     if( e->type == SGUI_FOCUS_EVENT )
     {
-        b->selection = b->cursor;
-        b->selecting = 0;
-        b->draw_cursor = 1;
+        this->selection = this->cursor;
+        this->selecting = 0;
+        this->draw_cursor = 1;
         update = 1;
-        sync_cursors( b );
+        sync_cursors( this );
     }
     else if( e->type == SGUI_FOCUS_LOSE_EVENT )
     {
-        b->selection = b->cursor;
-        b->selecting = 0;
-        b->draw_cursor = 0;
+        this->selection = this->cursor;
+        this->selecting = 0;
+        this->draw_cursor = 0;
         update = 1;
-        sync_cursors( b );
+        sync_cursors( this );
 
         /* fire a text changed event */
         se.type = SGUI_EDIT_BOX_TEXT_CHANGED;
@@ -341,173 +345,173 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
     }
     else if( (e->type == SGUI_MOUSE_RELEASE_EVENT) &&
              (e->arg.i3.z == SGUI_MOUSE_BUTTON_LEFT) &&
-             b->num_entered )
+             this->num_entered )
     {
-        b->selecting = 0;
-        b->cursor = cursor_from_mouse( b, e->arg.i3.x );
-        b->selection = b->cursor;
-        sync_cursors( b );
+        this->selecting = 0;
+        this->cursor = cursor_from_mouse( this, e->arg.i3.x );
+        this->selection = this->cursor;
+        sync_cursors( this );
         update = 1;
     }
     else if( e->type == SGUI_KEY_RELEASED_EVENT &&
              (e->arg.i==SGUI_KC_LSHIFT || e->arg.i==SGUI_KC_RSHIFT ||
               e->arg.i==SGUI_KC_SHIFT) )
     {
-        b->selecting = 0;
+        this->selecting = 0;
     }
     else if( e->type == SGUI_KEY_PRESSED_EVENT )
     {
         switch( e->arg.i )
         {
         case SGUI_KC_SELECT_ALL:
-            if( b->num_entered )
+            if( this->num_entered )
             {
-                b->selecting = 0;
-                b->cursor = 0;
-                b->selection = b->end;
-                sync_cursors( b );
-                determine_offset( b );
+                this->selecting = 0;
+                this->cursor = 0;
+                this->selection = this->end;
+                sync_cursors( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_COPY:
-            if( b->num_entered && b->selection!=b->cursor )
+            if( this->num_entered && this->selection!=this->cursor )
             {
-                int start = MIN(b->selection,b->cursor);
-                int end = MAX(b->selection,b->cursor);
-                sgui_window_write_clipboard( e->window, b->buffer+start,
+                int start = MIN(this->selection,this->cursor);
+                int end = MAX(this->selection,this->cursor);
+                sgui_window_write_clipboard( e->window, this->buffer+start,
                                              end-start );
             }
             break;
         case SGUI_KC_PASTE:
             ptr = sgui_window_read_clipboard( e->window );
 
-            if( insert( b, strlen( ptr ), ptr ) )
+            if( insert( this, strlen( ptr ), ptr ) )
             {
-                b->selection = b->cursor;
-                sync_cursors( b );
-                determine_offset( b );
+                this->selection = this->cursor;
+                sync_cursors( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_CUT:
-            if( b->num_entered && b->selection!=b->cursor )
+            if( this->num_entered && this->selection!=this->cursor )
             {
-                int start = MIN(b->selection,b->cursor);
-                int end = MAX(b->selection,b->cursor);
-                sgui_window_write_clipboard( e->window, b->buffer+start,
+                int start = MIN(this->selection,this->cursor);
+                int end = MAX(this->selection,this->cursor);
+                sgui_window_write_clipboard( e->window, this->buffer+start,
                                              end-start );
-                remove_selection( b );
-                determine_offset( b );
+                remove_selection( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_LSHIFT:
         case SGUI_KC_RSHIFT:
         case SGUI_KC_SHIFT:
-            b->selection = b->selecting ? b->selection : b->cursor;
-            b->selecting = 1;
+            this->selection=this->selecting ? this->selection : this->cursor;
+            this->selecting=1;
             break;
         case SGUI_KC_BACK:
-            if( b->num_entered )
+            if( this->num_entered )
             {
-                if( b->selection==b->cursor )
+                if( this->selection==this->cursor )
                 {
-                    if( !b->cursor )
+                    if( !this->cursor )
                         break;
-                    ROLL_BACK_UTF8( b->buffer, b->cursor );
-                    sync_cursors( b );
+                    ROLL_BACK_UTF8( this->buffer, this->cursor );
+                    sync_cursors( this );
                 }
-                remove_selection( b );
-                determine_offset( b );
+                remove_selection( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_DELETE:
-            if( b->num_entered )
+            if( this->num_entered )
             {
-                if( b->selection==b->cursor )
+                if( this->selection==this->cursor )
                 {
-                    if( b->selection==b->end )
+                    if( this->selection==this->end )
                         break;
-                    ADVANCE_UTF8( b->buffer, b->selection );
-                    sync_cursors( b );
+                    ADVANCE_UTF8( this->buffer, this->selection );
+                    sync_cursors( this );
                 }
-                remove_selection( b );
-                determine_offset( b );
+                remove_selection( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_LEFT:
-            if( b->cursor )
+            if( this->cursor )
             {
-                ROLL_BACK_UTF8( b->buffer, b->cursor );
-                b->selection = b->selecting ? b->selection : b->cursor;
-                sync_cursors( b );
-                determine_offset( b );
+                ROLL_BACK_UTF8( this->buffer, this->cursor );
+                this->selection=this->selecting?this->selection:this->cursor;
+                sync_cursors( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_RIGHT:
-            if( b->cursor < b->end )
+            if( this->cursor < this->end )
             {
-                ADVANCE_UTF8( b->buffer, b->cursor );
-                b->selection = b->selecting ? b->selection : b->cursor;
-                sync_cursors( b );
-                determine_offset( b );
+                ADVANCE_UTF8( this->buffer, this->cursor );
+                this->selection=this->selecting?this->selection:this->cursor;
+                sync_cursors( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_HOME:
-            if( b->offset || b->cursor )
+            if( this->offset || this->cursor )
             {
-                b->cursor = b->offset = 0;
-                b->selection = b->selecting ? b->selection : b->cursor;
-                sync_cursors( b );
+                this->cursor = this->offset = 0;
+                this->selection=this->selecting?this->selection:this->cursor;
+                sync_cursors( this );
                 update = 1;
             }
             break;
         case SGUI_KC_END:
-            if( b->cursor < b->end )
+            if( this->cursor < this->end )
             {
-                b->offset = b->cursor = b->end;
-                b->selection = b->selecting ? b->selection : b->cursor;
-                sync_cursors( b );
-                determine_offset( b );
+                this->offset = this->cursor = this->end;
+                this->selection=this->selecting?this->selection:this->cursor;
+                sync_cursors( this );
+                determine_offset( this );
                 update = 1;
             }
             break;
         case SGUI_KC_RETURN:
             se.type = SGUI_EDIT_BOX_TEXT_ENTERED;
             sgui_event_post( &se );
-            b->selecting = 0;
-            b->selection = b->cursor;
+            this->selecting = 0;
+            this->selection = this->cursor;
             break;
         }
     }
-    else if( (e->type == SGUI_CHAR_EVENT) && (b->num_entered < b->max_chars) )
+    else if( e->type==SGUI_CHAR_EVENT && (this->num_entered<this->max_chars) )
     {   
-        if( insert( b, strlen( e->arg.utf8 ), e->arg.utf8 ) )
+        if( insert( this, strlen( e->arg.utf8 ), e->arg.utf8 ) )
         {
-            b->selection = b->cursor;
-            sync_cursors( b );
-            determine_offset( b );
+            this->selection = this->cursor;
+            sync_cursors( this );
+            determine_offset( this );
             update = 1;
         }
     }
 
     if( update )
     {
-        sgui_widget_get_absolute_rect( widget, &r );
-        sgui_canvas_add_dirty_rect( widget->canvas, &r );
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
     }
     sgui_internal_unlock_mutex( );
 }
 
-static void edit_box_destroy( sgui_widget* box )
+static void edit_box_destroy( sgui_widget* this )
 {
-    free( ((sgui_edit_box*)box)->buffer );
-    free( box );
+    free( ((sgui_edit_box*)this)->buffer );
+    free( this );
 }
 
 
@@ -517,39 +521,41 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 {
     sgui_edit_box_passwd* pw;
     unsigned int size;
-    sgui_edit_box* b;
+    sgui_edit_box* this;
+    sgui_widget* super;
 
     /* allocate structure */
     size = mode==SGUI_EDIT_PASSWORD ? sizeof(sgui_edit_box_passwd) :
                                       sizeof(sgui_edit_box);
 
-    b = malloc( size );
-    pw = (sgui_edit_box_passwd*)b;
+    this = malloc( size );
+    super = (sgui_widget*)this;
+    pw = (sgui_edit_box_passwd*)this;
 
-    if( !b )
+    if( !this )
         return NULL;
 
-    memset( b, 0, size );
+    memset( this, 0, size );
 
     /* allocate storage for the text buffer */
-    b->buffer = malloc( max_chars * 6 + 1 );
+    this->buffer = malloc( max_chars * 6 + 1 );
 
-    if( !b->buffer )
+    if( !this->buffer )
     {
-        free( b );
+        free( this );
         return NULL;
     }
 
     /* allocate shadow buffer for password edit box */
     if( mode==SGUI_EDIT_PASSWORD )
     {
-        pw->shadow = b->buffer;
-        b->buffer = malloc( max_chars + 1 );
+        pw->shadow = this->buffer;
+        this->buffer = malloc( max_chars + 1 );
 
-        if( !b->buffer )
+        if( !this->buffer )
         {
             free( pw->shadow );
-            free( b );
+            free( this );
             return NULL;
         }
 
@@ -557,42 +563,42 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     }
 
     /* initialise and store state */
-    sgui_internal_widget_init( (sgui_widget*)b, x, y, width,
+    sgui_internal_widget_init( super, x, y, width,
                                sgui_skin_get_edit_box_height( ) );
 
-    b->widget.window_event_callback = edit_box_on_event;
-    b->widget.destroy               = edit_box_destroy;
-    b->widget.draw_callback         = edit_box_draw;
-    b->mode                         = mode;
-    b->max_chars                    = max_chars;
-    b->buffer[0]                    = '\0';
-    b->widget.focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                                      SGUI_FOCUS_DROP_TAB;
+    super->window_event_callback = edit_box_on_event;
+    super->destroy               = edit_box_destroy;
+    super->draw_callback         = edit_box_draw;
+    this->mode                   = mode;
+    this->max_chars              = max_chars;
+    this->buffer[0]              = '\0';
+    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                   SGUI_FOCUS_DROP_TAB;
 
-    return (sgui_widget*)b;
+    return super;
 }
 
-const char* sgui_edit_box_get_text( sgui_widget* box )
+const char* sgui_edit_box_get_text( sgui_widget* this )
 {
-    if( box )
+    if( this )
     {
-        if( ((sgui_edit_box*)box)->mode == SGUI_EDIT_PASSWORD )
-            return ((sgui_edit_box_passwd*)box)->shadow;
+        if( ((sgui_edit_box*)this)->mode == SGUI_EDIT_PASSWORD )
+            return ((sgui_edit_box_passwd*)this)->shadow;
 
-        return ((sgui_edit_box*)box)->buffer;
+        return ((sgui_edit_box*)this)->buffer;
     }
 
     return NULL;
 }
 
-void sgui_edit_box_set_text( sgui_widget* box, const char* text )
+void sgui_edit_box_set_text( sgui_widget* super, const char* text )
 {
     sgui_rect r;
     unsigned int i;
-    sgui_edit_box* b = (sgui_edit_box*)box;
-    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)box;
+    sgui_edit_box* this = (sgui_edit_box*)super;
+    sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)super;
 
-    if( !box )
+    if( !this )
         return;
 
     sgui_internal_lock_mutex( );
@@ -600,49 +606,49 @@ void sgui_edit_box_set_text( sgui_widget* box, const char* text )
     /* text = NULL means clear */
     if( !text )
     {
-        if( b->mode == SGUI_EDIT_PASSWORD )
+        if( this->mode == SGUI_EDIT_PASSWORD )
         {
             pw->shadow[ 0 ] = '\0';
             pw->cursor = 0;
         }
 
-        b->buffer[ 0 ] = '\0';
+        this->buffer[ 0 ] = '\0';
     }
-    else if( b->mode == SGUI_EDIT_PASSWORD )
+    else if( this->mode == SGUI_EDIT_PASSWORD )
     {
-        pw->end = sgui_utf8_strncpy( pw->shadow, text, -1, b->max_chars );
+        pw->end = sgui_utf8_strncpy( pw->shadow, text, -1, this->max_chars );
         pw->cursor = 0;
 
         /* generate sequence of display characters */
         i = sgui_utf8_strlen( pw->shadow );
-        memset( b->buffer, PASSWD_DISPLAY, i );
-        b->buffer[ i ] = '\0';
+        memset( this->buffer, PASSWD_DISPLAY, i );
+        this->buffer[ i ] = '\0';
     }
-    else if( b->mode == SGUI_EDIT_NUMERIC )
+    else if( this->mode == SGUI_EDIT_NUMERIC )
     {
-        for( i=0; i<b->max_chars && *text; ++text )
+        for( i=0; i<this->max_chars && *text; ++text )
         {
             if( isdigit( *text ) )
             {
-                b->buffer[ i++ ] = *text;
+                this->buffer[ i++ ] = *text;
             }
         }
 
-        b->buffer[ i ] = '\0';
+        this->buffer[ i ] = '\0';
     }
     else
     {
-        sgui_utf8_strncpy( b->buffer, text, -1, b->max_chars );
+        sgui_utf8_strncpy( this->buffer, text, -1, this->max_chars );
     }
 
-    b->cursor = 0;          /* set cursor to the beginning */
-    b->offset = 0;
-    b->end = strlen( b->buffer );
-    b->num_entered = sgui_utf8_strlen( b->buffer );
+    this->cursor = 0;          /* set cursor to the beginning */
+    this->offset = 0;
+    this->end = strlen( this->buffer );
+    this->num_entered = sgui_utf8_strlen( this->buffer );
 
     /* flag area dirt */
-    sgui_widget_get_absolute_rect( box, &r );
-    sgui_canvas_add_dirty_rect( box->canvas, &r );
+    sgui_widget_get_absolute_rect( super, &r );
+    sgui_canvas_add_dirty_rect( super->canvas, &r );
 
     sgui_internal_unlock_mutex( );
 }
