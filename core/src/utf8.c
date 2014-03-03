@@ -150,3 +150,36 @@ void sgui_utf8_from_latin1( char* out, const char* in )
     *out = '\0';
 }
 
+unsigned int sgui_utf8_strncpy( char* dst, const char* src,
+                                unsigned int buffersize,
+                                unsigned int characters )
+{
+    unsigned int i, j;
+    char* old;
+
+    if( !dst || !src )
+        return 0;
+
+    for( i=0, j=0; j<buffersize && i<characters && *src; ++i )
+    {
+        old = dst;
+        *(dst++) = *(src++);
+        ++j;
+
+        while( (*dst & 0xC0)==0x80 && j<buffersize )
+        {
+            *(dst++) = *(src++);
+            ++j;
+        }
+
+        if( (*dst & 0xC0)==0x80 && j==buffersize )
+        {
+            dst = old;
+            break;
+        }
+    }
+
+    *dst = 0;
+    return i;
+}
+

@@ -96,6 +96,10 @@ SGUI_DLL unsigned int sgui_utf8_from_latin1_length( const char* in );
  */
 SGUI_DLL void sgui_utf8_from_latin1( char* out, const char* in );
 
+SGUI_DLL unsigned int sgui_utf8_strncpy( char* dst, const char* src,
+                                         unsigned int buffersize,
+                                         unsigned int characters );
+
 #ifdef __cplusplus
 }
 #endif
