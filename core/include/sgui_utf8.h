@@ -96,6 +96,16 @@ SGUI_DLL unsigned int sgui_utf8_from_latin1_length( const char* in );
  */
 SGUI_DLL void sgui_utf8_from_latin1( char* out, const char* in );
 
+/**
+ * \brief strncpy for UTF8 strings, counting charactes instead of bytes
+ *
+ * \param dst        A pointer to the destination buffer
+ * \param src        A pointer to the source string
+ * \param buffersize The number of bytes available in the destination buffer
+ * \param characters The maximum number of characters to copy
+ *
+ * \return The number of characters written to the destination buffer
+ */
 SGUI_DLL unsigned int sgui_utf8_strncpy( char* dst, const char* src,
                                          unsigned int buffersize,
                                          unsigned int characters );
