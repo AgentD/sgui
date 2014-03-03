@@ -27,6 +27,11 @@
 
 
 
+#define SGUI_MOD_SHIFT     0x01 /**< Flag for any kind of SHIFT key */
+#define SGUI_MOD_CTRL      0x02 /**< Flag for any kind of CTRL key */
+#define SGUI_MOD_ALT       0x04 /**< Flag for any kind of ALT key */
+#define SGUI_MOD_SUPER     0x08 /**< Flag for any kind of SUPER key */
+
 #define SGUI_KC_UNKNOWN    0x00 /**< ANY key */
 #define SGUI_KC_BACK       0x08 /**< BACKSPACE key */
 #define SGUI_KC_TAB        0x09 /**< TAB key */

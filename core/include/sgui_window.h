@@ -372,6 +372,9 @@ SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
 /** \brief Get a pointer to the back buffer canvas object of the window */
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( sgui_window* wnd );
 
+/** \brief Get a combination of SGUI_MOD_ flags for the current modifiers */
+SGUI_DLL int sgui_window_get_modifyer_mask( sgui_window* wnd );
+
 /**
  * \brief This function returns the platform specific objects of a window
  *

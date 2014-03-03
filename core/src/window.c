@@ -42,6 +42,7 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
         window->w       = width;
         window->h       = height;
         window->backend = backend;
+        window->modmask = 0;
 
         sgui_canvas_begin( window->canvas, NULL );
         sgui_canvas_clear( window->canvas, NULL );
@@ -53,6 +54,41 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
 {
     if( wnd )
     {
+        if( e->type == SGUI_KEY_PRESSED_EVENT )
+        {
+            switch( e->arg.i )
+            {
+            case SGUI_KC_SHIFT:
+            case SGUI_KC_LSHIFT:
+            case SGUI_KC_RSHIFT:    wnd->modmask |= SGUI_MOD_SHIFT; break;
+            case SGUI_KC_CONTROL:
+            case SGUI_KC_LCONTROL:
+            case SGUI_KC_RCONTROL:  wnd->modmask |= SGUI_MOD_CTRL; break;
+            case SGUI_KC_ALT:
+            case SGUI_KC_LALT:
+            case SGUI_KC_RALT:      wnd->modmask |= SGUI_MOD_ALT; break;
+            case SGUI_KC_LSUPER:
+            case SGUI_KC_RSUPER:    wnd->modmask |= SGUI_MOD_SUPER; break;
+            }
+        }
+        else if( e->type == SGUI_KEY_RELEASED_EVENT )
+        {
+            switch( e->arg.i )
+            {
+            case SGUI_KC_SHIFT:
+            case SGUI_KC_LSHIFT:
+            case SGUI_KC_RSHIFT:    wnd->modmask &= ~SGUI_MOD_SHIFT; break;
+            case SGUI_KC_CONTROL:
+            case SGUI_KC_LCONTROL:
+            case SGUI_KC_RCONTROL:  wnd->modmask &= ~SGUI_MOD_CTRL; break;
+            case SGUI_KC_ALT:
+            case SGUI_KC_LALT:
+            case SGUI_KC_RALT:      wnd->modmask &= ~SGUI_MOD_ALT; break;
+            case SGUI_KC_LSUPER:
+            case SGUI_KC_RSUPER:    wnd->modmask &= ~SGUI_MOD_SUPER; break;
+            }
+        }
+
         if( wnd->event_fun )
             wnd->event_fun( wnd->userptr, e );
 
@@ -227,6 +263,11 @@ const char* sgui_window_read_clipboard( sgui_window* wnd )
 }
 
 /****************************************************************************/
+
+int sgui_window_get_modifyer_mask( sgui_window* wnd )
+{
+    return wnd ? wnd->modmask : 0;
+}
 
 int sgui_window_is_visible( sgui_window* wnd )
 {

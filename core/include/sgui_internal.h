@@ -399,6 +399,8 @@ struct sgui_window
 
     int visible;                /**< \brief Window visibility */
 
+    int modmask;                /**< \brief Keyboard modifyer mask */
+
     int backend;                /**< \brief Window backend used */
 
     void* userptr;
