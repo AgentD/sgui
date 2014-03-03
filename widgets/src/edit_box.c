@@ -54,14 +54,16 @@ typedef struct
     /* BYTE OFFSET of the character after which to draw the cursor */
     unsigned int cursor;
 
+    /* BYTE OFFSET of the cursor before selection started */
+    unsigned int selection;
+
     /* BYTE OFFSET of the first character
        visible at the left side of the box */
     unsigned int offset;
 
+    int selecting;      /* boolean: currently in selection mode? */
     int draw_cursor;    /* boolean: draw the cursor? */
-
     char* buffer;       /* text buffer */
-
     int mode;           /* editing mode */
 }
 sgui_edit_box;
@@ -78,6 +80,9 @@ typedef struct
 
     /* BYTE OFFSET of the shadow character after which to draw the cursor */
     unsigned int cursor;
+
+    /* BYTE OFFSET of the cursor before selection started */
+    unsigned int selection;
 }
 sgui_edit_box_passwd;
 
@@ -104,7 +109,10 @@ static void determine_offset( sgui_edit_box* b )
 
     /* only adjust if there are characters entered */
     if( !b->num_entered )
+    {
+        b->offset = 0;
         return;
+    }
 
     w = SGUI_RECT_WIDTH( b->widget.area );
     w -= sgui_skin_get_edit_box_border_width( ) << 1;
@@ -182,26 +190,42 @@ static void sync_cursors( sgui_edit_box* b )
         {
             ADVANCE_UTF8( pw->shadow, pw->cursor );
         }
+
+        for( pw->selection=0, i=0; i<b->selection; ++i )
+        {
+            ADVANCE_UTF8( pw->shadow, pw->selection );
+        }
     }
 }
 
 static void remove_selection( sgui_edit_box* b )
 {
     sgui_edit_box_passwd* pw = (sgui_edit_box_passwd*)b;
-    unsigned int offset = b->cursor;
-    ADVANCE_UTF8( b->buffer, offset );
+    int start, end, i, len;
 
-    memmove( b->buffer+b->cursor, b->buffer+offset, b->end-offset+1 );
-    b->num_entered -= 1;
-    b->end -= (offset - b->cursor);
+    start = MIN( b->cursor, b->selection );
+    end = MAX( b->cursor, b->selection );
+
+    for( len=0, i=start; i<end; ++len )
+    {
+        ++i;
+        while( (b->buffer[i] & 0xC0)==0x80 )
+            ++i;
+    }
+
+    memmove( b->buffer+start, b->buffer+end, b->end-end+1 );
+    b->num_entered -= len;
+    b->end -= (end - start);
+    b->selection = b->cursor = start;
 
     if( b->mode==SGUI_EDIT_PASSWORD )
     {
-        offset = pw->cursor;
-        ADVANCE_UTF8( pw->shadow, offset );
-        memmove( pw->shadow+pw->cursor, pw->shadow+offset,
-                 pw->end-offset+1 );
-        pw->end -= (offset - pw->cursor);
+        start = MIN( pw->cursor, pw->selection );
+        end = MAX( pw->cursor, pw->selection );
+
+        memmove( pw->shadow+start, pw->shadow+end, pw->end-end+1 );
+        pw->end -= (end - start);
+        pw->selection = pw->cursor = start;
     }
 }
 
@@ -213,7 +237,8 @@ static void edit_box_draw( sgui_widget* super )
 
     sgui_skin_draw_editbox( super->canvas, &(super->area),
                             this->buffer, this->offset,
-                            this->draw_cursor ? (int)this->cursor : -1 );
+                            this->draw_cursor ? (int)this->cursor : -1,
+                            this->selection );
 }
 
 static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
@@ -230,14 +255,19 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
 
     if( e->type == SGUI_FOCUS_EVENT )
     {
+        b->selection = b->cursor;
+        b->selecting = 0;
         b->draw_cursor = 1;
         update = 1;
         sync_cursors( b );
     }
     else if( e->type == SGUI_FOCUS_LOSE_EVENT )
     {
+        b->selection = b->cursor;
+        b->selecting = 0;
         b->draw_cursor = 0;
         update = 1;
+        sync_cursors( b );
 
         /* fire a text changed event */
         se.type = SGUI_EDIT_BOX_TEXT_CHANGED;
@@ -247,27 +277,51 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
              (e->arg.i3.z == SGUI_MOUSE_BUTTON_LEFT) &&
              b->num_entered )
     {
+        b->selecting = 0;
         b->cursor = cursor_from_mouse( b, e->arg.i3.x );
+        b->selection = b->cursor;
         sync_cursors( b );
         update = 1;
+    }
+    else if( e->type == SGUI_KEY_RELEASED_EVENT &&
+             (e->arg.i==SGUI_KC_LSHIFT || e->arg.i==SGUI_KC_RSHIFT) )
+    {
+        b->selecting = 0;
     }
     else if( e->type == SGUI_KEY_PRESSED_EVENT )
     {
         switch( e->arg.i )
         {
+        case SGUI_KC_LSHIFT:
+        case SGUI_KC_RSHIFT:
+            b->selection = b->selecting ? b->selection : b->cursor;
+            b->selecting = 1;
+            break;
         case SGUI_KC_BACK:
-            if( b->num_entered && b->cursor )
+            if( b->num_entered )
             {
-                ROLL_BACK_UTF8( b->buffer, b->cursor );
-                sync_cursors( b );
+                if( b->selection==b->cursor )
+                {
+                    if( !b->cursor )
+                        break;
+                    ROLL_BACK_UTF8( b->buffer, b->cursor );
+                    sync_cursors( b );
+                }
                 remove_selection( b );
                 determine_offset( b );
                 update = 1;
             }
             break;
         case SGUI_KC_DELETE:
-            if( (b->cursor < b->end) && b->num_entered )
+            if( b->num_entered )
             {
+                if( b->selection==b->cursor )
+                {
+                    if( b->selection==b->end )
+                        break;
+                    ADVANCE_UTF8( b->buffer, b->selection );
+                    sync_cursors( b );
+                }
                 remove_selection( b );
                 determine_offset( b );
                 update = 1;
@@ -277,6 +331,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             if( b->cursor )
             {
                 ROLL_BACK_UTF8( b->buffer, b->cursor );
+                b->selection = b->selecting ? b->selection : b->cursor;
                 sync_cursors( b );
                 determine_offset( b );
                 update = 1;
@@ -286,6 +341,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             if( b->cursor < b->end )
             {
                 ADVANCE_UTF8( b->buffer, b->cursor );
+                b->selection = b->selecting ? b->selection : b->cursor;
                 sync_cursors( b );
                 determine_offset( b );
                 update = 1;
@@ -295,6 +351,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             if( b->offset || b->cursor )
             {
                 b->cursor = b->offset = 0;
+                b->selection = b->selecting ? b->selection : b->cursor;
                 sync_cursors( b );
                 update = 1;
             }
@@ -303,6 +360,7 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
             if( b->cursor < b->end )
             {
                 b->offset = b->cursor = b->end;
+                b->selection = b->selecting ? b->selection : b->cursor;
                 sync_cursors( b );
                 determine_offset( b );
                 update = 1;
@@ -311,6 +369,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         case SGUI_KC_RETURN:
             se.type = SGUI_EDIT_BOX_TEXT_ENTERED;
             sgui_event_post( &se );
+            b->selecting = 0;
+            b->selection = b->cursor;
             break;
         }
     }
@@ -332,6 +392,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         }
 
         /* copy data */
+        remove_selection( b );
+
         if( b->mode == SGUI_EDIT_PASSWORD )
         {
             /* move entire text block after curser right by that length */
@@ -363,6 +425,8 @@ static void edit_box_on_event( sgui_widget* widget, sgui_event* e )
         /* flag dirty and determine cursor position */
         b->end += len;
         b->cursor += len;
+        b->selection = b->cursor;
+        sync_cursors( b );
         determine_offset( b );
         update = 1;
     }

@@ -147,7 +147,7 @@ SGUI_DLL void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r,
 
 SGUI_DLL void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
                                       const char* text, int offset,
-                                      int cursor );
+                                      int cursor, int selection );
 
 SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r );
 

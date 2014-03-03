@@ -276,12 +276,14 @@ void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r, int pressed )
 }
 
 void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
-                             const char* text, int offset, int cursor )
+                             const char* text, int offset, int cursor,
+                             int selection )
 {
     offset = offset<0 ? 0 : offset;
+    selection = cursor<0 ? cursor : selection;
 
     if( canvas && r )
-        skin->draw_editbox( skin, canvas, r, text, offset, cursor );
+        skin->draw_editbox(skin, canvas, r, text, offset, cursor, selection);
 }
 
 void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r )
