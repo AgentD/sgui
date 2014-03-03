@@ -34,6 +34,13 @@
 
 
 
+#define COPY_KEY SGUI_KC_C
+#define SELECT_KEY SGUI_KC_A
+#define PASTE_KEY SGUI_KC_V
+#define CUT_KEY SGUI_KC_X
+
+
+
 void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
                                      unsigned int height, int backend )
 {
@@ -52,6 +59,8 @@ void sgui_internal_window_post_init( sgui_window* window, unsigned int width,
 
 void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
 {
+    sgui_event ev;
+
     if( wnd )
     {
         if( e->type == SGUI_KEY_PRESSED_EVENT )
@@ -94,6 +103,28 @@ void sgui_internal_window_fire_event( sgui_window* wnd, sgui_event* e )
 
         sgui_event_post( e );
         sgui_canvas_send_window_event( wnd->canvas, e );
+
+        /* generate events for special key combinations */
+        if( (wnd->modmask==SGUI_MOD_CTRL) &&
+            (e->type==SGUI_KEY_PRESSED_EVENT ||
+             e->type==SGUI_KEY_RELEASED_EVENT) )
+        {
+            ev.type = e->type;
+
+            switch( e->arg.i )
+            {
+            case COPY_KEY:   ev.arg.i = SGUI_KC_COPY;       break;
+            case SELECT_KEY: ev.arg.i = SGUI_KC_SELECT_ALL; break;
+            case PASTE_KEY:  ev.arg.i = SGUI_KC_PASTE;      break;
+            case CUT_KEY:    ev.arg.i = SGUI_KC_CUT;        break;
+            }
+
+            if( wnd->event_fun )
+                wnd->event_fun( wnd->userptr, &ev );
+
+            sgui_event_post( &ev );
+            sgui_canvas_send_window_event( wnd->canvas, &ev );
+        }
     }
 }
 

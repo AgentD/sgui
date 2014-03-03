@@ -32,6 +32,11 @@
 #define SGUI_MOD_ALT       0x04 /**< Flag for any kind of ALT key */
 #define SGUI_MOD_SUPER     0x08 /**< Flag for any kind of SUPER key */
 
+#define SGUI_KC_SELECT_ALL 0x0100   /**< select-all composition */
+#define SGUI_KC_COPY       0x0101   /**< copy composition */
+#define SGUI_KC_PASTE      0x0102   /**< paste composition */
+#define SGUI_KC_CUT        0x0103   /**< cut composition */
+
 #define SGUI_KC_UNKNOWN    0x00 /**< ANY key */
 #define SGUI_KC_BACK       0x08 /**< BACKSPACE key */
 #define SGUI_KC_TAB        0x09 /**< TAB key */
