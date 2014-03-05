@@ -198,7 +198,7 @@ SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
  *
  * \param r The rectangle to draw to
  */
-SGUI_DLL void sgui_canvas_begin( sgui_canvas* canvas, sgui_rect* r );
+SGUI_DLL void sgui_canvas_begin( sgui_canvas* canvas, const sgui_rect* r );
 
 /**
  * \brief Call when you are done with drawing

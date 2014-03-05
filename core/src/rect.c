@@ -23,17 +23,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
+#include "sgui_internal.h"
 #include "sgui_rect.h"
 
 
-
-#ifndef MIN
-    #define MIN( a, b ) (((a)<(b)) ? (a) : (b))
-#endif
-
-#ifndef MAX
-    #define MAX( a, b ) (((a)>(b)) ? (a) : (b))
-#endif
 
 void sgui_rect_set_size( sgui_rect* r, int left, int top,
                          unsigned int width, unsigned int height )
@@ -83,39 +76,27 @@ void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src )
 int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
                                 const sgui_rect* b )
 {
-    do
-    {
-        if( !a || !b )  /* both must exist */
-            break;
+    if( !a || !b )  /* both must exist */
+        return 0;
 
-        /* check if a is to the right or below b */
-        if( (a->left > b->right) || (a->top > b->bottom) )
-            break;
+    /* check if a is to the right or below b */
+    if( (a->left > b->right) || (a->top > b->bottom) )
+        return 0;
 
-        /* check if a is to the left or above b */
-        if( (a->right < b->left) || (a->bottom < b->top) )
-            break;
+    /* check if a is to the left or above b */
+    if( (a->right < b->left) || (a->bottom < b->top) )
+        return 0;
 
-        /* set the intersection rectangle */
-        if( r )
-        {
-            r->left   = MAX( a->left,   b->left   );
-            r->top    = MAX( a->top,    b->top    );
-            r->right  = MIN( a->right,  b->right  );
-            r->bottom = MIN( a->bottom, b->bottom );
-        }
-
-        return 1;
-    }
-    while( 0 );     /* Don't use goto, they say.
-                       Loads of nested ifs are unreadable, they say. */
-
+    /* set the intersection rectangle */
     if( r )
     {
-        r->left = r->top = r->right = r->bottom = 0;
+        r->left   = MAX( a->left,   b->left   );
+        r->top    = MAX( a->top,    b->top    );
+        r->right  = MIN( a->right,  b->right  );
+        r->bottom = MIN( a->bottom, b->bottom );
     }
 
-    return 0;
+    return 1;
 }
 
 int sgui_rect_join( sgui_rect* acc, const sgui_rect* r, int only_if_touch )

@@ -274,10 +274,10 @@ void sgui_window_force_redraw( sgui_window* this, sgui_rect* r )
 
     if( this && r )
     {
-        r0.left   = r->left  <            0 ?                0 : r->left;
-        r0.top    = r->top   <            0 ?                0 : r->top;
-        r0.right  = r->right >=(int)this->w ? ((int)this->w-1) : r->right;
-        r0.bottom = r->bottom>=(int)this->h ? ((int)this->h-1) : r->bottom;
+        r0.left   = MIN( r->left,                  0 );
+        r0.top    = MIN( r->top,                   0 );
+        r0.right  = MAX( r->right,  (int)this->w - 1 );
+        r0.bottom = MAX( r->bottom, (int)this->h - 1 );
 
         this->force_redraw( this, &r0 );
     }
