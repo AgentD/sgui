@@ -32,6 +32,10 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief Upload data to a pixmap
  *
@@ -66,7 +70,9 @@ SGUI_DLL void sgui_pixmap_get_size( const sgui_pixmap* pixmap,
 /** \brief Destroy a pixmap */
 SGUI_DLL void sgui_pixmap_destroy( sgui_pixmap* pixmap );
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SGUI_PIXMAP_H */
 
