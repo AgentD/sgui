@@ -15,13 +15,14 @@
 <img src="images/glwidget.png">
 <br><br>
 
-The SGUI library has native support for OpenGL&reg; rendering, both using the
+The SGUI library can create windows with OpenGL&reg; contexts, both using the
 older 1.x and 2.x versions, as well as using the 3.x and above core profile
 versions.<br>
 <br>
 SGUI can create a window with an OpenGL&reg; context, either entirely managed
-with a redraw callback, or the program can take control over event processing
-and rendering, to allow for real time rendering.
+with a redraw event sent to the window callback, or the program can take
+control over event processing and rendering, to allow for high frame rate real
+time rendering.
 <br><br>
 SGUI also offers an OpenGL&reg; widget, allowing easy creation of dedicated
 areas within a window to use for OpenGL&reg; rendering with normal widgets
@@ -36,10 +37,10 @@ The code for a small example program can be found in the file <b>extras/gl0.c</b
 For the sake of simplicity, compatibillity profile has been used.<br>
 <br>
 To create a window with an OpenGL&reg; context, the
-<a href="../doxydoc/html/sgui__window_8h.html#ab264918fbb46cefa0927ad3596b6c424">sgui_window_create_desc</a>
+<b>sgui_window_create_desc</b>
 function has to be used instead of the regular sgui_window_create function.
 The sgui_window_create_desc function uses a pointer to an
-<a href="../doxydoc/html/structsgui__window__description.html">sgui_window_description</a>
+<b>sgui_window_description</b>
 structure that can hold advanced parameters.<br>
 <br>
 In the case of OpenGL&reg; windows, the following fields are of interest
@@ -74,7 +75,7 @@ event callback</a> to the window that uses regular OpenGL&reg; function to
 draw the window background when an <b>SGUI_EXPOSE_EVENT</b> is generated.
 <br>
 Making the rendering context current just requires a call to
-<a href="../doxydoc/html/sgui__window_8h.html#a8760950071f69d126579127c1af6fbe7">sgui_window_make_current</a>.<br>
+<b>sgui_window_make_current</b>.<br>
 <br>
 The window can be used just like every other normal SGUI window, however it
 is not suited for interactive OpenGL&reg; rendering demands (i.e. pumping out
@@ -96,24 +97,23 @@ entering the main loop<br>
 The major difference is the main loop:
 
 <p class="code">
-&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">while</font>( <a href="../doxydoc/html/sgui_8h.html#a7a1935c5b1a578a076e8d3122882886d">sgui_main_loop_step</a>( ) )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">while</font>( sgui_main_loop_step( ) )<br>
 &nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.opengl.org/sdk/docs/man3/xhtml/glClear.xml">glClear</a>( <font class="number">GL_COLOR_BUFFER_BIT</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;glClear( <font class="number">GL_COLOR_BUFFER_BIT</font> );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font class="comment">/* OpenGL rendering commands go here */</font><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#aee86b2e52c44ac1b68ec281ac555de3c">sgui_window_swap_buffers</a>( wnd );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_swap_buffers( wnd );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}
 </p>
-Instead of calling the regular <a href="../doxydoc/html/sgui_8h.html#aef80e5a681dbca01d09855ebb1e3e797">sgui_main_loop</a>,
-the <a href="../doxydoc/html/sgui_8h.html#a7a1935c5b1a578a076e8d3122882886d">sgui_main_loop_step</a> function is used.
-This function just receives <i>one</i> window system message, processes it,
-and returns immediately. If there are no messsages, it returns immediately.
-The return value is non-zero if there are still visible windows. After every
-main loop step, rendering to the window is performed. At the end of the loop,
-when rendering is done, the
-<a href="../doxydoc/html/sgui__window_8h.html#aee86b2e52c44ac1b68ec281ac555de3c">sgui_window_swap_buffers</a>
+Instead of calling the regular sgui_main_loop, the sgui_main_loop_step
+function is used. This function just receives <i>one</i> window system
+message, processes it, and returns immediately. If there are no messsages, it
+returns immediately. The return value is non-zero if there are still visible
+windows. After every main loop step, rendering to the window is performed. At
+the end of the loop, when rendering is done, the
+<b>sgui_window_swap_buffers</b>
 function is called to swap the front and the back buffer (in case of double
 buffering). This way, rendering at interactive frame rates can be achived.<br>
 
@@ -123,7 +123,7 @@ Normally, when an application needs OpenGL&reg; rendering to display
 something, but does not neccessarily need interactive rendering, something
 like a small display area inside a normal window is desired.<br>
 <br>
-If you read the doxygen documentation on the <a href="../doxydoc/html/structsgui__window__description.html">sgui_window_description</a>
+If you read the doxygen documentation on the <b>sgui_window_description</b>
 structure (or read the header), you may have noticed, that the structure has a
 <b>parent</b> attribute. Using this attribute, a window (in this case with an
 OpenGL&reg; rendering context) can be created that resides undecorated,
@@ -134,7 +134,7 @@ encapsulates that in a simple interface and behaves like a normal widget.
 <br>
 <br>
 The widget in question is called
-<a href="../doxydoc/html/sgui__subview_8h.html">subview widget</a>. It can be
+<b>subview widget</b>. It can be
 created like a normal widget, attached to a window, or even as a child widget
 to another widget, and so on.<br>
 <br>
@@ -144,12 +144,16 @@ swapping the buffers is taken care off by the widget.<br>
 <br>
 In addition, a callback can be registered that receives events from the
 underlying window (mouse movements, keyboard actions, etc...) and the window
-itself can be obtained to do more fancy stuff.
+itself can be obtained to do more fancy stuff.<br>
+<br>
+For instance, it is perfectly possible to set the callback to NULL, obtain a
+pointer to the underlying window and call <b>sgui_window_make_current</b> on
+the window in a second thread that then draws to the sub window in a loop.
 
 <hr>
-<a href="using.children.html">Previous</a>
+<a href="widgets.html">Previous</a>
 <a href="index.html">Back to index</a>
-<a href="hacking.html">Next</a>
+<a href="thread.html">Next</a>
 
 </body>
 </html>

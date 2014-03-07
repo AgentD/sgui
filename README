@@ -29,9 +29,13 @@
         - Written entirely in ANSI C89
     - Cross platform
         - Tested on various GNU/Linux distributions, 32 and 64 bit x86
-        - Tested on Mircrosoft Windows(R) 98 and 7 (32 bit and 64 bit)
+        - Tested on Mircrosoft Windows(R) 98, XP and 7 (32 bit and 64 bit)
+    - Threadsafe
+    - Interacts with OS clipboard (copy/cut & paste)
+    - Supports keyboard only user interaction
+    - Handwritten manual with example application
+      in addition to doxygen reference
     - Optional OpenGL(R) support
-        - Supports older and newer versions
         - core profile as well as compatibillity profile
         - OpenGL(R) widget for rendering inside a normal GUI application
         - can create a window with OpenGL(R) context
@@ -52,7 +56,7 @@
   it is by no means ready for production use as is.
 
   If you have any comments, suggestions, complaints, patches, cookies or
-  whatever, I would be glad to hearing from you.
+  whatever, I would be glad about hearing from you.
 
 
   If you are interested in my what's going on, you may also want to take a

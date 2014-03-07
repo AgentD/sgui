@@ -29,28 +29,25 @@ function:
 <p class="code">
 <font class="keyword">int</font> main( )<br>
 {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_window* <a href="../doxydoc/html/sgui__window_8h.html">wnd</a>;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* <a href="../doxydoc/html/sgui__widget_8h.html">text</a>;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* <a href="../doxydoc/html/sgui__widget_8h.html">button</a>;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_font* <a href="../doxydoc/html/sgui__font_8h.html">font</a>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window* wnd;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* text;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* button;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_font* font;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 
-The <a href="../doxydoc/html/sgui__widget_8h.html"><b>sgui_widget</b></a>
-structure represents a widget. We will create two simple widgets in this
-example, a static text widget, which only draws a text onto the window and a
-button that the user can click.<br><br>
+The <b>sgui_widget</b> structure represents a widget. We will create two
+simple widgets in this example, a static text widget, which only draws a text
+onto the window and a button that the user can click.<br><br>
 Of course, both widgets need text rendering. For rendering text, we must
-load a font to use, represented by the
-<a href="../doxydoc/html/sgui__font_8h.html"><b>sgui_font</b></a> structure and tell
-the SGUI <a href="../doxydoc/html/sgui__skin_8h.html">skinning system</a> to
-use the font:
+load a font to use, represented by the <b>sgui_font</b> structure and tell
+the SGUI skinning system to use the font:
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;font = <a href="../doxydoc/html/sgui__font_8h.html#a9e6671c8bfa114ea2a64d9d287e7cc54">sgui_font_load</a>( <font class="string">"SourceSansPro-Regular.ttf"</font>, <font class="number">16</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="string">"SourceSansPro-Regular.ttf"</font>, <font class="number">16</font> );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__skin_8h.html#afe76f26f6db2ee57f87787a38e807c5f">sgui_skin_set_default_font</a>( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_skin_set_default_font( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font> );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
 </p>
 The first function call loads a true type font file. The argument should be
@@ -68,26 +65,26 @@ Now lets create those two widgets:
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;text = <a href="../doxydoc/html/sgui__static__text_8h.html">sgui_static_text_create</a>( <font class="number">10</font>, <font class="number">10</font>, <font class="string">"To close the window,\npress &lt;color=\"#FF0000\"&gt;close"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;text = sgui_static_text_create( <font class="number">10</font>, <font class="number">10</font>, <font class="string">"To close the window,\npress &lt;color=\"#FF0000\"&gt;close"</font> );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;button = <a href="../doxydoc/html/sgui__button_8h.html">sgui_button_create</a>( <font class="number">30</font>, <font class="number">60</font>, <font class="number">75</font>, <font class="number">30</font>, <font class="string">"Close"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;button = sgui_button_create( <font class="number">30</font>, <font class="number">60</font>, <font class="number">75</font>, <font class="number">30</font>, <font class="string">"Close"</font> );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 
-The <a href="../doxydoc/html/sgui__static__text_8h.html"><b>sgui_static_text_create</b></a> function creates a static text widget and
-the <a href="../doxydoc/html/sgui__button_8h.html"><b>sgui_button_create</b></a> function creates a button widget.<br>
+The <b>sgui_static_text_create</b> function creates a static text widget and
+the <b>sgui_button_create</b> function creates a button widget.<br>
 Both functions take a position as their first two parameters, i.e. a distance
 from the left of the window and a distance from the top of the window, each
 <i>in pixels</i>. The static text is positioned at (10,10) and the button
 at (30,60).<br>
 <br>
-The next parameter of the <a href="../doxydoc/html/sgui__static__text_8h.html"><b>sgui_static_text_create</b></a> function is a string
+The next parameter of the <b>sgui_static_text_create</b> function is a string
 to display. As you can see from the result, we can make line breaks by using
 '\n' and change the color using a pseudo HTML &lt;color=#RRGGBB&gt; tag. We
 could also write bold and italic text using &lt;b&gt; and &lt;i&gt; tags, but
 then we would have to load bold and italic font faces.<br>
 <br>
-The next two parameters of the <a href="../doxydoc/html/sgui__button_8h.html"><b>sgui_button_create</b></a> function specify a
+The next two parameters of the <b>sgui_button_create</b> function specify a
 width and a height of the button (in pixels), where the width is the
 horizontal length and the height the vertical length, starting at the given
 position. The last parameter of the function is the text to print onto the
@@ -98,9 +95,9 @@ Now that we created those two widgets, we just need to add them to the window
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#ab79d0301c4353fb55167731596bd3cee">sgui_window_add_widget</a>( wnd, text );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_add_widget( wnd, text );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#ab79d0301c4353fb55167731596bd3cee">sgui_window_add_widget</a>( wnd, button );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_add_widget( wnd, button );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 
@@ -110,11 +107,11 @@ ends:
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__widget_8h.html#aa62f61a7d2c63032de05e087e630bf37">sgui_widget_destroy</a>( text );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget_destroy( text );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__widget_8h.html#aa62f61a7d2c63032de05e087e630bf37">sgui_widget_destroy</a>( button );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_widget_destroy( button );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__font_8h.html#a50b62fe5cb2bcc07b856d3f64ae34f8e">sgui_font_destroy</a>( font );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_font_destroy( font );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 

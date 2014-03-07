@@ -4,6 +4,17 @@
 
 
 
+void window_callback( void* user, const sgui_event* event )
+{
+    (void)user;
+    if( event->type == SGUI_CHAR_EVENT )
+    {
+        printf( "%s\n", event->arg.utf8 );
+    }
+}
+
+
+
 int main( )
 {
     sgui_window* wnd;
@@ -40,8 +51,7 @@ int main( )
                         sgui_window_set_visible, wnd,
                         SGUI_INT, SGUI_INVISIBLE );
 
-    sgui_event_connect( wnd, SGUI_CHAR_EVENT, 0,
-                        printf, "%s\n", SGUI_FROM_EVENT, SGUI_UTF8 );
+    sgui_window_on_event( wnd, window_callback );
 
     /* main loop */
     sgui_main_loop( );

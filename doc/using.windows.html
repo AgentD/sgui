@@ -14,12 +14,11 @@
 Windows in SGUI are represented by the
 <a href="../doxydoc/html/sgui__window_8h.html"><b>sgui_window</b></a>
 structure. To create
-a window, simply call the
-<a href="../doxydoc/html/sgui__window_8h.html#a7d230976211a311f638bb720061cecda"><b>sgui_window_create</b></a> function which takes three
-parameters:
+a window, simply call the <b>sgui_window_create</b> function which takes
+three parameters:
 
 <p class="code">
-sgui_window* <a href="../doxydoc/html/sgui__window_8h.html#a7d230976211a311f638bb720061cecda">sgui_window_create</a>( <font class="keyword">sgui_window*</font> parent,
+sgui_window* sgui_window_create( <font class="keyword">sgui_window*</font> parent,
                                  <font class="keyword">unsigned int</font> width,
                                  <font class="keyword">unsigned int</font> height,
                                  <font class="keyword">int</font> resizeable );
@@ -28,12 +27,12 @@ sgui_window* <a href="../doxydoc/html/sgui__window_8h.html#a7d230976211a311f638b
 <ul>
 <li>The first parameter specifies the parent window. <b>NULL</b> means to
     create the window on the root/desktop window, a pointer to an existing
-    window makes the the new window to a child window of the existing one.
+    window makes the new window to a child window of the existing one.
     Child windows are only visible inside their parent and are not managed by
     the systems window manager.
 <li>The next two parameters, <b>width</b> and <b>height</b>, specify the
-    size of the windows drawing area in pixels (i.e. the area inside the window,
-    not taking the window borders into account).
+    size of the windows drawing area in pixels (i.e. the area inside the
+    window, not taking the window borders into account).
 <li>The next paramter, <b>resizeable</b> specifies whether the user should be
     able to resize the window with the mouse or not.
 <li>The constants <b>SGUI_FIXED_SIZE</b> and <b>SGUI_RESIZEABLE</b> are
@@ -50,19 +49,19 @@ invisible. To make it visible and allow the user to interact with it, the
 following function is used:
 
 <p class="code">
-<font class="keyword">void</font> <a href="../doxydoc/html/sgui__window_8h.html#af22366485a757513f1982d07802ef126">sgui_window_set_visible</a>( sgui_window* wnd, <font class="keyword">int</font> visible );
+<font class="keyword">void</font> sgui_window_set_visible( sgui_window* wnd, <font class="keyword">int</font> visible );
 </p>
 
 As you can see, the function name starts with the name of the data structure
 it works on and takes a pointer to it as a first parameter.
-The <a href="../doxydoc/html/sgui__window_8h.html#af22366485a757513f1982d07802ef126"><b>sgui_window_set_visible</b></a> function takes an argument, indicating
+The <b>sgui_window_set_visible</b> function takes an argument, indicating
 whether the window should be visible or not. Again, there are constants
 (<b>SGUI_INVISIBLE</b> and <b>SGUI_VISIBLE</b>) to avoid magic values.<br>
 <br>
 Once you are done using your window, you should destroy it (i.e. free its
 resources to avoid leaks). The following function is used for doing so:
 <p class="code">
-<font class="keyword">void</font> <a href="../doxydoc/html/sgui__window_8h.html#a66e82f90e95ffcca27c959860aa31684">sgui_window_destroy</a>( sgui_window* wnd );
+<font class="keyword">void</font> sgui_window_destroy( sgui_window* wnd );
 </p>
 The naming scheme of SGUI functions should be pretty straight forward:
 <ul>
@@ -73,11 +72,11 @@ The naming scheme of SGUI functions should be pretty straight forward:
     argument.</li>
 <li>Functions for creating SGUI objects are always named <b>create</b>.<br>
     E.g. the function for creating an <b>sgui_window</b> is named
-    <a href="../doxydoc/html/sgui__window_8h.html#a7d230976211a311f638bb720061cecda"><b>sgui_window_create</b></a>.
+    <b>sgui_window_create</b>.
 
 <li>Functions for freeing SGUI objects are always named <b>destroy</b>.<br>
     E.g. the function for destroying an <b>sgui_window</b> is named
-    <a href="../doxydoc/html/sgui__window_8h.html#a66e82f90e95ffcca27c959860aa31684"><b>sgui_window_destroy</b></a>.
+    <b>sgui_window_destroy</b>.
 </ul>
 With this in mind, it should be easy to understand what SGUI functions do from
 reading their name. So lets take a look at a simple example that uses some
@@ -90,21 +89,21 @@ window functions:<br>
 {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_window* wnd;<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui_8h.html#aff5b7c20bdeae2daebaf5112c6375fbe">sgui_init</a>( );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_init( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;wnd = <a href="../doxydoc/html/sgui__window_8h.html#a7d230976211a311f638bb720061cecda">sgui_window_create</a>( <font class="keyword">NULL</font>, <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="keyword">NULL</font>, <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#a4f91d23b1b0307ecebaaf81cfc643404">sgui_window_set_title</a>( wnd, <font class="string">"Simple Sample"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_title( wnd, <font class="string">"Simple Sample"</font> );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#aa06b0e2054e40ac665089bce3dd03267">sgui_window_move_center</a>( wnd );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_move_center( wnd );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#af22366485a757513f1982d07802ef126">sgui_window_set_visible</a>( wnd, SGUI_VISIBLE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_visible( wnd, SGUI_VISIBLE );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui_8h.html#aef80e5a681dbca01d09855ebb1e3e797">sgui_main_loop</a>( );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_main_loop( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui__window_8h.html#a66e82f90e95ffcca27c959860aa31684">sgui_window_destroy</a>( wnd );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_window_destroy( wnd );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui_8h.html#a186b7f521397648e95ef04028dd46db9">sgui_deinit</a>( );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_deinit( );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">return</font> <font class="number">0</font>;<br>
 }

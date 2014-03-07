@@ -14,13 +14,16 @@ in a way that the SGUI include directory ("include" sub directory) is part of
 the include path and the sgui library gets linked to your program.
 
 The shared library, aka dll, is located under "bin/&lt;platform&gt;/" in the
-root directory of the downloaded archive, or in the "build" sub directory if
-you compile SGUI yourself.
+root directory of the downloaded archive, or in the "build/bin" sub directory
+if you compile SGUI yourself.
 
-Under Windows&reg; one must link agains the static library in the
+Under Windows&reg; one must link agains the sgui.lib or sgui.a library in the
 "lib/&lt;platform&gt;/" sub directory.<br>
 <br>
-The full code for the example program developed in this chapter can be found
+The "lib/&lt;platform&gt;/" sub directory also contains an alternative static
+linking library.
+<br>
+The full code for the example program described in this chapter can be found
 in <b>extras/simple.c</b>.<br>
 <br>
 The easiest way to make the SGUI declarations visible to your code is by
@@ -34,22 +37,18 @@ You don't need to worry about overriden headers or namespace polution.
 All public SGUI headers start with "sgui_*", all functions and datatypes
 with "sgui_*" and all enumerations and constants with "SGUI_".<br>
 <br>
-Lets start with a minimal example that does nothing but show off initialisation,
-shutdown and how to compile the library.
+Lets start with a minimal example that does nothing but show off
+initialisation, shutdown and how to compile the library.
 
 <h3>Initialisation and the main loop</h3>
 
 To start using SGUI, initialisation has to be done first. (Perhaps somewhere
 in your main function) and logically, once you are done using SGUI, a proper
 unitialisation has to be done, what can be done using the
-<a href="../doxydoc/html/sgui_8h.html#aff5b7c20bdeae2daebaf5112c6375fbe">
-<b>sgui_init</b></a> and
-<a href="../doxydoc/html/sgui_8h.html#a186b7f521397648e95ef04028dd46db9">
-<b>sgui_deinit</b></a> functions.<br>
+<b>sgui_init</b> and <b>sgui_deinit</b> functions.<br>
 <br>
 Between initialisation and shutdown lies a main loop, where window system
 messages are handled and the GUI is updated. For this purpose, there is the
-<a href="../doxydoc/html/sgui_8h.html#aef80e5a681dbca01d09855ebb1e3e797">
 <b>sgui_main_loop</b></a> function which enters an infinite loop in which it
 handles events from the window system, updates the SGUI windows (this minimal
 example does not create any), call event callbacks and so on. It will not
@@ -63,11 +62,11 @@ Lets take a look at the code:
 <br>
 <font class="keyword">int</font> main( )<br>
 {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui_8h.html#aff5b7c20bdeae2daebaf5112c6375fbe">sgui_init</a>( );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_init( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui_8h.html#aef80e5a681dbca01d09855ebb1e3e797">sgui_main_loop</a>( );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_main_loop( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="../doxydoc/html/sgui_8h.html#a186b7f521397648e95ef04028dd46db9">sgui_deinit</a>( );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_deinit( );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">return</font> 0;<br>
 }
@@ -111,8 +110,9 @@ is of course the proper name of your "mingw" binary):
 <p class="code">
 <font class="command">gcc</font> -I&lt;sgui_include_path&gt; test.c -L&lt;lib_path&gt; -lsgui
 </p>
-Properly configuring Visual Studio&reg; or any other IDE to link against the SGUI
-static library and add the SGUI include path is left as a task for the reader.
+Properly configuring Visual Studio&reg;, Eclipse or any other IDE to link
+against the SGUI library and add the SGUI include path is left as a task for
+the reader experienced with their desired IDE.
 
 
 <hr>

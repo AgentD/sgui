@@ -25,15 +25,14 @@ outline of the class hirarchy (yes, you read right, <i>class</i> hirarchy).
 <li>Various widgets are derived from a common base class, the
     <b>sgui_widget</b>.
 <li>The <b>sgui_window</b> is actually a base class, derived by an
-    implementation for your platform and also other implementations like an
-    OpenGL&reg; back end.<br>The xlib window is only drawn as an example.
+    implementation for your platform.<br>The xlib window is only drawn as an
+    example.
 <li>The window class only handles a window, it does not touch any widgets or
     do any rendering.
-<li>Widget management is done by using a common <b>sgui_widget_manager</b>
-    class of which the window has an instance.
-<li>Rendering is done by providing a pointer to an <b>sgui_canvas</b>.
-<li>The <b>sgui_canvas</b> is a base class that provides rendering functions
-    for drawing to a fixed size surface.
+<li>Rendering is done by <b>sgui_canvas</b> that the window owns an
+    instance of. The canvas object also has a root widget that all widgets
+    are attached to.<br>The canvas takes care of redirecting events to the
+    children and redrawing them on request.
 <li>There are various canvas implementations (derived classes). The window
     implementation must make sure to create an apropriate implementation.
     <br>The xlib canvas is only drawn as an example.
@@ -66,7 +65,7 @@ This is pretty much what happens inside the SGUI main loop:
 
 
 <hr>
-<a href="using.filesystem.html">Previous</a>
+<a href="thread.html">Previous</a>
 <a href="index.html">Back to index</a>
 <a href="hacking.oop.html">Next</a>
 

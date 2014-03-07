@@ -39,8 +39,8 @@ instance, a point lies within the box or if two boxes overlap each other
 (and get the intersecting area if they do).
 
 <br><br>
-Altough in this scenario, none of this appears to be interesst for someone not
-implementing widgets. It is however very important when aranging widgets
+Altough in this scenario, none of this appears to be of interesst for someone
+not implementing widgets. It is however very important when aranging widgets
 hirarchically what any GUI program beyond "calculate the area of a sphere"
 will most likely make use of.
 
@@ -63,7 +63,7 @@ hirarchy is shown as a tree in the right hand side of the image.
 There is a root widget that all widgets that are added to the window are
 attached to (i.e. the root widget is their <i>parent</i> and all other widgets
 attached to the window are the <i>children</i> of the root widget). In this
-example, the <a href="../doxydoc/html/sgui__tab_8h.html">tab widget</a> is a child of the root widget.
+example, the tab widget is a child of the root widget.
 <br><br>
 Since the point of a tab widget is to attach widgets to it, there are widgets
 attached to the tab as children of the tab widget. In this example, the
@@ -72,8 +72,8 @@ button widget has been added as a child of the static image widget.
 <br><br>
 Adding children to an existing widget is quite easy. To make any widget a
 child of any other arbitrary widget, simply use the
-<a href="../doxydoc/html/sgui__widget_8h.html#a46d7054100b322157e4a011eae5e7b7c"><b>sgui_widget_add_child</b></a> function. To remove it, use the
-<a href="../doxydoc/html/sgui__widget_8h.html#aa1a112d6c10bc9698510d94a0c695aa3"><b>sgui_widget_remove_from_parent</b></a> function.<br><br>
+<b>sgui_widget_add_child</b> function. To remove it, use the
+<b>sgui_widget_remove_from_parent</b> function.<br><br>
 Some special container widgets like the tab widget have specialized functions
 for adding widgets since they have to do more complicated mechanics inside
 (the tab group widget, for instance, must keep the widgets seperated by tabs
@@ -99,13 +99,13 @@ invisible, the button would no longer be drawn either. If the entire tab was
 turned invisible, neither the image nor the button would be drawn anymore
 (that's actually what the tab group widget does internally). If the button
 was positioned so far at the right that half of it would stick out over the
-image, it would be clipped by the drawing functions and only the part inside
-the image would be visible.
+image, it would be clipped and only the part inside the image would be
+visible.
 
 <hr>
 <a href="using.events.html">Previous</a>
 <a href="index.html">Back to index</a>
-<a href="adv.opengl.html">Next</a>
+<a href="widgets.html">Next</a>
 
 </body>
 </html>
