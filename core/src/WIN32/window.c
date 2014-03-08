@@ -173,6 +173,12 @@ static void w32_window_force_redraw( sgui_window* this, sgui_rect* r )
     sgui_internal_unlock_mutex( );
 }
 
+static void w32_window_get_platform_data( const sgui_window* this,
+                                          void* window )
+{
+    *((HWND*)window) = TO_W32(this)->hWnd;
+}
+
 static void w32_window_destroy( sgui_window* this )
 {
     MSG msg;
@@ -476,6 +482,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     /**************************** create canvas ****************************/
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
+#ifndef SGUI_NO_OPENGL
         if( !(this->hDC = GetDC( this->hWnd )) )
             goto failure;
 
@@ -490,6 +497,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
             goto failure;
 
         super->swap_buffers = gl_swap_buffers;
+        super->set_vsync = gl_set_vsync;
+#endif
     }
     else
     {
@@ -521,6 +530,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         if( !super->ctx.canvas )
             goto failure;
+
+        super->swap_buffers = NULL;
+        super->set_vsync = NULL;
     }
 
     sgui_internal_window_post_init( (sgui_window*)this,
@@ -539,6 +551,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     super->move_center        = w32_window_move_center;
     super->move               = w32_window_move;
     super->force_redraw       = w32_window_force_redraw;
+    super->get_platform_data  = w32_window_get_platform_data;
     super->destroy            = w32_window_destroy;
     super->write_clipboard    = w32_window_write_clipboard;
     super->read_clipboard     = w32_window_read_clipboard;
@@ -549,26 +562,5 @@ failure:
     sgui_internal_unlock_mutex( );
     w32_window_destroy( (sgui_window*)this );
     return NULL;
-}
-
-void sgui_window_set_vsync( sgui_window* this, int vsync_on )
-{
-    sgui_internal_lock_mutex( );
-
-    if( this && (this->backend==SGUI_OPENGL_COMPAT ||
-                 this->backend==SGUI_OPENGL_CORE) )
-    {
-        gl_set_vsync( TO_W32(this), vsync_on );
-    }
-
-    sgui_internal_unlock_mutex( );
-}
-
-void sgui_window_get_platform_data( const sgui_window* this, void* window )
-{
-    if( this && window )
-    {
-        *((HWND*)window) = TO_W32(this)->hWnd;
-    }
 }
 

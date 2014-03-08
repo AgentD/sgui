@@ -362,25 +362,22 @@ void gl_swap_buffers( sgui_window* this )
     SwapBuffers( ((sgui_window_w32*)this)->hDC );
 }
 
-void gl_set_vsync( sgui_window_w32* this, int vsync_on )
+void gl_set_vsync( sgui_window* this, int interval )
 {
     WGLSWAPINTERVALEXT wglSwapIntervalEXT;
     (void)this;
+
+    sgui_internal_lock_mutex( );
 
     wglSwapIntervalEXT = (WGLSWAPINTERVALEXT)
                          wglGetProcAddress( "wglSwapIntervalEXT" );
 
     if( wglSwapIntervalEXT )
-        wglSwapIntervalEXT( vsync_on ? 1 : 0 );
+        wglSwapIntervalEXT( interval );
+
+    sgui_internal_unlock_mutex( );
 }
 #else
-int set_pixel_format( sgui_window_w32* this,
-                      const sgui_window_description* desc )
-{
-    (void)this; (void)desc;
-    return 0;
-}
-
 sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
                                          sgui_gl_context* share, int core )
 {
@@ -402,17 +399,6 @@ sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
 {
     (void)ctx; (void)name;
     return NULL;
-}
-
-void gl_swap_buffers( sgui_window* this )
-{
-    (void)this;
-}
-
-void gl_set_vsync( sgui_window_w32* this, int vsync_on )
-{
-    (void)this;
-    (void)vsync_on;
 }
 #endif
 

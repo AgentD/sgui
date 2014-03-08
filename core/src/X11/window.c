@@ -166,6 +166,32 @@ static void xlib_window_destroy( sgui_window* this )
     free( this );
 }
 
+#ifndef SGUI_NO_OPENGL
+static void xlib_window_set_vsync( sgui_window* this, int interval )
+{
+    if( this->backend==SGUI_OPENGL_CORE || this->backend==SGUI_OPENGL_COMPAT )
+    {
+        void(* SwapIntervalEXT )( Display*, GLXDrawable, int );
+
+        sgui_internal_lock_mutex( );
+
+        SwapIntervalEXT = (void(*)(Display*,GLXDrawable,int))
+                          LOAD_GLFUN( "glXSwapIntervalEXT" );
+
+        if( SwapIntervalEXT )
+            SwapIntervalEXT( dpy, TO_X11(this)->wnd, interval );
+
+        sgui_internal_unlock_mutex( );
+    }
+}
+#endif
+
+static void xlib_window_get_platform_data( const sgui_window* this,
+                                           void* window )
+{
+    *((Window*)window) = TO_X11(this)->wnd;
+}
+
 /****************************************************************************/
 
 void update_window( sgui_window_xlib* this )
@@ -376,8 +402,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     sgui_window* super;
     XSizeHints hints;
     XWindowAttributes attr;
+#ifndef SGUI_NO_OPENGL
     XSetWindowAttributes swa;
     XVisualInfo* vi = NULL;
+#endif
     unsigned long color = 0;
     unsigned char rgb[3];
     Window x_parent;
@@ -422,9 +450,6 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
                                    CWBorderPixel|CWColormap, &swa );
 
         XFree( vi );
-#else
-        (void)vi;
-        (void)swa;
 #endif
     }
     else
@@ -491,6 +516,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         if( !super->ctx.canvas )
             goto failure;
+
+        super->swap_buffers = NULL;
     }
 
     /*********** Create an input context ************/
@@ -515,9 +542,16 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     super->move_center        = xlib_window_move_center;
     super->move               = xlib_window_move;
     super->force_redraw       = xlib_window_force_redraw;
+    super->get_platform_data  = xlib_window_get_platform_data;
     super->write_clipboard    = xlib_window_clipboard_write;
     super->read_clipboard     = xlib_window_clipboard_read;
     super->destroy            = xlib_window_destroy;
+
+#ifdef SGUI_NO_OPENGL
+    super->set_vsync = NULL;
+#else
+    super->set_vsync = xlib_window_set_vsync;
+#endif
 
     sgui_internal_unlock_mutex( );
     return (sgui_window*)this;
@@ -525,36 +559,5 @@ failure:
     sgui_internal_unlock_mutex( );
     xlib_window_destroy( super );
     return NULL;
-}
-
-void sgui_window_set_vsync( sgui_window* this, int vsync_on )
-{
-#ifdef SGUI_NO_OPENGL
-    (void)this; (void)vsync_on;
-#else
-    if( this && (this->backend==SGUI_OPENGL_CORE ||
-                 this->backend==SGUI_OPENGL_COMPAT) )
-    {
-        void(* SwapIntervalEXT )( Display*, GLXDrawable, int );
-
-        sgui_internal_lock_mutex( );
-
-        SwapIntervalEXT = (void(*)(Display*,GLXDrawable,int))
-                          LOAD_GLFUN( "glXSwapIntervalEXT" );
-
-        if( SwapIntervalEXT )
-            SwapIntervalEXT( dpy, TO_X11(this)->wnd, vsync_on ? 1 : 0 );
-
-        sgui_internal_unlock_mutex( );
-    }
-#endif
-}
-
-void sgui_window_get_platform_data( const sgui_window* this, void* window )
-{
-    if( this && window )
-    {
-        *((Window*)window) = TO_X11(this)->wnd;
-    }
 }
 

@@ -283,6 +283,12 @@ void sgui_window_swap_buffers( sgui_window* this )
         this->swap_buffers( this );
 }
 
+void sgui_window_set_vsync( sgui_window* this, int vsync_on )
+{
+    if( this && this->set_vsync )
+        this->set_vsync( this, vsync_on ? 1 : 0 );
+}
+
 void sgui_window_destroy( sgui_window* this )
 {
     sgui_event ev;
@@ -322,6 +328,12 @@ void sgui_window_write_clipboard( sgui_window* this, const char* text,
 const char* sgui_window_read_clipboard( sgui_window* this )
 {
     return (this && this->read_clipboard) ? this->read_clipboard( this ) : 0;
+}
+
+void sgui_window_get_platform_data( const sgui_window* this, void* window )
+{
+    if( this && window )
+        this->get_platform_data( this, window );
 }
 
 /****************************************************************************/

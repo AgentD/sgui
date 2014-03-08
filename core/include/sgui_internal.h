@@ -502,9 +502,42 @@ struct sgui_window
      */
     void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
 
+    /**
+     * \brief Called by sgui_window_set_vsync. May be NULL if not implemented
+     *
+     * \param wnd      Pointer to the window itself
+     * \param interval Swap sync interval. Either 0 or 1
+     */
+    void (* set_vsync )( sgui_window* wnd, int interval );
+
+    /**
+     * \brief Called by sgui_window_get_platform_data
+     *
+     * \param wnd Pointer to the window itself
+     * \param ptr Pointer to system dependend window datatype
+     */
+    void (* get_platform_data )( const sgui_window* wnd, void* ptr );
+
+    /**
+     * \brief Called by sgui_window_write_clipboard.
+     *        May be NULL if not implemented
+     *
+     * \param wnd    Pointer to the window itself
+     * \param text   UTF8 string to write to the clipboard
+     * \param length The number of bytes to read from the text buffer
+     */
     void (* write_clipboard )( sgui_window* wnd, const char* text,
                                unsigned int length );
 
+    /**
+     * \brief Called by sgui_window_read_clipboard.
+     *        May be NULL if not implemented
+     *
+     * \param wnd    Pointer to the window itself
+     *
+     * \return A pointer to a backend internal data store holding the
+     *         clipboard data
+     */
     const char* (* read_clipboard )( sgui_window* wnd );
 };
 

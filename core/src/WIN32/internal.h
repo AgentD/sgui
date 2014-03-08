@@ -116,7 +116,7 @@ int set_pixel_format( sgui_window_w32* wnd,
 void gl_swap_buffers( sgui_window* wnd );
 
 /* in opengl.c: turn vsync on or off */
-void gl_set_vsync( sgui_window_w32* wnd, int vsync_on );
+void gl_set_vsync( sgui_window* wnd, int interval );
 
 
 #endif /* INTERNAL_H */
