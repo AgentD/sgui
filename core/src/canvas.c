@@ -92,8 +92,12 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
         /* set scisor rect and draw widget & children */
         old_sc = widget->canvas->sc;
-        sgui_rect_get_intersection( &widget->canvas->sc,
-                                    &widget->canvas->sc, &wr );
+
+        if( !sgui_rect_get_intersection( &widget->canvas->sc,
+                                         &widget->canvas->sc, &wr ) )
+        {
+            continue;
+        }
 
         sgui_widget_draw( i );
         draw_children( this, i, r ? &wr : NULL );
@@ -106,13 +110,16 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
             sgui_widget_get_absolute_rect( i, &wr );
             wr.left -= fbw; wr.top -= fbw;
             wr.right += fbw; wr.bottom += fbw;
-            sgui_rect_get_intersection( &widget->canvas->sc,
-                                        &old_sc, &wr );
-            wr.left -= widget->canvas->ox;
-            wr.right -= widget->canvas->ox;
-            wr.top -= widget->canvas->oy;
-            wr.bottom -= widget->canvas->oy;
-            sgui_skin_draw_focus_box( this, &wr );
+
+            if( sgui_rect_get_intersection( &widget->canvas->sc,
+                                            &old_sc, &wr ) )
+            {
+                wr.left -= widget->canvas->ox;
+                wr.right -= widget->canvas->ox;
+                wr.top -= widget->canvas->oy;
+                wr.bottom -= widget->canvas->oy;
+                sgui_skin_draw_focus_box( this, &wr );
+            }
         }
 
         widget->canvas->sc = old_sc;
@@ -120,65 +127,6 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
     widget->canvas->ox = old_ox;
     widget->canvas->oy = old_oy;
-}
-
-static sgui_widget* find_child_focus( sgui_widget* widget )
-{
-    sgui_widget* candidate = NULL;
-    sgui_widget* w;
-
-    for( w=widget->children; w!=NULL; w=w->next )
-    {
-        if( w->visible )
-        {
-            if( w->focus_policy & SGUI_FOCUS_ACCEPT )
-                return w;
-
-            candidate = candidate ? candidate : find_child_focus( w );
-        }
-    }
-
-    return candidate;
-}
-
-static sgui_widget* find_next_focus( sgui_widget* widget )
-{
-    sgui_widget* w;
-    sgui_widget* v;
-
-    while( widget )
-    {
-        /* try to find a child of the current widget that accepts focus */
-        if( (w = find_child_focus( widget )) )
-            return w;
-
-        /*
-            try to find a right neightbour that accepts focus or has a child
-            that accepts focus.
-         */
-        for( w=widget->next; w!=NULL; w=w->next )
-        {
-            if( !w->visible )
-                continue;
-
-            if( w && (w->focus_policy & SGUI_FOCUS_ACCEPT) )
-                return w;
-
-            if( (v = find_child_focus( w )) )
-                return v;
-        }
-
-        /* go to the right uncle, check if it accepts focus, reiterate */
-        widget = widget->parent ? widget->parent->next : NULL;
-
-        while( widget && !widget->visible )
-            widget = widget->next;
-
-        if( widget && (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
-            return widget;
-    }
-
-    return NULL;
 }
 
 /****************************************************************************/
@@ -459,8 +407,8 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
             if( !this->focus ||
                 (this->focus->focus_policy & SGUI_FOCUS_DROP_TAB) )
             {
-                i = this->focus ? find_next_focus( this->focus ) : NULL;
-                i = i           ? i : find_next_focus( &this->root );
+                i = sgui_widget_find_next_focus( this->focus );
+                i = i ? i : sgui_widget_find_next_focus( &this->root );
 
                 if( i )
                 {

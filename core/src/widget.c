@@ -69,6 +69,25 @@ static void propagat_state_change( sgui_widget* i, int change )
     }
 }
 
+static sgui_widget* find_child_focus( const sgui_widget* this )
+{
+    sgui_widget* candidate = NULL;
+    sgui_widget* w;
+
+    for( w=this->children; w!=NULL; w=w->next )
+    {
+        if( w->visible )
+        {
+            if( w->focus_policy & SGUI_FOCUS_ACCEPT )
+                return w;
+
+            candidate = candidate ? candidate : find_child_focus( w );
+        }
+    }
+
+    return candidate;
+}
+
 /****************************************************************************/
 
 void sgui_widget_destroy( sgui_widget* this )
@@ -403,5 +422,49 @@ sgui_widget* sgui_widget_get_child_from_point( const sgui_widget* this,
     sgui_internal_unlock_mutex( );
 
     return (sgui_widget*)this;
+}
+
+sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
+{
+    sgui_widget* w;
+    sgui_widget* v;
+
+    sgui_internal_lock_mutex( );
+
+    while( this )
+    {
+        /* try to find a child of the current widget that accepts focus */
+        if( (w = find_child_focus( this )) )
+            return w;
+
+        /*
+            try to find a right neightbour that accepts focus or has a child
+            that accepts focus.
+         */
+        for( w=this->next; w!=NULL; w=w->next )
+        {
+            if( !w->visible )
+                continue;
+
+            if( w && (w->focus_policy & SGUI_FOCUS_ACCEPT) )
+                return w;
+
+            if( (v = find_child_focus( w )) )
+                return v;
+        }
+
+        /* go to the right uncle, check if it accepts focus, reiterate */
+        this = this->parent ? this->parent->next : NULL;
+
+        while( this && !this->visible )
+            this = this->next;
+
+        if( this && (this->focus_policy & SGUI_FOCUS_ACCEPT) )
+            return (sgui_widget*)this;
+    }
+
+    sgui_internal_unlock_mutex( );
+
+    return NULL;
 }
 

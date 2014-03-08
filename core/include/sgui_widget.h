@@ -194,6 +194,15 @@ SGUI_DLL sgui_widget* sgui_widget_get_child_from_point(
                                             const sgui_widget* widget,
                                             int x, int y );
 
+/**
+ * \brief Assuming that the given widget has focus, find the next widget
+ *        that will get focus when the tab key gets pressed
+ *
+ * \param w A pointer to a widget that is assumed to have focus
+ *
+ * \return A pointer to the next widget in the tab order
+ */
+SGUI_DLL sgui_widget* sgui_widget_find_next_focus( const sgui_widget* w );
 
 
 #ifdef __cplusplus
