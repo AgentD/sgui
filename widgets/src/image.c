@@ -79,7 +79,7 @@ static void image_on_state_change( sgui_widget* super, int change )
     sgui_image* this = (sgui_image*)super;
     unsigned int w, h;
 
-    if( change & WIDGET_CANVAS_CHANGED )
+    if( change & SGUI_WIDGET_CANVAS_CHANGED )
     {
         sgui_internal_lock_mutex( );
 

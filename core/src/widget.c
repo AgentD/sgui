@@ -126,7 +126,7 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
 
         /* call the state change callback if there is one */
         if( this->state_change_callback )
-            this->state_change_callback( this, WIDGET_POSITION_CHANGED );
+            this->state_change_callback( this, SGUI_WIDGET_POSITION_CHANGED );
 
         sgui_internal_unlock_mutex( );
     }
@@ -214,9 +214,9 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
         this->visible = visible;
 
         if( this->state_change_callback )
-            this->state_change_callback( this, WIDGET_VISIBILLITY_CHANGED );
+            this->state_change_callback(this,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
-        propagat_state_change( this->children, WIDGET_VISIBILLITY_CHANGED );
+        propagat_state_change(this->children,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
         /* flag area as dirty */ 
         sgui_widget_get_absolute_rect( this, &r );
@@ -292,7 +292,7 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
 {
     sgui_rect r;
     sgui_widget* i = NULL;
-    int change = WIDGET_PARENT_CHANGED;
+    int change = SGUI_WIDGET_PARENT_CHANGED;
 
     if( this && this->parent )
     {
@@ -310,7 +310,7 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
 
         /* add canvas change flag if the widget had a canvas before */
         if( this->canvas )
-            change |= WIDGET_CANVAS_CHANGED;
+            change |= SGUI_WIDGET_CANVAS_CHANGED;
 
         /* store a pointer to the old parent */
         i = this->parent;
@@ -324,13 +324,13 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
 
         /* call state change callbacks */
         if( i && i->state_change_callback )
-            i->state_change_callback( i, WIDGET_CHILD_REMOVED );
+            i->state_change_callback( i, SGUI_WIDGET_CHILD_REMOVED );
 
         if( this->state_change_callback )
             this->state_change_callback( this, change );
 
-        if( change & WIDGET_CANVAS_CHANGED )
-            propagat_state_change( this->children, WIDGET_CANVAS_CHANGED );
+        if( change & SGUI_WIDGET_CANVAS_CHANGED )
+            propagat_state_change(this->children, SGUI_WIDGET_CANVAS_CHANGED);
 
         sgui_internal_unlock_mutex( );
     }
@@ -340,14 +340,14 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
 {
     sgui_rect r;
     sgui_widget* i;
-    int change = WIDGET_PARENT_CHANGED;
+    int change = SGUI_WIDGET_PARENT_CHANGED;
 
     if( !child || !this )
         return;
 
     /* add canvas change flag if the widget had a different canvas before */
     if( child->canvas != this->canvas )
-        change |= WIDGET_CANVAS_CHANGED;
+        change |= SGUI_WIDGET_CANVAS_CHANGED;
 
     sgui_internal_lock_mutex( );
 
@@ -377,13 +377,13 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
 
     /* call state change callbacks */
     if( this->state_change_callback )
-        this->state_change_callback( this, WIDGET_CHILD_ADDED );
+        this->state_change_callback( this, SGUI_WIDGET_CHILD_ADDED );
 
     if( child->state_change_callback )
         child->state_change_callback( child, change );
 
-    if( change & WIDGET_CANVAS_CHANGED )
-        propagat_state_change( child->children, WIDGET_CANVAS_CHANGED );
+    if( change & SGUI_WIDGET_CANVAS_CHANGED )
+        propagat_state_change( child->children, SGUI_WIDGET_CANVAS_CHANGED );
 
     sgui_internal_unlock_mutex( );
 }

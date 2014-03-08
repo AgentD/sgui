@@ -127,7 +127,7 @@ static void frame_on_state_change( sgui_widget* super, int change )
 
     sgui_internal_lock_mutex( );
 
-    if( change & (WIDGET_CHILD_ADDED|WIDGET_CHILD_REMOVED) )
+    if( change & (SGUI_WIDGET_CHILD_ADDED|SGUI_WIDGET_CHILD_REMOVED) )
     {
         width = SGUI_RECT_WIDTH( super->area );
         height = SGUI_RECT_HEIGHT( super->area );

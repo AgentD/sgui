@@ -69,12 +69,12 @@
 
 
 /* flags for the widget state change callback */
-#define WIDGET_POSITION_CHANGED     0x01
-#define WIDGET_VISIBILLITY_CHANGED  0x02
-#define WIDGET_PARENT_CHANGED       0x04
-#define WIDGET_CHILD_ADDED          0x08
-#define WIDGET_CHILD_REMOVED        0x10
-#define WIDGET_CANVAS_CHANGED       0x20
+#define SGUI_WIDGET_POSITION_CHANGED     0x01
+#define SGUI_WIDGET_VISIBILLITY_CHANGED  0x02
+#define SGUI_WIDGET_PARENT_CHANGED       0x04
+#define SGUI_WIDGET_CHILD_ADDED          0x08
+#define SGUI_WIDGET_CHILD_REMOVED        0x10
+#define SGUI_WIDGET_CANVAS_CHANGED       0x20
 
 /* flags for widget focus polocy */
 #define SGUI_FOCUS_ACCEPT           0x01    /* the widget accepts focus */

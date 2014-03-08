@@ -104,7 +104,7 @@ static void subview_on_state_change( sgui_widget* super, int change )
     int x, y, visible;
 
     /* adjust size and position of the subwindow */
-    if( change & (WIDGET_POSITION_CHANGED|WIDGET_PARENT_CHANGED) )
+    if( change & (SGUI_WIDGET_POSITION_CHANGED|SGUI_WIDGET_PARENT_CHANGED) )
     {
         sgui_widget_get_absolute_position( super, &x, &y );
         sgui_widget_get_size( super, &ww, &wh );
@@ -114,7 +114,7 @@ static void subview_on_state_change( sgui_widget* super, int change )
     }
 
     /* "adjust" visibillity of the window */
-    if( change & (WIDGET_VISIBILLITY_CHANGED|WIDGET_PARENT_CHANGED) )
+    if(change & (SGUI_WIDGET_VISIBILLITY_CHANGED|SGUI_WIDGET_PARENT_CHANGED))
     {
         visible = sgui_widget_is_absolute_visible( super );
 
