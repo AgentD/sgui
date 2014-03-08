@@ -527,5 +527,25 @@ void sgui_memory_canvas_set_buffer( sgui_canvas* this,
         ((mem_canvas*)this)->data = buffer;
     }
 }
+#else
+sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
+                                        unsigned int width,
+                                        unsigned int height,
+                                        int format, int swaprb )
+{
+    (void)buffer;
+    (void)width;
+    (void)height;
+    (void)format;
+    (void)swaprb;
+    return NULL;
+}
+
+void sgui_memory_canvas_set_buffer( sgui_canvas* canvas,
+                                    unsigned char* buffer )
+{
+    (void)canvas;
+    (void)buffer;
+}
 #endif
 
