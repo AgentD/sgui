@@ -33,7 +33,7 @@
 
 
 
-#define QUEUESIZE 16
+#define QUEUE_SHRINK_COUNTDOWN 16
 
 
 
@@ -74,8 +74,10 @@ listener;
 
 
 
-static sgui_event queue[ QUEUESIZE ];
+static sgui_event* queue = NULL;
 static int queue_top = 0;
+static int queue_size = 0;
+static int queue_shrink = QUEUE_SHRINK_COUNTDOWN;
 static listener* listeners = NULL;
 
 
@@ -183,8 +185,16 @@ void sgui_event_post( const sgui_event* event )
     {
         sgui_internal_lock_mutex( );
 
+        /* resize queue if neccessary */
+        if( queue_top == queue_size )
+        {
+            queue_size = queue_size<10 ? 10 : queue_size*2;
+            queue = realloc( queue, sizeof(sgui_event)*queue_size );
+            assert( queue );
+            queue_shrink = QUEUE_SHRINK_COUNTDOWN;
+        }
+
         /* add event to queue */
-        assert( queue_top < QUEUESIZE );
         queue[ queue_top++ ] = (*event);
 
         sgui_internal_unlock_mutex( );
@@ -317,6 +327,24 @@ void sgui_internal_process_events( void )
         }
     }
 
+    /* shrink queue by a quarter if less than half filled for some time */
+    if( queue_top > queue_size/2 )
+    {
+        queue_shrink = QUEUE_SHRINK_COUNTDOWN;
+    }
+    else
+    {
+        --queue_shrink;
+
+        if( !queue_shrink )
+        {
+            queue_shrink = QUEUE_SHRINK_COUNTDOWN;
+            queue_size -= queue_size/4;
+            queue = realloc( queue, sizeof(sgui_event)*queue_size );
+            assert( queue );
+        }
+    }
+
     queue_top = 0;
     sgui_internal_unlock_mutex( );
 }
@@ -334,6 +362,11 @@ void sgui_internal_reset_events( void )
         free( l );
     }
 
+    free( queue );
+
+    queue_shrink = QUEUE_SHRINK_COUNTDOWN;
+    queue = NULL;
+    queue_size = 0;
     queue_top = 0;
     sgui_internal_unlock_mutex( );
 }
