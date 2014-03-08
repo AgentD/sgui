@@ -28,6 +28,7 @@
 #include "sgui_event.h"
 #include "sgui_canvas.h"
 #include "sgui_skin.h"
+#include "sgui_opengl.h"
 #include "sgui_widget.h"
 
 #include <stddef.h>
@@ -51,9 +52,12 @@ void sgui_internal_window_post_init( sgui_window* this, unsigned int width,
         this->backend = backend;
         this->modmask = 0;
 
-        sgui_canvas_begin( this->canvas, NULL );
-        sgui_canvas_clear( this->canvas, NULL );
-        sgui_canvas_end( this->canvas );
+        if( this->backend == SGUI_NATIVE )
+        {
+            sgui_canvas_begin( this->ctx.canvas, NULL );
+            sgui_canvas_clear( this->ctx.canvas, NULL );
+            sgui_canvas_end( this->ctx.canvas );
+        }
     }
 }
 
@@ -102,7 +106,11 @@ void sgui_internal_window_fire_event( sgui_window* this, const sgui_event* e )
             this->event_fun( this->userptr, e );
 
         sgui_event_post( e );
-        sgui_canvas_send_window_event( this->canvas, e );
+
+        if( this->backend==SGUI_NATIVE )
+        {
+            sgui_canvas_send_window_event( this->ctx.canvas, e );
+        }
 
         /* generate events for special key combinations */
         if( (this->modmask==SGUI_MOD_CTRL) &&
@@ -124,7 +132,11 @@ void sgui_internal_window_fire_event( sgui_window* this, const sgui_event* e )
                 this->event_fun( this->userptr, &ev );
 
             sgui_event_post( &ev );
-            sgui_canvas_send_window_event( this->canvas, &ev );
+
+            if( this->backend==SGUI_NATIVE )
+            {
+                sgui_canvas_send_window_event( this->ctx.canvas, &ev );
+            }
         }
     }
 }
@@ -137,6 +149,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     sgui_window_description desc;
 
     desc.parent         = parent;
+    desc.share          = NULL;
     desc.width          = width;
     desc.height         = height;
     desc.resizeable     = resizeable;
@@ -225,8 +238,11 @@ void sgui_window_set_size( sgui_window* this,
         this->set_size( this, width, height );
 
         /* resize the canvas */
-        sgui_canvas_resize( this->canvas, this->w, this->h );
-        sgui_canvas_draw_widgets( this->canvas, 1 );
+        if( this->backend == SGUI_NATIVE )
+        {
+            sgui_canvas_resize( this->ctx.canvas, this->w, this->h );
+            sgui_canvas_draw_widgets( this->ctx.canvas, 1 );
+        }
     }
 }
 
@@ -245,6 +261,19 @@ void sgui_window_move( sgui_window* this, int x, int y )
         this->x = x;
         this->y = y;
         sgui_internal_unlock_mutex( );
+    }
+}
+
+void sgui_window_make_current( sgui_window* this )
+{
+    if( this && (this->backend==SGUI_OPENGL_CORE ||
+                 this->backend==SGUI_OPENGL_COMPAT) )
+    {
+        sgui_gl_context_make_current( this->ctx.gl, this );
+    }
+    else
+    {
+        sgui_gl_context_make_current( NULL, NULL );
     }
 }
 
@@ -338,8 +367,8 @@ void sgui_window_get_size( const sgui_window* this, unsigned int* width,
 
 void sgui_window_add_widget( sgui_window* this, sgui_widget* widget )
 {
-    if( this )
-        sgui_widget_add_child( sgui_canvas_get_root(this->canvas), widget );
+    if( this && this->backend==SGUI_NATIVE )
+        sgui_widget_add_child(sgui_canvas_get_root(this->ctx.canvas), widget);
 }
 
 void sgui_window_on_event( sgui_window* this, sgui_window_callback fun )
@@ -350,7 +379,12 @@ void sgui_window_on_event( sgui_window* this, sgui_window_callback fun )
 
 sgui_canvas* sgui_window_get_canvas( const sgui_window* this )
 {
-    return this ? this->canvas : NULL;
+    if( this && this->backend==SGUI_NATIVE )
+    {
+        return this->ctx.canvas;
+    }
+
+    return NULL;
 }
 
 void sgui_window_set_userptr( sgui_window* this, void* ptr )
@@ -362,5 +396,16 @@ void sgui_window_set_userptr( sgui_window* this, void* ptr )
 void* sgui_window_get_userptr( const sgui_window* this )
 {
     return this ? this->userptr : NULL;
+}
+
+sgui_gl_context* sgui_window_get_gl_context( const sgui_window* this )
+{
+    if( this && (this->backend==SGUI_OPENGL_CORE ||
+                 this->backend==SGUI_OPENGL_COMPAT) )
+    {
+        return this->ctx.gl;
+    }
+
+    return NULL;
 }
 

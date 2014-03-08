@@ -148,12 +148,37 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
     return 1;
 }
 
-int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
+/****************************************************************************/
+
+struct sgui_gl_context
+{
+    GLXContext gl;
+};
+
+
+sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
+                                         sgui_gl_context* share,
+                                         int core )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
+    sgui_gl_context* ctx;
+    GLXContext sctx;
     int attribs[10];
     unsigned int i;
-    wnd->gl = 0;
+
+    if( !wnd )
+        return NULL;
+
+    if( wnd->backend!=SGUI_OPENGL_CORE && wnd->backend!=SGUI_OPENGL_COMPAT )
+        return NULL;
+
+    if( !(ctx = malloc( sizeof(sgui_gl_context) )) )
+        return NULL;
+
+    sgui_internal_lock_mutex( );
+
+    ctx->gl = 0;
+    sctx = share ? share->gl : 0;
 
     /* try to load context creation function */
     CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
@@ -174,59 +199,109 @@ int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
         attribs[8] = None;
 
         /* try to create 4.x down to 3.x context */
-        for(i=0; !wnd->gl && i<sizeof(glversions)/sizeof(glversions[0]); ++i)
+        for(i=0; !ctx->gl && i<sizeof(glversions)/sizeof(glversions[0]); ++i)
         {
             attribs[1] = glversions[i][0];
             attribs[3] = glversions[i][1];
-            wnd->gl = CreateContextAttribs( dpy, cfg, 0, True, attribs );
+            ctx->gl = CreateContextAttribs( dpy, TO_X11(wnd)->cfg, sctx,
+                                            True, attribs );
         }
     }
 
     /* fallback: old context creation function */
-    if( !wnd->gl )
-        wnd->gl = glXCreateNewContext(dpy, cfg, GLX_RGBA_TYPE, NULL, GL_TRUE);
+    if( !ctx->gl )
+        ctx->gl = glXCreateNewContext( dpy, TO_X11(wnd)->cfg, GLX_RGBA_TYPE,
+                                       sctx, GL_TRUE );
 
-    return (wnd->gl!=0);
+    if( !ctx->gl )
+    {
+        free( ctx );
+        ctx = NULL;
+    }
+
+    sgui_internal_unlock_mutex( );
+
+    return ctx;
+}
+
+void sgui_gl_context_destroy( sgui_gl_context* ctx )
+{
+    if( ctx )
+    {
+        sgui_internal_lock_mutex( );
+        glXDestroyContext( dpy, ctx->gl );
+        sgui_internal_unlock_mutex( );
+
+        free( ctx );
+    }
+}
+
+void sgui_gl_context_make_current( sgui_gl_context* ctx, sgui_window* wnd )
+{
+    sgui_internal_lock_mutex( );
+
+    if( ctx )
+    {
+        glXMakeContextCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
+                               ctx->gl );
+    }
+    else
+    {
+        glXMakeContextCurrent( dpy, 0, 0, 0 );
+    }
+
+    sgui_internal_unlock_mutex( );
+}
+
+sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
+{
+    (void)ctx;
+    return LOAD_GLFUN( name );
 }
 
 void gl_swap_buffers( sgui_window* this )
 {
-    if( TO_X11(this)->is_singlebuffered )
-    {
-        /*
-            For singlebuffered contexts, glXSwapBuffers is a no-op and thus
-            doesn't do an implicit flush (on some implementations like Mesa
-            or AMD). When the context is never released and no flush happens,
-            certain OpenGL implementations freeze and go to 100% CPU.
-            This caused me a lot of confusion, so to avoid it for others, I
-            added this branch.
-         */
-        glFlush( );
-    }
-    else
-    {
-        sgui_internal_lock_mutex( );
-        glXSwapBuffers( dpy, TO_X11(this)->wnd );
-        sgui_internal_unlock_mutex( );
-    }
+    sgui_internal_lock_mutex( );
+
+    /*
+        For singlebuffered contexts, glXSwapBuffers is a no-op and thus
+        doesn't do an implicit flush (on some implementations like Mesa
+        or AMD). When the context is never released and no flush happens,
+        certain OpenGL implementations freeze and go to 100% CPU.
+        This caused me a lot of confusion, so to avoid it for others, I
+        added this not-so-implicit flush.
+     */
+    glFlush( );
+
+    glXSwapBuffers( dpy, TO_X11(this)->wnd );
+    sgui_internal_unlock_mutex( );
 }
 #else
-int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
-                         const sgui_window_description* desc )
-{
-    (void)fbc; (void)vi; (void)cmap; (void)desc;
-    return 0;
-}
-
-int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd )
-{
-    (void)cfg; (void)core; (void)wnd;
-    return 0;
-}
-
-void gl_swap_buffers( sgui_window* wnd )
+sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
+                                         sgui_gl_context* share, int core )
 {
     (void)wnd;
+    (void)share;
+    (void)core;
+    return NULL;
+}
+
+void sgui_gl_context_destroy( sgui_gl_context* ctx )
+{
+    (void)ctx;
+}
+
+void sgui_gl_context_make_current( sgui_gl_context* ctx, sgui_window* wnd )
+{
+    (void)ctx;
+    (void)wnd;
+}
+
+sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
+{
+    (void)ctx;
+    (void)name;
+    return NULL;
 }
 #endif
 

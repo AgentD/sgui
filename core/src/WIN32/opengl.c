@@ -25,9 +25,14 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_event.h"
 #include "internal.h"
-#include "opengl.h"
 
 #ifndef SGUI_NO_OPENGL
+#include <GL/gl.h>
+#include "opengl.h"
+
+
+
+
 static int glversions[][2] = { {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
                                       {3,3}, {3,2}, {3,1}, {3,0} };
 
@@ -194,21 +199,11 @@ static void set_attributes( int* attr, int bpp, int depth, int stencil,
 #undef ATTRIB
 }
 
-
-int create_gl_context( sgui_window_w32* this,
-                       const sgui_window_description* desc )
+int set_pixel_format( sgui_window_w32* this,
+                      const sgui_window_description* desc )
 {
-    WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
     int attribs[20], samples, format;
-    HGLRC temp, oldctx;
-    unsigned int i;
-    HDC olddc;
 
-    /********** get a device context **********/
-    if( !(this->hDC = GetDC( this->hWnd )) )
-        return 0;
-
-    /********** try to set a pixel format **********/
     samples = desc->samples;
 
     do
@@ -224,27 +219,62 @@ int create_gl_context( sgui_window_w32* this,
         format = determine_pixel_format( attribs, 0 );
 
     if( !format )
-        goto bail;
+        return 0;
 
     SetPixelFormat( this->hDC, format, NULL );
+    return 1;
+}
+
+/****************************************************************************/
+
+struct sgui_gl_context
+{
+    HGLRC hRC;
+};
+
+sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
+                                         sgui_gl_context* share,
+                                         int core )
+{
+    WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+    sgui_gl_context* this;
+    HGLRC temp, oldctx;
+    int attribs[20];
+    unsigned int i;
+    HDC olddc;
+    HGLRC src;
+
+    this = malloc( sizeof(sgui_gl_context) );
+
+    if( !this )
+        return NULL;
+
+    sgui_internal_lock_mutex( );
+    this->hRC = 0;
+    src = share ? share->hRC : 0;
 
     /********** create an old fashioned OpenGL temporary context **********/
-    if( !(temp = wglCreateContext( this->hDC )) )
-        goto bail;
+    if( !(temp = wglCreateContext( TO_W32(wnd)->hDC )) )
+    {
+        free( this );
+        sgui_internal_unlock_mutex( );
+        return NULL;
+    }
 
-    if( desc->backend!=SGUI_OPENGL_CORE )
+    if( !core )
     {
         this->hRC = temp;
-        return 1;
+        if( src )
+            wglShareLists( src, this->hRC );
+        sgui_internal_unlock_mutex( );
+        return this;
     }
 
     /********** try to create a new context **********/
-    this->hRC = 0;
-
     /* make the temporary context current */
     oldctx = wglGetCurrentContext( );
     olddc = wglGetCurrentDC( );
-    wglMakeCurrent( this->hDC, temp );
+    wglMakeCurrent( TO_W32(wnd)->hDC, temp );
 
     /* try to load the context creation funciont */
     wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
@@ -254,7 +284,8 @@ int create_gl_context( sgui_window_w32* this,
     {
         wglMakeCurrent( olddc, oldctx );
         this->hRC = temp;
-        return 1;
+        sgui_internal_unlock_mutex( );
+        return this;
     }
 
     /* fill attrib array */
@@ -273,43 +304,62 @@ int create_gl_context( sgui_window_w32* this,
     {
         attribs[1] = glversions[i][0];
         attribs[3] = glversions[i][1];
-        this->hRC = wglCreateContextAttribsARB( this->hDC, 0, attribs );
+        this->hRC = wglCreateContextAttribsARB(TO_W32(wnd)->hDC,src,attribs);
     }
 
     /* restore the privous context */
     wglMakeCurrent( olddc, oldctx );
 
     if( this->hRC )
+    {
         wglDeleteContext( temp );
+    }
     else
+    {
         this->hRC = temp;
 
-    return 1;
-bail:
-    ReleaseDC( this->hWnd, this->hDC );
-    return 0;
+        if( src )
+            wglShareLists( src, this->hRC );
+    }
+
+    sgui_internal_unlock_mutex( );
+    return this;
 }
 
-void destroy_gl_context( sgui_window_w32* this )
+void sgui_gl_context_destroy( sgui_gl_context* this )
 {
-    if( this->hRC )
-        wglDeleteContext( this->hRC );
+    if( this && this->hRC )
+    {
+        if( wglGetCurrentContext( )==this->hRC )
+            wglMakeCurrent( NULL, NULL );
 
-    if( this->hDC )
-        ReleaseDC( this->hWnd, this->hDC );
+        wglDeleteContext( this->hRC );
+    }
+}
+
+void sgui_gl_context_make_current( sgui_gl_context* this, sgui_window* wnd )
+{
+    if( this &&
+        (wnd->backend==SGUI_OPENGL_CORE || wnd->backend==SGUI_OPENGL_COMPAT) )
+    {
+        wglMakeCurrent( TO_W32(wnd)->hDC, this->hRC );
+    }
+    else
+    {
+        wglMakeCurrent( NULL, NULL );
+    }
+}
+
+sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
+{
+    (void)ctx;
+    return (sgui_funptr)wglGetProcAddress( name );
 }
 
 void gl_swap_buffers( sgui_window* this )
 {
+    glFlush( );
     SwapBuffers( ((sgui_window_w32*)this)->hDC );
-}
-
-void gl_make_current( sgui_window_w32* this )
-{
-    if( this )
-        wglMakeCurrent( this->hDC, this->hRC );
-    else
-        wglMakeCurrent( NULL, NULL );
 }
 
 void gl_set_vsync( sgui_window_w32* this, int vsync_on )
@@ -324,25 +374,37 @@ void gl_set_vsync( sgui_window_w32* this, int vsync_on )
         wglSwapIntervalEXT( vsync_on ? 1 : 0 );
 }
 #else
-int create_gl_context( sgui_window_w32* this,
-                       const sgui_window_description* desc )
+int set_pixel_format( sgui_window_w32* this,
+                      const sgui_window_description* desc )
 {
-    (void)this;
-    (void)desc;
+    (void)this; (void)desc;
     return 0;
 }
 
-void destroy_gl_context( sgui_window_w32* this )
+sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
+                                         sgui_gl_context* share, int core )
+{
+    (void)wnd; (void)share; (void)core;
+    return NULL;
+}
+
+void sgui_gl_context_destroy( sgui_gl_context* this )
 {
     (void)this;
+}
+
+void sgui_gl_context_make_current( sgui_gl_context* this, sgui_window* wnd )
+{
+    (void)this; (void)wnd;
+}
+
+sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
+{
+    (void)ctx; (void)name;
+    return NULL;
 }
 
 void gl_swap_buffers( sgui_window* this )
-{
-    (void)this;
-}
-
-void gl_make_current( sgui_window_w32* this )
 {
     (void)this;
 }

@@ -64,6 +64,14 @@ typedef struct
      */
     sgui_window* parent;
 
+    /**
+     * \brief A pointer to a window with a context to share resources with
+     *
+     * If a new window is to be created with an OpenGL context, this can point
+     * to an existing window with a context to share resources with.
+     */
+    sgui_window* share;
+
     /** \brief The width of the window (without borders and decoration) */
     unsigned int width;
 
@@ -405,14 +413,15 @@ SGUI_DLL int sgui_window_get_modifyer_mask( const sgui_window* wnd );
  * \param window  On MS Windows, this is asumed to be a pointer to a HWND
  *                and receives the value of the windows HWND. When using the
  *                Xlib backend, this is assumed to be a pointer to a "Window".
- * \param context When using native windows, this pointer is ignored, when
- *                using OpenGL windows, this is assumed to be a pointer to an
- *                OpenGL context and receives the value of the internal
- *                context field. (HGLRC on Windows, GLXContext for Xlib).
  */
 SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
-                                             void* window, void* context );
+                                             void* window );
 
+/**
+ * \brief If a window has an OpenGL context, get a pointer to the
+ *        context object
+ */
+SGUI_DLL sgui_gl_context* sgui_window_get_gl_context(const sgui_window* wnd);
 
 
 #ifdef __cplusplus

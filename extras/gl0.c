@@ -42,6 +42,7 @@ int main( void )
 
     /* create a window */
     desc.parent         = NULL;
+    desc.share          = NULL;
     desc.width          = 300;
     desc.height         = 300;
     desc.resizeable     = SGUI_RESIZEABLE;

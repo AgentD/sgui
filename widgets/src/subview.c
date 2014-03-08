@@ -163,6 +163,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     if( !cfg )
     {
         desc.parent         = parent;
+        desc.share          = NULL;
         desc.width          = width;
         desc.height         = height;
         desc.resizeable     = SGUI_FIXED_SIZE;

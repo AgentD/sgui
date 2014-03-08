@@ -22,13 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_OPENGL_H
-#define SGUI_OPENGL_H
-
-
-
-#ifndef SGUI_NO_OPENGL
-#include "internal.h"
+#ifndef SGUI_W32_OPENGL_H
+#define SGUI_W32_OPENGL_H
 
 
 
@@ -107,7 +102,6 @@ typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
 
 #define WGL_TYPE_RGBA_ARB                       0x202B
 #define WGL_TYPE_COLORINDEX_ARB                 0x202C
-#endif
 
-#endif /* SGUI_OPENGL_H */
+#endif /* SGUI_W32_OPENGL_H */
 

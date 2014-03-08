@@ -391,7 +391,12 @@ struct sgui_canvas
 
 struct sgui_window
 {
-    sgui_canvas* canvas;        /**< \brief pointer to a canvas */
+    union
+    {
+        sgui_canvas* canvas;       /**< \brief pointer to a canvas */
+        sgui_gl_context* gl;       /**< \brief Pointer to OpenGL context */
+    }
+    ctx;
 
     sgui_window_callback event_fun; /**< \brief the window event callback */
 
@@ -405,7 +410,6 @@ struct sgui_window
     int backend;                /**< \brief Window backend used */
 
     void* userptr;
-
 
     /**
      * \brief Called by sgui_window_get_mouse_position

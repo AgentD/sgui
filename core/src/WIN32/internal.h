@@ -33,6 +33,7 @@
 #include "sgui_rect.h"
 #include "sgui_internal.h"
 #include "sgui_font.h"
+#include "sgui_opengl.h"
 #include "sgui_pixmap.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -40,10 +41,6 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-#ifndef SGUI_NO_OPENGL
-#include <GL/gl.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -83,10 +80,6 @@ typedef struct _sgui_window_w32
     HBITMAP bitmap;
     HBRUSH bgbrush;
 
-#ifndef SGUI_NO_OPENGL
-    HGLRC hRC;
-#endif
-
     struct _sgui_window_w32* next;
 }
 sgui_window_w32;
@@ -115,19 +108,12 @@ void update_window( sgui_window_w32* wnd );
 int handle_window_events( sgui_window_w32* wnd, UINT msg,
                           WPARAM wp, LPARAM lp );
 
-/* in opengl.c: create OpenGL context with maximum version,
-   return non-zero on success, zero on failure */
-int create_gl_context( sgui_window_w32* wnd,
-                       const sgui_window_description* desc );
-
-/* in opengl.c: destroy OpenGL context of a window */
-void destroy_gl_context( sgui_window_w32* wnd );
+/* in opengl.c: set a pixel format for a window */
+int set_pixel_format( sgui_window_w32* wnd,
+                      const sgui_window_description* desc );
 
 /* in opengl.c: swap buffers of an OpenGL context of a window */
 void gl_swap_buffers( sgui_window* wnd );
-
-/* in opengl.c: make the OpenGL context of a window current */
-void gl_make_current( sgui_window_w32* wnd );
 
 /* in opengl.c: turn vsync on or off */
 void gl_set_vsync( sgui_window_w32* wnd, int vsync_on );

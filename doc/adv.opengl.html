@@ -57,6 +57,8 @@ to us:
 <li><b>stencil_bits</b> This specifies the number of stencil bits per pixel, 0 means don't create a stencil buffer</li>
 <li><b>samples</b> This specifies the number of samples per pixel for multisample anti aliasing, 0 means don't use
     MSAA</li></li>
+<li><b>share</b> If given a pointer to an existing window with an OpenGL&reg;
+    context, the context of the new window will share resources with it.
 </ul>
 
 When creating the window with the description structure pointer, an OpenGL&reg;
@@ -149,6 +151,29 @@ itself can be obtained to do more fancy stuff.<br>
 For instance, it is perfectly possible to set the callback to NULL, obtain a
 pointer to the underlying window and call <b>sgui_window_make_current</b> on
 the window in a second thread that then draws to the sub window in a loop.
+
+<h4>Loading extension function pointers</h4>
+
+Using the function <b>sgui_window_get_gl_context</b> it is possible to get a
+pointer to an OpenGL&reg; context object from a window. This pointer can be
+used for loading pointers to extension functions via the
+<b>sgui_gl_context_load</b> function that takes as arguments a pointer to a
+context object and a name string.
+
+<h4>Creating a dedicated resource loading context</h4>
+
+In some application it is desired to create a dedicated context for resource
+loading. That context shares resources with the context used for rendering and
+is bound to a dedicated thread that loads resources.<br>
+<br>
+After getting the context object from a window using
+<b>sgui_window_get_gl_context</b>, the function <b>sgui_gl_context_create</b>
+can be used to create a new context that shares resources with the existing
+context. The function <b>sgui_gl_context_destroy</b> can be used to destroy
+that context when no longer needed.<br>
+<br>
+All that is left to do in the loading thread is to make the new context
+current with <b>sgui_gl_context_make_current</b>
 
 <hr>
 <a href="widgets.html">Previous</a>

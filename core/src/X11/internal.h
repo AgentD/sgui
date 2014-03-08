@@ -34,6 +34,7 @@
 #include "sgui_rect.h"
 #include "sgui_internal.h"
 #include "sgui_font.h"
+#include "sgui_opengl.h"
 #include "sgui_font_cache.h"
 
 #include <stdlib.h>
@@ -82,8 +83,7 @@ typedef struct _sgui_window_xlib
     unsigned int mouse_warped;/* mouse warp counter */
 
 #ifndef SGUI_NO_OPENGL
-    int is_singlebuffered;
-    GLXContext gl;
+    GLXFBConfig cfg;
 #endif
 
     struct _sgui_window_xlib* next;  /* linked list stuff */
@@ -140,9 +140,6 @@ void canvas_xlib_display( sgui_canvas* cv, int x, int y,
    success, zero if creating a visual or colormap failed */
 int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
                          const sgui_window_description* desc );
-
-/* in OpenGL.c: try to create an OpenGL context */
-int create_context( GLXFBConfig cfg, int core, sgui_window_xlib* wnd );
 
 /* in OpenGL.c: sgui_window_swap_buffers implementation */
 void gl_swap_buffers( sgui_window* wnd );

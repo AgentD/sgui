@@ -57,7 +57,11 @@ typedef struct sgui_skin sgui_skin;
 
 typedef struct sgui_filesystem sgui_filesystem;
 
+typedef struct sgui_gl_context sgui_gl_context;
+
 typedef struct sgui_event sgui_event;
+
+typedef void(* sgui_funptr )( );
 
 
 

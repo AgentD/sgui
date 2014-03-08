@@ -140,21 +140,22 @@ static void xlib_window_force_redraw( sgui_window* this, sgui_rect* r )
 
 static void xlib_window_destroy( sgui_window* this )
 {
-    if( this->canvas )
-        sgui_canvas_destroy( this->canvas );
-
     sgui_internal_lock_mutex( );
 
     if( TO_X11(this)->ic )
         XDestroyIC( TO_X11(this)->ic );
 
-#ifndef SGUI_NO_OPENGL
     if( this->backend==SGUI_OPENGL_CORE || this->backend==SGUI_OPENGL_COMPAT )
     {
-        if( TO_X11(this)->gl )
-            glXDestroyContext( dpy, TO_X11(this)->gl );
-    }
+#ifndef SGUI_NO_OPENGL
+        if( this->ctx.gl )
+            sgui_gl_context_destroy( this->ctx.gl );
 #endif
+    }
+    else if( this->backend==SGUI_NATIVE && this->ctx.canvas )
+    {
+        sgui_canvas_destroy( this->ctx.canvas );
+    }
 
     if( TO_X11(this)->wnd )
         XDestroyWindow( dpy, TO_X11(this)->wnd );
@@ -174,9 +175,9 @@ void update_window( sgui_window_xlib* this )
     XExposeEvent exp;
     sgui_rect r;
 
-    if( super->canvas )
+    if( super->backend==SGUI_NATIVE )
     {
-        num = sgui_canvas_num_dirty_rects( super->canvas );
+        num = sgui_canvas_num_dirty_rects( super->ctx.canvas );
 
         exp.type       = Expose;
         exp.serial     = 0;
@@ -187,7 +188,7 @@ void update_window( sgui_window_xlib* this )
 
         for( i=0; i<num; ++i )
         {
-            sgui_canvas_get_dirty_rect( super->canvas, &r, i );
+            sgui_canvas_get_dirty_rect( super->ctx.canvas, &r, i );
 
             exp.x      = r.left;
             exp.y      = r.top;
@@ -197,7 +198,7 @@ void update_window( sgui_window_xlib* this )
             XSendEvent( dpy, this->wnd, False, ExposureMask, (XEvent*)&exp );
         }
 
-        sgui_canvas_redraw_widgets( super->canvas, 1 );
+        sgui_canvas_redraw_widgets( super->ctx.canvas, 1 );
     }
 }
 
@@ -309,13 +310,15 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         super->h = (unsigned int)e->xconfigure.height;
 
         /* resize the back buffer image */
-        sgui_canvas_resize( super->canvas, super->w, super->h );
+        if( super->backend==SGUI_NATIVE )
+            sgui_canvas_resize( super->ctx.canvas, super->w, super->h );
 
         /* send a size change event */
         sgui_internal_window_fire_event( super, &se );
 
         /* redraw everything */
-        sgui_canvas_draw_widgets( super->canvas, 1 );
+        if( super->backend==SGUI_NATIVE )
+            sgui_canvas_draw_widgets( super->ctx.canvas, 1 );
         break;
     case DestroyNotify:
         super->visible = 0;
@@ -349,14 +352,13 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         break;
     case Expose:
-        if( super->canvas )
+        if( super->backend==SGUI_NATIVE )
         {
-            canvas_xlib_display( super->canvas, e->xexpose.x, e->xexpose.y,
-                                 e->xexpose.width, e->xexpose.height );
+            canvas_xlib_display(super->ctx.canvas, e->xexpose.x, e->xexpose.y,
+                                e->xexpose.width, e->xexpose.height);
         }
-
-        if( super->backend==SGUI_OPENGL_CORE ||
-            super->backend==SGUI_OPENGL_COMPAT )
+        else if( super->backend==SGUI_OPENGL_CORE ||
+                 super->backend==SGUI_OPENGL_COMPAT )
         {
             se.type = SGUI_EXPOSE_EVENT;
             sgui_rect_set_size( &se.arg.rect, 0, 0, super->w, super->h );
@@ -376,13 +378,17 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     XWindowAttributes attr;
     XSetWindowAttributes swa;
     XVisualInfo* vi = NULL;
-    GLXFBConfig fbc = NULL;
     unsigned long color = 0;
     unsigned char rgb[3];
     Window x_parent;
 
     if( !desc || !desc->width || !desc->height )
         return NULL;
+
+#ifdef SGUI_NO_OPENGL
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
+        return NULL;
+#endif
 
     /********* allocate space for the window structure *********/
     this = malloc( sizeof(sgui_window_xlib) );
@@ -402,8 +408,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-        /* Get an fbc (optional), a visual and a Colormap */
-        if( !get_fbc_visual_cmap( &fbc, &vi, &swa.colormap, desc ) )
+#ifndef SGUI_NO_OPENGL
+        /* Get an fbc, a visual and a Colormap */
+        if( !get_fbc_visual_cmap( &this->cfg, &vi, &swa.colormap, desc ) )
             goto failure;
 
         /* create the window */
@@ -415,6 +422,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
                                    CWBorderPixel|CWColormap, &swa );
 
         XFree( vi );
+#else
+        (void)vi;
+        (void)swa;
+#endif
     }
     else
     {
@@ -461,22 +472,24 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     /********************** create canvas **********************/
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-        if( !create_context( fbc, desc->backend==SGUI_OPENGL_CORE, this ) )
+#ifndef SGUI_NO_OPENGL
+        super->backend = desc->backend;
+        super->ctx.gl =
+        sgui_gl_context_create( super, desc->share?desc->share->ctx.gl:NULL,
+                                desc->backend==SGUI_OPENGL_CORE );
+
+        if( !super->ctx.gl )
             goto failure;
 
-        super->canvas = NULL;
         super->swap_buffers = gl_swap_buffers;
-
-#ifndef SGUI_NO_OPENGL
-        this->is_singlebuffered = (desc->doublebuffer==SGUI_SINGLEBUFFERED);
 #endif
     }
     else
     {
-        super->canvas = canvas_xlib_create( this->wnd, attr.width,
-                                            attr.height );
+        super->ctx.canvas = canvas_xlib_create( this->wnd, attr.width,
+                                                attr.height );
 
-        if( !super->canvas )
+        if( !super->ctx.canvas )
             goto failure;
     }
 
@@ -514,28 +527,6 @@ failure:
     return NULL;
 }
 
-void sgui_window_make_current( sgui_window* this )
-{
-#ifdef SGUI_NO_OPENGL
-    (void)this;
-#else
-    sgui_internal_lock_mutex( );
-
-    if( this && (this->backend==SGUI_OPENGL_CORE ||
-                 this->backend==SGUI_OPENGL_COMPAT) )
-    {
-        glXMakeContextCurrent( dpy, TO_X11(this)->wnd, TO_X11(this)->wnd,
-                               TO_X11(this)->gl );
-    }
-    else
-    {
-        glXMakeContextCurrent( dpy, 0, 0, 0 );
-    }
-
-    sgui_internal_unlock_mutex( );
-#endif
-}
-
 void sgui_window_set_vsync( sgui_window* this, int vsync_on )
 {
 #ifdef SGUI_NO_OPENGL
@@ -559,29 +550,11 @@ void sgui_window_set_vsync( sgui_window* this, int vsync_on )
 #endif
 }
 
-
-void sgui_window_get_platform_data( const sgui_window* this,
-                                    void* window, void* context )
+void sgui_window_get_platform_data( const sgui_window* this, void* window )
 {
-    if( this )
+    if( this && window )
     {
-        if( window )
-        {
-            *((Window*)window) = TO_X11(this)->wnd;
-        }
-
-    #ifndef SGUI_NO_OPENGL
-        if( context )
-        {
-            if( this->backend==SGUI_OPENGL_COMPAT ||
-                this->backend==SGUI_OPENGL_CORE )
-            {
-                *((GLXContext*)context) = TO_X11(this)->gl;
-            }
-        }
-    #else
-        (void)context;
-    #endif
+        *((Window*)window) = TO_X11(this)->wnd;
     }
 }
 
