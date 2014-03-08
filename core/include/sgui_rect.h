@@ -109,8 +109,8 @@ SGUI_DLL void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src );
  * This performs an intersection test between two rectangles and returns the
  * intersection. The pointer to the intersection rectangle can be safely set
  * to one of the testing rectangles as it is not touched until the
- * intersection test is done. If the intersection test fails, it is set left
- * unchanged.
+ * intersection test is done. If the intersection test fails, it is set to
+ * zero.
  *
  * \param r If non-NULL, returns the intersection area between the rectangles.
  * \param a The first rectangle to test. Must not be NULL.

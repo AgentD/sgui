@@ -166,13 +166,13 @@ unsigned int sgui_utf8_strncpy( char* dst, const char* src,
         *(dst++) = *(src++);
         ++j;
 
-        while( (*dst & 0xC0)==0x80 && j<buffersize )
+        while( (*src & 0xC0)==0x80 && j<buffersize )
         {
             *(dst++) = *(src++);
             ++j;
         }
 
-        if( (*dst & 0xC0)==0x80 && j==buffersize )
+        if( (*src & 0xC0)==0x80 && j==buffersize )
         {
             dst = old;
             break;

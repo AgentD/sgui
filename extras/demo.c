@@ -264,8 +264,11 @@ int main( int argc, char** argv )
 
     sgui_main_loop( );
 
-    running = 0;
-    WAIT_THREAD( thread );
+    if( !nogl )
+    {
+        running = 0;
+        WAIT_THREAD( thread );
+    }
 
     sgui_window_make_current( NULL );
 

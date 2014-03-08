@@ -77,15 +77,15 @@ int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
                                 const sgui_rect* b )
 {
     if( !a || !b )  /* both must exist */
-        return 0;
+        goto fail;
 
     /* check if a is to the right or below b */
     if( (a->left > b->right) || (a->top > b->bottom) )
-        return 0;
+        goto fail;
 
     /* check if a is to the left or above b */
     if( (a->right < b->left) || (a->bottom < b->top) )
-        return 0;
+        goto fail;
 
     /* set the intersection rectangle */
     if( r )
@@ -97,6 +97,12 @@ int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
     }
 
     return 1;
+fail:
+    if( r )
+    {
+        r->left = r->top = r->bottom = r->right = 0;
+    }
+    return 0;
 }
 
 int sgui_rect_join( sgui_rect* acc, const sgui_rect* r, int only_if_touch )

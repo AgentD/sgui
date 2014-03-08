@@ -510,6 +510,9 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
 
 static void edit_box_destroy( sgui_widget* this )
 {
+    if( ((sgui_edit_box*)this)->mode == SGUI_EDIT_PASSWORD )
+        free( ((sgui_edit_box_passwd*)this)->shadow );
+
     free( ((sgui_edit_box*)this)->buffer );
     free( this );
 }
@@ -616,7 +619,8 @@ void sgui_edit_box_set_text( sgui_widget* super, const char* text )
     }
     else if( this->mode == SGUI_EDIT_PASSWORD )
     {
-        pw->end = sgui_utf8_strncpy( pw->shadow, text, -1, this->max_chars );
+        pw->end = sgui_utf8_strncpy( pw->shadow, text, this->max_chars*6 + 1,
+                                     this->max_chars );
         pw->cursor = 0;
 
         /* generate sequence of display characters */
@@ -638,7 +642,8 @@ void sgui_edit_box_set_text( sgui_widget* super, const char* text )
     }
     else
     {
-        sgui_utf8_strncpy( this->buffer, text, -1, this->max_chars );
+        sgui_utf8_strncpy( this->buffer, text, this->max_chars*6 + 1,
+                           this->max_chars );
     }
 
     this->cursor = 0;          /* set cursor to the beginning */
