@@ -11,126 +11,127 @@
 
 <h3>The SGUI build system</h3>
 
-The SGUI build system consits of two simple shell scripts:
+The SGUI library uses a CMake base build system. Since the demo programs need
+special files and the Windows&reg; backend needs the freetype DLL, the build
+tree stub is contained within the source tree.<br>
+<br>
+To compile and build everything, issue the following commands from within the
+source directory:
+<p class="code">
+<font class="command">cd</font> build<br>
+<font class="command">cmake</font> ..<br>
+<font class="command">make</font><br>
+</p>
+Or to cross compile everything for Windows&reg;:
+<p class="code">
+<font class="command">cd</font> build<br>
+<font class="command">cmake</font> .. -DCMAKE_TOOLCHAIN_FILE="../CMake/mingw.cmake"<br>
+<font class="command">make</font><br>
+</p>
+Alternatively, use "mingw64.cmake" for a 64 bit Windows&reg; build.<br>
+<br>
+<i>Note: While it should theoretically work to compile everything on
+   Windows&reg; (and there is even a VisualStudio&reg; configuration in the
+   CMakeLists.txt), nobody I know of has ever tried to do that. It is
+   advisable to use mingw on a UNIX&reg; or UNIX-like system to cross compile
+   SGUI for windows.</i>
+<br>
+<br>
+If you have too much time on your hands and want to generate binary packages
+for all platforms, as well as source and SDK packages with doxygen
+documentation, run the command <b>./package.sh</b> from the source directory.
+It takes care of all of that automatically.<br>
+<br>
+If you are "manually" running cmake the following build options are available:
 <ul>
-<li>One for UNIX&reg; systems that uses gcc, <b>"compile.sh"</b>
-<li>One for Windows&reg; that uses the mingw cross compiler,
-    <b>"compile_mingw.sh"</b>
+<li><b>MEMCANVAS</b> Enable or disable the memory canvas implementation.
+    <b>Default: ON</b>. This option might not be disabled if the backend
+    implementation for the current platform needs the memory canvas. If this
+    is set to OFF, the definition <b>SGUI_NO_MEM_CANVAS</b> is set via the
+    preprocessor.
+<li><b>OPENGL</b> Enable or disable OpenGL&reg; support. <b>Default: ON</b>
+    If this is set to OFF, the definition <b>SGUI_NO_OPENGL</b> is set via the
+    preprocessor.
+<li><b>NOFLOAT</b> Can be used to disable all internal use of floating point
+    data types. <b>Default: OFF</b>. If this is set to ON, the definition
+    <b>SGUI_NO_FLOAT</b> is set via the preprocessor.
+    <br>
+    <i>Note: The SGUI library does currently not make use of floating
+    point calculations internally. This option currently only effects the
+    supported data types of the event system.</i>
 </ul>
-The reasons for this are simplicity on the one hand and the fact that the
-whole thing started out as an Xlib play pen that simply grew out of
-proportions on the other hand. It might be replaced with a Makefile somewhere
-in the future.<br>
-<br>
-Both shell scripts start with a variable called <b>"CFLAGS"</b> wich contains
-the C compiler flags to use. Additional flags can be specified over the
-command line (<b>$1</b>).<br>
-<br>
-What follows (in both shell scripts) is a function called
-<b>"compile_files( )"</b>. The basically takes a list of C source files and an
-output object directory. For each source file, it checks whether the
-coresponding object file is older than the source file, if it is older or does
-not exist at all, the file is recompiled to the object file. The parameters of
-the function may very between the two shell scripts. Please consult the
-comments in the script.<br>
-<br>
 
-Somewhere below (it is clerly marked by comments) follows a section with
-variables containing the source files and library dependencies.<br>
-<br>
-The source files for the widgets are stored in <b>SOURCE_WIDGETS</b>, the
-files for the common code in <b>SOURCE_COMMON</b> and the source files for
-a particular back end are in <b>SOURCE_&lt;PLATFORM&gt;</b>. The dependencies
-for a particular back end are in <b>LIBS_&lt;PLATFORM&gt;</b>. Added a source
-file to the build systems is merely a matter of adding it to the right
-variable. Test programs, however, are not in some variable, as their
-dependencies may very. They are compiled "hard coded" below in the actual
-compilation.<br>
-<br>
-The last thing that follows in the script is the actual compilation. The whole
-script is outlined by commentaries and it should not be to hard to read it.
-<br>
-<br>
-
-<h3>The output directory tree</h3>
-
-The SGUI build systems writes its output to the "build" subdirectory, which
-contains the contents that end up in the downloadable binary package. It
-contains the following subdirectories:
-
+Depending on the target operating system, the following definitions are set
+via the preprocessor:
 <ul>
-<table>
-<tr>
-<td><li>build/bin/&lt;PLATFORM&gt;</td>
-<td>Compiled dynamic libraries and program binaries end up here</td>
-</tr>
-<tr>
-<td><li>build/include/</td>
-<td>The header files of the different source sub directories (see below) are
-    merged into this directory</td>
-</tr>
-<tr>
-<td><li>build/lib/&lt;PLATFORM&gt;</td>
-<td>If a platform (e.g. Windows&reg;) generates static libraries, they end up
-    here</td>
-</tr>
-<tr>
-<td><li>build/obj/&lt;PLATFORM&gt;</td>
-<td>Intermediate directory for object file</td>
-</tr>
-<tr>
-<td><li>build/win_dep/&lt;PLATFORM&gt;</td>
-<td>Headers and precompiled libraries for the Windows&reg; port</td>
-</tr>
-<tr>
-<td><li>build/font/</td>
-<td>This directory contains font files used by the demo and test programs</td>
-</tr>
-</table>
+<li>MACHINE_OS_WINDOWS
+<li>MACHINE_OS_UNIX
+</ul>
+<br>
+The <b>package.sh</b> scripts generates the following type of packages:
+<ul>
+<li><b>sgui_src.tar.gz</b> and <b>sgui_src.zip</b> that contain the original
+    source tree.
+<li><b>sgui_dev.tar.gz</b> and <b>sgui_dev.zip</b> that contain the platform
+    independend development files, i.e. headers and documation.
+<li><b>sgui_&lt;platform&gt;.tar.gz</b> and <b>sgui_&lt;platform&gt;.zip</b>
+    that contain the binaries for a platform and all additional files required
+    to run the samples.
 </ul>
 
 <h3>The source directory tree</h3>
 
-In the root directory of the SGUI repository, you can find the following
-subdirectories:
-
+The library is split into several modules, each in a dedicated subdirectory,
+that are then compiled into a single library:
 <ul>
-<table>
-<tr>
-<td><li>build/</td>
-<td>The output directory; see above</td>
-</tr>
-<tr>
-<td><li>doc/</td>
-<td>The documentation you are currently reading</td>
-</tr>
-<tr>
-<td><li>core/</td>
-<td>Contains the <b>core source code</b>, i.e. core components and backend
-    rendering code</td>
-</tr>
-<tr>
-<td><li>widgets/</td>
-<td>Contains the <b>source code for the widgets</b></td>
-</tr>
-<tr>
-<td><li>test/</td>
-<td>Contains the source code for the <b>SGUI test programs</b></td>
-</tr>
-</table>
+<li><b>core</b> The library core. Contains basic widget data structure, widget
+    handling, window system abstraction, font rendering, helper data
+    structures, etc.
+<li><b>widgets</b> The GUI widgets. Contains only the implementations of the
+    individual widgets.
+</ul>
+Each of those modules contains an <b>include/</b> directory with headers,
+a <b>src/</b> directory with source files and a <b>CMakeLists.txt</b>.<br>
+<br>
+Other than that, there are few more sub directories:
+<ul>
+<li><b>build</b> The output directory, see below.
+<li><b>CMake</b> Contains CMake files (e.g. mingw cross toolchain config)
+<li><b>doc</b> The hand written HTML documation you are reading right now
+<li><b>extras</b> Contains example and demo programms
 </ul>
 
-Platform or backend specific code in the core source is placed inside a
-propperly named subdirectory (in core/src). For instance, the code in the
-<b>core/src/X11</b> subdirectory contains code specific <i>only</i> to X11,
-the code must not assume that it is running on a UNIX&reg; like system (X11
-can be run on other systems as well). Similarly, X11 specific source files
-<b>do not</b> belong into a directory called "unix" (and especially not
-"linux"), source code in a directory called "unix" should only assume that the
-POSIX API is available, no more and no less. (Linux&reg; is a <i>kernel</i>
-for UNIX&reg; like operating systems, the POSIX API also works on other
-UNIX&reg; like systems and is not kernel specific, interfaces of user land
-window systems like X11 are especially not kernel spefic).
+In addition, the source directory contains a <b>CMakeLists.txt</b>, a doxygen
+<b>Doxyfile</b> the textfiles <b>LICENSE</b> and <b>README</b> as well as the
+beforementioned <b>package.sh</b>.
+<br>
+<br>
+The combined <b>include</b> directories, the <b>doc</b> directory, the
+<b>extras</b> directory and the generated doxygen documentation end up in the
+development package.<br>
+<br>
+Everything inside the source tree ends up in the source package.<br>
+<br>
+The <b>LICENSE</b> and <b>README</b> files are added to every package.
+
+<h3>The output directory tree</h3>
+
+The output directory initially contains the following entries:
+<ul>
+<li><b>font</b> This directory contains the TTF font file required by the
+    example and demo programs.
+<li><b>win_dep</b> This directory contains additional dependencies for
+    the Windows&reg; build (currently only FreeType binaries and headers).
+<li><b>runvalgrind.sh</b> This script runs valgrind on a sample program using
+    the given valgrind surpression file.
+<li><b>valgrind.supp</b> A valgrind surpression file that's supposed to hide
+    reported memory leeks inside the X11 XIM functions, and Mesa3D.
+</ul>
+<br>
+When building SGUI, a lot of temporary clutter is generated by CMake and make.
+The interesting directores are <b>bin</b> and <b>lib</b>, the former
+containing executables and dynamic libraries and the later containing static
+libraries.
 
 <hr>
 <a href="hacking.oop.html">Previous</a>

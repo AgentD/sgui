@@ -15,15 +15,17 @@ In my personal experience, people with backgrounds in languages like C++ or
 Java tend to be rather puzzled when talking to them about object oriented
 programing in the C programing language. The main reason behind this seems to
 be that said people tend to strictly think that object orientation is tied to
-the concept of a C++ or Java <i>class datatype</i> with C++ or Java like
-method declarations, inheritance and so on.<br>
-This however, is not quite correct. Object orientation is a more general term,
-which basically boils down to the fact that there are objects ("instances of
-classes") which have data fields and can receive messages and processing data
-("method calls") and send messages to other objects (call "methods" on objects
-other). Data is encapsulated in an own data type and operations on that data
-packages are strictly bound to that data type. (It is adviceable to consult a
-book on that topic or at least the
+the concept of a C++ or Java <i>class datatype</i> with Simula style method
+calls (C++ or Java have those) and so on.<br>
+This however, is not quite correct. Object orientation is not a programming
+language concept. Object orientation does not require special syntactical
+constructus and can be done in a broad variety of programming languages
+(including assembly; what did you think a C++ compiler does?). It basically
+boils down to the fact that there are objects ("instances of classes") which
+have data fields and can receive messages, process data and so on. Data is
+encapsulated, packing semantically related data fields together. Whatever you
+call it: class, structure, record, data capsule, etc... doesn't really matter.
+(It is adviceable to consult a book on that topic or at least the
 <a href="http://en.wikipedia.org/wiki/Object_orientated">Wikipedia
 article</a>).<br>
 
@@ -48,6 +50,15 @@ my_class;<br>
 </p>
 
 An object is simply an instance of the struct.
+<br>
+<br>
+Consider the following two statements:
+<p class="code">
+my_class_do_something( object, <font class="number">42</font>, <font class="number">13.37</font> );<br>
+<br>
+object->do_something( <font class="number">42</font>, <font class="number">13.37</font> );<br>
+</p>
+The difference is merely syntactical.
 
 <h4>Inheritance</h4>
 
@@ -61,7 +72,7 @@ to the base methods.
 <br>
 <font class="keyword">typedef struct</font><br>
 {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;my_class base;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;my_class super;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">double</font> d;<br>
 }<br>
 another_class;<br>
@@ -86,18 +97,35 @@ another_class;<br>
 }
 </p>
 
-<h4>Virtual methods and polymorphism</h4>
-
-Implementing virtual methods can by done by simply <b>storing function
-pointers</b> in the structure. When we call a method on the base class, the
-function simply redirects the call to the function pointer in the structure.
-The function pointer itself is set by the initialisation funcion/method of the
-derived class and there we have our derived class overriding base class
-methods.<br>
+As you can see, the pointer to the new struct can be casted down to the
+inherited structure, as the members of the <i>super</i> structure are directly
+in front of the additional extended members in memory.<br>
 <br>
-Actually that's pretty close to how C++ classes are implemented, only we do it
-"by hand" instead of relying on the magic of the C++ compiler. (By the way,
-C++ compilers call it a vtable).
+The obvious restriction here is that this way, a structure can only inherit
+one other structure (don't complain if you're from the Java world, you live
+by the same restrictions).<br>
+<br>
+However, this limitation can be circumvented by creating explicit down casting
+and up casting functions.
+
+<h4>Polymorphism</h4>
+
+With inheritance and down casting to inherited structures, we already have one
+corner stone of polymorph data types.<br>
+<br>
+An other corner stone is what C++ programmers know as <i>virtual</i> methods,
+functions of the base class that can be overriden by an inherited class, thus
+a pointer to the base class datatype might behave completely differently when
+issuing the same functions, depending on what the underlying data structure
+actually is.<br>
+<br>
+Implementing virtual methods can by done by simply <b>storing function
+pointers</b> in the super structure. When we call a method on the super
+structure, the function simply redirects the call to the function pointer in
+the structure.
+The function pointer itself is set by the initialisation funcion/method of the
+derived class, thus altering the bahaviour of super structure calls on super
+structure pointers.<br>
 
 <p class="code">
 <font class="keyword">typedef struct</font> classy<br>
@@ -120,11 +148,14 @@ some_class;<br>
 
 Hiding the data away is merely a matter of making the struct opaque. That
 means that structure is only declared in a header, not defined. The definition
-is in the coresponding source file.<br>
+is in the coresponding source file. As a result, a program that wants to
+obtain or alter data from the struct <i>must</i> go through getter/setter
+functions that can do sanity checking and aditional work.<br>
 <br>
 To create instances of the struct, the user must then call special create and
 destroy functions that deliver a pointer to a struct and free it again. Those
-are your constructors and destructors.<br>
+are your constructors and destructors that also take care of initialization
+and cleanup.<br>
 Here's a simple example:<br>
 <br>
 my_class.h:
@@ -183,16 +214,9 @@ my_class* my_class_create( <font class="keyword">void</font> )<br>
 ...
 </p>
 
-The user of the my_class type no longer has access to the data. To access the
-data, the get and set methods have to be used. They however can also implement
-sanity checks. (Sanity and error checks have been ommited in this example)<br>
-<br>
-The only way for the user to create and destroy instances of the my_class type
-is to go through the creat/delete functions that do proper initialisation and
-shutdown, and in the case of derived classes, set the base class function
-pointers accordingly.<br>
-<br>
-And thats it. C++ without the magic.
+The obvious problem with this, however, is the difficulty of externally
+inheriting a structure, what might make it undesireable to completely hide the
+declaration away in some cases.
 
 <hr>
 <a href="hacking.html">Previous</a>
