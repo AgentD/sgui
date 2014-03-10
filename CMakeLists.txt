@@ -131,9 +131,6 @@ if( OPENGL )
   include_directories( ${OPENGL_INCLUDE_DIR} )
 endif( )
 
-file( COPY core/include DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
-file( COPY widgets/include DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
-
 #----------------------------------------------------------------------
 # Configure targets
 #----------------------------------------------------------------------
@@ -147,17 +144,4 @@ target_link_libraries( sgui ${SGUI_DEP} )
 target_link_libraries( sgui_static ${SGUI_DEP} )
 
 add_subdirectory( extras )
-
-#----------------------------------------------------------------------
-# Add target for doxygen API reference
-#----------------------------------------------------------------------
-find_package( Doxygen )
-
-if( DOXYGEN_FOUND )
-  add_custom_target( doxygen ${DOXYGEN_EXECUTABLE}
-                     ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
-                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                     COMMENT "Generating API reference with Doxygen"
-                     VERBATIM )
-endif( )
 
