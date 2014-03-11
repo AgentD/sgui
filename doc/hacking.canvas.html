@@ -1,0 +1,64 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>The canvas data structure</h3>
+
+Every window object has an instance of an <b>sgui_canvas</b> implementation.
+The canvas offers rendering functions with legacy-OpenGL&reg; style begin-end
+functions.<br>
+<br>
+Widgets can be added to a canvas. The canvas keeps track of the widgets,
+receives events from the window that it redirects to the apropriate widgets,
+keeping track of focused widgets, etc...<br>
+<br>
+The canvas can also accumulate <i>dirty rects</i> from widgets that request
+redrawing. When asking the canvas to render widgets, it makes sure child
+widgets are rendered with their apropriate offsets and clipped in respect to
+their parents.<br>
+<br>
+This is all done by the interface functions in <b>canvas.c</b>. All an
+implementation of a canvas has to do is supplying the callbacks for
+<i>drawing</i>, which means:
+<ul>
+<li>begin/end callbacks (optional)
+<li>clearing
+<li>drawing boxes
+<li>creating an instance of a pixmap implementation
+<li>blitting/blending pixmaps
+<li>drawing a one line text string with a specified font and color
+</ul>
+Clipping and offseting is taken care of by the interface functions, so the
+callbacks always get sane input with absolute coordinates, clipped to the
+size of the surface.<br>
+<br>
+The callbacks that have to be specified can be obtained from the declaration
+of the <b>sgui_canvas</b> structure in <b>sgui_internal.h</b>.<br>
+<br>
+When creating a canvas instance, <b>sgui_internal_canvas_init</b> has to be
+used at first to initialize the super structure.<br>
+<br>
+A canvas implementation will also have to be able to create instances of the
+asociated <b>sgui_pixmap</b> implementation (the structure is declared in
+<b>sgui_internal.h</b>). A reference implementation that copies the pixel data
+to an internal buffer can be created using
+<b>sgui_internal_mem_pixmap_create</b>.<br>
+<br>
+When creating a new canvas implementation it is adviseable to take a look at
+the header files and other existing canvas implementations for details.
+
+<hr>
+<a href="hacking.window.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.font.html">Next</a>
+
+</body>
+</html>
+

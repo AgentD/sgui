@@ -1,0 +1,42 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>Font rasterization</h3>
+
+The backend also has to supply an implementation of the <b>sgui_font</b> data
+structure. The functions from <b>sgui_font.h</b> are implemented directly in
+the backend.<br>
+<br>
+The implementations in the Windows&reg; and X11 backends use the FreeType
+library to rasterize true type fonts, but a backend might also implement a
+simple, static font bitmap.<br>
+<br>
+The <b>sgui_font</b> functions support the following operations:
+<ul>
+<li>Load fonts from a file or from memory.
+<li>Get the dimensions of a glyph.
+<li>Render a glyph to a memory buffer.
+</ul>
+Those functions are then used by canvas implementations to rasterize text.
+However, a canvas might also use an <b>sgui_font_cache</b> that caches glyph
+in an <b>sgui_pixmap</b> to minimize glyph loading and rasterizing and instead
+blend the already loaded glyphs. The font cache uses an RB-Tree internally to
+store loaded glyphs and theire area on the cache pixmap. It only loads glyphs
+if they cannot be found in the tree.
+
+<hr>
+<a href="hacking.canvas.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.font.html">Next</a>
+
+</body>
+</html>
+
