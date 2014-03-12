@@ -17,9 +17,11 @@ add_executable( demo demo.c )
 add_executable( signalsandslots signalsandslots.c )
 add_executable( simple simple.c )
 add_executable( clipboard clipboard.c )
+add_executable( widget widget.c )
 
 target_link_libraries( demo sgui )
 target_link_libraries( signalsandslots sgui )
 target_link_libraries( simple sgui )
 target_link_libraries( clipboard sgui )
+target_link_libraries( widget sgui )
 
