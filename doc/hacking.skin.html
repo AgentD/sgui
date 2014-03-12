@@ -1,0 +1,43 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>The skinning system</h3>
+
+The SGUI widget implementations use functions declared in <b>sgui_skin.h</b>
+to actually draw the widgets or to get outlines of a typical widget type in
+order to determine their own geometry in the constructor. The functions
+(implemented in <b>skin.c</b>) internally redirect the calls to callbacks from
+the currently set <b>sgui_skin</b> structure, declared in
+<b>sgui_internal.h</b>. The gui skin is actually a set of hard coded functions
+that use the canvas drawing functions.<br>
+<br>
+The default skin is implemented in <b>skin_default.c</b> and exposed as a
+global variable.<br>
+<br>
+A new skin can be implemented fairly easily by simply implementing the skin
+structure callbacks. One could theoretically also extend the skin structure,
+and add a lua state object, so skin callbacks could be redirected to
+Lua code, dynamically loaded and compiled at runtime.<br>
+<br>
+In order to set a certain skin implementation, the function
+<b>sgui_skin_set</b> is used. If given a <b>NULL</b> argument, it resets the
+skin to default.<br>
+<br>
+Changing skins while widgets are still existing is generally bad, as widgets
+use skin information in their constructor to compute their outlines.
+
+<hr>
+<a href="hacking.widget.html">Previous</a>
+<a href="index.html">Back to index</a>
+
+</body>
+</html>
+

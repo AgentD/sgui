@@ -1,0 +1,79 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>The widget data structure</h3>
+
+The <b>sgui_widget</b> structure is declared in the <b>sgui_internal.h</b>
+header. The interface function declarations can be found in
+<b>sgui_widget.h</b>.<br>
+<br>
+A widget has an area that it occupies (parent relative), pointers to the
+parent widget and to the first child widget. Children are stored in a linked
+list, as there can be a variable numer of children, thus there is also a
+pointer to the next child on the current level.<br>
+<br>
+Other than that, a widget has a pointer to the canvas that it is currently
+attached to, a flag field on how the widget handles keyboard focus and a
+visibillity flag (non-zero if the widget should be drawn, zero if not).<br>
+<br>
+The widget structure has four interesting callback functions:
+<ul>
+<li>A <b>destroy</b> callback holding a pointer to the destructor function
+<li>A <b>draw</b> callback that is used for rendering the widget
+<li>An <b>event</b> callback that is used to send an event to the widget
+<li>A <b>state change</b> callback that is called, when the widget visibillity
+    or position changes, or when children get attached/removed, when the
+    parent changes or when the canvas attachment changes.
+</ul>
+The child-parent tree handling, event propagation, etc is already implemented
+by the basic interface functions. To initialize the super structure, a derived
+data type can use the <b>sgui_internal_widget_init</b> function.<br>
+<br>
+What a dervied widget has to do at minimum is to implement the beforementioned
+callbacks. Please note that in the <b>draw callback</b>, widgets normaly don't
+use the canvas drawing functions directly, but instead use the functions of
+the skinning subsystem.<br>
+<br>
+The focus policy field of the widget can be initialized with the following
+flags:
+<ul>
+<li><b>SGUI_FOCUS_ACCEPT</b> The widget accepts keyboard focus.
+<li><b>SGUI_FOCUS_DRAW</b> The canvas is allowed to draw a border around
+    the widgets bounding box to indicate keyboard focus.
+<li><b>SGUI_FOCUS_DROP_ESC</b> When the escape key is pressed, the canvas is
+    allowed to remove keyboard focus from the widget.
+<li><b>SGUI_FOCUS_DROP_TAB</b> When the tab key is pressed, the canvas is
+    allowd to move focus to the next widget in focus order, which is
+    determined using <b>sgui_widget_find_next_focus</b>
+</ul>
+The focus order that the <b>sgui_widget_find_next_focus</b> function dictates
+depends on the order in which widgets are attached to their parent widget.
+The function tries to find a visible child widget which accepts focus. If it
+can't find any, it it moves on to the next widget on the current level of the
+hirarchy and repeates the process. If this is still unsuccessful, it goes to
+the next neightbour widget of the parent and repeates the entire process. If
+it reaches the root window without finding a widget that acceps focus, it
+gives up, in which case the canvas gives it another try by calling the
+function on the root window in order to find the first widget in the focus
+order.
+<br>
+<br>
+An <b>example implementation</b> of a small custum widget is given in the
+directory <b>extras/widget.c</b>.
+
+<hr>
+<a href="hacking.font.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.skin.html">Next</a>
+
+</body>
+</html>
+
