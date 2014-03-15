@@ -307,6 +307,8 @@ void sgui_deinit( void )
 {
     sgui_internal_reset_events( );
 
+    sgui_interal_skin_deinit_default( );
+
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 

@@ -22,15 +22,9 @@ int main( void )
     sgui_window* wnd;
     sgui_widget* rb;
     sgui_widget* wb;
-    sgui_font* font;
     sgui_widget* eb;
 
     sgui_init( );
-
-    /* Load a fon for text drawing */
-    font = sgui_font_load( "../font/SourceSansPro-Regular.ttf", 16 );
-
-    sgui_skin_set_default_font( font, NULL, NULL, NULL );
 
     /* create a window */
     wnd = sgui_window_create( NULL, 320, 150, SGUI_RESIZEABLE );
@@ -64,7 +58,6 @@ int main( void )
     sgui_widget_destroy( rb );
     sgui_widget_destroy( wb );
     sgui_widget_destroy( eb );
-    sgui_font_destroy( font );
     sgui_deinit( );
 
     return 0;

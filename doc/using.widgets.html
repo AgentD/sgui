@@ -32,34 +32,12 @@ function:
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_window* wnd;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* text;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_widget* button;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_font* font;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 
 The <b>sgui_widget</b> structure represents a widget. We will create two
 simple widgets in this example, a static text widget, which only draws a text
 onto the window and a button that the user can click.<br><br>
-Of course, both widgets need text rendering. For rendering text, we must
-load a font to use, represented by the <b>sgui_font</b> structure and tell
-the SGUI skinning system to use the font:
-
-<p class="code">
-&nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;font = sgui_font_load( <font class="string">"SourceSansPro-Regular.ttf"</font>, <font class="number">16</font> );<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sgui_skin_set_default_font( font, <font class="keyword">NULL</font>, <font class="keyword">NULL</font>, <font class="keyword">NULL</font> );<br>
-&nbsp;&nbsp;&nbsp;&nbsp;...<br>
-</p>
-The first function call loads a true type font file. The argument should be
-pretty obvious. Of course, in this example, the file should be in the your
-working directory when you start the program, or it will not be found.<br>
-<br>
-The second function call tells the SGUI skinning system to use the loaded font
-for text rendering. Because we don't provide variants for bold, italic or bold
-and italic, we pass NULL as our other arguments. The last parameter of the
-function (where we pass 16) is the default font height to use
-<i>in pixels</i>.<br>
-<br>
 
 Now lets create those two widgets:
 

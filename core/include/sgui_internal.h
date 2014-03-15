@@ -627,6 +627,11 @@ SGUI_DLL void sgui_internal_window_fire_event( sgui_window* wnd,
 SGUI_DLL void sgui_interal_skin_init_default( void );
 
 /**
+ * \brief Uninitialize the sgui_default_skin structue
+ */
+SGUI_DLL void sgui_interal_skin_deinit_default( void );
+
+/**
  * \brief Instantiate an in memory implementation of a pixmap
  *
  * Used by the memory canvas implementation.

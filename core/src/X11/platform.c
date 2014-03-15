@@ -438,6 +438,8 @@ void sgui_deinit( void )
 {
     sgui_internal_reset_events( );
 
+    sgui_interal_skin_deinit_default( );
+
     pthread_mutex_destroy( &mutex );
     sgui_font_cache_destroy( glyph_cache );
 

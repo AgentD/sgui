@@ -15,13 +15,14 @@ In the source directory of the core module, there is one subdirectory for each
 backend implementation. There is no backend loading, the library is compiled
 with exactely one active backend implementation.<br>
 <br>
-The functions <b>sgui_init</b>, <b>sgui_deinit</b>, <b>sgui_mail_loop</b> and
+The functions <b>sgui_init</b>, <b>sgui_deinit</b>, <b>sgui_main_loop</b> and
 <b>sgui_main_loop_step</b> are implemented directly in the backend. The
 currently existing X11 and Windows&reg; backend implement the functions in
 a file called <b>platform.c</b>.<br>
 <br>
 The init and deinit functions have to at least reset the event queue and the
-skinning system (sgui_skin_set( NULL )).<br>
+skinning system (<b>sgui_skin_set( NULL )</b>,
+<b>sgui_interal_skin_deinit_default( )</b>).<br>
 <br>
 The platform file typically also implements the functions
 <b>sgui_internal_lock_mutex</b> and <b>sgui_internal_unlock_mutex</b> that

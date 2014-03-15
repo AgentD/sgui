@@ -7,7 +7,6 @@
 int main( void )
 {
     unsigned char image[ 64*64*3 ], *ptr;
-    sgui_font* font;
     sgui_widget *b1, *b2, *b3, *b4, *img;
     sgui_window* wnd;
     int i, j;
@@ -18,11 +17,6 @@ int main( void )
     wnd = sgui_window_create( NULL, 200, 130, SGUI_FIXED_SIZE );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
     sgui_window_set_title( wnd, "Signals & Slots" );
-
-    /* load font */
-    font = sgui_font_load( "../font/SourceSansPro-Regular.ttf", 16 );
-
-    sgui_skin_set_default_font( font, NULL, NULL, NULL );
 
     /* create widgets */
     b1 = sgui_button_create( 10, 10, 80, 30, "Show" );
@@ -72,7 +66,6 @@ int main( void )
     sgui_widget_destroy( b3 );
     sgui_widget_destroy( b4 );
     sgui_widget_destroy( img );
-    sgui_font_destroy( font );
     sgui_deinit( );
 
     return 0;

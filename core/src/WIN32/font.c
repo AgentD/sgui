@@ -28,6 +28,10 @@
 
 
 
+#define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
+
+
+
 struct sgui_font
 {
     FT_Face face;
@@ -40,6 +44,7 @@ struct sgui_font
 
 sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 {
+    char buffer[ 512 ];
     sgui_font* this;
 
     /* sanity check */
@@ -53,12 +58,18 @@ sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
         return NULL;
 
     /* load the font file */
-    if( FT_New_Face( freetype, filename, 0, &this->face ) )
-    {
-        free( this );
-        return NULL;
-    }
+    if( !FT_New_Face( freetype, filename, 0, &this->face ) )
+        goto cont;
 
+    sprintf( buffer, "%s%s", SYS_FONT_PATH, filename );
+
+    if( !FT_New_Face( freetype, buffer, 0, &this->face ) )
+        goto cont;
+
+    free( this );
+    return NULL;
+
+cont:
     /* initialise the remaining fields */
     this->buffer        = NULL;
     this->height        = pixel_height;

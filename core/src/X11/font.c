@@ -27,6 +27,16 @@
 
 
 
+#ifdef MACHINE_OS_UNIX
+    #define SYS_FONT_PATH "/usr/share/fonts/TTF/"
+#elif defined MACHINE_OS_WINDOWS
+    #define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
+#else
+    #define NO_SYS_FONT_PATH 1
+#endif
+
+
+
 struct sgui_font
 {
     FT_Face face;
@@ -55,6 +65,7 @@ static sgui_font* sgui_font_load_common( unsigned int pixel_height )
 
 sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 {
+    char buffer[ 512 ];
     sgui_font* this;
 
     /* sanity check */
@@ -68,12 +79,20 @@ sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
         return NULL;
 
     /* load the font file */
-    if( FT_New_Face( freetype, filename, 0, &this->face ) )
-    {
-        free( this );
-        return NULL;
-    }
+    if( !FT_New_Face( freetype, filename, 0, &this->face ) )
+        goto cont;
 
+#ifndef NO_SYS_FONT_PATH
+    sprintf( buffer, "%s%s", SYS_FONT_PATH, filename );
+
+    if( !FT_New_Face( freetype, buffer, 0, &this->face ) )
+        goto cont;
+#endif
+
+    free( this );
+    return NULL;
+
+cont:
     FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
 
     return this;

@@ -100,11 +100,7 @@ void print_password( sgui_widget* e )
 
 int main( int argc, char** argv )
 {
-    int x, y, nogl=0, fh;
-    sgui_font* font;
-    sgui_font* font_bold;
-    sgui_font* font_ital;
-    sgui_font* font_boit;
+    int x, y, nogl=0;
     sgui_window_description desc = { NULL, NULL, 100, 100, 1, 0, 1,
                                      32, 24, 8, 4 };
     thread_type thread = 0;
@@ -143,15 +139,6 @@ int main( int argc, char** argv )
             image[ (y*128 + x)*4 + 2 ] = 0x00;
             image[ (y*128 + x)*4 + 3 ] = 0xFF * (x/128.0f);
         }
-
-    fh = sgui_skin_get_default_font_height( );
-
-    font     =sgui_font_load( "../font/SourceSansPro-Regular.ttf", fh );
-    font_bold=sgui_font_load( "../font/SourceSansPro-Semibold.ttf", fh );
-    font_ital=sgui_font_load( "../font/SourceSansPro-It.ttf", fh );
-    font_boit=sgui_font_load( "../font/SourceSansPro-SemiboldIt.ttf", fh );
-
-    sgui_skin_set_default_font( font, font_bold, font_ital, font_boit );
 
     tab = sgui_tab_group_create( 10, 10, 500, 400 );
 
@@ -308,11 +295,6 @@ int main( int argc, char** argv )
 
     sgui_widget_destroy( i0 );
     sgui_widget_destroy( i1 );
-
-    sgui_font_destroy( font_bold );
-    sgui_font_destroy( font_ital );
-    sgui_font_destroy( font_boit );
-    sgui_font_destroy( font );
 
     sgui_deinit( );
 

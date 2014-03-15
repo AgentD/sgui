@@ -47,15 +47,6 @@ void sgui_skin_set( sgui_skin* ui_skin )
     skin = ui_skin ? ui_skin : &sgui_default_skin;
 }
 
-void sgui_skin_set_default_font( sgui_font* normal, sgui_font* bold,
-                                 sgui_font* italic, sgui_font* bold_italic )
-{
-    skin->font_norm = normal;
-    skin->font_bold = bold;
-    skin->font_ital = italic;
-    skin->font_boit = bold_italic;
-}
-
 void sgui_skin_get_window_background_color( unsigned char* color )
 {
     if( color )

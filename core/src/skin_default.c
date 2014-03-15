@@ -24,10 +24,21 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui_skin.h"
+#include "sgui_font.h"
 #include "sgui_pixmap.h"
 #include "sgui_internal.h"
 
 #include <stddef.h>
+
+
+
+#define FONT "SourceSansPro-Regular.ttf"
+#define FONT_ITAL "SourceSansPro-It.ttf"
+#define FONT_BOLD "SourceSansPro-Semibold.ttf"
+#define FONT_BOLD_ITAL "SourceSansPro-SemiboldIt.ttf"
+
+#define FONT_ALT_PATH "font/"
+#define FONT_ALT_PATH2 "../font/"
 
 
 
@@ -552,11 +563,6 @@ void sgui_interal_skin_init_default( void )
     sgui_default_skin.window_color[2] = 0x64;
     sgui_default_skin.window_color[3] = 0x80;
 
-    sgui_default_skin.font_norm = NULL;
-    sgui_default_skin.font_bold = NULL;
-    sgui_default_skin.font_ital = NULL;
-    sgui_default_skin.font_boit = NULL;
-
     sgui_default_skin.font_color[0] = 0xFF;
     sgui_default_skin.font_color[1] = 0xFF;
     sgui_default_skin.font_color[2] = 0xFF;
@@ -564,6 +570,57 @@ void sgui_interal_skin_init_default( void )
 
     sgui_default_skin.font_height = 16;
 
+    /* load default fonts */
+    sgui_default_skin.font_norm = sgui_font_load( FONT, 16 );
+
+    if( !sgui_default_skin.font_norm )
+        sgui_default_skin.font_norm = sgui_font_load(FONT_ALT_PATH FONT, 16);
+
+    if( !sgui_default_skin.font_norm )
+        sgui_default_skin.font_norm = sgui_font_load(FONT_ALT_PATH2 FONT, 16);
+
+    sgui_default_skin.font_ital = sgui_font_load( FONT_ITAL, 16 );
+
+    if( !sgui_default_skin.font_ital )
+        sgui_default_skin.font_ital =
+        sgui_font_load( FONT_ALT_PATH FONT_ITAL, 16 );
+
+    if( !sgui_default_skin.font_ital )
+        sgui_default_skin.font_ital =
+        sgui_font_load( FONT_ALT_PATH2 FONT_ITAL, 16 );
+
+    sgui_default_skin.font_bold = sgui_font_load( FONT_BOLD, 16 );
+
+    if( !sgui_default_skin.font_bold )
+        sgui_default_skin.font_bold =
+        sgui_font_load( FONT_ALT_PATH FONT_BOLD, 16 );
+
+    if( !sgui_default_skin.font_bold )
+        sgui_default_skin.font_bold =
+        sgui_font_load( FONT_ALT_PATH2 FONT_BOLD, 16 );
+
+    sgui_default_skin.font_boit = sgui_font_load( FONT_BOLD_ITAL, 16 );
+
+    if( !sgui_default_skin.font_boit )
+        sgui_default_skin.font_boit =
+        sgui_font_load( FONT_ALT_PATH FONT_BOLD_ITAL, 16 );
+
+    if( !sgui_default_skin.font_boit )
+        sgui_default_skin.font_boit =
+        sgui_font_load( FONT_ALT_PATH2 FONT_BOLD_ITAL, 16 );
+
     is_init = 1;
+}
+
+void sgui_interal_skin_deinit_default( void )
+{
+    if( is_init )
+    {
+        sgui_font_destroy( sgui_default_skin.font_bold );
+        sgui_font_destroy( sgui_default_skin.font_ital );
+        sgui_font_destroy( sgui_default_skin.font_boit );
+        sgui_font_destroy( sgui_default_skin.font_norm );
+        is_init = 0;
+    }
 }
 
