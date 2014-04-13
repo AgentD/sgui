@@ -435,7 +435,10 @@ sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
     {
         /* try to find a child of the current widget that accepts focus */
         if( (w = find_child_focus( this )) )
+        {
+            sgui_internal_unlock_mutex( );
             return w;
+        }
 
         /*
             try to find a right neightbour that accepts focus or has a child
@@ -447,10 +450,16 @@ sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
                 continue;
 
             if( w && (w->focus_policy & SGUI_FOCUS_ACCEPT) )
+            {
+                sgui_internal_unlock_mutex( );
                 return w;
+            }
 
             if( (v = find_child_focus( w )) )
+            {
+                sgui_internal_unlock_mutex( );
                 return v;
+            }
         }
 
         /* go to the right uncle, check if it accepts focus, reiterate */
@@ -460,7 +469,10 @@ sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
             this = this->next;
 
         if( this && (this->focus_policy & SGUI_FOCUS_ACCEPT) )
+        {
+            sgui_internal_unlock_mutex( );
             return (sgui_widget*)this;
+        }
     }
 
     sgui_internal_unlock_mutex( );
