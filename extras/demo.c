@@ -30,9 +30,10 @@
 
 
 sgui_window *a, *b;
-sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *c0, *c1, *c2, *i0, *i1;
+sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *tb, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *ebn, *ebp, *f, *gb, *ra, *rb, *rc, *tab;
 sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
+sgui_widget *t1, *t2, *t3;
 unsigned char image[128*128*4];
 int running = 1;
 
@@ -145,10 +146,19 @@ int main( int argc, char** argv )
     /* input widget tab */
     sgui_tab_group_add_tab( tab, "Input" );
 
-    butt = sgui_button_create( 10, 275, 80, 30, "Button" );
+    butt = sgui_button_create( 10, 275, 80, 30, "Button", 0 );
+    tb = sgui_button_create( 95, 275, 80, 30, "Toggle", 1 );
+    t1 = sgui_button_create( 360,  35, 30, 30, "A", 1 );
+    t2 = sgui_button_create( 360,  70, 30, 30, "B", 1 );
+    t3 = sgui_button_create( 360, 105, 30, 30, "C", 1 );
     eb = sgui_edit_box_create( 10, 195, 100, 100, 0 );
     ebn = sgui_edit_box_create( 10, 235, 100, 100, SGUI_EDIT_NUMERIC );
     ebp = sgui_edit_box_create( 120, 195, 100, 100, SGUI_EDIT_PASSWORD );
+
+    sgui_button_group_connect( t1, NULL, t2   );
+    sgui_button_group_connect( t2, t1,   t3   );
+    sgui_button_group_connect( t3, t2,   NULL );
+    sgui_button_set_state( t2, 1 );
 
     sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
     sgui_edit_box_set_text( ebn, "1337" );
@@ -162,9 +172,9 @@ int main( int argc, char** argv )
     c1 = sgui_checkbox_create( 10,  35, "Checkbox 2" );
     c2 = sgui_checkbox_create( 10,  60, "Checkbox 3" );
 
-    sgui_radio_button_connect( r0, NULL,   r1 );
-    sgui_radio_button_connect( r1, r0,     r2 );
-    sgui_radio_button_connect( r2, r1,   NULL );
+    sgui_button_group_connect( r0, NULL,   r1 );
+    sgui_button_group_connect( r1, r0,     r2 );
+    sgui_button_group_connect( r2, r1,   NULL );
     sgui_button_set_state( r0, 1 );
 
     sgui_widget_add_child( f, c0 );
@@ -179,9 +189,9 @@ int main( int argc, char** argv )
     rb = sgui_radio_button_create( 10, 51, "Option 2" );
     rc = sgui_radio_button_create( 10, 77, "Option 3" );
 
-    sgui_radio_button_connect( ra, NULL,   rb );
-    sgui_radio_button_connect( rb, ra,     rc );
-    sgui_radio_button_connect( rc, rb,   NULL );
+    sgui_button_group_connect( ra, NULL,   rb );
+    sgui_button_group_connect( rb, ra,     rc );
+    sgui_button_group_connect( rc, rb,   NULL );
     sgui_button_set_state( ra, 1 );
 
     sgui_widget_add_child( gb, ra );
@@ -189,6 +199,10 @@ int main( int argc, char** argv )
     sgui_widget_add_child( gb, rc );
 
     sgui_tab_group_add_widget( tab, 0, butt );
+    sgui_tab_group_add_widget( tab, 0, tb );
+    sgui_tab_group_add_widget( tab, 0, t1 );
+    sgui_tab_group_add_widget( tab, 0, t2 );
+    sgui_tab_group_add_widget( tab, 0, t3 );
     sgui_tab_group_add_widget( tab, 0, gb );
     sgui_tab_group_add_widget( tab, 0, f );
     sgui_tab_group_add_widget( tab, 0, eb );
@@ -245,7 +259,7 @@ int main( int argc, char** argv )
     sgui_window_add_widget( a, tab );
 
     /* hook callbacks */
-    sgui_event_connect( butt, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( butt, SGUI_BUTTON_OUT_EVENT, 1,
                         print_password, ebp, SGUI_VOID );
     sgui_event_connect( ebp, SGUI_EDIT_BOX_TEXT_ENTERED, 1,
                         print_password, ebp, SGUI_VOID );
@@ -278,6 +292,10 @@ int main( int argc, char** argv )
     sgui_widget_destroy( ebp );
 
     sgui_widget_destroy( butt );
+    sgui_widget_destroy( tb );
+    sgui_widget_destroy( t1 );
+    sgui_widget_destroy( t2 );
+    sgui_widget_destroy( t3 );
     sgui_widget_destroy( c0 );
     sgui_widget_destroy( c1 );
     sgui_widget_destroy( c2 );

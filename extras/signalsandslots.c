@@ -19,10 +19,10 @@ int main( void )
     sgui_window_set_title( wnd, "Signals & Slots" );
 
     /* create widgets */
-    b1 = sgui_button_create( 10, 10, 80, 30, "Show" );
-    b2 = sgui_button_create( 10, 45, 80, 30, "Hide" );
-    b3 = sgui_button_create( 10, 80, 80, 30, "Move" );
-    b4 = sgui_button_create( 95, 80, 80, 30, "Close" );
+    b1 = sgui_button_create( 10, 10, 80, 30, "Show", 0 );
+    b2 = sgui_button_create( 10, 45, 80, 30, "Hide", 0 );
+    b3 = sgui_button_create( 10, 80, 80, 30, "Move", 0 );
+    b4 = sgui_button_create( 95, 80, 80, 30, "Close", 0 );
 
     for( ptr=image, j=0; j<64; ++j )
     {
@@ -44,16 +44,16 @@ int main( void )
     sgui_window_add_widget( wnd, img );
 
     /* make some connections */
-    sgui_event_connect( b1, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( b1, SGUI_BUTTON_OUT_EVENT, 1,
                         sgui_widget_set_visible, img, SGUI_INT, 1 );
 
-    sgui_event_connect( b2, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( b2, SGUI_BUTTON_OUT_EVENT, 1,
                         sgui_widget_set_visible, img, SGUI_INT, 0 );
 
-    sgui_event_connect( b3, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( b3, SGUI_BUTTON_OUT_EVENT, 1,
                         sgui_window_move, wnd, SGUI_INT2, 50, 100 );
 
-    sgui_event_connect( b4, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( b4, SGUI_BUTTON_OUT_EVENT, 1,
                         sgui_window_set_visible, wnd, SGUI_INT, 0 );
 
     /* enter main loop */

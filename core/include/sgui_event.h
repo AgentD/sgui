@@ -66,12 +66,8 @@
 #define SGUI_MAX_CANVAS_EVENT           0x001F
 
 /**************** button events ****************/
-#define SGUI_BUTTON_CLICK_EVENT         0x0020
-
-#define SGUI_RADIO_BUTTON_SELECT_EVENT  0x0021
-
-#define SGUI_CHECKBOX_CHECK_EVENT       0x0022
-#define SGUI_CHECKBOX_UNCHECK_EVENT     0x0023
+#define SGUI_BUTTON_IN_EVENT            0x0020
+#define SGUI_BUTTON_OUT_EVENT           0x0021
 
 /*************** edit box events ***************/
 /* text got modified */

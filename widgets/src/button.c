@@ -36,12 +36,11 @@
 
 
 
-#define SGUI_BUTTON                 1
-#define SGUI_BUTTON_SELECTED        2
-#define SGUI_CHECKBOX               3
-#define SGUI_CHECKBOX_SELECTED      4
-#define SGUI_RADIO_BUTTON           5
-#define SGUI_RADIO_BUTTON_SELECTED  6
+#define BUTTON        0x00
+#define TOGGLE_BUTTON 0x01
+#define CHECKBOX      0x02
+#define RADIO_BUTTON  0x03
+#define SELECTED      0x10
 
 
 
@@ -51,7 +50,7 @@ typedef struct sgui_button
     sgui_widget super;
 
     char* text;
-    int type;                 /* button type */
+    int flags;
     unsigned int cx, cy;      /* button: text position,
                                  checkbox/radio button: text/object offset */
 
@@ -62,39 +61,165 @@ sgui_button;
 
 
 
-static void checkbox_draw( sgui_widget* super )
+static void button_select( sgui_button* this, int select, int postevent )
 {
-    sgui_button* this = (sgui_button*)super;
+    sgui_button* i;
+    sgui_event ev;
+    sgui_rect r;
 
-    sgui_skin_draw_checkbox( super->canvas, super->area.left,
-                             super->area.top+this->cy,
-                             this->type==SGUI_CHECKBOX_SELECTED );
+    if( !this )
+        return;
 
-    sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
-                           super->area.top, this->text );
-}
+    sgui_internal_lock_mutex( );
 
-static void radiobutton_draw( sgui_widget* super )
-{
-    sgui_button* this = (sgui_button*)super;
+    this->flags = select ? (this->flags | SELECTED) : 
+                           (this->flags & (~SELECTED));
 
-    sgui_skin_draw_radio_button( super->canvas,
-                                 super->area.left, super->area.top+this->cy,
-                                 this->type==SGUI_RADIO_BUTTON_SELECTED );
+    sgui_widget_get_absolute_rect( &(this->super), &r );
+    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
 
-    sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
-                           super->area.top, this->text );
+    if( postevent )
+    {
+        ev.widget = (sgui_widget*)this;
+        ev.type = select ? SGUI_BUTTON_IN_EVENT : SGUI_BUTTON_OUT_EVENT;
+        sgui_event_post( &ev );
+    }
+
+    /* if not in a group, we are done here */
+    if( !this->next && !this->prev )
+        goto done;
+
+    /* deselect all preceeding buttons in a group */
+    for( i=this->prev; i!=NULL; i=i->prev )
+    {
+        if( i->flags & SELECTED )
+        {
+            i->flags &= ~SELECTED;
+            sgui_widget_get_absolute_rect( &(i->super), &r );
+            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            goto done;
+        }
+    }
+
+    /* deselect all following buttons in a group */
+    for( i=this->next; i!=NULL; i=i->next )
+    {
+        if( i->flags & SELECTED )
+        {
+            i->flags &= ~SELECTED;
+            sgui_widget_get_absolute_rect( &(i->super), &r );
+            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            goto done;
+        }
+    }
+
+done:
+    sgui_internal_unlock_mutex( );
 }
 
 static void button_draw( sgui_widget* super )
 {
     sgui_button* this = (sgui_button*)super;
-    int in = this->type==SGUI_BUTTON_SELECTED;
+    int in = (this->flags & SELECTED)!=0;
+    int type = (this->flags & 0x03);
 
-    sgui_skin_draw_button( super->canvas, &super->area, in );
+    if( type==BUTTON || type==TOGGLE_BUTTON )
+    {
+        sgui_skin_draw_button( super->canvas, &super->area, in );
 
-    sgui_canvas_draw_text( super->canvas, super->area.left+this->cx-in,
-                           super->area.top+this->cy-in, this->text );
+        sgui_canvas_draw_text( super->canvas, super->area.left+this->cx-in,
+                               super->area.top+this->cy-in, this->text );
+    }
+    else
+    {
+        if( type==CHECKBOX )
+        {
+            sgui_skin_draw_checkbox( super->canvas, super->area.left,
+                                     super->area.top+this->cy, in );
+        }
+        else
+        {
+            sgui_skin_draw_radio_button( super->canvas, super->area.left,
+                                         super->area.top+this->cy, in );
+        }
+
+        sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
+                               super->area.top, this->text );
+    }
+}
+
+static void toggle_button_on_event( sgui_widget* super, const sgui_event* e )
+{
+    sgui_button* this = (sgui_button*)super;
+    int prev=0, next=0;
+
+    if( this->prev || this->next )
+    {
+        if( e->type==SGUI_KEY_RELEASED_EVENT )
+        {
+            if( this->flags & SELECTED )
+            {
+                prev = e->arg.i==SGUI_KC_UP || e->arg.i==SGUI_KC_LEFT;
+                next = e->arg.i==SGUI_KC_DOWN || e->arg.i==SGUI_KC_RIGHT;
+
+                if( prev && this->prev )
+                {
+                    sgui_canvas_set_focus( this->super.canvas,
+                                           (sgui_widget*)this->prev );
+                    button_select( this->prev, 1, 1 );
+                }
+                else if( next && this->next )
+                {
+                    sgui_canvas_set_focus( this->super.canvas,
+                                           (sgui_widget*)this->next );
+                    button_select( this->next, 1, 1 );
+                }
+            }
+            else if( e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE )
+            {
+                button_select( this, 1, 1 );
+            }
+        }
+        else if( e->type==SGUI_MOUSE_RELEASE_EVENT )
+        {
+            if( !(this->flags & SELECTED) )
+                button_select( this, 1, 1 );
+        }
+    }
+    else
+    {
+        if( (e->type == SGUI_MOUSE_RELEASE_EVENT) ||
+            (e->type==SGUI_KEY_RELEASED_EVENT &&
+             (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
+        {
+            button_select( this, !(this->flags & SELECTED), 1 );
+        }
+    }
+}
+
+static void button_on_event( sgui_widget* super, const sgui_event* e )
+{
+    sgui_button* this = (sgui_button*)super;
+
+    if( this->flags & SELECTED )
+    {
+        if( e->type==SGUI_MOUSE_LEAVE_EVENT )
+        {
+            button_select( this, 0, 0 );
+        }
+        else if( e->type==SGUI_MOUSE_RELEASE_EVENT ||
+                 (e->type==SGUI_KEY_RELEASED_EVENT &&
+                  (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
+        {
+            button_select( this, 0, 1 );
+        }
+    }
+    else if( e->type==SGUI_MOUSE_PRESS_EVENT ||
+             (e->type==SGUI_KEY_PRESSED_EVENT &&
+              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
+    {
+        button_select( this, 1, 0 );
+    }
 }
 
 static void button_destroy( sgui_widget* super )
@@ -112,7 +237,7 @@ static void button_destroy( sgui_widget* super )
     free( this );
 }
 
-static sgui_button* button_create_common( int x, int y, unsigned int width,
+static sgui_widget* button_create_common( int x, int y, unsigned int width,
                                           unsigned int height,
                                           const char* text, int type )
 {
@@ -140,156 +265,73 @@ static sgui_button* button_create_common( int x, int y, unsigned int width,
     text_height = SGUI_RECT_HEIGHT( r );
 
     /* compute size */
-    if( type==SGUI_CHECKBOX )
+    if( type==BUTTON || type==TOGGLE_BUTTON )
     {
-        sgui_skin_get_checkbox_extents( &r );
-
-        this->cx = SGUI_RECT_WIDTH( r );
-        this->cy = SGUI_RECT_HEIGHT( r );
-
-        width  = this->cx + text_width;
-        height = MAX(this->cy, text_height);
-
-        this->cy = (height - this->cy) / 2;
-        this->cy = MAX( this->cy, 0 );
-    }
-    else if( type==SGUI_RADIO_BUTTON )
-    {
-        sgui_skin_get_radio_button_extents( &r );
-
-        this->cx = SGUI_RECT_WIDTH( r );
-        this->cy = SGUI_RECT_HEIGHT( r );
-
-        width  = this->cx + text_width;
-        height = MAX(this->cy, text_height);
-
-        this->cy = (height - this->cy) / 2;
-        this->cy = MAX( this->cy, 0 );
+        this->cx = width /2 - text_width/2;
+        this->cy = height/2 - text_height/2;
     }
     else
     {
-        this->cx  = width /2 - text_width/2;
-        this->cy  = height/2 - text_height/2;
+        if( type==CHECKBOX )
+            sgui_skin_get_checkbox_extents( &r );
+        else if( type==RADIO_BUTTON )
+            sgui_skin_get_radio_button_extents( &r );
+
+        this->cx = SGUI_RECT_WIDTH( r );
+        this->cy = SGUI_RECT_HEIGHT( r );
+
+        width  = this->cx + text_width;
+        height = MAX(this->cy, text_height);
+
+        this->cy = (height - this->cy) / 2;
+        this->cy = MAX( this->cy, 0 );
     }
 
+    /* initialise remaining fields */
     sgui_internal_widget_init( super, x, y, width, height );
 
-    /* initialise remaining fields */
     memcpy( this->text, text, len + 1 );
 
     this->prev = NULL;
     this->next = NULL;
-    this->type = type;
+    this->flags = type;
 
+    if( type==BUTTON )
+        this->super.window_event_callback = button_on_event;
+    else
+        this->super.window_event_callback = toggle_button_on_event;
+
+    super->draw_callback = button_draw;
     super->destroy = button_destroy;
-    super->draw_callback = type==SGUI_BUTTON ? button_draw :
-                           type==SGUI_CHECKBOX ? checkbox_draw :
-                           radiobutton_draw;
-
-    return this;
-}
-
-/**************************** radio button code ****************************/
-static void radio_button_select( sgui_button* this )
-{
-    sgui_widget* super = &this->super;
-    sgui_button* i;
-    sgui_rect r;
-
-    sgui_internal_lock_mutex( );
-
-    this->type = SGUI_RADIO_BUTTON_SELECTED;
-    sgui_widget_get_absolute_rect( super, &r );
-    sgui_canvas_add_dirty_rect( super->canvas, &r );
-
-    /* deselect all preceeding radio buttons */
-    for( i=this->prev; i!=NULL; i=i->prev )
-    {
-        if( i->type == SGUI_RADIO_BUTTON_SELECTED )
-        {
-            sgui_widget_get_absolute_rect( &i->super, &r );
-            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
-            i->type = SGUI_RADIO_BUTTON;
-            goto done;
-        }
-    }
-
-    /* deselect all following radio buttons */
-    for( i=this->next; i!=NULL; i=i->next )
-    {
-        if( i->type == SGUI_RADIO_BUTTON_SELECTED )
-        {
-            sgui_widget_get_absolute_rect( &i->super, &r );
-            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
-            i->type = SGUI_RADIO_BUTTON;
-            goto done;
-        }
-    }
-
-done:
-    sgui_internal_unlock_mutex( );
-}
-
-static void radio_on_event( sgui_widget* super, const sgui_event* e )
-{
-    sgui_button* this = (sgui_button*)super;
-    sgui_event ev;
-
-    sgui_internal_lock_mutex( );
-
-    if( (e->type==SGUI_MOUSE_RELEASE_EVENT ||
-         (e->type==SGUI_KEY_RELEASED_EVENT &&
-          (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE))) &&
-        this->type==SGUI_RADIO_BUTTON )
-    {
-        radio_button_select( this );
-
-        ev.widget = super;
-        ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
-        sgui_event_post( &ev );
-    }
-    else if( e->type==SGUI_KEY_RELEASED_EVENT &&
-             this->type==SGUI_RADIO_BUTTON_SELECTED )
-    {
-        if( (e->arg.i==SGUI_KC_UP || e->arg.i==SGUI_KC_LEFT) && this->prev )
-        {
-            sgui_canvas_set_focus( super->canvas, (sgui_widget*)this->prev );
-            radio_button_select( this->prev );
-            ev.widget = (sgui_widget*)this->prev;
-            ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
-            sgui_event_post( &ev );
-        }
-        else if( (e->arg.i==SGUI_KC_DOWN || e->arg.i==SGUI_KC_RIGHT) &&
-                 this->next )
-        {
-            sgui_canvas_set_focus( super->canvas, (sgui_widget*)this->next );
-            radio_button_select( this->next );
-            ev.widget = (sgui_widget*)this->next;
-            ev.type = SGUI_RADIO_BUTTON_SELECT_EVENT;
-            sgui_event_post( &ev );
-        }
-    }
-
-    sgui_internal_unlock_mutex( );
-}
-
-sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
-{
-    sgui_button* this = button_create_common(x,y,0,0,text,SGUI_RADIO_BUTTON);
-
-    if( this )
-        this->super.window_event_callback = radio_on_event;
 
     return (sgui_widget*)this;
 }
 
-void sgui_radio_button_connect( sgui_widget* super, sgui_widget* previous,
+/***************************************************************************/
+sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
+{
+    return button_create_common( x, y, 0, 0, text, RADIO_BUTTON );
+}
+
+sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
+{
+    return button_create_common( x, y, 0, 0, text, CHECKBOX );
+}
+
+sgui_widget* sgui_button_create( int x, int y,
+                                 unsigned int width, unsigned int height,
+                                 const char* text, int toggleable )
+{
+    return button_create_common( x, y, width, height, text,
+                                 toggleable ? TOGGLE_BUTTON : BUTTON );
+}
+
+void sgui_button_group_connect( sgui_widget* super, sgui_widget* previous,
                                 sgui_widget* next )
 {
     sgui_button* this = (sgui_button*)super;
 
-    if( this && (this->type==SGUI_RADIO_BUTTON ||
-                 this->type==SGUI_RADIO_BUTTON_SELECTED) )
+    if( this )
     {
         sgui_internal_lock_mutex( );
 
@@ -297,11 +339,10 @@ void sgui_radio_button_connect( sgui_widget* super, sgui_widget* previous,
         if( this->prev ) this->prev->next = this->next;
         if( this->next ) this->next->prev = this->prev;
 
-        /* store next and previous pointers */
+        /* connect to new list */
         this->prev = (sgui_button*)previous;
         this->next = (sgui_button*)next;
 
-        /* connect previous and next to the given pointer */
         if( this->prev ) this->prev->next = this;
         if( this->next ) this->next->prev = this;
 
@@ -309,102 +350,6 @@ void sgui_radio_button_connect( sgui_widget* super, sgui_widget* previous,
     }
 }
 
-/****************************** checkbox code ******************************/
-static void checkbox_on_event( sgui_widget* super, const sgui_event* e )
-{
-    sgui_button* this = (sgui_button*)super;
-    sgui_event ev;
-    sgui_rect r;
-
-    if( (e->type == SGUI_MOUSE_RELEASE_EVENT) ||
-        (e->type==SGUI_KEY_RELEASED_EVENT &&
-         (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
-    {
-        ev.widget = super;
-
-        /* invert state, set event type */
-        if( this->type==SGUI_CHECKBOX )
-        {
-            this->type = SGUI_CHECKBOX_SELECTED;
-            ev.type = SGUI_CHECKBOX_CHECK_EVENT;
-        }
-        else
-        {
-            this->type = SGUI_CHECKBOX;
-            ev.type = SGUI_CHECKBOX_UNCHECK_EVENT;
-        }
-
-        /* flag dirty */
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-
-        /* fire event */
-        sgui_event_post( &ev );
-    }
-}
-
-sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
-{
-    sgui_button* this = button_create_common(x, y, 0, 0, text, SGUI_CHECKBOX);
-
-    if( this )
-        this->super.window_event_callback = checkbox_on_event;
-
-    return (sgui_widget*)this;
-}
-
-/******************************* button code *******************************/
-static void button_on_event( sgui_widget* super, const sgui_event* e )
-{
-    sgui_button* this = (sgui_button*)super;
-    sgui_event ev;
-    sgui_rect r;
-
-    /* the mouse left a pressed button */
-    if( e->type == SGUI_MOUSE_LEAVE_EVENT && this->type != SGUI_BUTTON )
-    {
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-        this->type = SGUI_BUTTON;
-    }
-    else if( (e->type == SGUI_MOUSE_PRESS_EVENT) ||
-             (e->type==SGUI_KEY_PRESSED_EVENT &&
-              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
-    {
-        /* the button got pressed */
-        this->type = SGUI_BUTTON_SELECTED;
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-    }
-    else if( ((e->type == SGUI_MOUSE_RELEASE_EVENT) ||
-              (e->type==SGUI_KEY_RELEASED_EVENT &&
-              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE))) &&
-              this->type != SGUI_BUTTON )
-    {
-        /* a pressed button got released */
-        ev.widget = super;
-        ev.type = SGUI_BUTTON_CLICK_EVENT;
-        sgui_event_post( &ev );
-
-        this->type = SGUI_BUTTON;
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-    }
-}
-
-sgui_widget* sgui_button_create( int x, int y,
-                                 unsigned int width, unsigned int height,
-                                 const char* text )
-{
-    sgui_button* this=button_create_common(x,y,width,height,text,SGUI_BUTTON);
-
-    if( this )
-        this->super.window_event_callback = button_on_event;
-
-    return (sgui_widget*)this;
-}
-
-/******************************* common code *******************************/
 void sgui_button_set_text( sgui_widget* super, const char* text )
 {
     unsigned int len, text_width, text_height;
@@ -424,7 +369,7 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
     sgui_internal_lock_mutex( );
 
     /* determine text position */
-    if( this->type==SGUI_BUTTON || this->type==SGUI_BUTTON_SELECTED )
+    if( (this->flags & 0x03)==BUTTON || (this->flags & 0x03)==TOGGLE_BUTTON )
     {
         this->cx = (super->area.left + super->area.right - text_width)>>1;
         this->cy = (super->area.top + super->area.bottom - text_height)>>1;
@@ -447,44 +392,15 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
 void sgui_button_set_state( sgui_widget* super, int state )
 {
     sgui_button* this = (sgui_button*)super;
-    sgui_rect r;
 
-    if( !this || this->type==SGUI_BUTTON || this->type==SGUI_BUTTON_SELECTED )
-        return;
-
-    sgui_internal_lock_mutex( );
-
-    if( this->type==SGUI_RADIO_BUTTON )
+    if( this && (this->flags & 0x03)!=BUTTON )
     {
-        radio_button_select( this );
+        button_select( this, state, 0 );
     }
-    else if( this->type==SGUI_CHECKBOX && state )
-    {
-        this->type = SGUI_CHECKBOX_SELECTED;
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-    }
-    else if( this->type==SGUI_CHECKBOX_SELECTED && !state )
-    {
-        this->type = SGUI_CHECKBOX;
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-    }
-
-    sgui_internal_unlock_mutex( );
 }
 
-int sgui_button_get_state( sgui_widget* super )
+int sgui_button_get_state( sgui_widget* this )
 {
-    sgui_button* this = (sgui_button*)super;
-
-    if( this )
-    {
-        return this->type==SGUI_RADIO_BUTTON_SELECTED ||
-               this->type==SGUI_CHECKBOX_SELECTED ||
-               this->type==SGUI_BUTTON_SELECTED;
-    }
-
-    return 0;
+    return this ? (((sgui_button*)this)->flags & SELECTED)!=0 : 0;
 }
 

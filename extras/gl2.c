@@ -45,13 +45,13 @@ int main( void )
 
     /* create some widgets */
     text = sgui_static_text_create(10, 130, "OpenGL\302\256 subview widget");
-    button = sgui_button_create( 10, 155, 75, 30, "Refresh" );
+    button = sgui_button_create( 10, 155, 75, 30, "Refresh", 0 );
     gl_view = sgui_subview_create( wnd, 10, 10, 180, 120,
                                    SGUI_OPENGL_COMPAT, NULL );
 
     /* hook callbacks */
     sgui_subview_set_draw_callback( gl_view, glview_on_draw );
-    sgui_event_connect( button, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, 1,
                         sgui_subview_refresh, gl_view, SGUI_VOID );
 
     /* add widgets to the window */

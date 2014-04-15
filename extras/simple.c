@@ -34,14 +34,14 @@ int main( )
     text = sgui_static_text_create( 10, 10, "To close the window,\n"
                                             "press <color=\"#FF0000\">close");
 
-    button = sgui_button_create( 30, 60, 75, 30, "Close" );
+    button = sgui_button_create( 30, 60, 75, 30, "Close", 0 );
 
     /* add widgets to the window */
     sgui_window_add_widget( wnd, text );
     sgui_window_add_widget( wnd, button );
 
     /* hook event callbacks */
-    sgui_event_connect( button, SGUI_BUTTON_CLICK_EVENT, 1,
+    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, 1,
                         sgui_window_set_visible, wnd,
                         SGUI_INT, SGUI_INVISIBLE );
 

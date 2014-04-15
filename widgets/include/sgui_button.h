@@ -50,7 +50,8 @@ extern "C"
 SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
                                           unsigned int width,
                                           unsigned int height,
-                                          const char* text );
+                                          const char* text,
+                                          int toggleable );
 
 /**
  * \brief Create a checkbox button widget
@@ -76,16 +77,17 @@ SGUI_DLL sgui_widget* sgui_radio_button_create( int x, int y,
                                                 const char* text );
 
 /**
- * \brief Connect radio button widgets to a radio button menu
+ * \brief Connect button widgets to a button group (e.g. a bunch of radio
+ *        buttons to a button group)
  *
- * \note Radio button connections MUST NOT be circular (e.g. connecting the
+ * \note Button connections MUST NOT be circular (e.g. connecting the
  *       last to the first)!
  *
- * \param radio    The radio button to connect
- * \param previous The precceding radio button in the radio button menu
- * \param next     The next radio button in the radio button menu
+ * \param button   The button to connect
+ * \param previous The precceding button in the button group or NULL for none
+ * \param next     The next button in the button grup or NULL for none
  */
-SGUI_DLL void sgui_radio_button_connect( sgui_widget* radio,
+SGUI_DLL void sgui_button_group_connect( sgui_widget* button,
                                          sgui_widget* previous,
                                          sgui_widget* next );
 
