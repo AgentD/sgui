@@ -31,6 +31,7 @@
 #include "sgui_event.h"
 #include "sgui_filesystem.h"
 #include "sgui_font.h"
+#include "sgui_icon_cache.h"
 #include "sgui_keycodes.h"
 #include "sgui_pixmap.h"
 #include "sgui_predef.h"

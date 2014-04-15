@@ -39,6 +39,8 @@
 
 
 
+typedef struct sgui_icon_cache sgui_icon_cache;
+
 typedef struct sgui_font_cache sgui_font_cache;
 
 typedef struct sgui_font sgui_font;
