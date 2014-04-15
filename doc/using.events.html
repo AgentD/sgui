@@ -30,7 +30,7 @@ response. We simply add this before calling sgui_init:
 
 <p class="code">
 ...<br>
-sgui_event_connect( button, SGUI_BUTTON_CLICK_EVENT, <font class="number">1</font>, sgui_window_set_visible, wnd, SGUI_INT, SGUI_INVISIBLE );<br>
+sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, <font class="number">1</font>, sgui_window_set_visible, wnd, SGUI_INT, SGUI_INVISIBLE );<br>
 ...<br>
 </p>
 The first argument is the source of the event. In this case the button widget.

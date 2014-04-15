@@ -18,18 +18,26 @@ widgets available under SGUI.
 <tr>
 <td><img src="images/button.png"></td>
 <td>A simple push <b>button</b> that generates an event when clicked and
-    released</td>
+    released (<b>SGUI_BUTTON_OUT_EVENT</b>). Can also be configured to act as
+    a toggle button to stay in a state (either in or out) and generat events
+    on state change (<b>SGUI_BUTTON_IN_EVENT</b>,
+    <b>SGUI_BUTTON_OUT_EVENT</b>). Toggle buttons can be grouped together like
+    radio buttons, where exactely one button can be selected at a time.</td>
+    When the selection in a group changes, the one that gets selected triggers
+    an <b>SGUI_BUTTON_IN_EVENT</b> event.
 </tr>
 <tr>
 <td><img src="images/check.png"></td>
 <td><b>Checkboxes</b> as we know them. Generates an event when checked or
-    unchecked</td>
+    unchecked (<b>SGUI_BUTTON_IN_EVENT</b>, <b>SGUI_BUTTON_OUT_EVENT</b>)</td>
 </tr>
 <tr>
 <td><img src="images/group.png"></td>
 <td>A <b>radio button</b> looks like a checkbox, but with a circular area to
     the left. Several radio buttons can be connected to a group. In a group of
-    radio buttons, only one at a time can be selected.
+    radio buttons, only one at a time can be selected. When the selection in a
+    group changes, the one that gets selected triggers an
+    <b>SGUI_BUTTON_IN_EVENT</b> event. 
 </tr>
 <tr>
 <td><img src="images/edit.png"></td>
@@ -41,7 +49,7 @@ widgets available under SGUI.
 <td><img src="images/progress.png"></td>
 <td>This is a <b>progress bar</b>. It indicates progress. As you can see,
     there are different styles (continuous and stippled). Vertical progress
-    bars also exist.</td>
+    bars, that are filled from bottom to top, also exist.</td>
 </tr>
 <tr>
 <td><img src="images/static.png"></td>

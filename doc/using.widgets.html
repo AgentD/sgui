@@ -45,7 +45,7 @@ Now lets create those two widgets:
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;text = sgui_static_text_create( <font class="number">10</font>, <font class="number">10</font>, <font class="string">"To close the window,\npress &lt;color=\"#FF0000\"&gt;close"</font> );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;button = sgui_button_create( <font class="number">30</font>, <font class="number">60</font>, <font class="number">75</font>, <font class="number">30</font>, <font class="string">"Close"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;button = sgui_button_create( <font class="number">30</font>, <font class="number">60</font>, <font class="number">75</font>, <font class="number">30</font>, <font class="string">"Close"</font>, <font class="number">0</font> );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 
@@ -65,8 +65,9 @@ then we would have to load bold and italic font faces.<br>
 The next two parameters of the <b>sgui_button_create</b> function specify a
 width and a height of the button (in pixels), where the width is the
 horizontal length and the height the vertical length, starting at the given
-position. The last parameter of the function is the text to print onto the
-button.<br>
+position. The last two parameters of the function are the text to print onto
+the button and whether the button should be a normal button (0) or a toggle
+button (non-zero).<br>
 <br>
 Now that we created those two widgets, we just need to add them to the window
 (after creating the window and before the main loop of course):

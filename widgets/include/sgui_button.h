@@ -31,6 +31,11 @@
 
 
 
+#define SGUI_BUTTON_NORMAL     0
+#define SGUI_BUTTON_TOGGLEABLE 1
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -39,11 +44,15 @@ extern "C"
 /**
  * \brief Create a button widget
  *
- * \param x      X component of the buttons position
- * \param x      Y component of the buttons position
- * \param width  The width of the button in pixels
- * \param height The height of the button in pixels
- * \param text   UTF8 text written onto the button
+ * \param x          X component of the buttons position
+ * \param x          Y component of the buttons position
+ * \param width      The width of the button in pixels
+ * \param height     The height of the button in pixels
+ * \param text       UTF8 text written onto the button
+ * \param toggleable Non-zero for toggle buttons that remain in a state after
+ *                   being clicked. Zero for normal buttons. The constants
+ *                   SGUI_BUTTON_NORMAL and SGUI_BUTTON_TOGGLEABLE can be used
+ *                   alternatively.
  *
  * \return A button widget
  */
