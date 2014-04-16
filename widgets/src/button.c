@@ -30,6 +30,7 @@
 #include "sgui_font.h"
 #include "sgui_internal.h"
 #include "sgui_widget.h"
+#include "sgui_icon_cache.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -41,6 +42,7 @@
 #define CHECKBOX      0x02
 #define RADIO_BUTTON  0x03
 #define SELECTED      0x10
+#define HAVE_ICON     0x20
 
 
 
@@ -49,7 +51,19 @@ typedef struct sgui_button
 {
     sgui_widget super;
 
-    char* text;
+    union
+    {
+        char* text;
+
+        struct
+        {
+            sgui_icon_cache* cache;
+            unsigned int id;
+        }
+        icon;
+    }
+    dpy;
+
     int flags;
     unsigned int cx, cy;      /* button: text position,
                                  checkbox/radio button: text/object offset */
@@ -127,8 +141,20 @@ static void button_draw( sgui_widget* super )
     {
         sgui_skin_draw_button( super->canvas, &super->area, in );
 
-        sgui_canvas_draw_text( super->canvas, super->area.left+this->cx-in,
-                               super->area.top+this->cy-in, this->text );
+        if( this->flags & HAVE_ICON )
+        {
+            sgui_icon_cache_draw_icon( this->dpy.icon.cache,
+                                       this->dpy.icon.id,
+                                       super->area.left+ this->cx - in,
+                                       super->area.top + this->cy - in );
+        }
+        else
+        {
+            sgui_canvas_draw_text( super->canvas,
+                                   super->area.left+this->cx-in,
+                                   super->area.top+this->cy-in,
+                                   this->dpy.text );
+        }
     }
     else
     {
@@ -143,8 +169,18 @@ static void button_draw( sgui_widget* super )
                                          super->area.top+this->cy, in );
         }
 
-        sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
-                               super->area.top, this->text );
+        if( this->flags & HAVE_ICON )
+        {
+            sgui_icon_cache_draw_icon( this->dpy.icon.cache,
+                                       this->dpy.icon.id,
+                                       super->area.left+this->cx,
+                                       super->area.top );
+        }
+        else
+        {
+            sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
+                                   super->area.top, this->dpy.text );
+        }
     }
 }
 
@@ -233,48 +269,77 @@ static void button_destroy( sgui_widget* super )
     sgui_internal_unlock_mutex( );
 
     /* free memory of text buffer and button */
-    free( this->text );
+    if( !(this->flags & HAVE_ICON) )
+        free( this->dpy.text );
+
     free( this );
 }
 
 static sgui_widget* button_create_common( int x, int y, unsigned int width,
                                           unsigned int height,
-                                          const char* text, int type )
+                                          unsigned int iconid,
+                                          sgui_icon_cache* cache,
+                                          const char* text, int flags )
 {
-    sgui_button* this = malloc( sizeof(sgui_button) );
-    sgui_widget* super = (sgui_widget*)this;
     unsigned int len, text_width, text_height;
+    sgui_widget* super;
+    sgui_button* this;
     sgui_rect r;
+
+    /* sanity check */
+    if( flags & HAVE_ICON )
+    {
+        if( !cache || !sgui_icon_cache_get_icon_area( cache, iconid, &r ) )
+            return NULL;
+    }
+    else
+    {
+        if( !text )
+            return NULL;
+    }
+
+    /* allocate button */
+    this = malloc( sizeof(sgui_button) );
+    super = (sgui_widget*)this;
 
     if( !this )
         return NULL;
 
     /* allocate space for the text */
-    len = strlen( text );
-    this->text = malloc( len + 1 );
-
-    if( !this->text )
+    if( flags & HAVE_ICON )
     {
-        free( this );
-        return NULL;
+        this->dpy.icon.cache = cache;
+        this->dpy.icon.id = iconid;
+    }
+    else
+    {
+        len = strlen( text );
+        this->dpy.text = malloc( len + 1 );
+
+        if( !this->dpy.text )
+        {
+            free( this );
+            return NULL;
+        }
+
+        sgui_skin_get_text_extents( text, &r );
+        memcpy( this->dpy.text, text, len + 1 );
     }
 
-    /* compute text size */
-    sgui_skin_get_text_extents( text, &r );
     text_width = SGUI_RECT_WIDTH( r );
     text_height = SGUI_RECT_HEIGHT( r );
 
     /* compute size */
-    if( type==BUTTON || type==TOGGLE_BUTTON )
+    if( (flags & 0x03)==BUTTON || (flags & 0x03)==TOGGLE_BUTTON )
     {
         this->cx = width /2 - text_width/2;
         this->cy = height/2 - text_height/2;
     }
     else
     {
-        if( type==CHECKBOX )
+        if( (flags & 0x03)==CHECKBOX )
             sgui_skin_get_checkbox_extents( &r );
-        else if( type==RADIO_BUTTON )
+        else if( (flags & 0x03)==RADIO_BUTTON )
             sgui_skin_get_radio_button_extents( &r );
 
         this->cx = SGUI_RECT_WIDTH( r );
@@ -290,13 +355,11 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     /* initialise remaining fields */
     sgui_internal_widget_init( super, x, y, width, height );
 
-    memcpy( this->text, text, len + 1 );
-
     this->prev = NULL;
     this->next = NULL;
-    this->flags = type;
+    this->flags = flags;
 
-    if( type==BUTTON )
+    if( (flags & 0x03)==BUTTON )
         this->super.window_event_callback = button_on_event;
     else
         this->super.window_event_callback = toggle_button_on_event;
@@ -308,21 +371,31 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
 }
 
 /***************************************************************************/
+sgui_widget* sgui_icon_button_create( int x, int y, unsigned int width,
+                                      unsigned int height,
+                                      sgui_icon_cache* cache,
+                                      unsigned int icon, int toggleable )
+{
+    return button_create_common( x, y, width, height, icon, cache, NULL,
+                                 (toggleable ? TOGGLE_BUTTON : BUTTON) |
+                                 HAVE_ICON );
+}
+
 sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
 {
-    return button_create_common( x, y, 0, 0, text, RADIO_BUTTON );
+    return button_create_common( x, y, 0, 0, 0, NULL, text, RADIO_BUTTON );
 }
 
 sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
 {
-    return button_create_common( x, y, 0, 0, text, CHECKBOX );
+    return button_create_common( x, y, 0, 0, 0, NULL, text, CHECKBOX );
 }
 
 sgui_widget* sgui_button_create( int x, int y,
                                  unsigned int width, unsigned int height,
                                  const char* text, int toggleable )
 {
-    return button_create_common( x, y, width, height, text,
+    return button_create_common( x, y, width, height, 0, NULL, text,
                                  toggleable ? TOGGLE_BUTTON : BUTTON );
 }
 
@@ -368,6 +441,16 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
 
     sgui_internal_lock_mutex( );
 
+    /* adjust buffer size and copy */
+    if( !(this->flags & HAVE_ICON) )
+        free( this->dpy.text );
+
+    this->flags &= ~HAVE_ICON;
+    this->dpy.text = malloc( len + 1 );
+
+    if( this->dpy.text )
+        memcpy( this->dpy.text, text, len + 1 );
+
     /* determine text position */
     if( (this->flags & 0x03)==BUTTON || (this->flags & 0x03)==TOGGLE_BUTTON )
     {
@@ -378,13 +461,6 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
     {
         super->area.right = super->area.left + this->cx + text_width;
     }
-
-    /* adjust buffer size and copy */
-    free( this->text );
-    this->text = malloc( len + 1 );
-
-    if( this->text )
-        memcpy( this->text, text, len + 1 );
 
     sgui_internal_unlock_mutex( );
 }

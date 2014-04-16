@@ -34,6 +34,7 @@ sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *tb, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *ebn, *ebp, *f, *gb, *ra, *rb, *rc, *tab;
 sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
 sgui_widget *t1, *t2, *t3;
+sgui_icon_cache* ic;
 unsigned char image[128*128*4];
 int running = 1;
 
@@ -131,7 +132,44 @@ int main( int argc, char** argv )
     sgui_window_set_size( a, 520, 420 );
     sgui_window_set_size( b, 200, 100 );
 
-    /* */
+    /* create icon cache */
+    ic = sgui_icon_cache_create( sgui_window_get_canvas( a ), 32, 32, 0 );
+
+    sgui_icon_cache_add_icon( ic, 0, 16, 16 );
+    sgui_icon_cache_add_icon( ic, 1, 16, 16 );
+    sgui_icon_cache_add_icon( ic, 2, 16, 16 );
+
+    /* generte images */
+    for( y=0; y<16; ++y )
+        for( x=0; x<16; ++x )
+        {
+            image[ (y*16 + x)*3     ] = x << 4;
+            image[ (y*16 + x)*3 + 1 ] = y << 4;
+            image[ (y*16 + x)*3 + 2 ] = 0x00;
+        }
+
+    sgui_icon_cache_load_icon( ic, 0, image, 16, SGUI_RGB8 );
+
+    for( y=0; y<16; ++y )
+        for( x=0; x<16; ++x )
+        {
+            image[ (y*16 + x)*3     ] = 0x00;
+            image[ (y*16 + x)*3 + 1 ] = x << 4;
+            image[ (y*16 + x)*3 + 2 ] = y << 4;
+        }
+
+    sgui_icon_cache_load_icon( ic, 1, image, 16, SGUI_RGB8 );
+
+    for( y=0; y<16; ++y )
+        for( x=0; x<16; ++x )
+        {
+            image[ (y*16 + x)*3     ] = y << 4;
+            image[ (y*16 + x)*3 + 1 ] = 0x00;
+            image[ (y*16 + x)*3 + 2 ] = x << 4;
+        }
+
+    sgui_icon_cache_load_icon( ic, 2, image, 16, SGUI_RGB8 );
+
     for( y=0; y<128; ++y )
         for( x=0; x<128; ++x )
         {
@@ -148,9 +186,9 @@ int main( int argc, char** argv )
 
     butt = sgui_button_create( 10, 275, 80, 30, "Button", 0 );
     tb = sgui_button_create( 95, 275, 80, 30, "Toggle", 1 );
-    t1 = sgui_button_create( 360,  35, 30, 30, "A", 1 );
-    t2 = sgui_button_create( 360,  70, 30, 30, "B", 1 );
-    t3 = sgui_button_create( 360, 105, 30, 30, "C", 1 );
+    t1 = sgui_icon_button_create( 360,  35, 30, 30, ic, 0, 1 );
+    t2 = sgui_icon_button_create( 360,  70, 30, 30, ic, 1, 1 );
+    t3 = sgui_icon_button_create( 360, 105, 30, 30, ic, 2, 1 );
     eb = sgui_edit_box_create( 10, 195, 100, 100, 0 );
     ebn = sgui_edit_box_create( 10, 235, 100, 100, SGUI_EDIT_NUMERIC );
     ebp = sgui_edit_box_create( 120, 195, 100, 100, SGUI_EDIT_PASSWORD );
@@ -313,6 +351,8 @@ int main( int argc, char** argv )
 
     sgui_widget_destroy( i0 );
     sgui_widget_destroy( i1 );
+
+    sgui_icon_cache_destroy( ic );
 
     sgui_deinit( );
 

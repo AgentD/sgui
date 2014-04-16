@@ -62,6 +62,13 @@ SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
                                           const char* text,
                                           int toggleable );
 
+SGUI_DLL sgui_widget* sgui_icon_button_create( int x, int y,
+                                               unsigned int width,
+                                               unsigned int height,
+                                               sgui_icon_cache* cache,
+                                               unsigned int icon,
+                                               int toggleable );
+
 /**
  * \brief Create a checkbox button widget
  *
