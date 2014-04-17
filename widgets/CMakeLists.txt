@@ -8,6 +8,7 @@ set( WIDGETS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/button.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/edit_box.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/frame.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/group_box.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/icon_view.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/progress_bar.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/scroll_bar.c

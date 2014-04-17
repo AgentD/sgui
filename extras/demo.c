@@ -33,7 +33,7 @@ sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *tb, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *ebn, *ebp, *f, *gb, *ra, *rb, *rc, *tab;
 sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
-sgui_widget *t1, *t2, *t3;
+sgui_widget *t1, *t2, *t3, *iv;
 sgui_icon_cache* ic;
 unsigned char image[128*128*4];
 int running = 1;
@@ -272,6 +272,17 @@ int main( int argc, char** argv )
     sgui_tab_group_add_widget( tab, 2, p2 );
     sgui_tab_group_add_widget( tab, 2, p3 );
 
+    /* view widgets */
+    sgui_tab_group_add_tab( tab, "Views" );
+
+    iv = sgui_icon_view_create( 15, 15, 200, 150, ic, 1 );
+
+    sgui_icon_view_add_icon( iv,  10, 10, "icon", 0 );
+    sgui_icon_view_add_icon( iv,  80, 80, "view", 1 );
+    sgui_icon_view_add_icon( iv, 150, 20, "test", 2 );
+
+    sgui_tab_group_add_widget( tab, 3, iv );
+
     /* OpenGL widget tab */
     if( !nogl )
     {
@@ -285,10 +296,10 @@ int main( int argc, char** argv )
 
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 
-        sgui_tab_group_add_widget( tab, 3, gl_view );
-        sgui_tab_group_add_widget( tab, 3, gl_view2 );
-        sgui_tab_group_add_widget( tab, 3, gl_sub0 );
-        sgui_tab_group_add_widget( tab, 3, gl_sub1 );
+        sgui_tab_group_add_widget( tab, 4, gl_view );
+        sgui_tab_group_add_widget( tab, 4, gl_view2 );
+        sgui_tab_group_add_widget( tab, 4, gl_sub0 );
+        sgui_tab_group_add_widget( tab, 4, gl_sub1 );
 
         CREATE_THREAD( thread, gl_drawing_thread );
     }
@@ -351,6 +362,8 @@ int main( int argc, char** argv )
 
     sgui_widget_destroy( i0 );
     sgui_widget_destroy( i1 );
+
+    sgui_widget_destroy( iv );
 
     sgui_icon_cache_destroy( ic );
 

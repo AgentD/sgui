@@ -46,6 +46,7 @@
 #include "sgui_edit_box.h"
 #include "sgui_frame.h"
 #include "sgui_group_box.h"
+#include "sgui_icon_view.h"
 #include "sgui_image.h"
 #include "sgui_progress_bar.h"
 #include "sgui_scroll_bar.h"
