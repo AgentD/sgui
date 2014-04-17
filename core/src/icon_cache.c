@@ -24,6 +24,7 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui_icon_cache.h"
+#include "sgui_internal.h"
 #include "sgui_canvas.h"
 #include "sgui_pixmap.h"
 #include "sgui_rect.h"
@@ -192,23 +193,25 @@ int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
     if( !this || !width || !height || find_icon( this->root, id ) )
         return 0;
 
+    sgui_internal_lock_mutex( );
+
     /* check if there is enought space for the icon */
     if( (this->next_x + width) > this->width )
     {
         if( (this->next_y + this->row_height + height) > this->height )
-            return 0;
+            goto fail;
     }
     else
     {
         if( (this->next_y + height) > this->height )
-            return 0;
+            goto fail;
     }
 
     /* create icon */
     i = malloc( sizeof(struct icon) );
 
     if( !i )
-        return 0;
+        goto fail;
 
     memset( i, 0, sizeof(struct icon) );
     i->red = 1;
@@ -232,7 +235,11 @@ int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
     this->root = tree_insert( this->root, i );
     this->root->red = 0;
 
+    sgui_internal_unlock_mutex( );
     return 1;
+fail:
+    sgui_internal_unlock_mutex( );
+    return 0;
 }
 
 void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
@@ -244,6 +251,7 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
     if( !this || !data )
         return;
 
+    sgui_internal_lock_mutex( );
     i = find_icon( this->root, id );
 
     if( !i )
@@ -252,6 +260,7 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
     sgui_pixmap_load( this->pixmap, i->area.left, i->area.top, data, 0, 0,
                       SGUI_RECT_WIDTH(i->area), SGUI_RECT_HEIGHT(i->area),
                       scan, format );
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
@@ -262,6 +271,7 @@ void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
     if( !this )
         return;
 
+    sgui_internal_lock_mutex( );
     i = find_icon( this->root, id );
 
     if( i )
@@ -275,6 +285,8 @@ void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
             sgui_canvas_blit( this->owner, x, y, this->pixmap, &(i->area) );
         }
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 int sgui_icon_cache_get_icon_area( sgui_icon_cache* this, unsigned int id,
@@ -285,14 +297,20 @@ int sgui_icon_cache_get_icon_area( sgui_icon_cache* this, unsigned int id,
     if( !this )
         return 0;
 
+    sgui_internal_lock_mutex( );
+
     i = find_icon( this->root, id );
 
     if( !i )
+    {
+        sgui_internal_unlock_mutex( );
         return 0;
+    }
 
     if( out )
         sgui_rect_copy( out, &(i->area) );
 
+    sgui_internal_unlock_mutex( );
     return 1;
 }
 
