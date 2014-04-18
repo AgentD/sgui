@@ -56,7 +56,10 @@ SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 /**
  * \brief Add an icon to an icon view widget
  *
- * \param 
+ * \param x       The distance from the left of the view area to the icon
+ * \param y       The distance from the top of the view area to the icon
+ * \param subtext If not NULL, a text to drawn under the icon
+ * \param id      The id of icon used by the icon cache object
  */
 SGUI_DLL void sgui_icon_view_add_icon( sgui_widget* view, int x, int y,
                                        const char* subtext,

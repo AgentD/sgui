@@ -35,12 +35,19 @@
 
 
 
+#define IV_MULTISELECT 0x01
+#define IV_DRAG        0x02
+#define IV_SELECTBOX   0x04
+
+
+
 typedef struct icon
 {
     unsigned int id;        /* id of the icon */
     sgui_rect icon_area;    /* area inside the view */
     sgui_rect text_area;    /* area of the subtext inside the view */
     char* subtext;          /* the text to write underneath the icon */
+    int selected;           /* non-zero if the icon is selected */
     struct icon* next;      /* linked list pointer */
 }
 icon;
@@ -49,11 +56,11 @@ typedef struct
 {
     sgui_widget super;
     icon* icons;            /* a linked list of icons */
-    icon* selected;         /* the currently selected icon */
     sgui_icon_cache* cache; /* the underlying icon cache */
     int draw_background;    /* whether to draw the background */
-    int grab_x, grab_y;     /* the selected icon last grabbing position */
-    int draging;            /* whether we are currently draging an icon */
+    int grab_x, grab_y;     /* the last mouse grabbing position */
+    int endx, endy;
+    int flags;
     int offset;             /* the offset from the border of the view */
 }
 icon_view;
@@ -76,28 +83,52 @@ static void get_icon_bounding_box( icon_view* this, icon* i, sgui_rect* r )
     r->bottom += y;
 }
 
-static void icon_move_to_front( icon_view* this, icon* front )
+static void deselect_all_icons( icon_view* this )
 {
     sgui_rect r;
     icon* i;
 
-    get_icon_bounding_box( this, front, &r );
-    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
-
-    if( front == this->icons )
+    for( i=this->icons; i!=NULL; i=i->next )
     {
-        this->icons = this->icons->next;
-        for( i=this->icons; i->next!=NULL; i=i->next ) { }
+        if( i->selected )
+        {
+            i->selected = 0;
+            get_icon_bounding_box( this, i, &r );
+            sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+        }
     }
-    else
+}
+
+static icon* icon_from_point( icon_view* this, int x, int y )
+{
+    icon* top;
+    icon* i;
+
+    for( top=NULL, i=this->icons; i!=NULL; i=i->next )
     {
-        for( i=this->icons; i->next!=front; i=i->next ) { }
-        i->next = i->next->next;
-        for( ; i->next!=NULL; i=i->next ) { }
+        if( i->selected )
+            continue;
+
+        if( sgui_rect_is_point_inside( &(i->icon_area), x, y ) ||
+            sgui_rect_is_point_inside( &(i->text_area), x, y ) )
+        {
+            top = i;
+        }
     }
 
-    i->next = front;
-    front->next = NULL;
+    for( i=this->icons; i!=NULL; i=i->next )
+    {
+        if( !i->selected )
+            continue;
+
+        if( sgui_rect_is_point_inside( &(i->icon_area), x, y ) ||
+            sgui_rect_is_point_inside( &(i->text_area), x, y ) )
+        {
+            top = i;
+        }
+    }
+
+    return top;
 }
 
 static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
@@ -108,118 +139,207 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
     icon* new;
     icon* i;
 
+#define SELECT( icon, state )\
+        (icon)->selected = (state);\
+        get_icon_bounding_box( this, (icon), &r );\
+        sgui_canvas_add_dirty_rect( super->canvas, &r )
+
+#define ADD_OFFSET( r, x, y )\
+        (r).left+=(x); (r).top+=(y); (r).right+=(x); (r).bottom+=(y)
+
     sgui_internal_lock_mutex( );
 
-    if( e->type==SGUI_MOUSE_PRESS_EVENT &&
-        e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT )
+    if(e->type==SGUI_MOUSE_PRESS_EVENT && e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT)
     {
-        this->grab_x = e->arg.i3.x;
-        this->grab_y = e->arg.i3.y;
+        this->endx = this->grab_x = e->arg.i3.x;
+        this->endy = this->grab_y = e->arg.i3.y;
+        new = icon_from_point( this, e->arg.i3.x, e->arg.i3.y );
 
-        /* try to find an icon that got clicked (last in list = top most) */
-        for( new=NULL, i=this->icons; i!=NULL; i=i->next )
+        if( new )
         {
-            if( sgui_rect_is_point_inside( &(i->icon_area),
-                                           e->arg.i3.x, e->arg.i3.y ) ||
-                sgui_rect_is_point_inside( &(i->text_area),
-                                           e->arg.i3.x, e->arg.i3.y ) )
+            if( !new->selected )
             {
-                new = i;
-            }
-        }
+                if( !(this->flags & IV_MULTISELECT) )
+                    deselect_all_icons( this );
 
-        if( this->selected!=new )
+                SELECT( new, 1 );
+            }
+            else if( this->flags & IV_MULTISELECT )
+            {
+                SELECT( new, 0 );
+            }
+
+            this->flags |= IV_DRAG;
+        }
+        else if( !(this->flags & IV_MULTISELECT) )
         {
-            if( this->selected )
-            {
-                get_icon_bounding_box( this, this->selected, &r );
-                sgui_canvas_add_dirty_rect( super->canvas, &r );
-            }
-
-            this->selected = new;
-
-            if( this->selected )
-            {
-                icon_move_to_front( this, this->selected );
-            }
+            deselect_all_icons( this );
+            this->flags = IV_SELECTBOX;
         }
-
-        this->draging = (this->selected!=NULL);
     }
-    else if(e->type==SGUI_MOUSE_MOVE_EVENT && this->selected && this->draging)
+    else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_SELECTBOX) )
+    {
+        /* get absolute affected bounding area */
+        r.left   = MIN(this->grab_x, this->endx);
+        r.top    = MIN(this->grab_y, this->endy);
+        r.right  = MAX(this->grab_x, this->endx);
+        r.bottom = MAX(this->grab_y, this->endy);
+
+        dx = e->arg.i2.x - this->endx;
+        dy = e->arg.i2.y - this->endy;
+
+             if( r.left  ==this->endx && dx<0 ) r.left   += dx;
+        else if( r.right ==this->endx && dx>0 ) r.right  += dx;
+             if( r.top   ==this->endy && dy<0 ) r.top    += dy;
+        else if( r.bottom==this->endy && dy>0 ) r.bottom += dy;
+
+        this->endx = e->arg.i2.x;
+        this->endy = e->arg.i2.y;
+
+        /* flag area as dity */
+        sgui_widget_get_absolute_position( &(this->super), &x, &y );
+        r.left   += x-1;
+        r.top    += y-1;
+        r.right  += x+1;
+        r.bottom += y+1;
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
+
+        /* get selected icons */
+        r.left   = MIN(this->grab_x, this->endx);
+        r.top    = MIN(this->grab_y, this->endy);
+        r.right  = MAX(this->grab_x, this->endx);
+        r.bottom = MAX(this->grab_y, this->endy);
+
+        for( i=this->icons; i!=NULL; i=i->next )
+        {
+            if( sgui_rect_get_intersection( NULL, &r, &(i->icon_area) ) ||
+                sgui_rect_get_intersection( NULL, &r, &(i->text_area) ) )
+            {
+                if( !i->selected )
+                {
+                    SELECT( i, 1 );
+                }
+            }
+            else if( i->selected )
+            {
+                SELECT( i, 0 );
+            }
+        }
+    }
+    else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_DRAG) )
     {
         /* get mouse movement difference vector */
         dx = e->arg.i2.x - this->grab_x;
         dy = e->arg.i2.y - this->grab_y;
 
-        /* clamp movement vector to keep icon inside area */
-        x = SGUI_RECT_WIDTH(super->area) - this->offset;
-        y = SGUI_RECT_HEIGHT(super->area) - this->offset;
-
-        if( (this->selected->icon_area.left + dx)<this->offset )
-            dx = this->offset - this->selected->icon_area.left;
-
-        if( (this->selected->icon_area.top + dy)<this->offset )
-            dy = this->offset - this->selected->icon_area.top;
-
-        if( (this->selected->icon_area.right + dx)>x )
-            dx = x - this->selected->icon_area.right;
-
-        if( (this->selected->icon_area.bottom + dy)>y )
-            dy = y - this->selected->icon_area.bottom;
-
-        if( (this->selected->text_area.left + dx)<this->offset )
-            dx = this->offset - this->selected->text_area.left;
-
-        if( (this->selected->text_area.top + dy)<this->offset )
-            dy = this->offset - this->selected->text_area.top;
-
-        if( (this->selected->text_area.right + dx)>x )
-            dx = x - this->selected->text_area.right;
-
-        if( (this->selected->text_area.bottom + dy)>y )
-            dy = y - this->selected->text_area.bottom;
-
-        /* flag affected area as dirty */
-        get_icon_bounding_box( this, this->selected, &r );
-
-        if( dx>0 ) r.right += dx;
-        else       r.left  += dx;
-
-        if( dy>0 ) r.bottom += dy;
-        else       r.top    += dy;
-
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-
-        /* move selected icon */
         this->grab_x = e->arg.i2.x;
         this->grab_y = e->arg.i2.y;
 
-        this->selected->icon_area.left += dx;
-        this->selected->icon_area.top += dy;
-        this->selected->icon_area.right += dx;
-        this->selected->icon_area.bottom += dy;
+        x = SGUI_RECT_WIDTH(super->area) - this->offset;
+        y = SGUI_RECT_HEIGHT(super->area) - this->offset;
 
-        this->selected->text_area.left += dx;
-        this->selected->text_area.top += dy;
-        this->selected->text_area.right += dx;
-        this->selected->text_area.bottom += dy;
+        /* clamp movement vector to keep icons inside area */
+        for( i=this->icons; i!=NULL; i=i->next )
+        {
+            if( !i->selected )
+                continue;
+
+            if( (i->icon_area.left + dx)<this->offset )
+                dx = this->offset - i->icon_area.left;
+
+            if( (i->icon_area.top + dy)<this->offset )
+                dy = this->offset - i->icon_area.top;
+
+            if( (i->text_area.left + dx)<this->offset )
+                dx = this->offset - i->text_area.left;
+
+            if( (i->text_area.top + dy)<this->offset )
+                dy = this->offset - i->text_area.top;
+
+            if( (i->icon_area.right  + dx)>x ) dx = x - i->icon_area.right;
+            if( (i->icon_area.bottom + dy)>y ) dy = y - i->icon_area.bottom;
+            if( (i->text_area.right  + dx)>x ) dx = x - i->text_area.right;
+            if( (i->text_area.bottom + dy)>y ) dy = y - i->text_area.bottom;
+        }
+
+        /* move all selected icons by difference vector */
+        for( i=this->icons; i!=NULL; i=i->next )
+        {
+            if( i->selected )
+            {
+                /* flag affected area as dirty */
+                get_icon_bounding_box( this, i, &r );
+
+                if( dx>0 ) r.right += dx;
+                else       r.left  += dx;
+
+                if( dy>0 ) r.bottom += dy;
+                else       r.top    += dy;
+
+                sgui_canvas_add_dirty_rect( super->canvas, &r );
+
+                /* move */
+                ADD_OFFSET( i->icon_area, dx, dy );
+                ADD_OFFSET( i->text_area, dx, dy );
+            }
+        }
+    }
+    else if( e->type==SGUI_KEY_PRESSED_EVENT )
+    {
+        switch( e->arg.i )
+        {
+        case SGUI_KC_CONTROL:
+        case SGUI_KC_LCONTROL:
+        case SGUI_KC_RCONTROL:
+            this->flags |= IV_MULTISELECT;
+            break;
+        case SGUI_KC_SELECT_ALL:
+            for( i=this->icons; i!=NULL; i=i->next )
+            {
+                if( !i->selected )
+                {
+                    SELECT( i, 1 );
+                }
+            }
+            break;
+        }
+    }
+    else if( e->type==SGUI_KEY_RELEASED_EVENT )
+    {
+        switch( e->arg.i )
+        {
+        case SGUI_KC_CONTROL:
+        case SGUI_KC_LCONTROL:
+        case SGUI_KC_RCONTROL:
+            this->flags &= ~IV_MULTISELECT;
+            break;
+        }
     }
     else if( (e->type==SGUI_MOUSE_RELEASE_EVENT &&
               e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT) ||
              e->type==SGUI_MOUSE_LEAVE_EVENT )
     {
-        this->draging = 0;
+        if( this->flags & IV_SELECTBOX )
+        {
+            sgui_widget_get_absolute_position( &(this->super), &x, &y );
+            r.left   = MIN(this->grab_x, this->endx) + x - 1;
+            r.top    = MIN(this->grab_y, this->endy) + y - 1;
+            r.right  = MAX(this->grab_x, this->endx) + x + 1;
+            r.bottom = MAX(this->grab_y, this->endy) + y + 1;
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
+
+        this->flags &= ~(IV_DRAG|IV_SELECTBOX);
     }
-    else if( e->type==SGUI_FOCUS_LOSE_EVENT && this->selected )
+    else if( e->type==SGUI_FOCUS_LOSE_EVENT )
     {
-        get_icon_bounding_box( this, this->selected, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-        this->selected = NULL;
-        this->draging = 0;
+        deselect_all_icons( this );
+        this->flags &= ~(IV_MULTISELECT|IV_DRAG|IV_SELECTBOX);
     }
 
     sgui_internal_unlock_mutex( );
+#undef ADD_OFFSET
+#undef SELECT
 }
 
 static void icon_view_draw( sgui_widget* super )
@@ -233,26 +353,52 @@ static void icon_view_draw( sgui_widget* super )
         sgui_skin_draw_frame( super->canvas, &(super->area) );
     }
 
+    if( this->flags & IV_SELECTBOX )
+    {
+        r.left   = MIN(this->grab_x, this->endx) + super->area.left;
+        r.top    = MIN(this->grab_y, this->endy) + super->area.top;
+        r.right  = MAX(this->grab_x, this->endx) + super->area.left;
+        r.bottom = MAX(this->grab_y, this->endy) + super->area.top;
+        sgui_skin_draw_focus_box( super->canvas, &r );
+    }
+
+    /* draw non selected icons */
     for( i=this->icons; i!=NULL; i=i->next )
     {
-        sgui_icon_cache_draw_icon( this->cache, i->id,
-                                   super->area.left + i->icon_area.left,
-                                   super->area.top  + i->icon_area.top );
-
-        if( i==this->selected && i->subtext )
+        if( !i->selected )
         {
-            r = i->text_area;
+            sgui_icon_cache_draw_icon( this->cache, i->id,
+                                       super->area.left + i->icon_area.left,
+                                       super->area.top  + i->icon_area.top );
+
+            sgui_canvas_draw_text( super->canvas,
+                                   super->area.left + i->text_area.left,
+                                   super->area.top  + i->text_area.top,
+                                   i->subtext );
+        }
+    }
+
+    /* draw selected icons on top */
+    for( i=this->icons; i!=NULL; i=i->next )
+    {
+        if( i->selected )
+        {
+            sgui_icon_cache_draw_icon( this->cache, i->id,
+                                       super->area.left + i->icon_area.left,
+                                       super->area.top  + i->icon_area.top );
+
+            r = i->subtext ? i->text_area : i->icon_area;
             r.left += super->area.left;
             r.right += super->area.left;
             r.top += super->area.top;
             r.bottom += super->area.top;
             sgui_skin_draw_focus_box( super->canvas, &r );
-        }
 
-        sgui_canvas_draw_text( super->canvas,
-                               super->area.left + i->text_area.left,
-                               super->area.top  + i->text_area.top,
-                               i->subtext );
+            sgui_canvas_draw_text( super->canvas,
+                                   super->area.left + i->text_area.left,
+                                   super->area.top  + i->text_area.top,
+                                   i->subtext );
+        }
     }
 }
 
@@ -378,6 +524,7 @@ void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
                                              txt_w, txt_h );
     }
 
+    i->selected = 0;
     i->id = id;
 
     sgui_internal_lock_mutex( );
