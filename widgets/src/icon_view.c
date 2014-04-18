@@ -313,6 +313,48 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
         case SGUI_KC_RCONTROL:
             this->flags &= ~IV_MULTISELECT;
             break;
+        case SGUI_KC_HOME:
+            this->flags &= ~IV_MULTISELECT;
+            deselect_all_icons( this );
+            if( this->icons ) { SELECT( this->icons, 1 ); }
+            break;
+        case SGUI_KC_END:
+            this->flags &= ~IV_MULTISELECT;
+            for( i=this->icons; i->next!=NULL; i=i->next )
+            {
+                if( i->selected ) { SELECT( i, 0 ); }
+            }
+            if( i && !i->selected ) { SELECT( i, 1 ); }
+            break;
+        case SGUI_KC_RIGHT:
+        case SGUI_KC_DOWN:
+            this->flags &= ~IV_MULTISELECT;
+            if( this->icons && this->icons->selected )
+            {
+                for( i=this->icons->next; i!=NULL; i=i->next )
+                {
+                    if( i->selected ) { SELECT( i, 0 ); }
+                }
+            }
+            else
+            {
+                for( new=NULL, i=this->icons; i!=NULL; i=i->next )
+                {
+                    if( !new && i->next && i->next->selected ) { new = i; }
+                    if( i->selected ) { SELECT( i, 0 ); }
+                }
+                if( new ) { SELECT( new, 1 ); }
+            }
+            break;
+        case SGUI_KC_LEFT:
+        case SGUI_KC_UP:
+            this->flags &= ~IV_MULTISELECT;
+            for( new=NULL, i=this->icons; i!=NULL; i=i->next )
+            {
+                if( i->selected && i->next ) { SELECT(i, 0); new = i->next; }
+            }
+            if( new ) { SELECT( new, 1 ); }
+            break;
         }
     }
     else if( (e->type==SGUI_MOUSE_RELEASE_EVENT &&
