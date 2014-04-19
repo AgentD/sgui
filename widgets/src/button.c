@@ -465,6 +465,63 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
     sgui_internal_unlock_mutex( );
 }
 
+void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
+                           unsigned int icon )
+{
+    unsigned int img_width, img_height, width, height;
+    sgui_button* this = (sgui_button*)super;
+    sgui_rect r;
+
+    /* sanity check */
+    if( !this || !cache )
+        return;
+
+    if( !sgui_icon_cache_get_icon_area( cache, icon, &r ) )
+        return;
+
+    sgui_internal_lock_mutex( );
+
+    /* copy display data */
+    if( !(this->flags & HAVE_ICON) )
+        free( this->dpy.text );
+
+    this->flags |= HAVE_ICON;
+    this->dpy.icon.cache = cache;
+    this->dpy.icon.id = icon;
+
+    img_width = SGUI_RECT_WIDTH( r );
+    img_height = SGUI_RECT_HEIGHT( r );
+
+    /* adjust position and size */
+    if( (this->flags & 0x03)==BUTTON || (this->flags & 0x03)==TOGGLE_BUTTON )
+    {
+        this->cx = (super->area.left + super->area.right - img_width)>>1;
+        this->cy = (super->area.top + super->area.bottom - img_height)>>1;
+    }
+    else
+    {
+        if( (this->flags & 0x03)==CHECKBOX )
+            sgui_skin_get_checkbox_extents( &r );
+        else if( (this->flags & 0x03)==RADIO_BUTTON )
+            sgui_skin_get_radio_button_extents( &r );
+
+        this->cx = SGUI_RECT_WIDTH( r );
+        this->cy = SGUI_RECT_HEIGHT( r );
+
+        width  = this->cx + img_width;
+        height = MAX(this->cy, img_height);
+
+        this->cy = (height - this->cy) / 2;
+        this->cy = MAX( this->cy, 0 );
+
+        sgui_rect_set_size( &(super->area),
+                            super->area.left, super->area.right,
+                            width, height );
+    }
+
+    sgui_internal_unlock_mutex( );
+}
+
 void sgui_button_set_state( sgui_widget* super, int state )
 {
     sgui_button* this = (sgui_button*)super;
