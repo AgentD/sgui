@@ -24,7 +24,8 @@ widgets available under SGUI.
     <b>SGUI_BUTTON_OUT_EVENT</b>). Toggle buttons can be grouped together like
     radio buttons, where exactely one button can be selected at a time.</td>
     When the selection in a group changes, the one that gets selected triggers
-    an <b>SGUI_BUTTON_IN_EVENT</b> event.
+    an <b>SGUI_BUTTON_IN_EVENT</b> event. Buttons are not restricted to text
+    but can also display icons inside them.
 </tr>
 <tr>
 <td><img src="images/check.png"></td>
@@ -46,6 +47,15 @@ widgets available under SGUI.
     only allow numeric input, or not show the entered text (password)</td>
 </tr>
 <tr>
+<tr>
+<td><img src="images/iconview.png"></td>
+<td>An <b>icon view</b> can display an assortments of icons with text
+    underneath them. Icons can be clicked and draged around inside the view
+    area. An <b>SGUI_ICON_SELECTED</b> event is generated when a selected
+    icon gets double clicked or the return key is pressed. Similar events
+    are generated when a delete/copy/cut key combination is sent to an
+    icon.</td>
+</tr>
 <td><img src="images/progress.png"></td>
 <td>This is a <b>progress bar</b>. It indicates progress. As you can see,
     there are different styles (continuous and stippled). Vertical progress
@@ -55,8 +65,6 @@ widgets available under SGUI.
 <td><img src="images/static.png"></td>
 <td><b>Static image</b>s and <b>static text</b> for displaying purposes</td>
 </tr>
-
-
 <tr>
 <td><img src="images/glwidget.png"></td>
 <td>The black rectangle with a triangle inside is a <b>subview</b> widget.
