@@ -48,6 +48,7 @@ typedef struct icon
     sgui_rect text_area;    /* area of the subtext inside the view */
     char* subtext;          /* the text to write underneath the icon */
     int selected;           /* non-zero if the icon is selected */
+    void* user;             /* user data pointer */
     struct icon* next;      /* linked list pointer */
 }
 icon;
@@ -131,10 +132,28 @@ static icon* icon_from_point( icon_view* this, int x, int y )
     return top;
 }
 
+static void generate_event_for_each_selected( icon_view* this, int type )
+{
+    sgui_event ev;
+    icon* i;
+
+    for( i=this->icons; i!=NULL; i=i->next )
+    {
+        if( i->selected )
+        {
+            ev.widget = (sgui_widget*)i->user;
+            ev.window = NULL;
+            ev.type = type;
+            sgui_event_post( &ev );
+        }
+    }
+}
+
 static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 {
     icon_view* this = (icon_view*)super;
     int x, y, dx, dy;
+    sgui_event ev;
     sgui_rect r;
     icon* new;
     icon* i;
@@ -355,6 +374,25 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             }
             if( new ) { SELECT( new, 1 ); }
             break;
+        case SGUI_KC_RETURN:
+        case SGUI_KC_SPACE:
+            generate_event_for_each_selected( this, SGUI_ICON_SELECTED );
+            break;
+        case SGUI_KC_COPY:
+            generate_event_for_each_selected( this, SGUI_ICON_COPY );
+            break;
+        case SGUI_KC_PASTE:
+            ev.widget = (sgui_widget*)this;
+            ev.window = NULL;
+            ev.type = SGUI_ICON_PASTE;
+            sgui_event_post( &ev );
+            break;
+        case SGUI_KC_CUT:
+            generate_event_for_each_selected( this, SGUI_ICON_CUT );
+            break;
+        case SGUI_KC_DELETE:
+            generate_event_for_each_selected( this, SGUI_ICON_DELETE );
+            break;
         }
     }
     else if( (e->type==SGUI_MOUSE_RELEASE_EVENT &&
@@ -501,7 +539,8 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 }
 
 void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
-                              const char* subtext, unsigned int id )
+                              const char* subtext, unsigned int id,
+                              void* user )
 {
     unsigned int txt_w, txt_h, img_w, img_h;
     icon_view* this = (icon_view*)super;
@@ -567,6 +606,7 @@ void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
     }
 
     i->selected = 0;
+    i->user = user;
     i->id = id;
 
     sgui_internal_lock_mutex( );

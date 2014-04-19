@@ -83,6 +83,22 @@
 /* the parent tab of a widget got selected */
 #define SGUI_TAB_SELECTED               0x0041
 
+/************** icon view events ***************/
+/* an icon got double clicked */
+#define SGUI_ICON_SELECTED              0x0050
+
+/* delete got pressed on an icon */
+#define SGUI_ICON_DELETE                0x0051
+
+/* the copy shortcut got pressed on an icon */
+#define SGUI_ICON_COPY                  0x0052
+
+/* the cut shortcut got pressed on an icon */
+#define SGUI_ICON_CUT                   0x0053
+
+/* the paste shortcut got pressed on an icon */
+#define SGUI_ICON_PASTE                 0x0054
+
 
 
 struct sgui_event

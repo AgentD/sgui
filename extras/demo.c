@@ -277,9 +277,9 @@ int main( int argc, char** argv )
 
     iv = sgui_icon_view_create( 15, 15, 200, 150, ic, 1 );
 
-    sgui_icon_view_add_icon( iv,  10, 10, "icon", 0 );
-    sgui_icon_view_add_icon( iv,  80, 80, "view", 1 );
-    sgui_icon_view_add_icon( iv, 150, 20, "test", 2 );
+    sgui_icon_view_add_icon( iv,  10, 10, "icon", 0, (void*)0x01 );
+    sgui_icon_view_add_icon( iv,  80, 80, "view", 1, (void*)0x02 );
+    sgui_icon_view_add_icon( iv, 150, 20, "test", 2, (void*)0x03 );
 
     sgui_tab_group_add_widget( tab, 3, iv );
 
@@ -312,6 +312,12 @@ int main( int argc, char** argv )
                         print_password, ebp, SGUI_VOID );
     sgui_event_connect( ebp, SGUI_EDIT_BOX_TEXT_ENTERED, 1,
                         print_password, ebp, SGUI_VOID );
+    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED, 1,
+                        puts, "Icon 1 selected", SGUI_VOID );
+    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED, 1,
+                        puts, "Icon 2 selected", SGUI_VOID );
+    sgui_event_connect( (void*)0x03, SGUI_ICON_SELECTED, 1,
+                        puts, "Icon 3 selected", SGUI_VOID );
 
     sgui_main_loop( );
 
