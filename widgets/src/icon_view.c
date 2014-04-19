@@ -33,6 +33,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef MACHINE_OS_WINDOWS
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#else
+    #include <sys/time.h>
+#endif
+
 
 
 #define IV_MULTISELECT 0x01
@@ -63,10 +70,30 @@ typedef struct
     int endx, endy;
     int flags;
     int offset;             /* the offset from the border of the view */
+
+    icon* grabed;           /* the last icon that was clicked */
+    long grabtime;          /* when the last icon was clicked */
 }
 icon_view;
 
 
+
+#define DOUBLE_CLICK_MS 750
+
+
+
+static long get_time_ms( void )
+{
+#ifdef MACHINE_OS_WINDOWS
+    return GetTickCount( );
+#else
+    struct timeval tp;
+
+    gettimeofday( &tp, NULL );
+
+    return tp.tv_sec*1000 + tp.tv_usec/1000;
+#endif
+}
 
 static void get_icon_bounding_box( icon_view* this, icon* i, sgui_rect* r )
 {
@@ -168,6 +195,20 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 
     sgui_internal_lock_mutex( );
 
+    /*
+        stop double click detection if mouse moved, key pressed/released or
+        any mouse button other than the left one did something
+     */
+    if( e->type==SGUI_MOUSE_MOVE_EVENT || e->type==SGUI_KEY_PRESSED_EVENT ||
+        e->type==SGUI_KEY_RELEASED_EVENT ||
+        (e->type==SGUI_MOUSE_PRESS_EVENT &&
+         e->arg.i3.z!=SGUI_MOUSE_BUTTON_LEFT)||
+        (e->type==SGUI_MOUSE_RELEASE_EVENT &&
+         e->arg.i3.z!=SGUI_MOUSE_BUTTON_LEFT) )
+    {
+        this->grabed = NULL;
+    }
+
     if(e->type==SGUI_MOUSE_PRESS_EVENT && e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT)
     {
         this->endx = this->grab_x = e->arg.i3.x;
@@ -194,6 +235,30 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
         {
             deselect_all_icons( this );
             this->flags = IV_SELECTBOX;
+        }
+
+        /* double click detection timeout */
+        if( this->grabed && (get_time_ms( )-this->grabtime)>DOUBLE_CLICK_MS )
+        {
+            this->grabed = NULL;
+        }
+
+        /* double click detection */
+        if( !(this->flags&IV_MULTISELECT) )
+        {
+            if( this->grabed && this->grabed==new )
+            {
+                ev.widget = (sgui_widget*)this->grabed->user;
+                ev.window = NULL;
+                ev.type = SGUI_ICON_SELECTED;
+                this->grabed = NULL;
+                sgui_event_post( &ev );
+            }
+            else
+            {
+                this->grabed = new;
+                this->grabtime = get_time_ms( );
+            }
         }
     }
     else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_SELECTBOX) )
