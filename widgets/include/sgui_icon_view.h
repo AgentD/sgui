@@ -31,6 +31,19 @@
 
 
 
+/**
+ * \brief A function used to compare the user data pointers of two icons
+ *
+ * \param a A pointer to the user data of the first icon
+ * \param b A pointer to the user data of the second icon
+ *
+ * \return A value <0 if the first is smaller than the second, >0 if the
+ *         second is smaller than the first and =0 if they are equal
+ */
+typedef int (* sgui_icon_compare_fun )( void* a, void* b );
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,6 +79,7 @@ SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 /**
  * \brief Add an icon to an icon view widget
  *
+ * \param view    A pointer to an icon view widget
  * \param x       The distance from the left of the view area to the icon
  * \param y       The distance from the top of the view area to the icon
  * \param subtext If not NULL, a text to drawn under the icon
@@ -77,6 +91,25 @@ SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 SGUI_DLL void sgui_icon_view_add_icon( sgui_widget* view, int x, int y,
                                        const char* subtext,
                                        unsigned int id, void* user );
+
+/**
+ * \brief Snap icons in an icon view to a grid
+ *
+ * This function computes the largest common grid cell size of all icons in an
+ * icon view and snaps their positions to the nearest gird coordinate.
+ *
+ * \param view A pointe to an icon view widget
+ */
+SGUI_DLL void sgui_icon_view_snap_to_grid( sgui_widget* view );
+
+/**
+ * \brief Sort the icons of an icon view and arange them in a grid
+ *
+ * \param view A pointer to an icon view widget
+ * \param fun  A pointer to a comparison function
+ */
+SGUI_DLL void sgui_icon_view_sort( sgui_widget* view,
+                                   sgui_icon_compare_fun fun );
 
 #ifdef __cplusplus
 }

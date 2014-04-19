@@ -680,3 +680,163 @@ void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
     sgui_internal_unlock_mutex( );
 }
 
+void sgui_icon_view_snap_to_grid( sgui_widget* super )
+{
+    unsigned int w, h, grid_w = 0, grid_h = 0;
+    icon_view* this = (icon_view*)super;
+    sgui_rect r;
+    int dx, dy;
+    icon* i;
+
+    if( !this )
+        return;
+
+    sgui_internal_lock_mutex( );
+
+    /* determine grid size */
+    for( i=this->icons; i!=NULL; i=i->next )
+    {
+        r.top    = i->icon_area.top;
+        r.left   = MIN(i->icon_area.left,   i->text_area.left);
+        r.right  = MAX(i->icon_area.right,  i->text_area.right);
+        r.bottom = MAX(i->icon_area.bottom, i->text_area.bottom);
+
+        w = SGUI_RECT_WIDTH( r );
+        h = SGUI_RECT_HEIGHT( r );
+        grid_w = MAX(grid_w, w);
+        grid_h = MAX(grid_h, h);
+    }
+
+    /* arange icons */
+    for( i=this->icons; i!=NULL; i=i->next )
+    {
+        r.top    = i->icon_area.top;
+        r.left   = MIN(i->icon_area.left,   i->text_area.left);
+        r.right  = MAX(i->icon_area.right,  i->text_area.right);
+        r.bottom = MAX(i->icon_area.bottom, i->text_area.bottom);
+
+        dx = r.left % grid_w;
+        dy = r.top  % grid_h;
+
+        if( (r.left-dx) <= 2*this->offset ) dx = r.left-2*this->offset;
+        if( (r.top -dy) <= 2*this->offset ) dy = r.top -2*this->offset;
+
+        if( dx > (int)grid_w/2 ) dx = -(grid_w - dx);
+        if( dy > (int)grid_h/2 ) dy = -(grid_h - dy);
+
+        i->icon_area.left   -= dx;
+        i->icon_area.right  -= dx;
+        i->text_area.left   -= dx;
+        i->text_area.right  -= dx;
+
+        i->icon_area.top    -= dy;
+        i->icon_area.bottom -= dy;
+        i->text_area.top    -= dy;
+        i->text_area.bottom -= dy;
+    }
+
+    sgui_internal_unlock_mutex( );
+
+    sgui_widget_get_absolute_rect( super, &r );
+    sgui_canvas_add_dirty_rect( super->canvas, &r );
+}
+
+void sgui_icon_view_sort( sgui_widget* super, sgui_icon_compare_fun fun )
+{
+    unsigned int x, y, w, h, grid_w = 0, grid_h = 0;
+    icon_view* this = (icon_view*)super;
+    icon* new = NULL;
+    sgui_rect r;
+    int da, db;
+    icon* i;
+    icon* j;
+
+    sgui_internal_lock_mutex( );
+
+    /* insertion sort the icon list */
+    while( this->icons )
+    {
+        /* remove the head of the list */
+        i = this->icons;
+        this->icons = this->icons->next;
+
+        /* update grid size */
+        r.top    = i->icon_area.top;
+        r.left   = MIN(i->icon_area.left,   i->text_area.left);
+        r.right  = MAX(i->icon_area.right,  i->text_area.right);
+        r.bottom = MAX(i->icon_area.bottom, i->text_area.bottom);
+
+        w = SGUI_RECT_WIDTH( r );
+        h = SGUI_RECT_HEIGHT( r );
+        grid_w = MAX(grid_w, w);
+        grid_h = MAX(grid_h, h);
+
+        /* insert it into the new list */
+        if( !new || (!fun && strcmp( i->subtext, new->subtext )<0) ||
+            (fun && fun( i->user, new->user )<0) )
+        {
+            SGUI_ADD_TO_LIST( new, i );
+        }
+        else
+        {
+            for( j=new; j!=NULL; j=j->next )
+            {
+                if( !j->next || (fun && fun(i->user,j->next->user)<0) ||
+                    (!fun && strcmp(i->subtext,j->next->subtext)<0) )
+                {
+                    SGUI_ADD_TO_LIST( j->next, i );
+                    break;
+                }
+            }
+        }
+    }
+
+    this->icons = new;
+
+    /* recalculate icon positions */
+    x = 2*this->offset;
+    y = 2*this->offset;
+
+    for( i=this->icons; i!=NULL; i=i->next )
+    {
+        if( (int)(x+grid_w)>=(SGUI_RECT_WIDTH(super->area)-2*this->offset) )
+        {
+            x  = 2*this->offset;
+            y += grid_h;
+        }
+
+        da = i->text_area.top    - i->icon_area.top;
+        db = i->text_area.bottom - i->icon_area.top;
+        i->icon_area.bottom = y + i->icon_area.bottom - i->icon_area.top;
+        i->icon_area.top    = y;
+        i->text_area.top    = i->icon_area.top + da;
+        i->text_area.bottom = i->icon_area.top + db;
+
+        if( i->icon_area.left < i->text_area.left )
+        {
+            da = i->text_area.left  - i->icon_area.left;
+            db = i->text_area.right - i->icon_area.left;
+            i->icon_area.right = x + i->icon_area.right - i->icon_area.left;
+            i->icon_area.left  = x;
+            i->text_area.left  = i->icon_area.left + da;
+            i->text_area.right = i->icon_area.left + db;
+        }
+        else
+        {
+            da = i->icon_area.left  - i->text_area.left;
+            db = i->icon_area.right - i->text_area.left;
+            i->text_area.right = x + i->text_area.right - i->text_area.left;
+            i->text_area.left  = x;
+            i->icon_area.left  = i->text_area.left + da;
+            i->icon_area.right = i->text_area.left + db;
+        }
+
+        x += grid_w;
+    }
+
+    sgui_internal_unlock_mutex( );
+
+    sgui_widget_get_absolute_rect( super, &r );
+    sgui_canvas_add_dirty_rect( super->canvas, &r );
+}
+
