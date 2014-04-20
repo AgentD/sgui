@@ -39,6 +39,7 @@ mkdir include
 mkdir doxydoc
 cp ../core/include/*.h include
 cp ../widgets/include/*.h include
+cp ../dialogs/include/*.h include
 
 cd ..
 doxygen Doxyfile
