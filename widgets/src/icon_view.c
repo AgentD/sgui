@@ -250,7 +250,7 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             {
                 ev.widget = (sgui_widget*)this->grabed->user;
                 ev.window = NULL;
-                ev.type = SGUI_ICON_SELECTED;
+                ev.type = SGUI_ICON_SELECTED_EVENT;
                 this->grabed = NULL;
                 sgui_event_post( &ev );
             }
@@ -441,22 +441,22 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             break;
         case SGUI_KC_RETURN:
         case SGUI_KC_SPACE:
-            generate_event_for_each_selected( this, SGUI_ICON_SELECTED );
+            generate_event_for_each_selected( this, SGUI_ICON_SELECTED_EVENT );
             break;
         case SGUI_KC_COPY:
-            generate_event_for_each_selected( this, SGUI_ICON_COPY );
+            generate_event_for_each_selected( this, SGUI_ICON_COPY_EVENT );
             break;
         case SGUI_KC_PASTE:
             ev.widget = (sgui_widget*)this;
             ev.window = NULL;
-            ev.type = SGUI_ICON_PASTE;
+            ev.type = SGUI_ICON_PASTE_EVENT;
             sgui_event_post( &ev );
             break;
         case SGUI_KC_CUT:
-            generate_event_for_each_selected( this, SGUI_ICON_CUT );
+            generate_event_for_each_selected( this, SGUI_ICON_CUT_EVENT );
             break;
         case SGUI_KC_DELETE:
-            generate_event_for_each_selected( this, SGUI_ICON_DELETE );
+            generate_event_for_each_selected( this, SGUI_ICON_DELETE_EVENT );
             break;
         }
     }

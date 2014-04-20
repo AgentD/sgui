@@ -85,19 +85,19 @@
 
 /************** icon view events ***************/
 /* an icon got double clicked */
-#define SGUI_ICON_SELECTED              0x0050
+#define SGUI_ICON_SELECTED_EVENT        0x0050
 
 /* delete got pressed on an icon */
-#define SGUI_ICON_DELETE                0x0051
+#define SGUI_ICON_DELETE_EVENT          0x0051
 
 /* the copy shortcut got pressed on an icon */
-#define SGUI_ICON_COPY                  0x0052
+#define SGUI_ICON_COPY_EVENT            0x0052
 
 /* the cut shortcut got pressed on an icon */
-#define SGUI_ICON_CUT                   0x0053
+#define SGUI_ICON_CUT_EVENT             0x0053
 
 /* the paste shortcut got pressed on an icon */
-#define SGUI_ICON_PASTE                 0x0054
+#define SGUI_ICON_PASTE_EVENT           0x0054
 
 
 
