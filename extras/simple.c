@@ -41,7 +41,7 @@ int main( )
     sgui_window_add_widget( wnd, button );
 
     /* hook event callbacks */
-    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_set_visible, wnd,
                         SGUI_INT, SGUI_INVISIBLE );
 

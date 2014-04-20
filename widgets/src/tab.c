@@ -82,7 +82,7 @@ static void tab_group_on_event( sgui_widget* super, const sgui_event* e )
     sgui_event ev;
     int x;
 
-    ev.widget = super;
+    ev.src.widget = super;
 
     if( e->type == SGUI_MOUSE_PRESS_EVENT )
     {
@@ -311,7 +311,7 @@ void sgui_tab_group_add_widget( sgui_widget* this, int idx, sgui_widget* w )
         sgui_widget_add_child( &i->dummy, w );
 
         /* send a tab select/deselect event */
-        ev.widget = this;
+        ev.src.widget = this;
         ev.type = i->dummy.visible ? SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
 
         sgui_widget_send_event( w, &ev, 1 );

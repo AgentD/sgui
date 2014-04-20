@@ -258,7 +258,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
     WCHAR c[2];
     UINT key;
 
-    e.window = super;
+    e.src.window = super;
 
     switch( msg )
     {

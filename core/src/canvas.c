@@ -186,7 +186,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     }
 
     /* send events */
-    ev.widget = widget;
+    ev.src.widget = widget;
     ev.type = SGUI_FOCUS_LOSE_EVENT;
     sgui_widget_send_event( this->focus, &ev, 0 );
 
@@ -357,7 +357,7 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         /* generate mouse enter/leave events */
         if( this->mouse_over != i )
         {
-            ev.window = e->window;
+            ev.src.window = e->src.window;
             ev.type = SGUI_MOUSE_ENTER_EVENT;
             sgui_widget_send_event( i, &ev, 0 );
 

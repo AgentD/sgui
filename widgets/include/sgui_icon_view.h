@@ -52,14 +52,14 @@ extern "C" {
  * \brief Create an icon view widget
  *
  * An icon view is an area that can display icons. Icons can be draged around,
- * selected, etc... Icons have an asociated user data pointer that gets casted
- * into a widget pointer and passed as event source when an icon gets double
- * clicked or enter is pressed on a selected icon. The event type used is
- * SGUI_ICON_SELECTED. Similarly, an SGUI_ICON_DELETE event is generated when
- * delete gets pressed on an icon, SGUI_ICON_COPY and SGUI_ICON_CUT for copy
- * an paste shortcuts. The only event that actually has the icon view widget
- * as source is SGUI_ICON_PASTE, generated when the icon view receives a
- * keyboard paste shortcut.
+ * selected, etc... Icons have an asociated user data pointer that gets passed
+ * as event source pointer when an icon gets double clicked or enter is
+ * pressed on a selected icon. The event type used is SGUI_ICON_SELECTED.
+ * Similarly, an SGUI_ICON_DELETE event is generated when delete gets pressed
+ * on an icon, SGUI_ICON_COPY and SGUI_ICON_CUT for copy an paste shortcuts.
+ * The only event that actually has the icon view widget as source is
+ * SGUI_ICON_PASTE, generated when the icon view receives a keyboard paste
+ * shortcut.
  *
  * \param x          The distance of the view area from the left of the canvas
  * \param y          The distance of the view area from the top of the canvas
@@ -85,8 +85,8 @@ SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
  * \param subtext If not NULL, a text to drawn under the icon
  * \param id      The id of icon used by the icon cache object
  * \param user    A user data pointer to asociated with the icon. When an icon
- *                gets clicked, this pointer is cast to a widget pointer and
- *                given as event source. (SGUI_ICON_SELECTED event)
+ *                gets clicked, this pointer is given as event source.
+ *                (SGUI_ICON_SELECTED event)
  */
 SGUI_DLL void sgui_icon_view_add_icon( sgui_widget* view, int x, int y,
                                        const char* subtext,

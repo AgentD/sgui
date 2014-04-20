@@ -44,16 +44,16 @@ int main( void )
     sgui_window_add_widget( wnd, img );
 
     /* make some connections */
-    sgui_event_connect( b1, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( b1, SGUI_BUTTON_OUT_EVENT,
                         sgui_widget_set_visible, img, SGUI_INT, 1 );
 
-    sgui_event_connect( b2, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( b2, SGUI_BUTTON_OUT_EVENT,
                         sgui_widget_set_visible, img, SGUI_INT, 0 );
 
-    sgui_event_connect( b3, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( b3, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_move, wnd, SGUI_INT2, 50, 100 );
 
-    sgui_event_connect( b4, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( b4, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_set_visible, wnd, SGUI_INT, 0 );
 
     /* enter main loop */

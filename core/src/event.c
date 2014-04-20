@@ -41,7 +41,6 @@ typedef struct listener
 {
     int event;                  /* event to listen for */
     void* sender;               /* sender to listen for */
-    int sender_is_widget;
 
     void* receiver;             /* receiver */
     sgui_function callback;
@@ -82,7 +81,7 @@ static listener* listeners = NULL;
 
 
 
-void sgui_event_connect( void* sender, int eventtype, int iswidget, ... )
+void sgui_event_connect( void* sender, int eventtype, ... )
 {
     listener* l;
     va_list va;
@@ -93,11 +92,10 @@ void sgui_event_connect( void* sender, int eventtype, int iswidget, ... )
     if( !l )
         return;
 
-    l->event            = eventtype;
-    l->sender           = sender;
-    l->sender_is_widget = iswidget;
+    l->event  = eventtype;
+    l->sender = sender;
 
-    va_start( va, iswidget );
+    va_start( va, eventtype );
     l->callback = va_arg( va, sgui_function );
     l->receiver = va_arg( va, void* );
     token = va_arg( va, int );
@@ -220,19 +218,13 @@ void sgui_internal_process_events( void )
             if( !l->callback )
                 continue;
 
-            /* skip if wron event type */
+            /* skip if wrong event type */
             if( l->event != e->type )
                 continue;
 
             /* skip if wrong sender */
-            if( l->sender )
-            {
-                if( l->sender_is_widget && l->sender!=e->widget )
-                    continue;
-
-                if( !l->sender_is_widget && l->sender!=e->window )
-                    continue;
-            }
+            if( l->sender && l->sender!=e->src.other )
+                continue;
 
             /* call callback with configured arguments */
             if( l->fromevent )
@@ -241,8 +233,8 @@ void sgui_internal_process_events( void )
                 switch( l->value.what )
                 {
                 case SGUI_EVENT: l->callback(l->receiver,e            );break;
-                case SGUI_WIDGET:l->callback(l->receiver,e->widget    );break;
-                case SGUI_WINDOW:l->callback(l->receiver,e->window    );break;
+                case SGUI_WIDGET:l->callback(l->receiver,e->src.widget);break;
+                case SGUI_WINDOW:l->callback(l->receiver,e->src.window);break;
                 case SGUI_TYPE:  l->callback(l->receiver,e->type      );break;
                 case SGUI_I:     l->callback(l->receiver,e->arg.i     );break;
                 case SGUI_I2_X:  l->callback(l->receiver,e->arg.i2.x  );break;

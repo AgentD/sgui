@@ -1,6 +1,7 @@
 #include "sgui.h"
 
 #include <stdio.h>
+#include <string.h>
 
 
 
@@ -14,7 +15,8 @@ void read_clipboard( sgui_window* wnd )
 
 void write_clipboard( sgui_window* wnd, sgui_widget* editbox )
 {
-    sgui_window_write_clipboard( wnd, sgui_edit_box_get_text( editbox ), -1 );
+    const char* text = sgui_edit_box_get_text( editbox );
+    sgui_window_write_clipboard( wnd, text, strlen(text) );
 }
 
 int main( void )
@@ -44,10 +46,10 @@ int main( void )
     sgui_window_add_widget( wnd, eb );
 
     /* hook event callbacks */
-    sgui_event_connect( rb, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( rb, SGUI_BUTTON_OUT_EVENT,
                         read_clipboard, wnd, SGUI_VOID );
 
-    sgui_event_connect( wb, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( wb, SGUI_BUTTON_OUT_EVENT,
                         write_clipboard, wnd, SGUI_POINTER, eb );
 
     /* main loop */

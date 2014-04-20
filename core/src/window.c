@@ -118,7 +118,7 @@ void sgui_internal_window_fire_event( sgui_window* this, const sgui_event* e )
              e->type==SGUI_KEY_RELEASED_EVENT) )
         {
             ev.type = e->type;
-            ev.window = e->window;
+            ev.src.window = e->src.window;
 
             switch( e->arg.i )
             {
@@ -195,7 +195,7 @@ void sgui_window_set_mouse_position( sgui_window* this, int x, int y,
         {
             e.arg.i2.x = x;
             e.arg.i2.y = y;
-            e.window = this;
+            e.src.window = this;
             e.type = SGUI_MOUSE_MOVE_EVENT;
             sgui_internal_window_fire_event( this, &e );
         }
@@ -216,7 +216,7 @@ void sgui_window_set_visible( sgui_window* this, int visible )
 
     if( !visible )
     {
-        ev.window = this;
+        ev.src.window = this;
         ev.type = SGUI_API_INVISIBLE_EVENT;
         sgui_internal_window_fire_event( this, &ev );
     }
@@ -295,7 +295,7 @@ void sgui_window_destroy( sgui_window* this )
 
     if( this )
     {
-        ev.window = this;
+        ev.src.window = this;
         ev.type = SGUI_API_DESTROY_EVENT;
         sgui_internal_window_fire_event( this, &ev );
 

@@ -319,7 +319,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
     sgui_event se;
     sgui_rect r;
 
-    se.widget = super;
+    se.src.widget = super;
 
     sgui_internal_lock_mutex( );
 
@@ -379,12 +379,12 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             {
                 int start = MIN(this->selection,this->cursor);
                 int end = MAX(this->selection,this->cursor);
-                sgui_window_write_clipboard( e->window, this->buffer+start,
+                sgui_window_write_clipboard( e->src.window, this->buffer+start,
                                              end-start );
             }
             break;
         case SGUI_KC_PASTE:
-            ptr = sgui_window_read_clipboard( e->window );
+            ptr = sgui_window_read_clipboard( e->src.window );
 
             if( insert( this, strlen( ptr ), ptr ) )
             {
@@ -399,7 +399,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             {
                 int start = MIN(this->selection,this->cursor);
                 int end = MAX(this->selection,this->cursor);
-                sgui_window_write_clipboard( e->window, this->buffer+start,
+                sgui_window_write_clipboard( e->src.window,this->buffer+start,
                                              end-start );
                 remove_selection( this );
                 determine_offset( this );

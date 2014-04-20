@@ -94,7 +94,7 @@ static void button_select( sgui_button* this, int select, int postevent )
 
     if( postevent )
     {
-        ev.widget = (sgui_widget*)this;
+        ev.src.widget = (sgui_widget*)this;
         ev.type = select ? SGUI_BUTTON_IN_EVENT : SGUI_BUTTON_OUT_EVENT;
         sgui_event_post( &ev );
     }

@@ -16,10 +16,10 @@ int main( void )
     mb = sgui_message_box_create( SGUI_MB_WARNING, "Test", text,
                                   "Ok", "Foobar", 0 );
 
-    sgui_event_connect( mb, SGUI_MESSAGE_BOX_BUTTON1_EVENT, 0,
+    sgui_event_connect( mb, SGUI_MESSAGE_BOX_BUTTON1_EVENT,
                         puts, "Okay", SGUI_VOID );
 
-    sgui_event_connect( mb, SGUI_MESSAGE_BOX_BUTTON2_EVENT, 0,
+    sgui_event_connect( mb, SGUI_MESSAGE_BOX_BUTTON2_EVENT,
                         puts, "Foobar", SGUI_VOID );
 
     sgui_message_box_display( mb );

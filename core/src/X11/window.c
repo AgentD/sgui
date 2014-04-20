@@ -235,7 +235,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     Status stat;
     KeySym sym;
 
-    se.window = super;
+    se.src.window = super;
 
     switch( e->type )
     {

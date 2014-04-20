@@ -1,3 +1,4 @@
+
 /*
  * sgui_messagebox.h
  * This file is part of sgui
@@ -79,7 +80,7 @@ SGUI_DLL void sgui_message_box_destroy( sgui_message_box* mb );
  * When the user presses one of the buttons, the message box window is closed
  * an event is generated (SGUI_MESSAGE_BOX_BUTTON1_EVENT,
  * SGUI_MESSAGE_BOX_BUTTON2_EVENT or SGUI_MESSAGE_BOX_BUTTON3_EVENT) with the
- * pointer to the message box set source window pointer.
+ * pointer to the message box set source pointer.
  *
  * If the user closes the window without pressing a button,
  * SGUI_MESSAGE_BOX_CLOSED_EVENT is generated.

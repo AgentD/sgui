@@ -308,20 +308,20 @@ int main( int argc, char** argv )
     sgui_window_add_widget( a, tab );
 
     /* hook callbacks */
-    sgui_event_connect( butt, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( butt, SGUI_BUTTON_OUT_EVENT,
                         print_password, ebp, SGUI_VOID );
-    sgui_event_connect( ebp, SGUI_EDIT_BOX_TEXT_ENTERED, 1,
+    sgui_event_connect( ebp, SGUI_EDIT_BOX_TEXT_ENTERED,
                         print_password, ebp, SGUI_VOID );
-    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED_EVENT, 1,
+    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 1 selected -> snap to grid", SGUI_VOID );
-    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT, 1,
+    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 2 selected -> sort icons", SGUI_VOID );
-    sgui_event_connect( (void*)0x03, SGUI_ICON_SELECTED_EVENT, 1,
+    sgui_event_connect( (void*)0x03, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 3 selected", SGUI_VOID );
 
-    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED_EVENT, 1,
+    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED_EVENT,
                         sgui_icon_view_snap_to_grid, iv, SGUI_VOID );
-    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT, 1,
+    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT,
                         sgui_icon_view_sort, iv, SGUI_POINTER, NULL );
 
     sgui_main_loop( );

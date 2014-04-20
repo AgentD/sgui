@@ -216,8 +216,7 @@ static void message_box_button_pressed( sgui_message_box* this, int button )
 {
     struct sgui_event ev;
 
-    ev.widget = NULL;
-    ev.window = (sgui_window*)this;
+    ev.src.other = this;
 
     switch( button )
     {
@@ -367,25 +366,25 @@ sgui_message_box* sgui_message_box_create( int icon, const char* caption,
     /* connect widgets */
     if( this->button1 )
     {
-        sgui_event_connect( this->button1, SGUI_BUTTON_OUT_EVENT, 1,
+        sgui_event_connect( this->button1, SGUI_BUTTON_OUT_EVENT,
                             message_box_button_pressed, this,
                             SGUI_INT, 0 );
     }
     if( this->button2 )
     {
-        sgui_event_connect( this->button2, SGUI_BUTTON_OUT_EVENT, 1,
+        sgui_event_connect( this->button2, SGUI_BUTTON_OUT_EVENT,
                             message_box_button_pressed, this,
                             SGUI_INT, 1 );
     }
 
     if( this->button3 )
     {
-        sgui_event_connect( this->button3, SGUI_BUTTON_OUT_EVENT, 1,
+        sgui_event_connect( this->button3, SGUI_BUTTON_OUT_EVENT,
                             message_box_button_pressed, this,
                             SGUI_INT, 2 );
     }
 
-    sgui_event_connect( this->window, SGUI_USER_CLOSED_EVENT, 0,
+    sgui_event_connect( this->window, SGUI_USER_CLOSED_EVENT,
                         message_box_button_pressed, this, SGUI_INT, -1 );
 
     return this;

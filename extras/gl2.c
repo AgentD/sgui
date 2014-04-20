@@ -51,7 +51,7 @@ int main( void )
 
     /* hook callbacks */
     sgui_subview_set_draw_callback( gl_view, glview_on_draw );
-    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, 1,
+    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
                         sgui_subview_refresh, gl_view, SGUI_VOID );
 
     /* add widgets to the window */

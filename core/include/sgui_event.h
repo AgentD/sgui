@@ -152,11 +152,18 @@ struct sgui_event
     }
     arg;
 
-    /** \brief A pointer to the widget that caused the event */
-    sgui_widget* widget;
+    union
+    {
+        /** \brief A pointer to the widget that caused the event */
+        sgui_widget* widget;
 
-    /** \brief A pointer to the window that caused the event */
-    sgui_window* window;
+        /** \brief A pointer to the window that caused the event */
+        sgui_window* window;
+
+        /** \brief A source other than a widget or a window */
+        void* other;
+    }
+    src;
 
     /** \brief Event type identifyer */
     int type;
@@ -243,12 +250,10 @@ extern "C" {
  *
  * \param sender    A pointer to the sender object, or NULL for any
  * \param eventtype The event identifyer to listen to
- * \param iswidget  Non-zero if the sender is a widget, zero if it is a window
  * \param ...       A pointer to a callback function, followed by a pointer to
  *                  the receiver object and an optional argument
  */
-SGUI_DLL void sgui_event_connect( void* sender, int eventtype, int iswidget,
-                                  ... );
+SGUI_DLL void sgui_event_connect( void* sender, int eventtype, ... );
 
 /**
  * \brief Disconnect an event from a callback

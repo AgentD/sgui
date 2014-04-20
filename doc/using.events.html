@@ -30,14 +30,12 @@ response. We simply add this before calling sgui_init:
 
 <p class="code">
 ...<br>
-sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, <font class="number">1</font>, sgui_window_set_visible, wnd, SGUI_INT, SGUI_INVISIBLE );<br>
+sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, sgui_window_set_visible, wnd, SGUI_INT, SGUI_INVISIBLE );<br>
 ...<br>
 </p>
 The first argument is the source of the event. In this case the button widget.
 The second argument is the specific event to react to, when triggered by the
-given souce. The third argument tells the function that the source object is
-a widget (nonzero or <b>TRUE</b> means widget, zero or <b>FALSE</b> means it
-is a window).<br>
+given souce.<br>
 <br>
 What follows is the function to call when reacting to the event, in our case
 we want to turn the window invisible, hence sgui_window_set_visible. The
@@ -78,7 +76,7 @@ Alternatively, the same thing could also be done this way:
 
 <p class="code">
 ...<br>
-sgui_event_connect( wnd, SGUI_CHAR_EVENT, <font class="number">0</font>, printf, <font class="string">"%s\n"</font>, SGUI_FROM_EVENT, SGUI_UTF8 );<br>
+sgui_event_connect( wnd, SGUI_CHAR_EVENT, printf, <font class="string">"%s\n"</font>, SGUI_FROM_EVENT, SGUI_UTF8 );<br>
 ...<br>
 </p>
 

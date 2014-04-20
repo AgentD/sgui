@@ -60,10 +60,10 @@ int main( void )
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
     /* hook event callbacks */
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT, 0,
+    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
                         draw_callback, wnd, SGUI_VOID );
 
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT, 0,
+    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
                         puts, "Readraw!", SGUI_VOID );
 
     /* main loop */
