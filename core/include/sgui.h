@@ -54,6 +54,7 @@
 #include "sgui_subview.h"
 #include "sgui_tab.h"
 
+#include "sgui_messagebox.h"
 
 
 #ifdef __cplusplus

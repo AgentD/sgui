@@ -63,6 +63,8 @@ typedef struct sgui_gl_context sgui_gl_context;
 
 typedef struct sgui_event sgui_event;
 
+typedef struct sgui_message_box sgui_message_box;
+
 typedef void(* sgui_funptr )( );
 
 

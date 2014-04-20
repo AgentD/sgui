@@ -99,6 +99,12 @@
 /* the paste shortcut got pressed on an icon */
 #define SGUI_ICON_PASTE_EVENT           0x0054
 
+/************ dialog window events *************/
+#define SGUI_MESSAGE_BOX_BUTTON1_EVENT  0x0100
+#define SGUI_MESSAGE_BOX_BUTTON2_EVENT  0x0101
+#define SGUI_MESSAGE_BOX_BUTTON3_EVENT  0x0102
+#define SGUI_MESSAGE_BOX_CLOSED_EVENT   0x0103
+
 
 
 struct sgui_event

@@ -94,6 +94,7 @@ endif( )
 #----------------------------------------------------------------------
 include_directories( ${CMAKE_SOURCE_DIR}/core/include/
                      ${CMAKE_SOURCE_DIR}/widgets/include/
+                     ${CMAKE_SOURCE_DIR}/dialogs/include/
                    )
 
 if( WIN32 )
@@ -136,9 +137,10 @@ endif( )
 #----------------------------------------------------------------------
 add_subdirectory( core )
 add_subdirectory( widgets )
+add_subdirectory( dialogs )
 
-add_library( sgui SHARED ${CORE_SRC} ${WIDGETS_SRC} )
-add_library( sgui_static STATIC ${CORE_SRC} ${WIDGETS_SRC} )
+add_library( sgui SHARED ${CORE_SRC} ${WIDGETS_SRC} ${DIALOGS_SRC} )
+add_library( sgui_static STATIC ${CORE_SRC} ${WIDGETS_SRC} ${DIALOGS_SRC} )
 
 target_link_libraries( sgui ${SGUI_DEP} )
 target_link_libraries( sgui_static ${SGUI_DEP} )
