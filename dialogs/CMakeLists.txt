@@ -5,6 +5,7 @@
 #--------------------------------------------------------------------
 
 set( DIALOGS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/messagebox.c
-
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/messagebox_w32.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/messagebox_x11.c
      PARENT_SCOPE )
 

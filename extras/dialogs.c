@@ -27,6 +27,9 @@ int main( void )
 
     sgui_message_box_destroy( mb );
     sgui_deinit( );
+
+
+    sgui_message_box_emergency( "Emergency Messagebox", text );
     return 0;
 }
 

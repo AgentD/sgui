@@ -88,6 +88,25 @@ SGUI_DLL void sgui_message_box_destroy( sgui_message_box* mb );
  */
 SGUI_DLL void sgui_message_box_display( sgui_message_box* mb );
 
+/**
+ * \brief Display a message box by directly using the platform functions
+ *
+ * Some platforms have a native window systems and offer a message box
+ * function, others don't. This function directly uses the platform dependend
+ * functionallity to display an error message box with a single "OK" button.
+ * It is intended for situations where sgui_init( ) fails and other sgui
+ * functions cannot be used.
+ *
+ * Since it has its on main loop and everything, the function blocks until the
+ * user responds to the message box.
+ *
+ * \param caption A caption to display on the message box window title bar
+ * \param text    A (possibly multi line) text to display inside the
+ *                message box window
+ */
+SGUI_DLL void sgui_message_box_emergency( const char* caption,
+                                          const char* text );
+
 
 
 #ifdef __cplusplus
