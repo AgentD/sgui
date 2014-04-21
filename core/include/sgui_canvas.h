@@ -181,6 +181,42 @@ SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
                                                  unsigned int height,
                                                  int format );
 
+/**
+ * \brief Get a pointer to the currently used drawing scissor rectangle
+ *
+ * \param canvas The canvas to get the scissor rectangle from
+ * \param r      Returns the scissor rectangle
+ */
+SGUI_DLL void sgui_canvas_get_scissor_rect( const sgui_canvas* canvas,
+                                            sgui_rect* r );
+
+/**
+ * \brief Set the currently used drawing scissor rectangle of a canvas
+ *
+ * \param canvas The canvas of which to set the scissor rectangle
+ * \param r      A pointer to the new scissor rectangle
+ */
+SGUI_DLL void sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
+                                            const sgui_rect* r );
+
+/**
+ * \brief Get the currently used drawing offset from a canvas
+ *
+ * \param canvas The canvas of which to get the drawing offset
+ * \param x      Returns the horizontal offset
+ * \param y      Returns the vertical offset
+ */
+SGUI_DLL void sgui_canvas_get_offset( const sgui_canvas* canvas,
+                                      int* x, int* y );
+
+/**
+ * \brief Set an offset added to all positions of canvas drawing functions
+ *
+ * \param canvas The canvas of which to set the drawing offset
+ * \param x      The horizontal offset
+ * \param y      The vertical offset
+ */
+SGUI_DLL void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
 
 /**
  * \brief Call to start drawing to an area on the canvas
@@ -245,28 +281,18 @@ SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                                      unsigned char* color, int format );
 
 /**
- * \brief Blit an image onto a canvas
+ * \brief Draw an image onto a canvas
  *
  * \param x      Distance from the left of the canvas to the left of the image
  * \param y      Distance from the top of the canvas to the top of the image
- * \param pixmap The pixmap to blit onto the canvas
+ * \param pixmap The pixmap to draw onto the canvas
  * \param srcrect A sub rect within the source image, or NULL to use the
  *                uncropped source image.
+ * \param blend  Non-zero to blend the image, zero for simple blitting
  */
-SGUI_DLL void sgui_canvas_blit( sgui_canvas* canvas, int x, int y,
-                                sgui_pixmap* pixmap, sgui_rect* srcrect );
-
-/**
- * \brief Blend an image onto a canvas
- *
- * \param x      Distance from the left of the canvas to the left of the image
- * \param y      Distance from the top of the canvas to the top of the image
- * \param pixmap The pixmap to blend onto the canvas
- * \param srcrect A sub rect within the source image, or NULL to use the
- *                uncropped source image.
- */
-SGUI_DLL void sgui_canvas_blend( sgui_canvas* canvas, int x, int y,
-                                 sgui_pixmap* pixmap, sgui_rect* srcrect );
+SGUI_DLL void sgui_canvas_draw_pixmap( sgui_canvas* canvas, int x, int y,
+                                       sgui_pixmap* pixmap,
+                                       sgui_rect* srcrect, int blend );
 
 /**
  * \brief Render one line of text in a single font face

@@ -62,6 +62,28 @@ void sgui_rect_set_position( sgui_rect* r, int left, int top )
     }
 }
 
+void sgui_rect_add_offset( sgui_rect* r, int h, int v )
+{
+    if( r )
+    {
+        r->left   += h;
+        r->right  += h;
+        r->top    += v;
+        r->bottom += v;
+    }
+}
+
+void sgui_rect_extend( sgui_rect* r, int h, int v )
+{
+    if( r )
+    {
+        r->left   -= h;
+        r->right  += h;
+        r->top    -= v;
+        r->bottom += v;
+    }
+}
+
 void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src )
 {
     if( dst && src )

@@ -96,6 +96,22 @@ SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
 SGUI_DLL void sgui_rect_set_position( sgui_rect* r, int left, int top );
 
 /**
+ * \brief Add an offset to a rect
+ *
+ * \param h A horizontal offset, added to left and right
+ * \param v A vertical offset, added to top and bottom
+ */
+SGUI_DLL void sgui_rect_add_offset( sgui_rect* r, int h, int v );
+
+/**
+ * \brief Extend a rect
+ *
+ * \param h A horizontal extension, added to right and subtracted from left
+ * \param v A vertical extension, added to bottom and subtracted from top
+ */
+SGUI_DLL void sgui_rect_extend( sgui_rect* r, int h, int v );
+
+/**
  * \brief Copy the data of one rectangle into another
  *
  * \param dst The rectangle to copy to

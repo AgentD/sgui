@@ -276,14 +276,8 @@ void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
 
     if( i )
     {
-        if( this->format==SGUI_RGBA8 )
-        {
-            sgui_canvas_blend( this->owner, x, y, this->pixmap, &(i->area) );
-        }
-        else
-        {
-            sgui_canvas_blit( this->owner, x, y, this->pixmap, &(i->area) );
-        }
+        sgui_canvas_draw_pixmap( this->owner, x, y, this->pixmap,
+                                 &(i->area), this->format==SGUI_RGBA8 );
     }
 
     sgui_internal_unlock_mutex( );

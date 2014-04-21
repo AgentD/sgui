@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
+#include "sgui_event.h"
 #include "sgui_widget.h"
 #include "sgui_internal.h"
 
@@ -265,6 +266,40 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
 
     if( this )
     {
+        /*
+           Don't worry! Keyboard events are only sent to widget that has focus
+         */
+        if( event->type==SGUI_KEY_PRESSED_EVENT ||
+            event->type==SGUI_KEY_RELEASED_EVENT )
+        {
+            /* escape key pressed -> lose focus if policy says so. */
+            if( event->arg.i==SGUI_KC_ESCAPE && 
+                (this->focus_policy & SGUI_FOCUS_DROP_ESC) )
+            {
+                sgui_canvas_set_focus( this->canvas, NULL );
+                return;
+            }
+
+            /* tab key pressed -> advance focus if policy says so. */
+            if( event->type==SGUI_KEY_RELEASED_EVENT &&
+                event->arg.i==SGUI_KC_TAB &&
+                (this->focus_policy & SGUI_FOCUS_DROP_TAB) )
+            {
+                i = sgui_widget_find_next_focus( this );
+
+                /* no successor? try to restart at root widget */
+                if( !i )
+                {
+                    for( i=this; i->parent!=NULL; i=i->parent ) { }
+                    i = sgui_widget_find_next_focus( i );
+                }
+
+                if( i )
+                    sgui_canvas_set_focus( this->canvas, i );
+                return;
+            }
+        }
+
         if( this->window_event_callback )
             this->window_event_callback( this, event );
 

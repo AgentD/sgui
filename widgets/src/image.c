@@ -51,16 +51,8 @@ static void image_draw( sgui_widget* super )
 {
     sgui_image* this = (sgui_image*)super;
 
-    if( this->blend )
-    {
-        sgui_canvas_blend( super->canvas, super->area.left, super->area.top,
-                           this->pixmap, NULL );
-    }
-    else
-    {
-        sgui_canvas_blit( super->canvas, super->area.left, super->area.top,
-                          this->pixmap, NULL );
-    }
+    sgui_canvas_draw_pixmap( super->canvas, super->area.left, super->area.top,
+                             this->pixmap, NULL, this->blend );
 }
 
 static void image_destroy( sgui_widget* super )
