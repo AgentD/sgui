@@ -28,6 +28,28 @@
 
 
 
+void sgui_rect_repair( sgui_rect* r )
+{
+    int temp;
+
+    if( r )
+    {
+        if( r->left > r->right )
+        {
+            temp = r->left;
+            r->left = r->right;
+            r->right = temp;
+        }
+
+        if( r->top > r->bottom )
+        {
+            temp = r->top;
+            r->top = r->bottom;
+            r->bottom = temp;
+        }
+    }
+}
+
 void sgui_rect_set_size( sgui_rect* r, int left, int top,
                          unsigned int width, unsigned int height )
 {

@@ -47,11 +47,21 @@ struct sgui_rect
 #define SGUI_RECT_WIDTH_V( r ) ((r)->right - (r)->left + 1)
 #define SGUI_RECT_HEIGHT_V( r ) ((r)->bottom - (r)->top + 1)
 
+#define SGUI_RECT_SET( R, l, t, r, b )\
+        (R).left=(l); (R).top=(t); (R).right=(r); (R).bottom=(b)
+
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief Make sure left is left of right and top is above bottom
+ *
+ * \param r A pointer to a rect
+ */
+SGUI_DLL void sgui_rect_repair( sgui_rect* r );
 
 /**
  * \brief Set the coordinates of a rect using position and size
