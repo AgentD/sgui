@@ -102,7 +102,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
             if( sgui_rect_get_intersection( &widget->canvas->sc,
                                             &old_sc, &wr ) )
             {
-                sgui_rect_add_offset( &wr, this->ox, this->oy );
+                sgui_rect_add_offset( &wr, -this->ox, -this->oy );
                 sgui_skin_draw_focus_box( this, &wr );
             }
         }
