@@ -303,7 +303,8 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             if( !i->selected )
                 continue;
 
-            get_icon_bounding_box( this, i, &r );
+            r = i->icon_area;
+            sgui_rect_join( &r, &i->text_area, 0 );
 
             if( (r.left   + dx)<this->offset ) dx = this->offset - r.left;
             if( (r.top    + dy)<this->offset ) dy = this->offset - r.top;
@@ -673,8 +674,8 @@ void sgui_icon_view_snap_to_grid( sgui_widget* super )
         if( dx > (int)grid_w/2 ) dx = -(grid_w - dx);
         if( dy > (int)grid_h/2 ) dy = -(grid_h - dy);
 
-        sgui_rect_add_offset( &i->icon_area, dx, dy );
-        sgui_rect_add_offset( &i->text_area, dx, dy );
+        sgui_rect_add_offset( &i->icon_area, -dx, -dy );
+        sgui_rect_add_offset( &i->text_area, -dx, -dy );
     }
 
     sgui_internal_unlock_mutex( );
