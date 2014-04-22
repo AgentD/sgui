@@ -36,6 +36,7 @@
 #include <string.h>
 
 
+#ifndef SGUI_NO_FRAME
 typedef struct
 {
     sgui_widget super;
@@ -356,4 +357,17 @@ void sgui_frame_override_scrollbars( sgui_widget* super, int always_draw )
         sgui_widget_set_visible( this->h_bar, 1 );
     }
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
+                                unsigned int height )
+{
+    (void)x; (void)y; (void)width; (void)height;
+    return NULL;
+}
+void sgui_frame_override_scrollbars( sgui_widget* super, int always_draw )
+{
+    (void)super;
+    (void)always_draw;
+}
+#endif /* !SGUI_NO_FRAME */
 

@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if !defined(SGUI_NO_ICON_CACHE) && !defined(SGUI_NO_ICON_VIEW)
 #ifdef MACHINE_OS_WINDOWS
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
@@ -777,4 +778,32 @@ void sgui_icon_view_sort( sgui_widget* super, sgui_icon_compare_fun fun )
     sgui_widget_get_absolute_rect( super, &r );
     sgui_canvas_add_dirty_rect( super->canvas, &r );
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
+                                    unsigned int height,
+                                    sgui_icon_cache* cache,
+                                    int background )
+{
+    (void)x; (void)y; (void)width; (void)height; (void)cache;
+    (void)background;
+    return NULL;
+}
+
+void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
+                              const char* subtext, unsigned int id,
+                              void* user )
+{
+    (void)super; (void)x; (void)y; (void)subtext; (void)id; (void)user;
+}
+
+void sgui_icon_view_sort( sgui_widget* super, sgui_icon_compare_fun fun )
+{
+    (void)super; (void)fun;
+}
+
+void sgui_icon_view_snap_to_grid( sgui_widget* super )
+{
+    (void)super;
+}
+#endif /* !defined(SGUI_NO_ICON_CACHE) && !defined(SGUI_NO_ICON_VIEW) */
 

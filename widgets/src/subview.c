@@ -32,6 +32,7 @@
 
 
 
+#ifndef SGUI_NO_SUBVIEW
 typedef struct
 {
     sgui_widget super;
@@ -230,4 +231,33 @@ void sgui_subview_refresh( sgui_widget* this )
         sgui_window_force_redraw( ((sgui_subview*)this)->subwnd, &r );
     }
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
+                                  unsigned int width, unsigned int height,
+                                  int backend, sgui_window_description* cfg )
+{
+    (void)parent; (void)x; (void)y; (void)width; (void)height;
+    (void)backend; (void)cfg;
+    return NULL;
+}
+sgui_window* sgui_subview_get_window( sgui_widget* this )
+{
+    (void)this;
+    return NULL;
+}
+void sgui_subview_set_draw_callback( sgui_widget* this,
+                                     sgui_subview_draw_fun drawcb )
+{
+    (void)this; (void)drawcb;
+}
+void sgui_subview_on_window_event( sgui_widget* this,
+                                   sgui_subview_window_fun windowcb )
+{
+    (void)this; (void)windowcb;
+}
+void sgui_subview_refresh( sgui_widget* this )
+{
+    (void)this;
+}
+#endif /* SGUI_NO_SUBVIEW */
 

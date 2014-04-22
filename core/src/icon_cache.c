@@ -34,6 +34,7 @@
 
 
 
+#ifndef SGUI_NO_ICON_CACHE
 struct icon
 {
     sgui_rect area;         /* area on pixmap */
@@ -307,4 +308,48 @@ int sgui_icon_cache_get_icon_area( sgui_icon_cache* this, unsigned int id,
     sgui_internal_unlock_mutex( );
     return 1;
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_icon_cache* sgui_icon_cache_create( sgui_canvas* canvas,
+                                         unsigned int width,
+                                         unsigned int height,
+                                         int alpha )
+{
+    (void)canvas; (void)width; (void)height; (void)alpha;
+    return NULL;
+}
+
+void sgui_icon_cache_destroy( sgui_icon_cache* this )
+{
+    (void)this;
+}
+
+int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
+                              unsigned int width, unsigned int height )
+{
+    (void)this; (void)id; (void)width; (void)height;
+    return 0;
+}
+
+void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
+                                unsigned char* data, unsigned int scan,
+                                int format )
+{
+    (void)this; (void)id; (void)data; (void)scan; (void)format;
+}
+
+void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
+                                int x, int y )
+{
+    (void)this; (void)id; (void)x; (void)y;
+}
+
+int sgui_icon_cache_get_icon_area( sgui_icon_cache* this, unsigned int id,
+                                   sgui_rect* out )
+{
+    (void)this; (void)id;
+    if( out ) { out->left=out->top=out->right=out->bottom; }
+    return 0;
+}
+#endif /* !SGUI_NO_ICON_CACHE */
+
 

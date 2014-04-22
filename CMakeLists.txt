@@ -9,6 +9,7 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
 #----------------------------------------------------------------------
 # Compile configuration
 #----------------------------------------------------------------------
+
 if( NOT WIN32 )
   option( MEMCANVAS "Compile memory canvas implementation" ON )
 
@@ -17,16 +18,60 @@ if( NOT WIN32 )
   endif( )
 endif( )
 
+option( NOFLOAT "Disable all use of floatingpoint data types" OFF )
 option( OPENGL "Compile with OpenGL(R) support" ON )
+option( MESSAGEBOX "Compile with message box dialog" ON )
+option( NATIVE_MB "Compile with native emergency message box function" ON )
+option( ICONCACHE "Compile with icon cache object" ON )
+option( ICONVIEW "Compile with icon view widget" ON )
+option( SUBVIEW "Compile with sub view widget" ON )
+option( TABS "Compile with tab widget" ON )
+option( FRAME "Compile with frame widget" ON )
+option( GROUP "Compile with group box widget" ON )
+option( NOPS "Replace disabled features with API compatible NOP functions" ON)
+
+if( NOFLOAT )
+  add_definitions( -DSGUI_NO_FLOAT )
+endif( )
 
 if( NOT OPENGL )
   add_definitions( -DSGUI_NO_OPENGL )
 endif( )
 
-option( NOFLOAT "Disable all use of floatingpoint data types" OFF )
+if( NOT MESSAGEBOX )
+  add_definitions( -DSGUI_NO_MESSAGEBOX )
+endif( )
 
-if( NOFLOAT )
-  add_definitions( -DSGUI_NO_FLOAT )
+if( NOT NATIVE_MB )
+  add_definitions( -DSGUI_NO_NATIVE_MESSAGEBOX )
+endif( )
+
+if( NOT ICONCACHE )
+  add_definitions( -DSGUI_NO_ICON_CACHE )
+endif( )
+
+if( NOT ICONVIEW )
+  add_definitions( -DSGUI_NO_ICON_VIEW )
+endif( )
+
+if( NOT SUBVIEW )
+  add_definitions( -DSGUI_NO_SUBVIEW )
+endif( )
+
+if( NOT TABS )
+  add_definitions( -DSGUI_NO_TABS )
+endif( )
+
+if( NOT FRAME )
+  add_definitions( -DSGUI_NO_FRAME )
+endif( )
+
+if( NOT GROUP )
+  add_definitions( -DSGUI_NO_GROUP_BOX )
+endif( )
+
+if( NOPS )
+  add_definitions( -DSGUI_NOP_IMPLEMENTATIONS )
 endif( )
 
 #----------------------------------------------------------------------

@@ -527,7 +527,7 @@ void sgui_memory_canvas_set_buffer( sgui_canvas* this,
         ((mem_canvas*)this)->data = buffer;
     }
 }
-#else
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
                                         unsigned int width,
                                         unsigned int height,

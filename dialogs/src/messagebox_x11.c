@@ -27,6 +27,7 @@
 #include "sgui_internal.h"
 
 #ifdef MACHINE_OS_UNIX
+#ifndef SGUI_NO_NATIVE_MESSAGEBOX
 #include <stdio.h>
 
 #include <X11/X.h>
@@ -223,5 +224,12 @@ fail:
     /* last chance: print to error stream */
     fprintf( stderr, "***** %s *****\n%s\n\n", caption, text );
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+void sgui_message_box_emergency( const char* caption, const char* text )
+{
+    (void)caption;
+    (void)text;
+}
+#endif /* !SGUI_NO_NATIVE_MESSAGEBOX */
 #endif /* MACHINE_OS_UNIX */
 

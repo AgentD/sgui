@@ -55,12 +55,14 @@ typedef struct sgui_button
     {
         char* text;
 
+#ifndef SGUI_NO_ICON_CACHE
         struct
         {
             sgui_icon_cache* cache;
             unsigned int id;
         }
         icon;
+#endif
     }
     dpy;
 
@@ -143,10 +145,12 @@ static void button_draw( sgui_widget* super )
 
         if( this->flags & HAVE_ICON )
         {
+#ifndef SGUI_NO_ICON_CACHE
             sgui_icon_cache_draw_icon( this->dpy.icon.cache,
                                        this->dpy.icon.id,
                                        super->area.left+ this->cx - in,
                                        super->area.top + this->cy - in );
+#endif
         }
         else
         {
@@ -171,10 +175,12 @@ static void button_draw( sgui_widget* super )
 
         if( this->flags & HAVE_ICON )
         {
+#ifndef SGUI_NO_ICON_CACHE
             sgui_icon_cache_draw_icon( this->dpy.icon.cache,
                                        this->dpy.icon.id,
                                        super->area.left+this->cx,
                                        super->area.top );
+#endif
         }
         else
         {
@@ -308,8 +314,13 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     /* allocate space for the text */
     if( flags & HAVE_ICON )
     {
+#ifndef SGUI_NO_ICON_CACHE
         this->dpy.icon.cache = cache;
         this->dpy.icon.id = iconid;
+#else
+        this->dpy.text = 0;
+        r.left = r.right = r.top = r.bottom = 0;
+#endif
     }
     else
     {
@@ -468,6 +479,7 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
 void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
                            unsigned int icon )
 {
+#ifndef SGUI_NO_ICON_CACHE
     unsigned int img_width, img_height, width, height;
     sgui_button* this = (sgui_button*)super;
     sgui_rect r;
@@ -520,6 +532,9 @@ void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
     }
 
     sgui_internal_unlock_mutex( );
+#else
+    (void)super; (void)cache; (void)icon;
+#endif
 }
 
 void sgui_button_set_state( sgui_widget* super, int state )

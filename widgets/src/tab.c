@@ -36,6 +36,7 @@
 
 
 
+#ifndef SGUI_NO_TABS
 typedef struct _sgui_tab
 {
     struct _sgui_tab* next; /* linked list */
@@ -319,4 +320,23 @@ void sgui_tab_group_add_widget( sgui_widget* this, int idx, sgui_widget* w )
         sgui_internal_unlock_mutex( );
     }
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_widget* sgui_tab_group_create( int x, int y,
+                                    unsigned int width, unsigned int height )
+{
+    (void)x; (void)y; (void)width; (void)height;
+    return NULL;
+}
+int sgui_tab_group_add_tab( sgui_widget* super, const char* caption )
+{
+    (void)super; (void)caption;
+    return 0;
+}
+void sgui_tab_group_add_widget( sgui_widget* this, int idx, sgui_widget* w )
+{
+    (void)this;
+    (void)idx;
+    (void)w;
+}
+#endif /* !SGUI_NO_TABS */
 

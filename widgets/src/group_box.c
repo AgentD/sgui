@@ -34,6 +34,7 @@
 
 
 
+#ifndef SGUI_NO_GROUP_BOX
 typedef struct
 {
     sgui_widget super;
@@ -90,4 +91,13 @@ sgui_widget* sgui_group_box_create( int x, int y,
 
     return super;
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_widget* sgui_group_box_create( int x, int y,
+                                    unsigned int width, unsigned int height,
+                                    const char* caption )
+{
+    (void)x; (void)y; (void)width; (void)height; (void)caption;
+    return NULL;
+}
+#endif /* !SGUI_NO_GROUP_BOX */
 

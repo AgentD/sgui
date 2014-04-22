@@ -37,6 +37,7 @@
 
 
 
+#ifndef SGUI_NO_MESSAGEBOX
 #define ICON_WIDTH  32
 #define ICON_HEIGHT 32
 
@@ -445,4 +446,28 @@ void sgui_message_box_display( sgui_message_box* this )
         sgui_window_move_center( this->window );
     }
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_message_box* sgui_message_box_create( int icon, const char* caption,
+                                           const char* text,
+                                           const char* button1,
+                                           const char* button2,
+                                           const char* button3 )
+{
+    (void)icon;
+    (void)caption;
+    (void)text;
+    (void)button1;
+    (void)button2;
+    (void)button3;
+    return NULL;
+}
+void sgui_message_box_destroy( sgui_message_box* this )
+{
+    (void)this;
+}
+void sgui_message_box_display( sgui_message_box* this )
+{
+    (void)this;
+}
+#endif /* !SGUI_NO_MESSAGEBOX */
 
