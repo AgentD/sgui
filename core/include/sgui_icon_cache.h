@@ -97,7 +97,7 @@ SGUI_DLL void sgui_icon_cache_load_icon( sgui_icon_cache* cache,
  * \param x     Distance of the left of the icon from the left of the canvas
  * \param y     Distance of the top of the icon from the top of the canvas
  */
-SGUI_DLL void sgui_icon_cache_draw_icon( sgui_icon_cache* cache,
+SGUI_DLL void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
                                          unsigned int id, int x, int y );
 
 /**
@@ -109,7 +109,7 @@ SGUI_DLL void sgui_icon_cache_draw_icon( sgui_icon_cache* cache,
  *
  * \return Non-zero on success, zero on failure (e.g. no icon with that id)
  */
-SGUI_DLL int sgui_icon_cache_get_icon_area( sgui_icon_cache* cache,
+SGUI_DLL int sgui_icon_cache_get_icon_area( const sgui_icon_cache* cache,
                                             unsigned int id,
                                             sgui_rect* out );
 

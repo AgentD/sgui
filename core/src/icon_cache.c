@@ -264,7 +264,7 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
+void sgui_icon_cache_draw_icon( const sgui_icon_cache* this, unsigned int id,
                                 int x, int y )
 {
     struct icon* i;
@@ -284,8 +284,8 @@ void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
     sgui_internal_unlock_mutex( );
 }
 
-int sgui_icon_cache_get_icon_area( sgui_icon_cache* this, unsigned int id,
-                                   sgui_rect* out )
+int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
+                                   unsigned int id, sgui_rect* out )
 {
     struct icon* i;
 
@@ -337,14 +337,14 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
     (void)this; (void)id; (void)data; (void)scan; (void)format;
 }
 
-void sgui_icon_cache_draw_icon( sgui_icon_cache* this, unsigned int id,
+void sgui_icon_cache_draw_icon( const sgui_icon_cache* this, unsigned int id,
                                 int x, int y )
 {
     (void)this; (void)id; (void)x; (void)y;
 }
 
-int sgui_icon_cache_get_icon_area( sgui_icon_cache* this, unsigned int id,
-                                   sgui_rect* out )
+int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
+                                   unsigned int id, sgui_rect* out )
 {
     (void)this; (void)id;
     if( out ) { out->left=out->top=out->right=out->bottom; }
