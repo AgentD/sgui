@@ -149,7 +149,7 @@ static void xlib_window_destroy( sgui_window* this )
     {
 #ifndef SGUI_NO_OPENGL
         if( this->ctx.gl )
-            sgui_gl_context_destroy( this->ctx.gl );
+            sgui_context_destroy( this->ctx.gl );
 #endif
     }
     else if( this->backend==SGUI_NATIVE && this->ctx.canvas )
@@ -500,8 +500,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 #ifndef SGUI_NO_OPENGL
         super->backend = desc->backend;
         super->ctx.gl =
-        sgui_gl_context_create( super, desc->share?desc->share->ctx.gl:NULL,
-                                desc->backend==SGUI_OPENGL_CORE );
+        sgui_context_create( super, desc->share ? desc->share->ctx.gl : NULL,
+                             desc->backend==SGUI_OPENGL_CORE );
 
         if( !super->ctx.gl )
             goto failure;

@@ -418,10 +418,10 @@ SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
                                              void* window );
 
 /**
- * \brief If a window has an OpenGL context, get a pointer to the
+ * \brief If a window has a rendering context, get a pointer to the
  *        context object
  */
-SGUI_DLL sgui_gl_context* sgui_window_get_gl_context(const sgui_window* wnd);
+SGUI_DLL sgui_context* sgui_window_get_context( const sgui_window* wnd );
 
 
 #ifdef __cplusplus

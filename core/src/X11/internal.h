@@ -34,7 +34,7 @@
 #include "sgui_rect.h"
 #include "sgui_internal.h"
 #include "sgui_font.h"
-#include "sgui_opengl.h"
+#include "sgui_context.h"
 #include "sgui_font_cache.h"
 
 #include <stdlib.h>

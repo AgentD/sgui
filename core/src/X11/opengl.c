@@ -150,18 +150,17 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
 
 /****************************************************************************/
 
-struct sgui_gl_context
+struct sgui_context
 {
     GLXContext gl;
 };
 
 
-sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
-                                         sgui_gl_context* share,
-                                         int core )
+sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
+                                   int core )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
-    sgui_gl_context* ctx;
+    sgui_context* ctx;
     GLXContext sctx;
     int attribs[10];
     unsigned int i;
@@ -172,7 +171,7 @@ sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
     if( wnd->backend!=SGUI_OPENGL_CORE && wnd->backend!=SGUI_OPENGL_COMPAT )
         return NULL;
 
-    if( !(ctx = malloc( sizeof(sgui_gl_context) )) )
+    if( !(ctx = malloc( sizeof(sgui_context) )) )
         return NULL;
 
     sgui_internal_lock_mutex( );
@@ -224,7 +223,7 @@ sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
     return ctx;
 }
 
-void sgui_gl_context_destroy( sgui_gl_context* ctx )
+void sgui_context_destroy( sgui_context* ctx )
 {
     if( ctx )
     {
@@ -236,7 +235,7 @@ void sgui_gl_context_destroy( sgui_gl_context* ctx )
     }
 }
 
-void sgui_gl_context_make_current( sgui_gl_context* ctx, sgui_window* wnd )
+void sgui_context_make_current( sgui_context* ctx, sgui_window* wnd )
 {
     sgui_internal_lock_mutex( );
 
@@ -253,7 +252,7 @@ void sgui_gl_context_make_current( sgui_gl_context* ctx, sgui_window* wnd )
     sgui_internal_unlock_mutex( );
 }
 
-sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
+sgui_funptr sgui_context_load( sgui_context* ctx, const char* name )
 {
     (void)ctx;
     return LOAD_GLFUN( name );
@@ -277,8 +276,8 @@ void gl_swap_buffers( sgui_window* this )
     sgui_internal_unlock_mutex( );
 }
 #else
-sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
-                                         sgui_gl_context* share, int core )
+sgui_context* sgui_context_create( sgui_window* wnd,
+                                   sgui_context* share, int core )
 {
     (void)wnd;
     (void)share;
@@ -286,18 +285,18 @@ sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
     return NULL;
 }
 
-void sgui_gl_context_destroy( sgui_gl_context* ctx )
+void sgui_context_destroy( sgui_context* ctx )
 {
     (void)ctx;
 }
 
-void sgui_gl_context_make_current( sgui_gl_context* ctx, sgui_window* wnd )
+void sgui_context_make_current( sgui_context* ctx, sgui_window* wnd )
 {
     (void)ctx;
     (void)wnd;
 }
 
-sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx, const char* name )
+sgui_funptr sgui_context_load( sgui_context* ctx, const char* name )
 {
     (void)ctx;
     (void)name;

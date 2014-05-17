@@ -394,7 +394,7 @@ struct sgui_window
     union
     {
         sgui_canvas* canvas;       /**< \brief pointer to a canvas */
-        sgui_gl_context* gl;       /**< \brief Pointer to OpenGL context */
+        sgui_context* gl;          /**< \brief Pointer to OpenGL context */
     }
     ctx;
 

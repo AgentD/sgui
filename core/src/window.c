@@ -28,7 +28,7 @@
 #include "sgui_event.h"
 #include "sgui_canvas.h"
 #include "sgui_skin.h"
-#include "sgui_opengl.h"
+#include "sgui_context.h"
 #include "sgui_widget.h"
 
 #include <stddef.h>
@@ -269,11 +269,11 @@ void sgui_window_make_current( sgui_window* this )
     if( this && (this->backend==SGUI_OPENGL_CORE ||
                  this->backend==SGUI_OPENGL_COMPAT) )
     {
-        sgui_gl_context_make_current( this->ctx.gl, this );
+        sgui_context_make_current( this->ctx.gl, this );
     }
     else
     {
-        sgui_gl_context_make_current( NULL, NULL );
+        sgui_context_make_current( NULL, NULL );
     }
 }
 
@@ -410,7 +410,7 @@ void* sgui_window_get_userptr( const sgui_window* this )
     return this ? this->userptr : NULL;
 }
 
-sgui_gl_context* sgui_window_get_gl_context( const sgui_window* this )
+sgui_context* sgui_window_get_context( const sgui_window* this )
 {
     if( this && (this->backend==SGUI_OPENGL_CORE ||
                  this->backend==SGUI_OPENGL_COMPAT) )

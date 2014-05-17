@@ -28,6 +28,7 @@
 
 
 #include "sgui_canvas.h"
+#include "sgui_context.h"
 #include "sgui_event.h"
 #include "sgui_filesystem.h"
 #include "sgui_font.h"
@@ -37,7 +38,6 @@
 #include "sgui_predef.h"
 #include "sgui_rect.h"
 #include "sgui_skin.h"
-#include "sgui_opengl.h"
 #include "sgui_utf8.h"
 #include "sgui_window.h"
 

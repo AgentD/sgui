@@ -1,5 +1,5 @@
 /*
- * sgui_opengl.h
+ * sgui_context.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,8 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_OPENGL_H
-#define SGUI_OPENGL_H
+#ifndef SGUI_CONTEXT_H
+#define SGUI_CONTEXT_H
 
 
 
@@ -36,49 +36,50 @@ extern "C" {
 #endif
 
 /**
- * \brief Create an OpenGL context that shares resources with the context
- *        of a given window
+ * \brief Create a rendering context that shares resources with an
+ *        existing context
  *
- * \param wnd   A pointer to a window to get the frame buffer description from
+ * \param wnd   A pointer to a window to get the frame buffer description
+ *              from, as well as the type of context to create
  * \param share If not NULL, a pointer to a context to share resources with
- * \param core  Non-zero for core profile, zero for compatibillity
+ * \param core  For OpenGL contexts: Non-zero for core profile,
+ *              zero for compatibillity
  *
- * \return A pointer to a context object
+ * \return A pointer to a rendering context object
  */
-SGUI_DLL sgui_gl_context* sgui_gl_context_create( sgui_window* wnd,
-                                                  sgui_gl_context* share,
-                                                  int core );
+SGUI_DLL sgui_context* sgui_context_create( sgui_window* wnd,
+                                            sgui_context* share,
+                                            int core );
 
 /**
- * \brief Destroy an OpenGL context
+ * \brief Destroy a rendering context
  *
  * \param ctx A pointer to a context object
  */
-SGUI_DLL void sgui_gl_context_destroy( sgui_gl_context* ctx );
+SGUI_DLL void sgui_context_destroy( sgui_context* ctx );
 
 /**
- * \brief Make an OpenGL context current
+ * \brief Make a rendering context current
  *
  * \param ctx A pointer to a context object or NULL to release the current
  * \param wnd A pointer to a rendering window to bind the context to
  */
-SGUI_DLL void sgui_gl_context_make_current( sgui_gl_context* ctx,
-                                            sgui_window* wnd );
+SGUI_DLL void sgui_context_make_current( sgui_context* ctx,
+                                         sgui_window* wnd );
 
 /**
- * \brief Load an extension function pointer from an OpenGL context
+ * \brief Load an extension function pointer from a rendering context
  *
  * \param ctx  A pointer to a context object
  * \param name The name of the function
  *
  * \return Either a pointer to the function or NULL on failure
  */
-SGUI_DLL sgui_funptr sgui_gl_context_load( sgui_gl_context* ctx,
-                                           const char* name );
+SGUI_DLL sgui_funptr sgui_context_load( sgui_context* ctx, const char* name );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SGUI_OPENGL_H */
+#endif /* SGUI_CONTEXT_H */
 
