@@ -27,20 +27,19 @@
 
 
 
-#include "sgui_window.h"
 #include "sgui_skin.h"
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
 #include "sgui_internal.h"
-#include "sgui_font.h"
-#include "sgui_opengl.h"
 #include "sgui_pixmap.h"
+
+#include "font.h"
+#include "window.h"
+#include "opengl.h"
+
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -64,60 +63,23 @@
     #define MAPVK_VSC_TO_VK_EX 3
 #endif
 
-#define TO_W32( window ) ((sgui_window_w32*)window)
 
-
-
-typedef struct _sgui_window_w32
-{
-    sgui_window super;
-
-    HWND hWnd;
-    HDC hDC;
-
-    void* data;
-    BITMAPINFO info;
-    HBITMAP bitmap;
-    HBRUSH bgbrush;
-
-    struct _sgui_window_w32* next;
-}
-sgui_window_w32;
 
 extern HINSTANCE hInstance;
 extern const char* wndclass;
-extern FT_Library freetype;
 
-/* in platform.c: implementation of the clipboard write function */
+/* implementation of the clipboard write function */
 void w32_window_write_clipboard( sgui_window* wnd, const char* text,
                                  unsigned int length );
 
-/* in platform.c: implementation of the clipboard read function */
+/* implementation of the clipboard read function */
 const char* w32_window_read_clipboard( sgui_window* wnd );
 
-/* in platform.c: add a window to the list used by the main loop */
+/* add a window to the list used by the main loop */
 void add_window( sgui_window_w32* wnd );
 
-/* in platform.c: remove a window */
+/* remove a window from the list used by the main loop */
 void remove_window( sgui_window_w32* wnd );
-
-/* in window.c: invalidate all dirty rects of the canvas */
-void update_window( sgui_window_w32* wnd );
-
-/* in window.c: handle window messages */
-int handle_window_events( sgui_window_w32* wnd, UINT msg,
-                          WPARAM wp, LPARAM lp );
-
-/* in opengl.c: set a pixel format for a window */
-int set_pixel_format( sgui_window_w32* wnd,
-                      const sgui_window_description* desc );
-
-/* in opengl.c: swap buffers of an OpenGL context of a window */
-void gl_swap_buffers( sgui_window* wnd );
-
-/* in opengl.c: turn vsync on or off */
-void gl_set_vsync( sgui_window* wnd, int interval );
-
 
 #endif /* INTERNAL_H */
 

@@ -23,24 +23,28 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
+#include "font.h"
 
 
 
-
-#define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
-
+static FT_Library freetype = 0;
 
 
-struct sgui_font
+
+int font_init( void )
 {
-    FT_Face face;
-    void* buffer;
-    unsigned int height;
-    unsigned int current_glyph;
-};
+    return (FT_Init_FreeType( &freetype )==0);
+}
 
+void font_deinit( void )
+{
+    if( freetype )
+        FT_Done_FreeType( freetype );
 
+    freetype = 0;
+}
+
+/****************************************************************************/
 
 sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 {

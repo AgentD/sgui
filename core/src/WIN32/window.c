@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
+#include "platform.h"
 #include "sgui_event.h"
 
 
@@ -187,7 +187,7 @@ static void w32_window_destroy( sgui_window* this )
 
     if( this->backend==SGUI_OPENGL_COMPAT || this->backend==SGUI_OPENGL_CORE )
     {
-        sgui_gl_context_destroy( this->ctx.gl );
+        sgui_context_destroy( this->ctx.gl );
         this->ctx.gl = NULL; /* HACK: DestroyWindow calls message proc */
 
         if( TO_W32(this)->hDC )
@@ -490,8 +490,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
             goto failure;
 
         super->ctx.gl =
-        sgui_gl_context_create( super, desc->share?desc->share->ctx.gl:NULL,
-                                desc->backend==SGUI_OPENGL_CORE );
+        sgui_context_create( super, desc->share ? desc->share->ctx.gl : NULL,
+                             desc->backend==SGUI_OPENGL_CORE );
 
         if( !super->ctx.gl )
             goto failure;

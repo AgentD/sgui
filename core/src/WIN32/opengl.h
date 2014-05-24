@@ -25,6 +25,13 @@
 #ifndef SGUI_W32_OPENGL_H
 #define SGUI_W32_OPENGL_H
 
+#include "sgui_context.h"
+#include "sgui_internal.h"
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+
 
 
 typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
@@ -102,6 +109,32 @@ typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
 
 #define WGL_TYPE_RGBA_ARB                       0x202B
 #define WGL_TYPE_COLORINDEX_ARB                 0x202C
+
+typedef struct
+{
+    sgui_context super;
+
+    HGLRC hRC;
+}
+sgui_gl_context;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* set a pixel format for a window */
+int set_pixel_format( sgui_window_w32* wnd,
+                      const sgui_window_description* desc );
+
+/* swap buffers of an OpenGL context of a window */
+void gl_swap_buffers( sgui_window* wnd );
+
+/* turn vsync on or off for a window with an OpenGL context */
+void gl_set_vsync( sgui_window* wnd, int interval );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SGUI_W32_OPENGL_H */
 

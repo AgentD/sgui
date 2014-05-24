@@ -24,14 +24,13 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui.h"
-#include "internal.h"
+#include "platform.h"
 
 
 static sgui_window_w32* list = NULL;
 static CRITICAL_SECTION mutex;
 static char* clipboard = NULL;
 
-FT_Library freetype;
 HINSTANCE hInstance;
 const char* wndclass = "sgui_wnd_class";
 
@@ -273,7 +272,7 @@ int sgui_init( void )
     InitializeCriticalSection( &mutex );
 
     /* initialise freetype library */
-    if( FT_Init_FreeType( &freetype ) )
+    if( !font_init( ) )
         goto failure;
 
     /* get hInstance */
@@ -312,8 +311,7 @@ void sgui_deinit( void )
     /* unregister window class */
     UnregisterClass( wndclass, hInstance );
 
-    if( freetype )
-        FT_Done_FreeType( freetype );
+    font_deinit( );
 
     /* destroy global mutex */
     DeleteCriticalSection( &mutex );
@@ -322,7 +320,6 @@ void sgui_deinit( void )
     free( clipboard );
 
     /* reset values */
-    freetype = 0;
     hInstance = 0;
     list = NULL;
     clipboard = NULL;
