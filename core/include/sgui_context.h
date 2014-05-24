@@ -61,11 +61,30 @@ SGUI_DLL void sgui_context_destroy( sgui_context* ctx );
 /**
  * \brief Make a rendering context current
  *
+ * Some rendering systems have the concept of a "context", that has to be made
+ * current in order to be used (e.g. OpenGL). A context can only be current in
+ * exactely one thread at any time and one thread may only have exactely one
+ * context made current at any time.
+ *
+ * If the underlying rendering system has the concept of making contexts
+ * current, this function binds the context to the calling thread and the
+ * given window.
+ *
  * \param ctx A pointer to a context object or NULL to release the current
  * \param wnd A pointer to a rendering window to bind the context to
  */
 SGUI_DLL void sgui_context_make_current( sgui_context* ctx,
                                          sgui_window* wnd );
+
+/**
+ * \brief Release a context, assuming it is current in the calling thread
+ *
+ * \see sgui_context_make_current
+ *
+ * \param ctx A pointer to a context previously made current in
+ *            the calling thread
+ */
+SGUI_DLL void sgui_context_release_current( sgui_context* ctx );
 
 /**
  * \brief Load an extension function pointer from a rendering context

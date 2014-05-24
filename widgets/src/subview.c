@@ -89,7 +89,7 @@ static void subview_on_subwindow_event( sgui_subview* this,
             sgui_window_make_current( this->subwnd );
             this->draw_fun( (sgui_widget*)this );
             sgui_window_swap_buffers( this->subwnd );
-            sgui_window_make_current( NULL );
+            sgui_window_release_current( this->subwnd );
         }
     default:
         if( this->window_fun )

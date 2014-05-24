@@ -131,11 +131,45 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
 
 /****************************************************************************/
 
+static void gl_context_destroy( sgui_context* this )
+{
+    sgui_internal_lock_mutex( );
+    glXDestroyContext( dpy, ((sgui_context_gl*)this)->gl );
+    sgui_internal_unlock_mutex( );
+
+    free( this );
+}
+
+static void gl_context_make_current( sgui_context* this, sgui_window* wnd )
+{
+    sgui_internal_lock_mutex( );
+    glXMakeContextCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
+                           ((sgui_context_gl*)this)->gl );
+    sgui_internal_unlock_mutex( );
+}
+
+static void gl_context_release_current( sgui_context* this )
+{
+    (void)this;
+    sgui_internal_lock_mutex( );
+    glXMakeContextCurrent( dpy, 0, 0, 0 );
+    sgui_internal_unlock_mutex( );
+}
+
+static sgui_funptr gl_context_load( sgui_context* this, const char* name )
+{
+    (void)this;
+    return LOAD_GLFUN( name );
+}
+
+
+
 sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
                                    int core )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
-    sgui_context* ctx;
+    sgui_context_gl* this;
+    sgui_context* super;
     GLXContext sctx;
     int attribs[10];
     unsigned int i;
@@ -146,13 +180,14 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
     if( wnd->backend!=SGUI_OPENGL_CORE && wnd->backend!=SGUI_OPENGL_COMPAT )
         return NULL;
 
-    if( !(ctx = malloc( sizeof(sgui_context) )) )
+    if( !(this = malloc( sizeof(sgui_context_gl) )) )
         return NULL;
 
+    super = (sgui_context*)this;
     sgui_internal_lock_mutex( );
 
-    ctx->gl = 0;
-    sctx = share ? share->gl : 0;
+    this->gl = 0;
+    sctx = share ? ((sgui_context_gl*)share)->gl : 0;
 
     /* try to load context creation function */
     CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
@@ -173,64 +208,36 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
         attribs[8] = None;
 
         /* try to create 4.x down to 3.x context */
-        for(i=0; !ctx->gl && i<sizeof(glversions)/sizeof(glversions[0]); ++i)
+        for(i=0; !this->gl && i<sizeof(glversions)/sizeof(glversions[0]); ++i)
         {
             attribs[1] = glversions[i][0];
             attribs[3] = glversions[i][1];
-            ctx->gl = CreateContextAttribs( dpy, TO_X11(wnd)->cfg, sctx,
-                                            True, attribs );
+            this->gl = CreateContextAttribs( dpy, TO_X11(wnd)->cfg, sctx,
+                                             True, attribs );
         }
     }
 
     /* fallback: old context creation function */
-    if( !ctx->gl )
-        ctx->gl = glXCreateNewContext( dpy, TO_X11(wnd)->cfg, GLX_RGBA_TYPE,
-                                       sctx, GL_TRUE );
+    if( !this->gl )
+        this->gl = glXCreateNewContext( dpy, TO_X11(wnd)->cfg, GLX_RGBA_TYPE,
+                                        sctx, GL_TRUE );
 
-    if( !ctx->gl )
+    if( this->gl )
     {
-        free( ctx );
-        ctx = NULL;
-    }
-
-    sgui_internal_unlock_mutex( );
-
-    return ctx;
-}
-
-void sgui_context_destroy( sgui_context* ctx )
-{
-    if( ctx )
-    {
-        sgui_internal_lock_mutex( );
-        glXDestroyContext( dpy, ctx->gl );
-        sgui_internal_unlock_mutex( );
-
-        free( ctx );
-    }
-}
-
-void sgui_context_make_current( sgui_context* ctx, sgui_window* wnd )
-{
-    sgui_internal_lock_mutex( );
-
-    if( ctx )
-    {
-        glXMakeContextCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
-                               ctx->gl );
+        super->destroy         = gl_context_destroy;
+        super->make_current    = gl_context_make_current;
+        super->release_current = gl_context_release_current;
+        super->load            = gl_context_load;
     }
     else
     {
-        glXMakeContextCurrent( dpy, 0, 0, 0 );
+        free( this );
+        this = NULL;
     }
 
     sgui_internal_unlock_mutex( );
-}
 
-sgui_funptr sgui_context_load( sgui_context* ctx, const char* name )
-{
-    (void)ctx;
-    return LOAD_GLFUN( name );
+    return super;
 }
 
 void gl_swap_buffers( sgui_window* this )
@@ -250,31 +257,13 @@ void gl_swap_buffers( sgui_window* this )
     glXSwapBuffers( dpy, TO_X11(this)->wnd );
     sgui_internal_unlock_mutex( );
 }
-#else
+#elif defined( SGUI_NOP_IMPLEMENTATIONS )
 sgui_context* sgui_context_create( sgui_window* wnd,
                                    sgui_context* share, int core )
 {
     (void)wnd;
     (void)share;
     (void)core;
-    return NULL;
-}
-
-void sgui_context_destroy( sgui_context* ctx )
-{
-    (void)ctx;
-}
-
-void sgui_context_make_current( sgui_context* ctx, sgui_window* wnd )
-{
-    (void)ctx;
-    (void)wnd;
-}
-
-sgui_funptr sgui_context_load( sgui_context* ctx, const char* name )
-{
-    (void)ctx;
-    (void)name;
     return NULL;
 }
 #endif

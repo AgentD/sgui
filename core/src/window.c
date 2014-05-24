@@ -266,14 +266,17 @@ void sgui_window_move( sgui_window* this, int x, int y )
 
 void sgui_window_make_current( sgui_window* this )
 {
-    if( this && (this->backend==SGUI_OPENGL_CORE ||
-                 this->backend==SGUI_OPENGL_COMPAT) )
+    if( this && this->backend!=SGUI_NATIVE )
     {
         sgui_context_make_current( this->ctx.gl, this );
     }
-    else
+}
+
+void sgui_window_release_current( sgui_window* this )
+{
+    if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_make_current( NULL, NULL );
+        sgui_context_release_current( this->ctx.gl );
     }
 }
 

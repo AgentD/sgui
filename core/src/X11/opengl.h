@@ -30,6 +30,7 @@
 #ifndef SGUI_NO_OPENGL
 #include "sgui_window.h"
 #include "sgui_context.h"
+#include "sgui_internal.h"
 
 #include <GL/glx.h>
 
@@ -57,10 +58,13 @@ typedef GLXContext (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
                                                   GLXContext, Bool,
                                                   const int* );
 
-struct sgui_context
+typedef struct
 {
+    sgui_context super;
+
     GLXContext gl;
-};
+}
+sgui_context_gl;
 
 
 

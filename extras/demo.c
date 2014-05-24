@@ -89,7 +89,7 @@ DWORD __stdcall gl_drawing_thread( LPVOID arg )
         sgui_window_swap_buffers( wnd );
     }
 
-    sgui_window_make_current( NULL );
+    sgui_window_release_current( wnd );
     return 0;
 }
 
@@ -332,7 +332,7 @@ int main( int argc, char** argv )
         WAIT_THREAD( thread );
     }
 
-    sgui_window_make_current( NULL );
+    sgui_window_release_current( a );
 
     sgui_window_destroy( a );
     sgui_window_destroy( b );

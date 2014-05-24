@@ -28,7 +28,7 @@ void draw_callback( sgui_window* window )
     glEnd( );
 
     sgui_window_swap_buffers( window );
-    sgui_window_make_current( NULL );
+    sgui_window_release_current( window );
 }
 
 
@@ -70,7 +70,7 @@ int main( void )
     sgui_main_loop( );
 
     /* clean up */
-    sgui_window_make_current( NULL );
+    sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
     sgui_deinit( );
 

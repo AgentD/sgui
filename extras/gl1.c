@@ -55,7 +55,7 @@ int main( void )
     }
 
     /* clean up */
-    sgui_window_make_current( NULL );
+    sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
     sgui_deinit( );
 

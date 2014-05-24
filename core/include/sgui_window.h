@@ -175,13 +175,27 @@ SGUI_DLL sgui_window* sgui_window_create_desc(
                                              );
 
 /**
- * \brief Make the rendering context for the window current
+ * \brief Make the rendering context for a window current
  *
  * If the window was created with, for instance, an OpenGL rendering context
  * (see sgui_window_create), this function makes the context current for the
  * calling thread.
+ *
+ * \see sgui_context_make_current
  */
 SGUI_DLL void sgui_window_make_current( sgui_window* window );
+
+/**
+ * \brief Release the rendering context for a window
+ *
+ * If the window was created with, for instance, an OpenGL rendering context
+ * (see sgui_window_create), and has been made current via
+ * sgui_window_make_current( ) or sgui_context_make_current( ), this function
+ * releases the context from the calling thread.
+ *
+ * \see sgui_context_release_current
+ */
+SGUI_DLL void sgui_window_release_current( sgui_window* window );
 
 /**
  * \brief Swap the back and the front buffer of a window
