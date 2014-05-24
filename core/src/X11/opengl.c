@@ -164,8 +164,7 @@ static sgui_funptr gl_context_load( sgui_context* this, const char* name )
 
 
 
-sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
-                                   int core )
+sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
     sgui_context_gl* this;
@@ -173,6 +172,7 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
     GLXContext sctx;
     int attribs[10];
     unsigned int i;
+    int core;
 
     if( !wnd )
         return NULL;
@@ -188,6 +188,7 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
 
     this->gl = 0;
     sctx = share ? ((sgui_context_gl*)share)->gl : 0;
+    core = (wnd->backend==SGUI_OPENGL_CORE);
 
     /* try to load context creation function */
     CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
@@ -258,12 +259,9 @@ void gl_swap_buffers( sgui_window* this )
     sgui_internal_unlock_mutex( );
 }
 #elif defined( SGUI_NOP_IMPLEMENTATIONS )
-sgui_context* sgui_context_create( sgui_window* wnd,
-                                   sgui_context* share, int core )
+sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
 {
-    (void)wnd;
-    (void)share;
-    (void)core;
+    (void)wnd; (void)share;
     return NULL;
 }
 #endif

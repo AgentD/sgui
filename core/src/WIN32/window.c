@@ -489,9 +489,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         if( !set_pixel_format( this, desc ) )
             goto failure;
 
+        super->backend = desc->backend;
         super->ctx.gl =
-        sgui_context_create( super, desc->share ? desc->share->ctx.gl : NULL,
-                             desc->backend==SGUI_OPENGL_CORE );
+        sgui_context_create(super, desc->share ? desc->share->ctx.gl : NULL);
 
         if( !super->ctx.gl )
             goto failure;

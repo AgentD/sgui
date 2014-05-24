@@ -42,14 +42,11 @@ extern "C" {
  * \param wnd   A pointer to a window to get the frame buffer description
  *              from, as well as the type of context to create
  * \param share If not NULL, a pointer to a context to share resources with
- * \param core  For OpenGL contexts: Non-zero for core profile,
- *              zero for compatibillity
  *
  * \return A pointer to a rendering context object
  */
 SGUI_DLL sgui_context* sgui_context_create( sgui_window* wnd,
-                                            sgui_context* share,
-                                            int core );
+                                            sgui_context* share );
 
 /**
  * \brief Destroy a rendering context

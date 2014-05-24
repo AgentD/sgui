@@ -256,8 +256,7 @@ static sgui_funptr context_gl_load( sgui_context* this, const char* name )
     return (sgui_funptr)wglGetProcAddress( name );
 }
 
-sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
-                                   int core )
+sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
     sgui_gl_context* this;
@@ -267,6 +266,7 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
     unsigned int i;
     HDC olddc;
     HGLRC src;
+    int core;
 
     this = malloc( sizeof(sgui_gl_context) );
     super = (sgui_context*)this;
@@ -277,6 +277,7 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
     sgui_internal_lock_mutex( );
     this->hRC = 0;
     src = share ? ((sgui_gl_context*)share)->hRC : 0;
+    core = (wnd->backend == SGUI_OPENGL_CORE);
 
     /********** create a trampoline context **********/
     if( !(temp = wglCreateContext( TO_W32(wnd)->hDC )) )
@@ -374,10 +375,9 @@ void gl_set_vsync( sgui_window* this, int interval )
     sgui_internal_unlock_mutex( );
 }
 #else
-sgui_context* sgui_context_create( sgui_window* wnd,
-                                   sgui_context* share, int core )
+sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
 {
-    (void)wnd; (void)share; (void)core;
+    (void)wnd; (void)share;
     return NULL;
 }
 #endif
