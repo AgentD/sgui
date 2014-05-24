@@ -23,27 +23,54 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
+#include "platform.h"
 
 
 
-#ifdef MACHINE_OS_UNIX
-    #define SYS_FONT_PATH "/usr/share/fonts/TTF/"
-#elif defined MACHINE_OS_WINDOWS
-    #define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
-#else
-    #define NO_SYS_FONT_PATH 1
-#endif
+static FT_Library freetype = 0;
+static sgui_font_cache* glyph_cache = NULL;
 
 
 
-struct sgui_font
+int font_init( void )
 {
-    FT_Face face;
-    void* buffer;
-    unsigned int height;
-    unsigned int current_glyph;
-};
+    return (FT_Init_FreeType( &freetype ) == 0);
+}
+
+void font_deinit( void )
+{
+    if( glyph_cache )
+        sgui_font_cache_destroy( glyph_cache );
+
+    if( freetype )
+        FT_Done_FreeType( freetype );
+
+    glyph_cache = NULL;
+    freetype = 0;
+}
+
+sgui_font_cache* get_glyph_cache( void )
+{
+    sgui_pixmap* font_map;
+
+    if( !glyph_cache )
+    {
+        font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
+                                       SGUI_A8, root );
+
+        if( font_map )
+        {
+            glyph_cache = sgui_font_cache_create( font_map );
+
+            if( !glyph_cache )
+                sgui_pixmap_destroy( font_map );
+        }
+    }
+
+    return glyph_cache;
+}
+
+/****************************************************************************/
 
 static sgui_font* sgui_font_load_common( unsigned int pixel_height )
 {

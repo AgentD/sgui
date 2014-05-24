@@ -24,7 +24,7 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui.h"
-#include "internal.h"
+#include "platform.h"
 
 #include <sys/select.h>
 #include <pthread.h>
@@ -34,7 +34,6 @@
 Display* dpy = NULL;
 XIM im = 0;
 Atom atom_wm_delete = 0;
-FT_Library freetype = 0;
 Window root = 0;
 
 static char* clipboard_buffer = NULL;
@@ -48,7 +47,6 @@ static Atom atom_inc = 0;
 static Atom atom_UTF8 = 0;
 static Atom atom_clipboard = 0;
 
-static sgui_font_cache* glyph_cache = NULL;
 static pthread_mutex_t mutex;
 
 static sgui_window_xlib* list = NULL;
@@ -173,27 +171,6 @@ void remove_window( sgui_window_xlib* this )
     sgui_window_xlib* i;
 
     SGUI_REMOVE_FROM_LIST( list, i, this );
-}
-
-sgui_font_cache* get_glyph_cache( void )
-{
-    sgui_pixmap* font_map;
-
-    if( !glyph_cache )
-    {
-        font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
-                                       SGUI_A8, root );
-
-        if( font_map )
-        {
-            glyph_cache = sgui_font_cache_create( font_map );
-
-            if( !glyph_cache )
-                sgui_pixmap_destroy( font_map );
-        }
-    }
-
-    return glyph_cache;
 }
 
 /****************************************************************************/
@@ -397,8 +374,7 @@ int sgui_init( void )
 
     XInitThreads( );
 
-    /* initialise freetype library */
-    if( FT_Init_FreeType( &freetype ) )
+    if( !font_init( ) )
         goto failure;
 
     /* open display connection */
@@ -440,8 +416,9 @@ void sgui_deinit( void )
 
     sgui_interal_skin_deinit_default( );
 
+    font_deinit( );
+
     pthread_mutex_destroy( &mutex );
-    sgui_font_cache_destroy( glyph_cache );
 
     if( im )
         XCloseIM( im );
@@ -449,16 +426,12 @@ void sgui_deinit( void )
     if( dpy )
         XCloseDisplay( dpy );
 
-    if( freetype )
-        FT_Done_FreeType( freetype );
-
     free( clipboard_buffer );
 
     clipboard_buffer = NULL;
     clipboard_size = 0;
     dpy = NULL;
     im = 0;
-    freetype = 0;
     list = NULL;
 }
 

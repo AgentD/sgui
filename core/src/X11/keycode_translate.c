@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
+#include "platform.h"
 
 
 

@@ -23,30 +23,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "internal.h"
-#include "sgui_event.h"
+#include "platform.h"
+
+
 
 #ifndef SGUI_NO_OPENGL
-#ifndef GLX_ARB_create_context
-    #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
-    #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
-    #define GLX_CONTEXT_FLAGS_ARB                     0x2094
-
-    #define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
-    #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
-#endif
-
-#ifndef GLX_ARB_create_context_profile
-    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
-    #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
-    #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-#endif
-
-
-typedef GLXContext (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
-                                                  GLXContext, Bool,
-                                                  const int* );
-
 int glversions[][2] = { {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
                                {3,3}, {3,2}, {3,1}, {3,0} };
 
@@ -149,12 +130,6 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
 }
 
 /****************************************************************************/
-
-struct sgui_context
-{
-    GLXContext gl;
-};
-
 
 sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share,
                                    int core )
