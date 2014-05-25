@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_font_cache.h
+ *
+ * This file contains the interface functions for the font cache datatype.
+ */
 #ifndef SGUI_FONT_CACHE_H
 #define SGUI_FONT_CACHE_H
 

@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_event.h
+ *
+ * This file contains the interface functions and enumerations for the event
+ * processing subsystem.
+ */
 #ifndef SGUI_EVENT_H
 #define SGUI_EVENT_H
 

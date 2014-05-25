@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_canvas.h
+ *
+ * This file contains the interface functions for the canvas datatype.
+ */
 #ifndef SGUI_CANVAS_H
 #define SGUI_CANVAS_H
 

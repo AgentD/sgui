@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_filesystem.h
+ *
+ * This file contains the declaration of the filesystem abstraction.
+ */
 #ifndef SGUI_FILESYSTEM_H
 #define SGUI_FILESYSTEM_H
 

@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_predef.h
+ *
+ * This file contains forward declarations of all datatypes.
+ */
 #ifndef SGUI_PREDEF_H
 #define SGUI_PREDEF_H
 

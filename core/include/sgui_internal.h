@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_internal.h
+ *
+ * This file contains internal functions, helper macros and definitions of
+ * structures.
+ */
 #ifndef SGUI_INTERNAL_H
 #define SGUI_INTERNAL_H
 

@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_window.h
+ *
+ * This file contains the interface functions for the abstract window
+ * datatype.
+ */
 #ifndef SGUI_WINDOW_H
 #define SGUI_WINDOW_H
 

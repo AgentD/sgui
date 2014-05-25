@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_skin.h
+ *
+ * This file contains interface functions for the skinning subsystem.
+ */
 #ifndef SGUI_SKIN_H
 #define SGUI_SKIN_H
 

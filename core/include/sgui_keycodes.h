@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_keycodes.h
+ *
+ * This file contains the definitions of all sgui keyboard codes.
+ */
 #ifndef SGUI_KEYCODES_H
 #define SGUI_KEYCODES_H
 

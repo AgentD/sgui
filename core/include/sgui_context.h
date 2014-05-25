@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_context.h
+ *
+ * This file contains the interface functionsfor the rendering context
+ * abstraction.
+ */
 #ifndef SGUI_CONTEXT_H
 #define SGUI_CONTEXT_H
 

@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_icon_cache.h
+ *
+ * This file contains the interface functions for the icon cache data type.
+ */
 #ifndef SGUI_ICON_CACHE_H
 #define SGUI_ICON_CACHE_H
 

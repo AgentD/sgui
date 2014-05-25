@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_rect.h
+ *
+ * This file contains functions for the sgui_rect helper datatype used to
+ * handle operations on rectangles.
+ */
 #ifndef SGUI_RECT_H
 #define SGUI_RECT_H
 

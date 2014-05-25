@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui.h
+ *
+ * This is the global sgui header. It includes all other sgui headers and
+ * declares the initialization, cleanup and main loop functions.
+ */
 #ifndef SGUI_H
 #define SGUI_H
 

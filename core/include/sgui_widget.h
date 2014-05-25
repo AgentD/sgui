@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_widget.h
+ *
+ * This file contains the interface functions for the abstract widget
+ * datatype.
+ */
 #ifndef SGUI_WIDGET_H
 #define SGUI_WIDGET_H
 

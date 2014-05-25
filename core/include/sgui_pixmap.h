@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_pixmap.h
+ *
+ * This file contains the interface functions for the abstract pixmap
+ * datatype.
+ */
 #ifndef SGUI_PIXMAP_H
 #define SGUI_PIXMAP_H
 

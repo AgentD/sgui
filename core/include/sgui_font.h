@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_font.h
+ *
+ * This file contains the interface functions for the font rendering
+ * abstraction, implemented directly in the backend.
+ */
 #ifndef SGUI_FONT_H
 #define SGUI_FONT_H
 

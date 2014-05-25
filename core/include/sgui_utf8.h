@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_utf8.h
+ *
+ * This file contains helper functions for unicode string handling.
+ */
 #ifndef SGUI_UTF8_H
 #define SGUI_UTF8_H
 
