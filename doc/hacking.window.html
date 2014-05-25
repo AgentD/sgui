@@ -22,7 +22,8 @@ a file called <b>platform.c</b>.<br>
 <br>
 The init and deinit functions have to at least reset the event queue and the
 skinning system (<b>sgui_skin_set( NULL )</b>,
-<b>sgui_interal_skin_deinit_default( )</b>).<br>
+<b>sgui_interal_skin_deinit_default( )</b>,
+<b>sgui_internal_reset_events( )</b>).<br>
 <br>
 The platform file typically also implements the functions
 <b>sgui_internal_lock_mutex</b> and <b>sgui_internal_unlock_mutex</b> that
@@ -35,10 +36,11 @@ To create a window, the backend provides the function
 callbacks can be retrieved from the declaration of the window structure in
 the <b>sgui_internal.h</b> header.<br>
 <br>
-If the backend supports OpenGL&reg;, the functions from <b>sgui_opengl.h</b>
-are implemented directly in the backend as well. If the backend
-<i>does not</i> support OpenGL&reg;, it is still advisable to at lest supply
-dummy implementations that always fail to avoid linking errors.<br>
+If the backend supports hardware accelerated rendering contexts, the context
+creation function from <b>sgui_context.h</b> is implemented directly in the
+backend as well, setting the appropriate callbacks for the <b>sgui_context</b>
+structure. The different kinds of rendering contexts are enumerated in
+<b>sgui_window.h</b>.<br>
 <br>
 For convenience, the function <b>sgui_internal_window_post_init</b> can be
 used at the end of the window creation function to do typcial tasks like

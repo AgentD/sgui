@@ -16,13 +16,15 @@ changes or additions to SGUI.
 <h3 id="arch">Architectural overview</h3>
 
 The SGUI library is split into a <b>core</b> module (the directory 'core' in
-the source tree) and the <b>widget</b> code (the directory 'widgets').<br>
+the source tree) and the <b>widget</b> code (the directory 'widgets') and the
+<b>dialog</b> window code (the directory 'dialogs').<br>
 <br>
 The core module contains all basic data structures and the platform dependend
 implementations. It consits basically of the following subsystems:
 <ul>
 <li>The <b>initialization and mainloop</b> functions are declared inside
-    <b>sgui.h</b>. They are directly implemented in the backend.
+    <b>sgui.h</b>. They are directly implemented in the backend, usually in a
+    file called 'platform.c' in the backend source directory.
 <li>The <b>event management</b> subsystem takes care of an event queue
     and the event-action-connections. The declarations are in
     <b>sgui_event.h</b> and the implementation in <b>event.c</b> in the source
@@ -39,21 +41,21 @@ implementations. It consits basically of the following subsystems:
     in <b>window.c</b> and do sanity checking before using backend callbacks
     from the <b>sgui_window</b> abstract base structure, declared in
     <b>sgui_internal.h</b>.
-<li>An abstract <b>OpenGL&reg;</b> context data type is declared in
-    <b>sgui_internal.h</b> with inteface functions in <b>sgui_opengl.h</b>.
-    The interface functions are implemented directly in the backend.
+<li>An abstract <b>rendering context</b> data type is declared in
+    <b>sgui_internal.h</b> with inteface functions in <b>sgui_context.h</b>.
+    The context creation function is implemented directly in the backend.
 <li>Interface functions for <b>an abstract widget data type</b> are declared
     in <b>sgui_widget.h</b> and implemented in <b>widget.c</b>. The
     declaration of the <b>sgui_widget</b> data structure is in
-    <b>sgui_internal.h</b>. The functions provide managing of widget
-    child-parent trees and propagation of widget states and events. The widget
-    data structure has several callbacks for widget implementations (events,
+    <b>sgui_internal.h</b>. The functions provide managing of child-parent
+    trees and propagation of widget states and events. The widget data
+    structure has several callbacks for widget implementations (events,
     state change, rendering).
 <li><b>Rendering</b> is done by the <b>sgui_canvas</b> data structure, also
     declared in <b>sgui_internal.h</b>. The <b>sgui_canvas.h</b> header
     delcares the interface functions, implemented in <b>canvas.c</b>. Each
     window has a canvas that widgets can be attached to. The backend code can
-    implement its own canvas type, or alternatively use the referenc
+    implement its own canvas type, or alternatively use the reference
     implementation in <b>mem_canvas.c</b> that renders to an offscreen memory
     buffer. A canvas can also create pixmaps. Pixmap interface functions are
     declared in <b>sgui_pixmap.h</b> and implemented in <b>pixmap.c</b>. The
@@ -70,6 +72,9 @@ implementations. It consits basically of the following subsystems:
     implemented in <b>font_cache.c</b>. A backend may or may not use this
     data structure to cache glyphs. The implementation uses an RB-Tree of
     rects to pre-rendered and organize glyphs on a pixmap.
+<li>An <b>icon cache</b> is provided by <b>sgui_icon_cache.h</b> and
+    implemented in <b>icon_cache.c</b>. It also provides an integer ID to rect
+    on a pixmap lookup using an RB-tree.
 <li>Actually rendering a widget onto a canvas is done by the <b>skinning</b>
     subsystem. The file <b>sgui_skin.h</b> contains a list of functions that
     can be used to draw widgets to a canvas. The implementation can be found
@@ -84,10 +89,10 @@ implementations. It consits basically of the following subsystems:
 
 As long as there is no indent file, here are a few guidelines:
 <ul>
-<li>Braces are always on the next line with the same indentation as
-    the asociated control statement.
-<li>Lines aren't longer than 80 characters.
-<li>Space characters (4 of them) are used for indentation.
+<li><b>Braces</b> are always on the <b>next line</b> with the same indentation
+    as the asociated control statement.
+<li>Lines aren't longer than <b>80 characters</b>.
+<li><b>Space characters (4 of them)</b> are used for indentation.
 <li>There is no space between a function name and the opening paranthesis.
 <li>There is no space between a control keyword and the opening paranthesis.
 <li>There is no space between a closing paranthesis and a semicolon.
@@ -97,19 +102,21 @@ As long as there is no indent file, here are a few guidelines:
     next line is indented to the same column as the first argument.
 <li>When wrapping expressions, the operator is always at the end of the line,
     never at the beginning of the new line.
-</ul>
-<br>
-Also, when introducing new functions or structures:
-<ul>
-<li>Functions or structures delcared in publicly visible headers have to start
-    with sgui_* prefix.
-<li>Constatns have to start with SGUI_*
-<li>Use C++ guards around publicly visible function declarations.
+<li>All <b>structures are typedefed</b>.
+<li><b>No typedefs to atomic data types</b> are used. Always use the integer
+    data types provided by C (i.e. unsigned int and int).
+<li>Preprocessor definitions are used instead of enums.
+<li>Try <b>not</b> to <b>use</b> any <b>floating point</b> calculations
+    at all.
+<li><b>Functions or structures</b> delcared in publicly visible headers have
+    to start with <b>sgui_* prefix</b>.
+<li><b>Constants</b> have to start with <b>SGUI_*</b>
+<li>Use <b>C++ guards</b> around publicly visible function declarations.
 <li>Functions not declared in any headers have to be static.
-<li>Publicly accessable headers have to start with sgui_*
-<li>For every structure or union, there is a forward declaration in
+<li>Publicly accessable <b>headers</b> have to start with <b>sgui_*</b>
+<li>For every <b>structure or union</b>, there is a forward declaration in
     <b>sgui_predef.h</b>
-<li>Every new header has to be included by <b>sgui.h</b>
+<li><b>Every new header</b> has to be included by <b>sgui.h</b>
 </ul>
 
 <hr>

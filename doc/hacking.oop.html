@@ -13,28 +13,29 @@
 
 In my personal experience, people with backgrounds in languages like C++ or
 Java tend to be rather puzzled when talking to them about object oriented
-programing in the C programing language. The main reason behind this seems to
-be that said people tend to strictly think that object orientation is tied to
-the concept of a C++ or Java <i>class datatype</i> with Simula style method
-calls (C++ or Java have those) and so on.<br>
-This however, is not quite correct. Object orientation is not a programming
-language concept. Object orientation does not require special syntactical
+programing in the C programing language or assembly. The main reason behind
+this seems to be that said people tend to strictly think that object
+orientation is a syntactical concept, tied to C++ or Java <i>class
+datatype</i> with Simula syntax and so on (Java syntax is based on C++ and
+C++ copied a lot from Algol 68 and Simula, for instance the implicitly passed
+<i>this</i> pointer).<br>
+<br>
+However, object orientation is a <i>semantic concept</i>, not something
+<i>syntactical</i>. Object orientation does not require special syntactical
 constructus and can be done in a broad variety of programming languages
 (including assembly; what did you think a C++ compiler does?). It basically
-boils down to the fact that there are objects ("instances of classes") which
-have data fields and can receive messages, process data and so on. Data is
-encapsulated, packing semantically related data fields together. Whatever you
-call it: class, structure, record, data capsule, etc... doesn't really matter.
-(It is adviceable to consult a book on that topic or at least the
+boils down to the fact that there are objects ("data capsules") which have
+data encapsulated logically related data  and can process messages. Whatever
+you call it: class, structure, record, data capsule or hugo, it doesn't really
+matter. (It is adviceable to consult a book on that topic or at least the
 <a href="http://en.wikipedia.org/wiki/Object_orientated">Wikipedia
 article</a>).<br>
 
 <h4>Classes, methods and objects in C</h4>
 
 C++ like classes can be implemented in C using the <a>struct</a> datatype.
-The struct holds the data fields and the methods are simply functions that
-have a pointer to the struct as their first parameter.
-(The "this" pointer in C++):
+The struct holds the data fields and the methods are simply functions where
+the "this" pointer has to be passed explicitly as their first argument:
 
 <p class="code">
 <font class="keyword">typedef struct</font><br>
@@ -52,7 +53,7 @@ my_class;<br>
 An object is simply an instance of the struct.
 <br>
 <br>
-Consider the following two statements:
+In this context, the following two statements are semantically equivalent:
 <p class="code">
 my_class_do_something( object, <font class="number">42</font>, <font class="number">13.37</font> );<br>
 <br>
@@ -62,10 +63,10 @@ The difference is merely syntactical.
 
 <h4>Inheritance</h4>
 
-Inheritance can be implemented by declaring another struct with the first
-field of the base class type. A pointer to that new struct can be passed to
-the new methods, but it can also be safely casted to a base pointer and passed
-to the base methods.
+Inheritance, and thus interfaces, can be implemented by declaring another
+struct with the first field of the base class type. A pointer to that new
+struct can be passed to the new methods, but it can also be safely casted
+to a base pointer and passed to the base methods.
 
 <p class="code">
 ...<br>
@@ -99,18 +100,19 @@ another_class;<br>
 
 As you can see, the pointer to the new struct can be casted down to the
 inherited structure, as the members of the <i>super</i> structure are directly
-in front of the additional extended members in memory.<br>
+in front of the additional <i>extended</i> members in memory.<br>
 <br>
 The obvious restriction here is that this way, a structure can only inherit
 one other structure (don't complain if you're from the Java world, you live
 by the same restrictions).<br>
 <br>
 However, this limitation can be circumvented by creating explicit down casting
-and up casting functions.
+and up casting functions and implementing something like V-tables that a C++
+compiler uses.
 
 <h4>Polymorphism</h4>
 
-With inheritance and down casting to inherited structures, we already have one
+With inheritance and down casting to inherited structures, we already have a
 corner stone of polymorph data types.<br>
 <br>
 An other corner stone is what C++ programmers know as <i>virtual</i> methods,
@@ -120,13 +122,33 @@ issuing the same functions, depending on what the underlying data structure
 actually is.<br>
 <br>
 Implementing virtual methods can by done by simply <b>storing function
-pointers</b> in the super structure. When we call a method on the super
-structure, the function simply redirects the call to the function pointer in
-the structure.
-The function pointer itself is set by the initialisation funcion/method of the
-derived class, thus altering the bahaviour of super structure calls on super
-structure pointers.<br>
-
+pointers</b> in the super structure:
+<p class="code">
+<font class="keyword">typedef struct</font> classy<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">int</font> ifield;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">float</font> ffield;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">void</font> (* do_something )( <font class="keyword">struct</font> classy* this, <font class="keyword">int</font> foobar );<br>
+}<br>
+some_class;<br>
+<br>
+...
+<br>
+<br>
+myobject->do_something( myobject, foobar );<br>
+<br>
+...
+</p>
+This even looks similar to C++ syntax. Depending on how the object was
+created, the pointer may point to a different function, allowing for
+different, polymorphic behaviour.
+<br>
+<br>
+The approach used in sgui is to always call methods through global functions.
+The functions internally call the function pointer, but also do common sanity
+checking, so the implementation doesn't have to worry about or implement
+default behaviour if the function pointer is not set:
 <p class="code">
 <font class="keyword">typedef struct</font> classy<br>
 {<br>
@@ -140,9 +162,17 @@ some_class;<br>
 <br>
 <font class="keyword">void</font> some_class_do_something( some_class* this, <font class="keyword">int</font> foobar )<br>
 {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;this->do_something( this, foobar );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( this && this->do_something && foobar>=<font class="number">42</font> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->do_something( this, foobar );<br>
 }<br>
+<br>
+...<br>
+<br>
+some_class_do_something( myobject, <font class="number">1337</font> );
 </p>
+In this case the function takes care of sanity checking in a way that neither
+the calling function nor the implementation have to worry about NULL pointers
+or invalid arguments.
 
 <h4>Constructors, destructors and hiding away the data</h4>
 

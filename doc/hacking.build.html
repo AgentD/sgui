@@ -34,7 +34,11 @@ Alternatively, use "mingw64.cmake" for a 64 bit Windows&reg; build.<br>
    Windows&reg; (and there is even a VisualStudio&reg; configuration in the
    CMakeLists.txt), nobody I know of has ever tried to do that. It is
    advisable to use mingw on a UNIX&reg; or UNIX-like system to cross compile
-   SGUI for windows.</i>
+   SGUI for windows.<br>
+   <br>
+   Since mingw cross compiling has so far only been done on Arch Linux, it
+   might require minor adjustments of the mingwXX.cmake file to point to the
+   correct compiler location.</i>
 <br>
 <br>
 If you have too much time on your hands and want to generate binary packages
@@ -53,12 +57,24 @@ If you are "manually" running cmake the following build options are available:
     If this is set to OFF, the definition <b>SGUI_NO_OPENGL</b> is set via the
     preprocessor.
 <li><b>NOFLOAT</b> Can be used to disable all internal use of floating point
-    data types. <b>Default: OFF</b>. If this is set to ON, the definition
-    <b>SGUI_NO_FLOAT</b> is set via the preprocessor.
-    <br>
-    <i>Note: The SGUI library does currently not make use of floating
-    point calculations internally. This option currently only effects the
-    supported data types of the event system.</i>
+    data types and arithmetic. <b>Default: OFF</b>. If this is set to ON, the
+    definition <b>SGUI_NO_FLOAT</b> is set via the preprocessor.
+<li><b>FRAME</b> Default ON. If set to OFF, the frame widget is not compiled.
+<li><b>GROUP</b> Default ON. If set to OFF, the group widget is not compiled.
+<li><b>ICONCACHE</b> Default ON. If set to OFF,
+    the icon cache is not compiled.
+<li><b>ICONVIEW</b> Default ON. If set to OFF, the icon view widget is not
+    compiled.
+<li><b>MESSAGEBOX</b> Default ON. If set to OFF, the message box is not
+    compiled.
+<li><b>NATIVE_MB</b> Default ON. If set to OFF, the native message box is
+    not compiled.
+<li><b>SUBVIEW</b> Default ON. If set to OFF, the sub view widget is
+    not compiled.
+<li><b>TABS</b> Default ON. If set to OFF, the tab widget is not compiled.
+<li><b>NOPS</b> For all the above functionallity, noop functions that always
+    fail are generated if they are disabled to avoid linking problems.
+    If set to OFF, there will be no noop implementations. Default ON.
 </ul>
 
 Depending on the target operating system, the following definitions are set
@@ -89,6 +105,8 @@ that are then compiled into a single library:
     structures, etc.
 <li><b>widgets</b> The GUI widgets. Contains only the implementations of the
     individual widgets.
+<li><b>dialogs</b> The GUI dialog windows. Contains only the implementations
+    of the individual dialog windows.
 </ul>
 Each of those modules contains an <b>include/</b> directory with headers,
 a <b>src/</b> directory with source files and a <b>CMakeLists.txt</b>.<br>
@@ -123,8 +141,8 @@ The output directory initially contains the following entries:
 <li><b>win_dep</b> This directory contains additional dependencies for
     the Windows&reg; build (currently only FreeType binaries and headers).
 <li><b>runvalgrind.sh</b> This script runs valgrind on a sample program using
-    the given valgrind surpression file.
-<li><b>valgrind.supp</b> A valgrind surpression file that's supposed to hide
+    the given valgrind supression file.
+<li><b>valgrind.supp</b> A valgrind supression file that's supposed to hide
     reported memory leeks inside the X11 XIM functions, and Mesa3D.
 </ul>
 <br>
