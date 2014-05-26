@@ -29,28 +29,13 @@
 
 
 
-typedef struct
+static void canvas_xrender_destroy( sgui_canvas* super )
 {
-    sgui_canvas super;
-
-    Window wnd;
-    Picture wndpic;
-
-    Picture pen;
-    Pixmap penmap;
-
-    Picture pic;
-    Pixmap pixmap;
-}
-sgui_canvas_xlib;
-
-
-
-static void canvas_xlib_destroy( sgui_canvas* super )
-{
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
 
     sgui_internal_lock_mutex( );
+
+    if( this->cache ) sgui_font_cache_destroy( this->cache );
 
     if( this->pic ) XRenderFreePicture( dpy, this->pic );
     if( this->pen ) XRenderFreePicture( dpy, this->pen );
@@ -64,10 +49,10 @@ static void canvas_xlib_destroy( sgui_canvas* super )
     free( this );
 }
 
-static void canvas_xlib_resize( sgui_canvas* super, unsigned int width,
-                                unsigned int height )
+static void canvas_xrender_resize( sgui_canvas* super, unsigned int width,
+                                   unsigned int height )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     XRenderPictFormat* fmt;
 
     sgui_internal_lock_mutex( );
@@ -85,9 +70,9 @@ static void canvas_xlib_resize( sgui_canvas* super, unsigned int width,
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
+static void canvas_xrender_clear( sgui_canvas* super, sgui_rect* r )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     XRenderColor c;
 
     c.red = c.green = c.blue = c.alpha = 0;
@@ -99,10 +84,10 @@ static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_xlib_draw_box( sgui_canvas* super, sgui_rect* r,
-                                  unsigned char* color, int format )
+static void canvas_xrender_draw_box( sgui_canvas* super, sgui_rect* r,
+                                     unsigned char* color, int format )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     XRenderColor c;
 
     if( format==SGUI_RGB8 || format==SGUI_RGBA8 )
@@ -124,10 +109,10 @@ static void canvas_xlib_draw_box( sgui_canvas* super, sgui_rect* r,
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
-                              sgui_pixmap* pixmap, sgui_rect* srcrect )
+static void canvas_xrender_blit( sgui_canvas* super, int x, int y,
+                                 sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
     unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
     XRenderColor c;
@@ -137,30 +122,30 @@ static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
 
     sgui_internal_lock_mutex( );
     XRenderFillRectangle( dpy, PictOpSrc, this->pic, &c, x, y, w, h );
-    XRenderComposite( dpy, PictOpOver, ((xlib_pixmap*)pixmap)->pic, 0,
+    XRenderComposite( dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic, 0,
                       this->pic, srcrect->left, srcrect->top, 0, 0,
                       x, y, w, h );
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_xlib_blend( sgui_canvas* super, int x, int y,
-                               sgui_pixmap* pixmap, sgui_rect* srcrect )
+static void canvas_xrender_blend( sgui_canvas* super, int x, int y,
+                                  sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
 
     sgui_internal_lock_mutex( );
-    XRenderComposite( dpy, PictOpOver, ((xlib_pixmap*)pixmap)->pic, 0,
+    XRenderComposite( dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic, 0,
                       this->pic, srcrect->left, srcrect->top, 0, 0, x, y,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
-                                     sgui_pixmap* pixmap, sgui_rect* r,
-                                     unsigned char* color )
+static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
+                                        sgui_pixmap* pixmap, sgui_rect* r,
+                                        unsigned char* color )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     XRenderColor c;
 
     c.red   = color[0]<<8;
@@ -171,24 +156,45 @@ static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
     sgui_internal_lock_mutex( );
     XRenderFillRectangle( dpy, PictOpSrc, this->pen, &c, 0, 0, 1, 1 );
 
-    XRenderComposite( dpy, PictOpOver, this->pen, ((xlib_pixmap*)pixmap)->pic,
+    XRenderComposite( dpy, PictOpOver, this->pen, ((xrender_pixmap*)pixmap)->pic,
                       this->pic, 0, 0, r->left, r->top, x, y,
                       SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
     sgui_internal_unlock_mutex( );
 }
 
-static int canvas_xlib_draw_string( sgui_canvas* super, int x, int y,
-                                    sgui_font* font, unsigned char* color,
-                                    const char* text, unsigned int length )
+static int canvas_xrender_draw_string( sgui_canvas* super, int x, int y,
+                                       sgui_font* font, unsigned char* color,
+                                       const char* text, unsigned int length )
 {
     int oldx = x;
     unsigned int i, len = 0;
     unsigned long character, previous=0;
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
-    sgui_font_cache* cache = get_glyph_cache( );
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
+    sgui_pixmap* font_map;
     XRectangle r;
 
     sgui_internal_lock_mutex( );
+
+    if( !this->cache )
+    {
+        font_map = xrender_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
+                                          SGUI_A8, root );
+
+        if( !font_map )
+        {
+            sgui_internal_unlock_mutex( );
+            return super->width;
+        }
+
+        this->cache = sgui_font_cache_create( font_map );
+
+        if( !this->cache )
+        {
+            sgui_pixmap_destroy( font_map );
+            sgui_internal_unlock_mutex( );
+            return super->width;
+        }
+    }
 
     r.x = super->sc.left;
     r.y = super->sc.top;
@@ -206,7 +212,7 @@ static int canvas_xlib_draw_string( sgui_canvas* super, int x, int y,
         x += sgui_font_get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
-        x += sgui_font_cache_draw_glyph( cache, font, character,
+        x += sgui_font_cache_draw_glyph( this->cache, font, character,
                                          x, y, super, color ) + 1;
 
         /* store previous glyph index for kerning */
@@ -224,20 +230,21 @@ static int canvas_xlib_draw_string( sgui_canvas* super, int x, int y,
     return x - oldx;
 }
 
-sgui_pixmap* canvas_xlib_create_pixmap( sgui_canvas* super,
-                                        unsigned int width,
-                                        unsigned int height, int format )
+static sgui_pixmap* canvas_xrender_create_pixmap( sgui_canvas* super,
+                                               unsigned int width,
+                                               unsigned int height,
+                                               int format )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
 
-    return xlib_pixmap_create( width, height, format, this->wnd );
+    return xrender_pixmap_create( width, height, format, this->wnd );
 }
 
 /************************ internal canvas functions ************************/
-sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
-                                 unsigned int height )
+sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
+                                    unsigned int height )
 {
-    sgui_canvas_xlib* this;
+    sgui_canvas_xrender* this;
     sgui_canvas* super;
     XRenderPictFormat* fmt;
     XRenderPictureAttributes attr;
@@ -253,7 +260,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     }
 
     /* allocate xlib canvas */
-    this = malloc( sizeof(sgui_canvas_xlib) );
+    this = malloc( sizeof(sgui_canvas_xrender) );
     super = (sgui_canvas*)this;
 
     if( !this )
@@ -291,30 +298,31 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     /* finish initialisation */
     sgui_internal_canvas_init( super, width, height );
     this->wnd = wnd;
+    this->cache = NULL;
 
     sgui_internal_unlock_mutex( );
 
-    super->destroy       = canvas_xlib_destroy;
-    super->resize        = canvas_xlib_resize;
-    super->blit          = canvas_xlib_blit;
-    super->blend         = canvas_xlib_blend;
-    super->blend_glyph   = canvas_xlib_blend_glyph;
-    super->clear         = canvas_xlib_clear;
-    super->draw_string   = canvas_xlib_draw_string;
-    super->create_pixmap = canvas_xlib_create_pixmap;
-    super->draw_box      = canvas_xlib_draw_box;
+    super->destroy       = canvas_xrender_destroy;
+    super->resize        = canvas_xrender_resize;
+    super->blit          = canvas_xrender_blit;
+    super->blend         = canvas_xrender_blend;
+    super->blend_glyph   = canvas_xrender_blend_glyph;
+    super->clear         = canvas_xrender_clear;
+    super->draw_string   = canvas_xrender_draw_string;
+    super->create_pixmap = canvas_xrender_create_pixmap;
+    super->draw_box      = canvas_xrender_draw_box;
 
     return (sgui_canvas*)this;
 failure:
     sgui_internal_unlock_mutex( );
-    canvas_xlib_destroy( super );
+    canvas_xrender_destroy( super );
     return NULL;
 }
 
-void canvas_xlib_display( sgui_canvas* super, int x, int y,
-                          unsigned int width, unsigned int height )
+void canvas_xrender_display( sgui_canvas* super, int x, int y,
+                             unsigned int width, unsigned int height )
 {
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
 
     if( this )
     {

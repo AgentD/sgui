@@ -44,7 +44,9 @@ extern "C" {
 /**
  * \brief Create a font cache object
  *
- * \param map A pointer to a pixmap to cache the glyphs on
+ * \param map A pointer to a pixmap to cache the glyphs on. The font cache
+ *            takes over ownership of the pixmap and destroys it when the
+ *            cache is destroyed.
  *
  * \return A pointer to a new font cache object on success, NULL otherwise.
  */

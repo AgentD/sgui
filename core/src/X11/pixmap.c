@@ -27,9 +27,9 @@
 
 
 
-void xlib_pixmap_destroy( sgui_pixmap* super )
+void xrender_pixmap_destroy( sgui_pixmap* super )
 {
-    xlib_pixmap* this = (xlib_pixmap*)super;
+    xrender_pixmap* this = (xrender_pixmap*)super;
 
     sgui_internal_lock_mutex( );
     XRenderFreePicture( dpy, this->pic );
@@ -38,11 +38,12 @@ void xlib_pixmap_destroy( sgui_pixmap* super )
     free( this );
 }
 
-void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
-                       const unsigned char* data, unsigned int scan,
-                       unsigned int width, unsigned int height, int format )
+void xrender_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
+                          const unsigned char* data, unsigned int scan,
+                          unsigned int width, unsigned int height,
+                          int format )
 {
-    xlib_pixmap* this = (xlib_pixmap*)super;
+    xrender_pixmap* this = (xrender_pixmap*)super;
     const unsigned char *src, *row;
     unsigned int i, j;
     XRenderColor c;
@@ -104,15 +105,15 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
 
 /****************************************************************************/
 
-sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
-                                 int format, Window wnd )
+sgui_pixmap* xrender_pixmap_create( unsigned int width, unsigned int height,
+                                    int format, Window wnd )
 {
-    xlib_pixmap* this = NULL;
+    xrender_pixmap* this = NULL;
     XRenderPictFormat* fmt;
     sgui_pixmap* super;
 
     /* create pixmap structure */
-    this = malloc( sizeof(xlib_pixmap) ); 
+    this = malloc( sizeof(xrender_pixmap) ); 
     super = (sgui_pixmap*)this;
 
     if( !this )
@@ -120,8 +121,8 @@ sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
 
     super->width   = width;
     super->height  = height;
-    super->destroy = xlib_pixmap_destroy;
-    super->load    = xlib_pixmap_load;
+    super->destroy = xrender_pixmap_destroy;
+    super->load    = xrender_pixmap_load;
 
     sgui_internal_lock_mutex( );
 

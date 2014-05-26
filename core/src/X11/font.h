@@ -28,14 +28,9 @@
 
 
 #include "sgui_font.h"
-#include "sgui_font_cache.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-/* default size of the font cache pixmap */
-#define FONT_MAP_WIDTH 256
-#define FONT_MAP_HEIGHT 256
 
 #ifdef MACHINE_OS_UNIX
     #define SYS_FONT_PATH "/usr/share/fonts/TTF/"
@@ -60,9 +55,6 @@ struct sgui_font
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* returns a pointer to the global font cache */
-sgui_font_cache* get_glyph_cache( void );
 
 /* called by sgui_init( ) to initialize the font rendering system */
 int font_init( void );

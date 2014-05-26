@@ -26,23 +26,49 @@
 #define X11_CANVAS_H
 
 #include "sgui_canvas.h"
+#include "sgui_font_cache.h"
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 
+#include <X11/extensions/Xrender.h>
+
+
+/* default size of the font cache pixmap */
+#define FONT_MAP_WIDTH 256
+#define FONT_MAP_HEIGHT 256
+
+
+typedef struct
+{
+    sgui_canvas super;
+
+    Window wnd;
+    Picture wndpic;
+
+    Picture pen;
+    Pixmap penmap;
+
+    Picture pic;
+    Pixmap pixmap;
+
+    sgui_font_cache* cache;
+}
+sgui_canvas_xrender;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* create an xlib canvas */
-sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
-                                 unsigned int height );
+/* create an xrender based canvas */
+sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
+                                    unsigned int height );
 
 /* display a canvas on a same sized X window */
-void canvas_xlib_display( sgui_canvas* cv, int x, int y,
-                          unsigned int width, unsigned int height );
+void canvas_xrender_display( sgui_canvas* cv, int x, int y,
+                             unsigned int width, unsigned int height );
 
 #ifdef __cplusplus
 }

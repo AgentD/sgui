@@ -45,7 +45,7 @@ typedef struct
     Pixmap pix;
     Picture pic;
 }
-xlib_pixmap;
+xrender_pixmap;
 
 
 
@@ -53,9 +53,9 @@ xlib_pixmap;
 extern "C" {
 #endif
 
-/* create an xlib pixmap */
-sgui_pixmap* xlib_pixmap_create( unsigned int width, unsigned int height,
-                                 int format, Window wnd );
+/* create an xrender pixmap */
+sgui_pixmap* xrender_pixmap_create( unsigned int width, unsigned int height,
+                                    int format, Window wnd );
 
 #ifdef __cplusplus
 }

@@ -28,7 +28,6 @@
 
 
 static FT_Library freetype = 0;
-static sgui_font_cache* glyph_cache = NULL;
 
 
 
@@ -39,35 +38,10 @@ int font_init( void )
 
 void font_deinit( void )
 {
-    if( glyph_cache )
-        sgui_font_cache_destroy( glyph_cache );
-
     if( freetype )
         FT_Done_FreeType( freetype );
 
-    glyph_cache = NULL;
     freetype = 0;
-}
-
-sgui_font_cache* get_glyph_cache( void )
-{
-    sgui_pixmap* font_map;
-
-    if( !glyph_cache )
-    {
-        font_map = xlib_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
-                                       SGUI_A8, root );
-
-        if( font_map )
-        {
-            glyph_cache = sgui_font_cache_create( font_map );
-
-            if( !glyph_cache )
-                sgui_pixmap_destroy( font_map );
-        }
-    }
-
-    return glyph_cache;
 }
 
 /****************************************************************************/
