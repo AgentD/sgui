@@ -36,6 +36,8 @@
 
 #include "sgui_pixmap.h"
 
+#include "canvas.h"
+
 
 
 typedef struct
@@ -47,6 +49,22 @@ typedef struct
 }
 xrender_pixmap;
 
+typedef struct
+{
+    sgui_pixmap super;
+    int is_stencil;
+
+    sgui_canvas_xlib* owner;
+
+    union
+    {
+        Pixmap xpm;
+        unsigned char* pixels;
+    }
+    data;
+}
+xlib_pixmap;
+
 
 
 #ifdef __cplusplus
@@ -56,6 +74,11 @@ extern "C" {
 /* create an xrender pixmap */
 sgui_pixmap* xrender_pixmap_create( unsigned int width, unsigned int height,
                                     int format, Window wnd );
+
+/* create an xlib pixmap */
+sgui_pixmap* xlib_pixmap_create( sgui_canvas_xlib* owner, unsigned int width,
+                                 unsigned int height, int format,
+                                 Window wnd );
 
 #ifdef __cplusplus
 }

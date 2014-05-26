@@ -27,6 +27,87 @@
 
 
 
+void xlib_pixmap_destroy( sgui_pixmap* super )
+{
+    xlib_pixmap* this = (xlib_pixmap*)super;
+
+    if( this->is_stencil )
+    {
+        free( this->data.pixels );
+    }
+    else
+    {
+        sgui_internal_lock_mutex( );
+        XFreePixmap( dpy, this->data.xpm );
+        sgui_internal_unlock_mutex( );
+    }
+
+    free( this );
+}
+
+void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
+                       const unsigned char* data, unsigned int scan,
+                       unsigned int width, unsigned int height,
+                       int format )
+{
+    xlib_pixmap* this = (xlib_pixmap*)super;
+    const unsigned char *src, *row;
+    unsigned char *dst, *dstrow;
+    unsigned long r, g, b, a;
+    unsigned int i, j;
+
+    if( this->is_stencil && format!=SGUI_A8 )
+        return;
+
+    sgui_internal_lock_mutex( );
+
+    if( this->is_stencil )
+    {
+        dst = this->data.pixels + (dsty*super->width + dstx);
+
+        for( src=data, j=0; j<height; ++j, src+=scan, dst+=super->width )
+        {
+            for( dstrow=dst, row=src, i=0; i<width; ++i )
+            {
+                *(dstrow++) = *(row++);
+            }
+        }
+    }
+    else if( format==SGUI_RGBA8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan*4 )
+        {
+            for( row=src, i=0; i<width; ++i, row+=4 )
+            {
+                a =   row[3];
+                r = ((row[0]*a) >> 8) & 0x00FF;
+                g = ((row[1]*a) >> 8) & 0x00FF;
+                b = ((row[2]*a) >> 8) & 0x00FF;
+                XSetForeground( dpy, this->owner->gc, (r<<16) | (g<<8) | b );
+                XDrawPoint( dpy, this->data.xpm, this->owner->gc,
+                            dstx+i, dsty+j );
+            }
+        }
+    }
+    else if( format==SGUI_RGB8 )
+    {
+        for( src=data, j=0; j<height; ++j, src+=scan*3 )
+        {
+            for( row=src, i=0; i<width; ++i, row+=3 )
+            {
+                a = (row[0]<<16) | (row[1]<<8) | row[2];
+                XSetForeground( dpy, this->owner->gc, a );
+                XDrawPoint( dpy, this->data.xpm, this->owner->gc,
+                            dstx+i, dsty+j );
+            }
+        }
+    }
+
+    sgui_internal_unlock_mutex( );
+}
+
+/****************************************************************************/
+
 void xrender_pixmap_destroy( sgui_pixmap* super )
 {
     xrender_pixmap* this = (xrender_pixmap*)super;
@@ -157,6 +238,52 @@ sgui_pixmap* xrender_pixmap_create( unsigned int width, unsigned int height,
     }
 
     sgui_internal_unlock_mutex( );
+
+    return (sgui_pixmap*)this;
+}
+
+sgui_pixmap* xlib_pixmap_create( sgui_canvas_xlib* owner, unsigned int width,
+                                 unsigned int height, int format, Window wnd )
+{
+    sgui_pixmap* super;
+    xlib_pixmap* this;
+
+    this = malloc( sizeof(xlib_pixmap) );
+    super = (sgui_pixmap*)this;
+
+    if( this )
+    {
+        super->width   = width;
+        super->height  = height;
+        super->destroy = xlib_pixmap_destroy;
+        super->load    = xlib_pixmap_load;
+
+        this->is_stencil = format==SGUI_A8;
+        this->owner      = owner;
+
+        if( format==SGUI_A8 )
+        {
+            this->data.pixels = malloc( width*height );
+
+            if( !this->data.pixels )
+            {
+                free( this );
+                this = NULL;
+            }
+        }
+        else
+        {
+            sgui_internal_lock_mutex( );
+            this->data.xpm = XCreatePixmap( dpy, wnd, width, height, 24 );
+            sgui_internal_unlock_mutex( );
+
+            if( !this->data.xpm )
+            {
+                free( this );
+                this = NULL;
+            }
+        }
+    }
 
     return (sgui_pixmap*)this;
 }

@@ -381,9 +381,8 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case Expose:
         if( super->backend==SGUI_NATIVE )
         {
-            canvas_xrender_display( super->ctx.canvas,
-                                    e->xexpose.x, e->xexpose.y,
-                                    e->xexpose.width, e->xexpose.height );
+            canvas_x11_display( super->ctx.canvas, e->xexpose.x, e->xexpose.y,
+                                e->xexpose.width, e->xexpose.height );
         }
         else if( super->backend==SGUI_OPENGL_CORE ||
                  super->backend==SGUI_OPENGL_COMPAT )
@@ -514,6 +513,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     {
         super->ctx.canvas = canvas_xrender_create( this->wnd, attr.width,
                                                    attr.height );
+
+        if( !super->ctx.canvas )
+            super->ctx.canvas = canvas_xlib_create( this->wnd, attr.width,
+                                                    attr.height );
 
         if( !super->ctx.canvas )
             goto failure;
