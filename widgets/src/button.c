@@ -77,7 +77,7 @@ sgui_button;
 
 
 
-static void button_select( sgui_button* this, int select, int postevent )
+static void button_select( sgui_button* this, int selected, int postevent )
 {
     sgui_button* i;
     sgui_event ev;
@@ -88,8 +88,8 @@ static void button_select( sgui_button* this, int select, int postevent )
 
     sgui_internal_lock_mutex( );
 
-    this->flags = select ? (this->flags | SELECTED) : 
-                           (this->flags & (~SELECTED));
+    this->flags = selected ? (this->flags | SELECTED) : 
+                             (this->flags & (~SELECTED));
 
     sgui_widget_get_absolute_rect( &(this->super), &r );
     sgui_canvas_add_dirty_rect( this->super.canvas, &r );
@@ -97,7 +97,7 @@ static void button_select( sgui_button* this, int select, int postevent )
     if( postevent )
     {
         ev.src.widget = (sgui_widget*)this;
-        ev.type = select ? SGUI_BUTTON_IN_EVENT : SGUI_BUTTON_OUT_EVENT;
+        ev.type = selected ? SGUI_BUTTON_IN_EVENT : SGUI_BUTTON_OUT_EVENT;
         sgui_event_post( &ev );
     }
 
