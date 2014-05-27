@@ -72,13 +72,12 @@ extern "C" {
 #endif
 
 /* create an xrender pixmap */
-sgui_pixmap* xrender_pixmap_create( unsigned int width, unsigned int height,
-                                    int format, Window wnd );
+sgui_pixmap* xrender_pixmap_create( sgui_canvas* canvas, unsigned int width,
+                                    unsigned int height, int format );
 
 /* create an xlib pixmap */
-sgui_pixmap* xlib_pixmap_create( sgui_canvas_xlib* owner, unsigned int width,
-                                 unsigned int height, int format,
-                                 Window wnd );
+sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
+                                 unsigned int height, int format );
 
 #ifdef __cplusplus
 }

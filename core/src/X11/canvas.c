@@ -226,6 +226,7 @@ static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
     src = pix->data.pixels + (r->top*pixmap->width + r->left);
     C = (color[0]<<16) | (color[1]<<8) | color[2];
 
+    sgui_internal_lock_mutex( );
     for( Y=r->top; Y<=r->bottom; ++Y, src+=pixmap->width )
     {
         for( src_row=src, X=r->left; X<=r->right; ++X, ++src_row )
@@ -238,17 +239,7 @@ static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
             }
         }
     }
-}
-
-static sgui_pixmap* canvas_xlib_create_pixmap( sgui_canvas* super,
-                                               unsigned int width,
-                                               unsigned int height,
-                                               int format )
-{
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
-
-    return xlib_pixmap_create( this, width, height, format,
-                               ((sgui_canvas_x11*)this)->wnd );
+    sgui_internal_unlock_mutex( );
 }
 
 static void canvas_xlib_display( sgui_canvas_x11* super, int x, int y,
@@ -414,17 +405,6 @@ static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
     sgui_internal_unlock_mutex( );
 }
 
-static sgui_pixmap* canvas_xrender_create_pixmap( sgui_canvas* super,
-                                                  unsigned int width,
-                                                  unsigned int height,
-                                                  int format )
-{
-    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
-
-    return xrender_pixmap_create( width, height, format,
-                                  ((sgui_canvas_x11*)this)->wnd );
-}
-
 static void canvas_xrender_display( sgui_canvas_x11* super, int x, int y,
                                     unsigned int width, unsigned int height )
 {
@@ -503,7 +483,7 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
     super->blend_glyph   = canvas_xrender_blend_glyph;
     super->clear         = canvas_xrender_clear;
     super->draw_string   = canvas_x11_draw_string;
-    super->create_pixmap = canvas_xrender_create_pixmap;
+    super->create_pixmap = xrender_pixmap_create;
     super->draw_box      = canvas_xrender_draw_box;
 
     ((sgui_canvas_x11*)this)->cache         = NULL;
@@ -563,7 +543,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     super->blend_glyph   = canvas_xlib_blend_glyph;
     super->clear         = canvas_xlib_clear;
     super->draw_string   = canvas_x11_draw_string;
-    super->create_pixmap = canvas_xlib_create_pixmap;
+    super->create_pixmap = xlib_pixmap_create;
     super->draw_box      = canvas_xlib_draw_box;
 
     ((sgui_canvas_x11*)this)->cache         = NULL;
