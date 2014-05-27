@@ -29,20 +29,92 @@
 
 
 
+static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
+                                   sgui_font* font, unsigned char* color,
+                                   const char* text, unsigned int length )
+{
+    sgui_canvas_x11* this = (sgui_canvas_x11*)super;
+    unsigned int i, len, character, previous=0;
+    sgui_pixmap* font_map;
+    int oldx = x;
+
+    sgui_internal_lock_mutex( );
+
+    if( !this->cache )
+    {
+        font_map = super->create_pixmap( super,
+                                         FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
+                                         SGUI_A8 );
+
+        if( !font_map )
+        {
+            sgui_internal_unlock_mutex( );
+            return super->width;
+        }
+
+        if( !(this->cache = sgui_font_cache_create( font_map )) )
+        {
+            sgui_pixmap_destroy( font_map );
+            sgui_internal_unlock_mutex( );
+            return super->width;
+        }
+    }
+
+    this->set_clip_rect( this, super->sc.left, super->sc.top,
+                         SGUI_RECT_WIDTH(super->sc),
+                         SGUI_RECT_HEIGHT(super->sc) );
+
+    /* for each character */
+    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
+    {
+        /* load the next glyph */
+        character = sgui_utf8_decode( text, &len );
+
+        /* apply kerning */
+        x += sgui_font_get_kerning_distance( font, previous, character );
+
+        /* blend onto destination buffer */
+        x += sgui_font_cache_draw_glyph( this->cache, font, character,
+                                         x, y, super, color ) + 1;
+
+        /* store previous glyph index for kerning */
+        previous = character;
+    }
+
+    this->set_clip_rect( this, 0, 0, super->width, super->height );
+    sgui_internal_unlock_mutex( );
+    return x - oldx;
+}
+
 /************************ xlib based implementation ************************/
 static void canvas_xlib_destroy( sgui_canvas* super )
 {
     sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
     sgui_internal_lock_mutex( );
-    if( this->cache )
-        sgui_font_cache_destroy( this->cache );
+    if( ((sgui_canvas_x11*)this)->cache )
+        sgui_font_cache_destroy( ((sgui_canvas_x11*)this)->cache );
 
     XFreeGC( dpy, this->gc );
     XFreePixmap( dpy, this->pixmap );
     sgui_internal_unlock_mutex( );
 
     free( this );
+}
+
+static void canvas_xlib_set_clip_rect( sgui_canvas_x11* super,
+                                       int left, int top,
+                                       int width, int height )
+{
+    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
+    XRectangle r;
+    r.x      = left;
+    r.y      = top;
+    r.width  = width;
+    r.height = height;
+    sgui_internal_lock_mutex( );
+    XSetClipRectangles( dpy, this->gc, 0, 0, &r, 1, Unsorted );
+    sgui_internal_unlock_mutex( );
 }
 
 static void canvas_xlib_resize( sgui_canvas* super, unsigned int width,
@@ -168,74 +240,6 @@ static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
     }
 }
 
-static int canvas_xlib_draw_string( sgui_canvas* super, int x, int y,
-                                    sgui_font* font, unsigned char* color,
-                                    const char* text, unsigned int length )
-{
-    int oldx = x;
-    unsigned int i, len = 0;
-    unsigned long character, previous=0;
-    sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
-    sgui_pixmap* font_map;
-    XRectangle r;
-
-    sgui_internal_lock_mutex( );
-
-    if( !this->cache )
-    {
-        font_map = xlib_pixmap_create( this, FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
-                                       SGUI_A8, this->pixmap );
-
-        if( !font_map )
-        {
-            sgui_internal_unlock_mutex( );
-            return super->width;
-        }
-
-        this->cache = sgui_font_cache_create( font_map );
-
-        if( !this->cache )
-        {
-            sgui_pixmap_destroy( font_map );
-            sgui_internal_unlock_mutex( );
-            return super->width;
-        }
-    }
-
-    r.x = super->sc.left;
-    r.y = super->sc.top;
-    r.width = SGUI_RECT_WIDTH( super->sc );
-    r.height = SGUI_RECT_HEIGHT( super->sc );
-    XSetClipRectangles( dpy, this->gc, 0, 0, &r, 1, Unsorted );
-
-    /* for each character */
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
-    {
-        /* load the next glyph */
-        character = sgui_utf8_decode( text, &len );
-
-        /* apply kerning */
-        x += sgui_font_get_kerning_distance( font, previous, character );
-
-        /* blend onto destination buffer */
-        x += sgui_font_cache_draw_glyph( this->cache, font, character,
-                                         x, y, super, color ) + 1;
-
-        /* store previous glyph index for kerning */
-        previous = character;
-    }
-
-    r.x = 0;
-    r.y = 0;
-    r.width = super->width;
-    r.height = super->height;
-    XSetClipRectangles( dpy, this->gc, 0, 0, &r, 1, Unsorted );
-
-    sgui_internal_unlock_mutex( );
-
-    return x - oldx;
-}
-
 static sgui_pixmap* canvas_xlib_create_pixmap( sgui_canvas* super,
                                                unsigned int width,
                                                unsigned int height,
@@ -265,7 +269,8 @@ static void canvas_xrender_destroy( sgui_canvas* super )
 
     sgui_internal_lock_mutex( );
 
-    if( this->cache ) sgui_font_cache_destroy( this->cache );
+    if( ((sgui_canvas_x11*)this)->cache )
+        sgui_font_cache_destroy( ((sgui_canvas_x11*)this)->cache );
 
     if( this->pic ) XRenderFreePicture( dpy, this->pic );
     if( this->pen ) XRenderFreePicture( dpy, this->pen );
@@ -277,6 +282,21 @@ static void canvas_xrender_destroy( sgui_canvas* super )
     sgui_internal_unlock_mutex( );
 
     free( this );
+}
+
+static void canvas_xrender_set_clip_rect( sgui_canvas_x11* super,
+                                          int left, int top,
+                                          int width, int height )
+{
+    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
+    XRectangle r;
+    r.x      = left;
+    r.y      = top;
+    r.width  = width;
+    r.height = height;
+    sgui_internal_lock_mutex( );
+    XRenderSetPictureClipRectangles( dpy, this->pic, 0, 0, &r, 1 );
+    sgui_internal_unlock_mutex( );
 }
 
 static void canvas_xrender_resize( sgui_canvas* super, unsigned int width,
@@ -394,74 +414,6 @@ static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
     sgui_internal_unlock_mutex( );
 }
 
-static int canvas_xrender_draw_string( sgui_canvas* super, int x, int y,
-                                       sgui_font* font, unsigned char* color,
-                                       const char* text, unsigned int length )
-{
-    int oldx = x;
-    unsigned int i, len = 0;
-    unsigned long character, previous=0;
-    sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
-    sgui_pixmap* font_map;
-    XRectangle r;
-
-    sgui_internal_lock_mutex( );
-
-    if( !this->cache )
-    {
-        font_map = xrender_pixmap_create( FONT_MAP_WIDTH, FONT_MAP_HEIGHT,
-                                          SGUI_A8, root );
-
-        if( !font_map )
-        {
-            sgui_internal_unlock_mutex( );
-            return super->width;
-        }
-
-        this->cache = sgui_font_cache_create( font_map );
-
-        if( !this->cache )
-        {
-            sgui_pixmap_destroy( font_map );
-            sgui_internal_unlock_mutex( );
-            return super->width;
-        }
-    }
-
-    r.x = super->sc.left;
-    r.y = super->sc.top;
-    r.width = SGUI_RECT_WIDTH( super->sc );
-    r.height = SGUI_RECT_HEIGHT( super->sc );
-    XRenderSetPictureClipRectangles( dpy, this->pic, 0, 0, &r, 1 );
-
-    /* for each character */
-    for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
-    {
-        /* load the next glyph */
-        character = sgui_utf8_decode( text, &len );
-
-        /* apply kerning */
-        x += sgui_font_get_kerning_distance( font, previous, character );
-
-        /* blend onto destination buffer */
-        x += sgui_font_cache_draw_glyph( this->cache, font, character,
-                                         x, y, super, color ) + 1;
-
-        /* store previous glyph index for kerning */
-        previous = character;
-    }
-
-    r.x = 0;
-    r.y = 0;
-    r.width = super->width;
-    r.height = super->height;
-    XRenderSetPictureClipRectangles( dpy, this->pic, 0, 0, &r, 1 );
-
-    sgui_internal_unlock_mutex( );
-
-    return x - oldx;
-}
-
 static sgui_pixmap* canvas_xrender_create_pixmap( sgui_canvas* super,
                                                   unsigned int width,
                                                   unsigned int height,
@@ -542,8 +494,6 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
 
     /* finish initialisation */
     sgui_internal_canvas_init( super, width, height );
-    this->cache = NULL;
-
     sgui_internal_unlock_mutex( );
 
     super->destroy       = canvas_xrender_destroy;
@@ -552,12 +502,14 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
     super->blend         = canvas_xrender_blend;
     super->blend_glyph   = canvas_xrender_blend_glyph;
     super->clear         = canvas_xrender_clear;
-    super->draw_string   = canvas_xrender_draw_string;
+    super->draw_string   = canvas_x11_draw_string;
     super->create_pixmap = canvas_xrender_create_pixmap;
     super->draw_box      = canvas_xrender_draw_box;
 
-    ((sgui_canvas_x11*)this)->wnd     = wnd;
-    ((sgui_canvas_x11*)this)->display = canvas_xrender_display;
+    ((sgui_canvas_x11*)this)->cache         = NULL;
+    ((sgui_canvas_x11*)this)->wnd           = wnd;
+    ((sgui_canvas_x11*)this)->display       = canvas_xrender_display;
+    ((sgui_canvas_x11*)this)->set_clip_rect = canvas_xrender_set_clip_rect;
 
     return (sgui_canvas*)this;
 failure:
@@ -601,7 +553,6 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     /* finish initialisation */
     sgui_internal_canvas_init( super, width, height );
     sgui_skin_get_window_background_color( this->bg );
-    this->cache = NULL;
 
     sgui_internal_unlock_mutex( );
 
@@ -611,12 +562,14 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     super->blend         = canvas_xlib_blit;
     super->blend_glyph   = canvas_xlib_blend_glyph;
     super->clear         = canvas_xlib_clear;
-    super->draw_string   = canvas_xlib_draw_string;
+    super->draw_string   = canvas_x11_draw_string;
     super->create_pixmap = canvas_xlib_create_pixmap;
     super->draw_box      = canvas_xlib_draw_box;
 
-    ((sgui_canvas_x11*)this)->wnd     = wnd;
-    ((sgui_canvas_x11*)this)->display = canvas_xlib_display;
+    ((sgui_canvas_x11*)this)->cache         = NULL;
+    ((sgui_canvas_x11*)this)->wnd           = wnd;
+    ((sgui_canvas_x11*)this)->display       = canvas_xlib_display;
+    ((sgui_canvas_x11*)this)->set_clip_rect = canvas_xlib_set_clip_rect;
 
     return (sgui_canvas*)this;
 }
