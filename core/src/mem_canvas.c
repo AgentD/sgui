@@ -226,6 +226,10 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
     unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*3;
     unsigned int i, j;
 
+    unsigned int R = this->swaprb ? color[2] : color[0];
+    unsigned int G = color[1];
+    unsigned int B = this->swaprb ? color[0] : color[2];
+
     for( j=0; j<h; ++j, buffer+=scan, dst+=super->width*3 )
     {
         for( src=buffer, row=dst, i=0; i<w; ++i, row+=3, ++src )
@@ -233,9 +237,9 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
             A = *src;
             iA = 0xFF-A;
 
-            row[0] = (row[0] * iA + color[0] * A)>>8;
-            row[1] = (row[1] * iA + color[1] * A)>>8;
-            row[2] = (row[2] * iA + color[2] * A)>>8;
+            row[0] = (row[0] * iA + R * A)>>8;
+            row[1] = (row[1] * iA + G * A)>>8;
+            row[2] = (row[2] * iA + B * A)>>8;
         }
     }
 }
@@ -395,6 +399,10 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
     unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*4;
     unsigned int i, j;
 
+    unsigned int R = this->swaprb ? color[2] : color[0];
+    unsigned int G = color[1];
+    unsigned int B = this->swaprb ? color[0] : color[2];
+
     for( j=0; j<h; ++j, buffer+=scan, dst+=super->width*4 )
     {
         for( src=buffer, row=dst, i=0; i<w; ++i, row+=4, ++src )
@@ -402,10 +410,10 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
             A = *src;
             iA = 0xFF-A;
 
-            row[0] = (row[0] * iA + color[0] * A)>>8;
-            row[1] = (row[1] * iA + color[1] * A)>>8;
-            row[2] = (row[2] * iA + color[2] * A)>>8;
-            row[3] = (row[3] * iA + (A<<8)      ) >> 8;
+            row[0] = (row[0] * iA +  R * A)>>8;
+            row[1] = (row[1] * iA +  G * A)>>8;
+            row[2] = (row[2] * iA +  B * A)>>8;
+            row[3] = (row[3] * iA + (A<<8)) >> 8;
         }
     }
 }
