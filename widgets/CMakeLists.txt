@@ -12,7 +12,7 @@ set( WIDGETS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/button.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/progress_bar.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/scroll_bar.c
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/static_text.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/label.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/subview.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/tab.c
 

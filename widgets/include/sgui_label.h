@@ -1,5 +1,5 @@
 /*
- * sgui_static_text.h
+ * sgui_label.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,8 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_STATIC_TEXT_H
-#define SGUI_STATIC_TEXT_H
+#ifndef SGUI_LABEL_H
+#define SGUI_LABEL_H
 
 
 
@@ -37,7 +37,7 @@ extern "C"
 #endif
 
 /**
- * \brief Create a static text widget
+ * \brief Create a label widget that can display static text
  *
  * \param x    The x component of the widget position.
  * \param y    The y component of the widget position.
@@ -47,8 +47,7 @@ extern "C"
  *             switch text color. The color value "default" switches back to
  *             the default color.
  */
-SGUI_DLL sgui_widget* sgui_static_text_create( int x, int y,
-                                               const char* text );
+SGUI_DLL sgui_widget* sgui_label_create( int x, int y, const char* text );
 
 #ifdef __cplusplus
 }

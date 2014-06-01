@@ -1,5 +1,5 @@
 /*
- * static_text.c
+ * label.c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "sgui_static_text.h"
+#include "sgui_label.h"
 #include "sgui_canvas.h"
 #include "sgui_skin.h"
 #include "sgui_font.h"
@@ -41,33 +41,33 @@ typedef struct
 
     char* text;
 }
-sgui_static_text;
+sgui_label;
 
 
 
-static void static_text_draw( sgui_widget* super )
+static void label_draw( sgui_widget* super )
 {
-    sgui_static_text* this = (sgui_static_text*)super;
+    sgui_label* this = (sgui_label*)super;
 
     sgui_canvas_draw_text( super->canvas, super->area.left, super->area.top,
                            this->text );
 }
 
-static void static_text_destroy( sgui_widget* this )
+static void label_destroy( sgui_widget* this )
 {
-    free( ((sgui_static_text*)this)->text );
+    free( ((sgui_label*)this)->text );
     free( this );
 }
 
 
 
-sgui_widget* sgui_static_text_create( int x, int y, const char* text )
+sgui_widget* sgui_label_create( int x, int y, const char* text )
 {
-    sgui_static_text* this;
+    sgui_label* this;
     sgui_widget* super;
 
     /* create widget */
-    this = malloc( sizeof(sgui_static_text) );
+    this = malloc( sizeof(sgui_label) );
     super = (sgui_widget*)this;
 
     if( !this )
@@ -85,8 +85,8 @@ sgui_widget* sgui_static_text_create( int x, int y, const char* text )
     /* initialise the base widget */
     sgui_internal_widget_init( (sgui_widget*)this, 0, 0, 0, 0 );
 
-    super->draw_callback = static_text_draw;
-    super->destroy       = static_text_destroy;
+    super->draw_callback = label_draw;
+    super->destroy       = label_destroy;
     super->focus_policy  = 0;
 
     /* copy the text */

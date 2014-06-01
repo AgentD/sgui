@@ -95,9 +95,8 @@
  *     sgui_window_move_center( wnd );
  *     sgui_window_set_visible( wnd, SGUI_VISIBLE );
  *
- *     text = sgui_static_text_create( 10, 10,
- *                                     "To close the window,\n"
- *                                     "press <color=\"#FF0000\">close");
+ *     text = sgui_label_create( 10, 10, "To close the window,\n"
+ *                                       "press <color=\"#FF0000\">close");
  *
  *     button = sgui_button_create( 30, 60, 75, 30, "Close", 0 );
  *
@@ -145,9 +144,9 @@
 #include "sgui_group_box.h"
 #include "sgui_icon_view.h"
 #include "sgui_image.h"
+#include "sgui_label.h"
 #include "sgui_progress_bar.h"
 #include "sgui_scroll_bar.h"
-#include "sgui_static_text.h"
 #include "sgui_subview.h"
 #include "sgui_tab.h"
 

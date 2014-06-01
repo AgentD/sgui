@@ -31,8 +31,8 @@ int main( )
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
     /* create some widgets */
-    text = sgui_static_text_create( 10, 10, "To close the window,\n"
-                                            "press <color=\"#FF0000\">close");
+    text = sgui_label_create( 10, 10, "To close the window,\n"
+                                      "press <color=\"#FF0000\">close");
 
     button = sgui_button_create( 30, 60, 75, 30, "Close", 0 );
 

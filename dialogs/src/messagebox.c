@@ -23,12 +23,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "sgui_static_text.h"
 #include "sgui_messagebox.h"
 #include "sgui_internal.h"
 #include "sgui_button.h"
 #include "sgui_widget.h"
 #include "sgui_image.h"
+#include "sgui_label.h"
 #include "sgui_event.h"
 #include "sgui_rect.h"
 
@@ -320,7 +320,7 @@ sgui_message_box* sgui_message_box_create( int icon, const char* caption,
 
     /* create widgets */
     y = ICON_HEIGHT>text_h ? (ICON_HEIGHT-text_h)/2 : 0;
-    this->text = sgui_static_text_create( 10+ICON_WIDTH+10, y+10, text );
+    this->text = sgui_label_create( 10+ICON_WIDTH+10, y+10, text );
 
     if( !this->text )
         goto fail;

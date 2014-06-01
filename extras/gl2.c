@@ -44,7 +44,7 @@ int main( void )
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
     /* create some widgets */
-    text = sgui_static_text_create(10, 130, "OpenGL\302\256 subview widget");
+    text = sgui_label_create(10, 130, "OpenGL\302\256 subview widget");
     button = sgui_button_create( 10, 155, 75, 30, "Refresh", 0 );
     gl_view = sgui_subview_create( wnd, 10, 10, 180, 120,
                                    SGUI_OPENGL_COMPAT, NULL );

@@ -250,7 +250,7 @@ int main( int argc, char** argv )
     /* static widget tab */
     sgui_tab_group_add_tab( tab, "Static" );
 
-    tex = sgui_static_text_create( 10, 175, text );
+    tex = sgui_label_create( 10, 175, text );
 
     i0 = sgui_image_create(  10, 25, 128, 128, image, SGUI_RGBA8, 0, 1 );
     i1 = sgui_image_create( 150, 25, 128, 128, image, SGUI_RGBA8, 1, 1 );
@@ -291,8 +291,8 @@ int main( int argc, char** argv )
         gl_view=sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT,NULL);
         gl_view2 = sgui_subview_create(a,250,25,200,150,
                                        SGUI_OPENGL_COMPAT,NULL);
-        gl_sub0 = sgui_static_text_create( 45, 175, "Redraw on demand" );
-        gl_sub1 = sgui_static_text_create( 275, 175, "Redraw continuous" );
+        gl_sub0 = sgui_label_create( 45, 175, "Redraw on demand" );
+        gl_sub1 = sgui_label_create( 275, 175, "Redraw continuous" );
 
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 

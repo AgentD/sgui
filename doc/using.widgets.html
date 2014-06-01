@@ -36,27 +36,27 @@ function:
 </p>
 
 The <b>sgui_widget</b> structure represents a widget. We will create two
-simple widgets in this example, a static text widget, which only draws a text
+simple widgets in this example, a label widget, which only draws a text
 onto the window and a button that the user can click.<br><br>
 
 Now lets create those two widgets:
 
 <p class="code">
 &nbsp;&nbsp;&nbsp;&nbsp;...<br>
-&nbsp;&nbsp;&nbsp;&nbsp;text = sgui_static_text_create( <font class="number">10</font>, <font class="number">10</font>, <font class="string">"To close the window,\npress &lt;color=\"#FF0000\"&gt;close"</font> );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;text = sgui_label_create( <font class="number">10</font>, <font class="number">10</font>, <font class="string">"To close the window,\npress &lt;color=\"#FF0000\"&gt;close"</font> );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;button = sgui_button_create( <font class="number">30</font>, <font class="number">60</font>, <font class="number">75</font>, <font class="number">30</font>, <font class="string">"Close"</font>, <font class="number">0</font> );<br>
 &nbsp;&nbsp;&nbsp;&nbsp;...
 </p>
 
-The <b>sgui_static_text_create</b> function creates a static text widget and
+The <b>sgui_label_create</b> function creates a label widget and
 the <b>sgui_button_create</b> function creates a button widget.<br>
 Both functions take a position as their first two parameters, i.e. a distance
 from the left of the window and a distance from the top of the window, each
-<i>in pixels</i>. The static text is positioned at (10,10) and the button
+<i>in pixels</i>. The label is positioned at (10,10) and the button
 at (30,60).<br>
 <br>
-The next parameter of the <b>sgui_static_text_create</b> function is a string
+The next parameter of the <b>sgui_label_create</b> function is a string
 to display. As you can see from the result, we can make line breaks by using
 '\n' and change the color using a pseudo HTML &lt;color=#RRGGBB&gt; tag. We
 could also write bold and italic text using &lt;b&gt; and &lt;i&gt; tags, but
