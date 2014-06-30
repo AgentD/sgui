@@ -39,28 +39,130 @@
 
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * \brief A callback for listening to window events
+ *
+ * \param user  The user pointer data added to the window
+ * \param event Additional data to the event
+ */
+typedef void (* sgui_window_callback ) (void* user, const sgui_event* event);
 
 
 
-#define SGUI_RESIZEABLE 1
-#define SGUI_FIXED_SIZE 0
+struct sgui_window
+{
+    union
+    {
+        sgui_canvas* canvas;       /**< \brief pointer to a canvas */
+        sgui_context* gl;          /**< \brief Pointer to OpenGL context */
+    }
+    ctx;
 
-#define SGUI_DOUBLEBUFFERED 1
-#define SGUI_SINGLEBUFFERED 0
+    sgui_window_callback event_fun; /**< \brief the window event callback */
 
-#define SGUI_VISIBLE   1
-#define SGUI_INVISIBLE 0
+    int x, y;                   /**< \brief position of the window */
+    unsigned int w, h;          /**< \brief the size of the window */
 
-#define SGUI_NATIVE        0
-#define SGUI_OPENGL_CORE   1
-#define SGUI_OPENGL_COMPAT 2
+    int visible;                /**< \brief Window visibility */
+    int modmask;                /**< \brief Keyboard modifyer mask */
+    int backend;                /**< \brief Window backend used */
+
+    void* userptr;
+
+    /**
+     * \brief Called by sgui_window_get_mouse_position
+     *
+     * \param wnd Pointer to the window itself
+     * \param x   Pointer to the x return value, never NULL, adjusted to
+     *            window dimensions after return
+     * \param y   Pointer to the y return value, never NULL, adjusted to
+     *            window dimensions after return
+     */
+    void (* get_mouse_position )( sgui_window* wnd, int* x, int* y );
+
+    /**
+     * \brief Called by sgui_window_set_mouse_position
+     *
+     * \param wnd Pointer to the window itself
+     * \param x   The horizontal component of the position, already
+     *            adjusted to the window size
+     * \param y   The vertical component of the position, already
+     *            adjusted to the window size
+     */
+    void (* set_mouse_position )( sgui_window* wnd, int x, int y );
+
+    /** \copydoc Called by sgui_window_set_visible */
+    void (* set_visible )( sgui_window* wnd, int visible );
+
+    /** \copydoc Called by sgui_window_set_visible */
+    void (* set_title )( sgui_window* wnd, const char* title );
+
+    /**
+     * \brief Called by sgui_window_set_size
+     *
+     * The sgui_window_set_size function takes care of also resizing the
+     * canvas and redrawing the widget, if the backend is SGUI_NATIVE.
+     *
+     * \param wnd    Pointer to the window itself
+     * \param width  New width of the window
+     * \param height New height of the window
+     */
+    void (* set_size )( sgui_window* wnd,
+                        unsigned int width, unsigned int height );
+
+    /** \copydoc Called by sgui_window_move_center */
+    void (* move_center )( sgui_window* wnd );
+
+    /** \copydoc sgui_window_move */
+    void (* move )( sgui_window* wnd, int x, int y );
+
+    /**
+     * \copydoc sgui_window_swap_buffers
+     *
+     * \note Can be set to NULL if not needed by the implementation.
+     */
+    void (* swap_buffers )( sgui_window* wnd );
+
+    /** \copydoc sgui_window_destroy */
+    void (* destroy )( sgui_window* wnd );
+
+    /**
+     * \brief Called by sgui_window_force_redraw
+     *
+     * \param wnd Pointer to the window itself
+     * \param r   Pointer to a rect to redraw (clamped to window dimesions)
+     */
+    void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
+
+    /**
+     * \copydoc Called by sgui_window_set_vsync.
+     *
+     * \note May be NULL if not implemented
+     */
+    void (* set_vsync )( sgui_window* wnd, int interval );
+
+    /** \copydoc sgui_window_get_platform_data */
+    void (* get_platform_data )( const sgui_window* wnd, void* ptr );
+
+    /**
+     * \copydoc sgui_window_write_clipboard
+     *
+     * \note May be NULL if not implemented
+     */
+    void (* write_clipboard )( sgui_window* wnd, const char* text,
+                               unsigned int length );
+
+    /**
+     * \copydoc sgui_window_read_clipboard
+     *
+     * \note May be NULL if not implemented
+     */
+    const char* (* read_clipboard )( sgui_window* wnd );
+};
 
 
 
-typedef struct
+struct sgui_window_description
 {
     /**
      * \brief A pointer to the parent window, or NULL for root window
@@ -116,20 +218,28 @@ typedef struct
     int depth_bits;   /**< \brief The number of bits for the depth buffer */
     int stencil_bits; /**< \brief The number of bits for the stencil buffer */
     int samples;    /**< \brief Desired number of multisampling samples */
-}
-sgui_window_description;
+};
 
 
 
-/**
- * \brief A callback for listening to window events
- *
- * \param user  The user pointer data added to the window
- * \param event Additional data to the event
- */
-typedef void (* sgui_window_callback ) (void* user, const sgui_event* event);
+#define SGUI_RESIZEABLE 1
+#define SGUI_FIXED_SIZE 0
+
+#define SGUI_DOUBLEBUFFERED 1
+#define SGUI_SINGLEBUFFERED 0
+
+#define SGUI_VISIBLE   1
+#define SGUI_INVISIBLE 0
+
+#define SGUI_NATIVE        0
+#define SGUI_OPENGL_CORE   1
+#define SGUI_OPENGL_COMPAT 2
 
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief Create a window
@@ -443,7 +553,6 @@ SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
  *        context object
  */
 SGUI_DLL sgui_context* sgui_window_get_context( const sgui_window* wnd );
-
 
 #ifdef __cplusplus
 }

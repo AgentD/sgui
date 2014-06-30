@@ -38,6 +38,23 @@
 
 
 
+struct sgui_context
+{
+    /** \copydoc sgui_context_destroy */
+    void (* destroy )( sgui_context* ctx );
+
+    /** \copydoc sgui_context_make_current */
+    void (* make_current )( sgui_context* ctx, sgui_window* wnd );
+
+    /** \copydoc sgui_context_release_current */
+    void (* release_current )( sgui_context* ctx );
+
+    /** \copydoc sgui_context_load */
+    sgui_funptr (* load )( sgui_context* ctx, const char* name );
+};
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

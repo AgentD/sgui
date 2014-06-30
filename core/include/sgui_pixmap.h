@@ -39,6 +39,32 @@
 
 
 
+struct sgui_pixmap
+{
+    unsigned int width, height;     /**< \brief Size of the pixmap */
+
+    /** \copydoc sgui_pixmap_destroy */
+    void(* destroy )( sgui_pixmap* pixmap );
+
+    /**
+     * \brief Gets called by sgui_pixmap_load
+     *
+     * \param pixmap A pointer to the pixmap
+     * \param dstx   Offset from the left of the pixmap
+     * \param dsty   Offset from the top of the pixmap
+     * \param data   A pointer to the first pixel
+     * \param scan   The number of pixels to skip to get to the same pixel in
+     *               the next row
+     * \param width  The number of pixels per row to upload
+     * \param height The number of rows to upload
+     */
+    void(* load )( sgui_pixmap* pixmap, int dstx, int dsty,
+                   const unsigned char* data, unsigned int scan,
+                   unsigned int width, unsigned int height, int format );
+};
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

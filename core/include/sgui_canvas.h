@@ -34,13 +34,154 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_widget.h"
+#include "sgui_rect.h"
 
 
 
-#ifdef __cplusplus
-extern "C"
+#define CANVAS_MAX_DIRTY 10
+
+
+
+struct sgui_canvas
 {
-#endif
+    int ox, oy;                     /**< \brief current offset */
+    unsigned int width, height;     /**< \brief Size of the canvas */
+    sgui_rect sc;                   /**< \brief current scissor rect */
+    int began;
+    sgui_widget root;               /**< \brief The dummy root widget */
+    sgui_widget* mouse_over;        /**< \brief The widget under the mouse
+                                                cursor */
+    sgui_widget* focus;             /**< \brief The widget with keyboad
+                                                focus */
+
+    int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
+
+    sgui_rect dirty[ CANVAS_MAX_DIRTY ];
+    unsigned int num_dirty;
+
+    /** \copydoc sgui_canvas_destroy */
+    void(* destroy )( sgui_canvas* canvas );
+
+    /**
+     * \brief Gets called by sgui_canvas_resize
+     *
+     * Can be set to NULL if not needed by the implementation.
+     *
+     * \param canvas A pointer to the canvas.
+     * \param width  The new width of the canvas
+     * \param height The new height of the canvas
+     */
+    void(* resize )( sgui_canvas* canvas, unsigned int width,
+                     unsigned int height );
+
+    /**
+     * \brief Gets called by sgui_canvas_create_pixmap
+     *
+     * \param canvas A pointer to the canvas
+     * \param width  The width of the pixmap
+     * \param height The height of the pixmap
+     * \param format The color format of the pixmap
+     */
+    sgui_pixmap* (* create_pixmap )( sgui_canvas* canvas, unsigned int width,
+                                     unsigned int height, int format );
+
+    /**
+     * \brief Gets called by sgui_canvas_begin
+     *
+     * Can be set to NULL if not needed by the implementation.
+     *
+     * \param canvas A pointer to the canvas.
+     * \param r      The rectangle to redraw (already clamped to the canvas)
+     */
+    void(* begin )( sgui_canvas* canvas, sgui_rect* r );
+
+    /**
+     * \brief Gets called by sgui_canvas_end
+     *
+     * Can be set to NULL if not needed by the implementation.
+     *
+     * \param canvas A pointer to the canvas.
+     */
+    void(* end )( sgui_canvas* canvas );
+
+    /**
+     * \brief Clear a portion of a canvas
+     *
+     * \param canvas A pointer to the canvas.
+     * \param r      The region to clear, with ofset applied and cliped with
+     *               the scissor rect
+     */
+    void(* clear )( sgui_canvas* canvas, sgui_rect* r );
+
+    /**
+     * \brief Draw a box onto a canvas
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param r       The rect to draw (offset applied and clipped)
+     * \param color   The color to draw the rect in
+     * \param format  The format of the color
+     */
+    void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
+                       unsigned char* color, int format );
+
+    /**
+     * \brief Blit onto a canvas
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param x       Distance from the left of the canvas
+     * \param y       Distance from the top of the canvas
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blit.
+     */
+    void(* blit )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                   sgui_rect* srcrect );
+
+    /**
+     * \brief Blend onto a canvas
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param x       Distance from the left of the canvas
+     * \param y       Distance from the top of the canvas
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blend.
+     */
+    void(* blend )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
+                    sgui_rect* srcrect );
+
+    /**
+     * \brief Blend a constant color onto a canvas, use alpha from pixmap
+     *
+     * This method is only used internally by the glyph cache.
+     *
+     * \param canvas  A pointer to the canvas.
+     * \param x       Distance from the left of the canvas
+     * \param y       Distance from the top of the canvas
+     * \param pixmap  The pixmap to blend.
+     * \param srcrect A subrectangle of the pixmap to blend.
+     * \param color   The constant RGB color.
+     */
+    void (* blend_glyph )( sgui_canvas* canvas, int x, int y,
+                           sgui_pixmap* pixmap, sgui_rect* r,
+                           unsigned char* color );
+
+    /**
+     * \brief Draw a string of text onto a canvas
+     *
+     * \param canvas A pointer to the canvas.
+     * \param x      The distance from the left of the canvas
+     * \param y      The distance from the top of the canvas
+     * \param font   The font face to use for rendering
+     * \param color  The RGB color to use for rendering
+     * \param text   The UTF8 string to render
+     * \param length The number of bytes to read from the string
+     *
+     * \return The length of the rendered string in pixels.
+     */
+    int(* draw_string )( sgui_canvas* canvas, int x, int y, sgui_font* font,
+                         unsigned char* color, const char* text,
+                         unsigned int length );
+};
 
 
 
@@ -49,6 +190,11 @@ extern "C"
 #define SGUI_RGBA8 2
 
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /** \brief Destroy a canvas */
 SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );

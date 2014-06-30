@@ -35,14 +35,76 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_rect.h"
+
+
+
+/* flags for the widget state change callback */
+#define SGUI_WIDGET_POSITION_CHANGED     0x01
+#define SGUI_WIDGET_VISIBILLITY_CHANGED  0x02
+#define SGUI_WIDGET_PARENT_CHANGED       0x04
+#define SGUI_WIDGET_CHILD_ADDED          0x08
+#define SGUI_WIDGET_CHILD_REMOVED        0x10
+#define SGUI_WIDGET_CANVAS_CHANGED       0x20
+
+/* flags for widget focus polocy */
+#define SGUI_FOCUS_ACCEPT           0x01    /* the widget accepts focus */
+#define SGUI_FOCUS_DRAW             0x02    /* draw focus box */
+#define SGUI_FOCUS_DROP_ESC         0x04    /* drop focus on ESC-key */
+#define SGUI_FOCUS_DROP_TAB         0x08    /* drop focus on TAB-key */
+
+
+
+struct sgui_widget
+{
+    sgui_rect area;  /**< \brief The area occupied by a widget */
+
+    int visible;     /**< \brief zero if the widget should not be rendered */
+
+    int focus_policy;   /**< \brief widget focus policy flags */
+
+    /** \brief The canvas that the widget is attached to */
+    sgui_canvas* canvas;
+
+    /** \brief The next widget on the same level (linked list) */
+    sgui_widget* next;
+
+    /** \brief A pointer to the first widget in the children list */
+    sgui_widget* children;
+
+    sgui_widget* parent;    /**< \brief A pointer to the parent widget */
+
+    /** \copydoc sgui_widget_destroy */
+    void (* destroy )( sgui_widget* widget );
+
+    /** \copydoc sgui_widget_draw */
+    void (* draw_callback )( sgui_widget* widget );
+
+    /**
+     * \brief Callback that is called to inject window events
+     *
+     * \param widget A pointer to the widget to update.
+     * \param event  The window event that occoured.
+     */
+    void (* window_event_callback )( sgui_widget* widget,
+                                     const sgui_event* event );
+
+    /**
+     * \brief Callback that is called when the internal state of a widget
+     *        changes(e.g. position, visibility, etc...)
+     * 
+     * \param widget A pointer to the widget that changed
+     * \param change A combination of WIDGET_*_CHANGED flags that indicate
+     *               what changed
+     */
+    void (* state_change_callback )( sgui_widget* widget, int change );
+};
 
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
 
 /**
  * \brief Destroy a widget, freeing up all its resources
@@ -210,7 +272,6 @@ SGUI_DLL sgui_widget* sgui_widget_get_child_from_point(
  * \return A pointer to the next widget in the tab order
  */
 SGUI_DLL sgui_widget* sgui_widget_find_next_focus( const sgui_widget* w );
-
 
 #ifdef __cplusplus
 }

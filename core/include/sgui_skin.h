@@ -38,6 +38,82 @@
 
 
 
+struct sgui_skin
+{
+    unsigned int font_height;   /**< \brief The pixel height of the font */
+
+    unsigned char window_color[4];  /**< \brief The window background color */
+    unsigned char font_color[4];    /**< \brief The font color */
+
+    sgui_font* font_norm;   /**< \brief Font face for normal text */
+    sgui_font* font_bold;   /**< \brief Font face for bold text */
+    sgui_font* font_ital;   /**< \brief Font face for italic text */
+    sgui_font* font_boit;   /**< \brief Font face for bold and italic text */
+
+    void(* get_checkbox_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* get_radio_button_extents )( sgui_skin* skin, sgui_rect* r );
+
+    unsigned int(* get_edit_box_height )( sgui_skin* skin );
+
+    unsigned int(* get_edit_box_border_width )( sgui_skin* skin );
+
+    unsigned int(* get_frame_border_width )( sgui_skin* skin );
+
+    unsigned int(* get_progess_bar_width )( sgui_skin* skin );
+
+    unsigned int(* get_scroll_bar_width )( sgui_skin* skin );
+
+    unsigned int(* get_focus_box_width )( sgui_skin* skin );
+
+    void(* get_scroll_bar_button_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* get_tap_caption_extents )( sgui_skin* skin, sgui_rect* r );
+
+    void(* draw_focus_box )( sgui_skin* skin, sgui_canvas* canvas,
+                             sgui_rect* r );
+
+    void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
+                            int x, int y, int checked );
+
+    void(* draw_radio_button )( sgui_skin* skin, sgui_canvas* canvas,
+                                int x, int y, int checked );
+
+    void(* draw_button )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                          int pressed );
+
+    void(* draw_editbox )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                           const char* text, int offset, int cursor,
+                           int selection );
+
+    void(* draw_frame )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r );
+
+    void(* draw_group_box )( sgui_skin* skin, sgui_canvas* canvas,
+                             sgui_rect* r, const char* caption );
+
+    void(* draw_progress_bar )( sgui_skin* skin, sgui_canvas* canvas, int x,
+                                int y, unsigned int length, int vertical,
+                                int percentage );
+
+    void(* draw_progress_stippled )( sgui_skin* skin, sgui_canvas* canvas,
+                                     int x, int y, unsigned int length,
+                                     int vertical, int percentage );
+
+    void(* draw_scroll_bar )( sgui_skin* skin, sgui_canvas* canvas,
+                              int x, int y, unsigned int length, int vertical,
+                              int pane_offset, unsigned int pane_length,
+                              int decbutton, int incbutton );
+
+    void(* draw_tab_caption )( sgui_skin* skin, sgui_canvas* canvas,
+                               int x, int y, const char* caption,
+                               unsigned int text_width );
+
+    void(* draw_tab )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                       unsigned int gap, unsigned int gap_width );
+};
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
