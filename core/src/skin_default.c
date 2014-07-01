@@ -492,8 +492,8 @@ static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
     (void)this;
 
     sgui_canvas_draw_line( canvas, x, y, h, 0, white, SGUI_RGB8 );
-    sgui_canvas_draw_line( canvas, x, y, gap-x+11, 1, white, SGUI_RGB8 );
-    sgui_canvas_draw_line( canvas, gap+gap_width+10, y, w-gap_width-gap, 1,
+    sgui_canvas_draw_line( canvas, x, y, gap-x+1, 1, white, SGUI_RGB8 );
+    sgui_canvas_draw_line( canvas, gap+gap_width-1, y, w-gap_width-gap, 1,
                            white, SGUI_RGB8 );
 
     sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, black, SGUI_RGB8 );
