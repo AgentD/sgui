@@ -98,6 +98,43 @@ void sgui_widget_destroy( sgui_widget* this )
         this->destroy( this );
 }
 
+void sgui_widget_destroy_children( sgui_widget* this )
+{
+    sgui_widget *i, *old;
+
+    if( this )
+    {
+        sgui_internal_lock_mutex( );
+
+        i = this->children;
+        while( i!=NULL )
+        {
+            old = i;
+            i = i->next;
+            old->destroy( old );
+        }
+
+        this->children = NULL;
+
+        sgui_internal_unlock_mutex( );
+    }
+}
+
+void sgui_widget_destroy_all_children( sgui_widget* this )
+{
+    sgui_widget* i;
+
+    if( this )
+    {
+        sgui_internal_lock_mutex( );
+        for( i=this->children; i!=NULL; i=i->next )
+            sgui_widget_destroy_all_children( i );
+
+        sgui_widget_destroy_children( this );
+        sgui_internal_unlock_mutex( );
+    }
+}
+
 void sgui_widget_set_position( sgui_widget* this, int x, int y )
 {
     sgui_rect r;

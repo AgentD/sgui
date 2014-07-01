@@ -112,9 +112,32 @@ static void frame_draw( sgui_widget* this )
 static void frame_destroy( sgui_widget* super )
 {
     sgui_frame* this = (sgui_frame*)super;
+    sgui_widget* i;
 
-    sgui_widget_destroy( this->v_bar );
-    sgui_widget_destroy( this->h_bar );
+    /* recursive destroy might have already destroyed the scrollbars */
+    if( super->children )
+    {
+        for( i=super->children; i!=NULL; i=i->next )
+        {
+            if( i->next == this->v_bar )
+            {
+                i->next = i->next->next;
+                sgui_widget_destroy( this->v_bar );
+                break;
+            }
+        }
+
+        for( i=super->children; i!=NULL; i=i->next )
+        {
+            if( i->next == this->h_bar )
+            {
+                i->next = i->next->next;
+                sgui_widget_destroy( this->h_bar );
+                break;
+            }
+        }
+    }
+
     free( this );
 }
 

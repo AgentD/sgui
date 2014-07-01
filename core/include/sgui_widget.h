@@ -126,6 +126,20 @@ SGUI_DLL void sgui_widget_init( sgui_widget* widget, int x, int y,
 SGUI_DLL void sgui_widget_destroy( sgui_widget* widget );
 
 /**
+ * \brief Destroy the children of a widget
+ *
+ * \param widget A pointer to a widget
+ */
+SGUI_DLL void sgui_widget_destroy_children( sgui_widget* widget );
+
+/**
+ * \brief Recursively destroy ALL children of a widget at all layers below
+ *
+ * \param widget A pointer to a widget
+ */
+SGUI_DLL void sgui_widget_destroy_all_children( sgui_widget* widget );
+
+/**
  * \brief Change the position of a widget
  *
  * \param w The widget to reposition
