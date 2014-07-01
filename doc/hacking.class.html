@@ -1,0 +1,197 @@
+<html>
+<head>
+    <title>SGUI - Hacking SGUI</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>SGUI</h1>
+
+<h2>Hacking SGUI</h2>
+
+<h3>A typicall SGUI class</h3>
+
+Lets take a look at how the structure "sgui_foo" would be implemented.<br>
+<br>
+
+<h4>Forward declrations</h4>
+
+In the sgui core "include" directory, there is a header called
+<b>sgui_predef.h</b> that contains all neccessary forward declartions,
+including the sgui_foo forward declaration:
+
+<p class="code">
+...<br>
+<font class="keyword">typedef struct</font> sgui_foo sgui_foo;<br>
+...<br>
+</p>
+
+All SGUI headers are included by <b>sgui.h</b> in the core module:
+
+<p class="code">
+...<br>
+<font class="cpp">#include</font> <font class="string">"sgui_foo.h"</font><br>
+...<br>
+</p>
+<br>
+
+<h4>The header</h4>
+
+In the coresponding module "include" directory, there is a header called
+<b>sgui_foo.h</b>. It contains the declarations of the functions of sgui_foo,
+as well as the sgui_foo struct definition. Here is a full blown example of
+what the typicall sgui header looks like (minus doxygen comments):
+
+<p class="code">
+<font class="comment">/* license text */</font><br>
+<font class="cpp">#ifndef</font> SGUI_FOO<br>
+<font class="cpp">#define</font> SGUI_FOO<br>
+<br>
+<font class="cpp">#include</font> <font class="string">"sgui_predef.h"</font><br>
+<br>
+<font class="keyword">struct</font> sgui_foo<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">int</font> bar;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">void</font> (* destroy )( sgui_foo* foo );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">void</font> (* do_the_thing )( sgui_foo* foo, <font class="keyword">int</font> i );<br>
+};<br>
+<br>
+<font class="cpp">#ifdef</font> __cplusplus<br>
+<font class="keyword">extern</font> <font class="string">"C"</font> {<br>
+<font class="cpp">#endif</font><br>
+<br>
+SGUI_DLL sgui_foo* sgui_foo_create( <font class="keyword">int</font> bar );<br>
+<br>
+SGUI_DLL <font class="keyword">void</font> sgui_foo_destroy( sgui_foo* foo );<br>
+<br>
+SGUI_DLL <font class="keyword">void</font> sgui_foo_set_bar( sgui_foo* foo, <font class="keyword">int</font> bar );<br>
+<br>
+SGUI_DLL <font class="keyword">int</font> sgui_foo_get_bar( sgui_foo* foo );<br>
+<br>
+SGUI_DLL <font class="keyword">void</font> sgui_foo_do_the_thing( sgui_foo* foo, <font class="keyword">int</font> i );<br>
+<br>
+<font class="cpp">#ifdef</font> __cplusplus<br>
+}<br>
+<font class="cpp">#endif</font><br>
+<br>
+<font class="cpp">#endif</font><br>
+</p>
+
+As you can see, the strcture of a header is as follows:
+<ol>
+<li>License text
+<li>include guard
+<li>Neccessary header inclusions
+<li>Structure declartion (if the structure is not supposed to be inherited,
+    this is in the source file)
+<li>C++ guard, so the library can link propperly to a C++ program
+<li>Interface functions
+</ol>
+
+There are a few things to note here, regarding the style rules of SGUI
+"classes":
+<ul>
+<li>There is a function called <b><i>struct-name</i>_create</b> that is used
+    to create (allocate and initialize) an instance of <i>struct-name</i>.
+<li>There is a function called <b><i>struct-name</i>_destroy</b> that is used
+    to uninitialize and deallocate an instance of <i>struct-name</i>.
+<li>All other functions that operate on <i>struct-name</i> have a
+    <i>struct-name_</i> prefix.
+<li>For every function pointer stored in the structure, there is also a
+    same-named function.<br>
+    Function pointers are <b>never</b> called directly
+    from the outside. <b>Always</b> call the "interface function"<br>
+    when using a structure (you will see why in the implementation section).
+</ul>
+
+You may have noticed that in contrast to the previous examples, the "this"
+pointer is named "foo" after the struct itself and not "this". The reason
+behind this is to not confuse C++ compilers.<br>
+<br>
+
+<h4>The implementation</h4>
+
+In the "src" directory of the coresponding module, there is a file called
+<b>foo.c</b> that implements the functions declared in the above header:
+
+<p class="code">
+<font class="comment">/* license text */</font><br>
+<font class="cpp">#define</font> SGUI_BUILDING_DLL<br>
+<font class="cpp">#include</font> <font class="string">"sgui_foo.h"</font><br>
+<br>
+<font class="cpp">#include</font> <font class="string">&lt;stdlib.h&gt;</font><br>
+<br>
+<font class="keyword">static void</font> foo_destroy( sgui_foo* this )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;free( this );<br>
+}<br>
+<br>
+sgui_foo* sgui_foo_create( <font class="keyword">int</font> bar )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sgui_foo* this;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;this = malloc( <font class="keyword">sizeof</font>(sgui_foo) );<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( this )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->destroy = foo_destroy;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->do_the_thing = <font class="keyword">NULL</font>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->bar = bar&lt;<font class="number">-10</font> ? <font class="number">-10</font> : (bar&gt;<font class="number">10</font> ? <font class="number">10</font> : bar);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">return</font> this;<br>
+}<br>
+<br>
+<font class="keyword">void</font> sgui_foo_destroy( sgui_foo* this )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( this )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->destroy( this );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+<font class="keyword">void</font> sgui_foo_set_bar( sgui_foo* this, <font class="keyword">int</font> bar )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( this )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->bar = bar&lt;<font class="number">-10</font> ? <font class="number">-10</font> : (bar&gt;<font class="number">10</font> ? <font class="number">10</font> : bar);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+<font class="keyword">int</font> sgui_foo_get_bar( sgui_foo* this )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">return</font> this ? this->bar : <font class="number">0</font>;<br>
+}<br>
+<br>
+<font class="keyword">void</font> sgui_foo_do_the_thing( sgui_foo* this, <font class="keyword">int</font> i )<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( this && this->do_the_thing && i&lt;=<font class="number">1000</font> )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i = i&lt;<font class="number">-10</font> ? -i : i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i += <font class="number">42</font>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->do_the_thing( i );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}<br>
+</p>
+
+As you can see, function parameters are never trusted. <b>Always do sanity
+checks in functions</b>.<br>
+<br>
+Functions that redirect calls to struct <b>callbacks</b>, always do <b>sanity
+checks</b> and required <b>input transformation</b>, so the callback can rely
+on correct arguments.<br>
+That's why you <b>never call function pointers externally</b>.<br>
+<br>
+If base struct initialization is of some complexity, an init function should
+be provided.<br>
+
+<hr>
+<a href="hacking.oop.html">Previous</a>
+<a href="index.html">Back to index</a>
+<a href="hacking.html">Next</a>
+
+</body>
+</html>
+
+

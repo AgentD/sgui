@@ -20,7 +20,7 @@ the source tree) and the <b>widget</b> code (the directory 'widgets') and the
 <b>dialog</b> window code (the directory 'dialogs').<br>
 <br>
 The core module contains all basic data structures and the platform dependend
-implementations. It consits basically of the following subsystems:
+implementations. It consists basically of the following subsystems:
 <ul>
 <li>The <b>initialization and mainloop</b> functions are declared inside
     <b>sgui.h</b>. They are directly implemented in the backend, usually in a
@@ -35,52 +35,30 @@ implementations. It consits basically of the following subsystems:
     <b>sgui_utf8.h</b> and implemented in <b>utf8.c</b>.
 <li><b>Filesystem abstraction</b> is provided by <b>sgui_filesystem.h</b>
     with a reference implementation in <b>filesystem.c</b>.
-<li><b>Window abstraction</b> is proved in <b>sgui_window.h</b>, declaring
-    window functions. <b>sgui_window_create_desc</b> is the only function
-    directly implemented by the backend. All other functions are implemented
-    in <b>window.c</b> and do sanity checking before using backend callbacks
-    from the <b>sgui_window</b> abstract base structure, declared in
-    <b>sgui_internal.h</b>.
-<li>An abstract <b>rendering context</b> data type is declared in
-    <b>sgui_internal.h</b> with inteface functions in <b>sgui_context.h</b>.
-    The context creation function is implemented directly in the backend.
-<li>Interface functions for <b>an abstract widget data type</b> are declared
-    in <b>sgui_widget.h</b> and implemented in <b>widget.c</b>. The
-    declaration of the <b>sgui_widget</b> data structure is in
-    <b>sgui_internal.h</b>. The functions provide managing of child-parent
-    trees and propagation of widget states and events. The widget data
-    structure has several callbacks for widget implementations (events,
-    state change, rendering).
-<li><b>Rendering</b> is done by the <b>sgui_canvas</b> data structure, also
-    declared in <b>sgui_internal.h</b>. The <b>sgui_canvas.h</b> header
-    delcares the interface functions, implemented in <b>canvas.c</b>. Each
-    window has a canvas that widgets can be attached to. The backend code can
-    implement its own canvas type, or alternatively use the reference
-    implementation in <b>mem_canvas.c</b> that renders to an offscreen memory
-    buffer. A canvas can also create pixmaps. Pixmap interface functions are
-    declared in <b>sgui_pixmap.h</b> and implemented in <b>pixmap.c</b>. The
-    underlying abstract data type is declared in <b>sgui_internal.h</b> with
-    callbacks for canvas implementation dependend functions. The reference
-    implementation for the memory canvas is in <b>mem_pixmap.c</b>
+<li>A <b>window abstraction</b> data type. <b>sgui_window_create_desc</b> is
+    the only function directly implemented by the backend.
+<li>A <b>rendering context</b> data type for abstraction of hardware
+    accelerated rendering context. The creation function is implemented
+    directly in the backend.
+<li>An <b>abstract widget data type</b>.
+<li><b>Rendering</b> is done by the <b>sgui_canvas</b> data structure.
+    Each window has a canvas that widgets can be attached to. The backend code
+    can implement its own canvas type, or use a reference implementation in
+    <b>mem_canvas.c</b> that renders to an offscreen memory buffer. A canvas
+    can also create <b>sgui_pixmap</b> instances that can blit or blend image
+    date onto a canvas.
 <li><b>Font rendering abstraction</b> is handled by the <b>sgui_font</b>
-    structure, declared in <b>sgui_font.h</b>. There are no interface
-    functions, the implementation is directly in the backend. All the
-    implementation does is to provide font loading and glyph
-    rasterization. There is no reference implementation.
+    structure, implementation directly in the backend.
 <li><b>Glyph caching</b> is provided by the <b>sgui_font_cache</b> data
-    structure. The interface functions are in <b>sgui_font_cache.h</b> and
-    implemented in <b>font_cache.c</b>. A backend may or may not use this
-    data structure to cache glyphs. The implementation uses an RB-Tree of
-    rects to pre-rendered and organize glyphs on a pixmap.
-<li>An <b>icon cache</b> is provided by <b>sgui_icon_cache.h</b> and
-    implemented in <b>icon_cache.c</b>. It also provides an integer ID to rect
-    on a pixmap lookup using an RB-tree.
+    structure. A backend may or may not use this data structure to cache
+    glyphs. The implementation uses an RB-Tree of rects to pre-rendered and
+    organize glyphs on a pixmap.
+<li>An <b>icon cache</b> is provided by <b>sgui_icon_cache</b>. It also
+    provides an integer ID to rect on a pixmap lookup using an RB-tree.
 <li>Actually rendering a widget onto a canvas is done by the <b>skinning</b>
-    subsystem. The file <b>sgui_skin.h</b> contains a list of functions that
-    can be used to draw widgets to a canvas. The implementation can be found
-    in <b>skin.c</b>. The functions themselves use callbacks from a skin
-    structure declared in <b>sgui_internal.h</b> with a default implementation
-    in <b>skin_default.c</b>. The gui skin is hard coded. Somebody who is
+    subsystem, using in implementation of an <b>sgui_skin</b> structure.
+    There is a default implementation in <b>skin_default.c</b>, exported via
+    <b>sgui_internal.h</b>. The gui skin is hard coded. Somebody who is
     sufficiently bored might, for instance, implement a loadable skin by
     loading a Lua file and calling into that for drawing widgets.
 </ul>
@@ -120,9 +98,9 @@ As long as there is no indent file, here are a few guidelines:
 </ul>
 
 <hr>
-<a href="thread.html">Previous</a>
+<a href="hacking.class.html">Previous</a>
 <a href="index.html">Back to index</a>
-<a href="hacking.oop.html">Next</a>
+<a href="hacking.build.html">Next</a>
 
 </body>
 </html>

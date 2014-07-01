@@ -16,9 +16,7 @@ Java tend to be rather puzzled when talking to them about object oriented
 programing in the C programing language or assembly. The main reason behind
 this seems to be that said people tend to strictly think that object
 orientation is a syntactical concept, tied to C++ or Java <i>class
-datatype</i> with Simula syntax and so on (Java syntax is based on C++ and
-C++ copied a lot from Algol 68 and Simula, for instance the implicitly passed
-<i>this</i> pointer).<br>
+datatype</i>.<br>
 <br>
 However, object orientation is a <i>semantic concept</i>, not something
 <i>syntactical</i>. Object orientation does not require special syntactical
@@ -30,6 +28,9 @@ you call it: class, structure, record, data capsule or hugo, it doesn't really
 matter. (It is adviceable to consult a book on that topic or at least the
 <a href="http://en.wikipedia.org/wiki/Object_orientated">Wikipedia
 article</a>).<br>
+<br>
+What so called <i>object oriented languages</i> provide in addition is
+syntactic shugar and stricter, compiler enforced encapsulation rules.
 
 <h4>Classes, methods and objects in C</h4>
 
@@ -63,10 +64,10 @@ The difference is merely syntactical.
 
 <h4>Inheritance</h4>
 
-Inheritance, and thus interfaces, can be implemented by declaring another
-struct with the first field of the base class type. A pointer to that new
-struct can be passed to the new methods, but it can also be safely casted
-to a base pointer and passed to the base methods.
+Single inheritance (like in Java) can be implemented by declaring another
+struct with the first field of the base type. A pointer to that new struct
+can be passed to the new methods, but it can also be safely casted to a base
+pointer and passed to the base methods.
 
 <p class="code">
 ...<br>
@@ -102,15 +103,15 @@ As you can see, the pointer to the new struct can be casted down to the
 inherited structure, as the members of the <i>super</i> structure are directly
 in front of the additional <i>extended</i> members in memory.<br>
 <br>
-The obvious restriction here is that this way, a structure can only inherit
-one other structure (don't complain if you're from the Java world, you live
-by the same restrictions).<br>
+The obvious restriction here is that this only allows for single inheritance
+(i.e. there is no <i>clean</i> way of inheriting multiple base structures).
 <br>
-However, this limitation can be circumvented by creating explicit down casting
-and up casting functions and implementing something like V-tables that a C++
+<br>
+This limitation can be circumvented by creating explicit down casting and up
+casting functions and implementing something like V-tables that a C++
 compiler uses.
 
-<h4>Polymorphism</h4>
+<h4>Polymorphism and Interfaces</h4>
 
 With inheritance and down casting to inherited structures, we already have a
 corner stone of polymorph data types.<br>
@@ -145,34 +146,11 @@ created, the pointer may point to a different function, allowing for
 different, polymorphic behaviour.
 <br>
 <br>
-The approach used in sgui is to always call methods through global functions.
-The functions internally call the function pointer, but also do common sanity
-checking, so the implementation doesn't have to worry about or implement
-default behaviour if the function pointer is not set:
-<p class="code">
-<font class="keyword">typedef struct</font> classy<br>
-{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">int</font> ifield;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">float</font> ffield;<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">void</font> (* do_something )( <font class="keyword">struct</font> classy* this, <font class="keyword">int</font> foobar );<br>
-}<br>
-some_class;<br>
-<br>
-<br>
-<font class="keyword">void</font> some_class_do_something( some_class* this, <font class="keyword">int</font> foobar )<br>
-{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<font class="keyword">if</font>( this && this->do_something && foobar>=<font class="number">42</font> )<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this->do_something( this, foobar );<br>
-}<br>
-<br>
-...<br>
-<br>
-some_class_do_something( myobject, <font class="number">1337</font> );
-</p>
-In this case the function takes care of sanity checking in a way that neither
-the calling function nor the implementation have to worry about NULL pointers
-or invalid arguments.
+What Java programmers now as an <i>interface</i>, or C++ programmers know as
+an <i>abstract class</i> is a struct that only has function pointers stored
+in it. Pointers to different implementations can be provided by parts of a
+programm (<i>factory pattern</i> et al), but the exact implementation is
+unknown to the user. (And the user doesn't actually have to care)
 
 <h4>Constructors, destructors and hiding away the data</h4>
 
@@ -208,7 +186,7 @@ my_class* my_class_create( <font class="keyword">void</font> );<br>
 my_class.c:
 
 <p class="code">
-<font class="cpp">#include</font> "my_class.h"<br>
+<font class="cpp">#include</font> <font class="string">"my_class.h"</font><br>
 <br>
 <font class="keyword">struct</font> my_class<br>
 {<br>
@@ -244,14 +222,14 @@ my_class* my_class_create( <font class="keyword">void</font> )<br>
 ...
 </p>
 
-The obvious problem with this, however, is the difficulty of externally
-inheriting a structure, what might make it undesireable to completely hide the
-declaration away in some cases.
+The obvious problem here is the difficulty of externally inheriting a
+structure, what might make it undesireable to completely hide the declaration
+away in some cases.
 
 <hr>
-<a href="hacking.html">Previous</a>
+<a href="thread.html">Previous</a>
 <a href="index.html">Back to index</a>
-<a href="hacking.build.html">Next</a>
+<a href="hacking.class.html">Next</a>
 
 </body>
 </html>
