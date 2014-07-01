@@ -2,15 +2,15 @@
 
 clean_build( )
 {
-    rm -r bin
-    rm -r CMakeFiles
-    rm -r core
-    rm -r extras
-    rm -r include
-    rm -r doxydoc
-    rm -r lib
-    rm -r widgets
-    rm CMakeCache.txt cmake_install.cmake Makefile
+    rm -r -- bin
+    rm -r -- CMakeFiles
+    rm -r -- core
+    rm -r -- extras
+    rm -r -- include
+    rm -r -- doxydoc
+    rm -r -- lib
+    rm -r -- widgets
+    rm -- CMakeCache.txt cmake_install.cmake Makefile
 }
 
 # make sure we are in the right directory
@@ -62,8 +62,9 @@ mv sgui_dev.tar.gz ..
 
 # build for unix system
 clean_build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make
+strip --strip-all ./bin/*
 
 uname -m | grep x86_64 > /dev/null
 
