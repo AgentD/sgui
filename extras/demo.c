@@ -102,6 +102,7 @@ void print_password( sgui_widget* e )
 
 int main( int argc, char** argv )
 {
+    sgui_widget* t;
     int x, y, nogl=0;
     sgui_window_description desc = { NULL, NULL, 100, 100, 1, 0, 1,
                                      32, 24, 8, 4 };
@@ -182,8 +183,6 @@ int main( int argc, char** argv )
     tab = sgui_tab_group_create( 10, 10, 500, 400 );
 
     /* input widget tab */
-    sgui_tab_group_add_tab( tab, "Input" );
-
     butt = sgui_button_create( 10, 275, 80, 30, "Button", 0 );
     tb = sgui_button_create( 95, 275, 80, 30, "Toggle", 1 );
     t1 = sgui_icon_button_create( 360,  35, 30, 30, ic, 0, 1 );
@@ -236,58 +235,58 @@ int main( int argc, char** argv )
     sgui_widget_add_child( gb, rb );
     sgui_widget_add_child( gb, rc );
 
-    sgui_tab_group_add_widget( tab, 0, butt );
-    sgui_tab_group_add_widget( tab, 0, tb );
-    sgui_tab_group_add_widget( tab, 0, t1 );
-    sgui_tab_group_add_widget( tab, 0, t2 );
-    sgui_tab_group_add_widget( tab, 0, t3 );
-    sgui_tab_group_add_widget( tab, 0, gb );
-    sgui_tab_group_add_widget( tab, 0, f );
-    sgui_tab_group_add_widget( tab, 0, eb );
-    sgui_tab_group_add_widget( tab, 0, ebn );
-    sgui_tab_group_add_widget( tab, 0, ebp );
+    t = sgui_tab_create( tab, "Input" );
+    sgui_widget_add_child( tab, t );
+    sgui_widget_add_child( t, butt );
+    sgui_widget_add_child( t, tb );
+    sgui_widget_add_child( t, t1 );
+    sgui_widget_add_child( t, t2 );
+    sgui_widget_add_child( t, t3 );
+    sgui_widget_add_child( t, gb );
+    sgui_widget_add_child( t, f );
+    sgui_widget_add_child( t, eb );
+    sgui_widget_add_child( t, ebn );
+    sgui_widget_add_child( t, ebp );
 
     /* static widget tab */
-    sgui_tab_group_add_tab( tab, "Static" );
-
     tex = sgui_label_create( 10, 175, text );
 
     i0 = sgui_image_create(  10, 25, 128, 128, image, SGUI_RGBA8, 0, 1 );
     i1 = sgui_image_create( 150, 25, 128, 128, image, SGUI_RGBA8, 1, 1 );
 
-    sgui_tab_group_add_widget( tab, 1, i0 );
-    sgui_tab_group_add_widget( tab, 1, i1 );
-    sgui_tab_group_add_widget( tab, 1, tex );
+    t = sgui_tab_create( tab, "Static" );
+    sgui_widget_add_child( tab, t );
+    sgui_widget_add_child( t, i0 );
+    sgui_widget_add_child( t, i1 );
+    sgui_widget_add_child( t, tex );
 
     /* output widget tab */
-    sgui_tab_group_add_tab( tab, "Output" );
-
     p0 = sgui_progress_bar_create( 10,  25, 0, 0, 50, 300 );
     p1 = sgui_progress_bar_create( 10,  65, 1, 0, 50, 300 );
     p2 = sgui_progress_bar_create( 320, 25, 0, 1, 50, 300 );
     p3 = sgui_progress_bar_create( 355, 25, 1, 1, 50, 300 );
 
-    sgui_tab_group_add_widget( tab, 2, p0 );
-    sgui_tab_group_add_widget( tab, 2, p1 );
-    sgui_tab_group_add_widget( tab, 2, p2 );
-    sgui_tab_group_add_widget( tab, 2, p3 );
+    t = sgui_tab_create( tab, "Output" );
+    sgui_widget_add_child( tab, t );
+    sgui_widget_add_child( t, p0 );
+    sgui_widget_add_child( t, p1 );
+    sgui_widget_add_child( t, p2 );
+    sgui_widget_add_child( t, p3 );
 
     /* view widgets */
-    sgui_tab_group_add_tab( tab, "Views" );
-
     iv = sgui_icon_view_create( 15, 15, 200, 150, ic, 1 );
 
     sgui_icon_view_add_icon( iv,  10, 10, "icon", 0, (void*)0x01 );
     sgui_icon_view_add_icon( iv,  80, 80, "view", 1, (void*)0x02 );
     sgui_icon_view_add_icon( iv, 150, 20, "test", 2, (void*)0x03 );
 
-    sgui_tab_group_add_widget( tab, 3, iv );
+    t = sgui_tab_create( tab, "Views" );
+    sgui_widget_add_child( tab, t );
+    sgui_widget_add_child( t, iv );
 
     /* OpenGL widget tab */
     if( !nogl )
     {
-        sgui_tab_group_add_tab( tab, "OpenGL" );
-
         gl_view=sgui_subview_create(a,10,25,200,150,SGUI_OPENGL_COMPAT,NULL);
         gl_view2 = sgui_subview_create(a,250,25,200,150,
                                        SGUI_OPENGL_COMPAT,NULL);
@@ -296,10 +295,12 @@ int main( int argc, char** argv )
 
         sgui_subview_set_draw_callback( gl_view, glview_on_draw );
 
-        sgui_tab_group_add_widget( tab, 4, gl_view );
-        sgui_tab_group_add_widget( tab, 4, gl_view2 );
-        sgui_tab_group_add_widget( tab, 4, gl_sub0 );
-        sgui_tab_group_add_widget( tab, 4, gl_sub1 );
+        t = sgui_tab_create( tab, "OpenGL" );
+        sgui_widget_add_child( tab, t );
+        sgui_widget_add_child( t, gl_view );
+        sgui_widget_add_child( t, gl_view2 );
+        sgui_widget_add_child( t, gl_sub0 );
+        sgui_widget_add_child( t, gl_sub1 );
 
         CREATE_THREAD( thread, gl_drawing_thread );
     }
@@ -337,44 +338,8 @@ int main( int argc, char** argv )
     sgui_window_destroy( a );
     sgui_window_destroy( b );
 
-    sgui_widget_destroy( gl_view );
-
-    sgui_widget_destroy( gb );
-    sgui_widget_destroy( f );
+    sgui_widget_destroy_all_children( tab );
     sgui_widget_destroy( tab );
-
-    sgui_widget_destroy( gl_sub1 );
-    sgui_widget_destroy( gl_sub0 );
-    sgui_widget_destroy( tex );
-
-    sgui_widget_destroy( eb );
-    sgui_widget_destroy( ebn );
-    sgui_widget_destroy( ebp );
-
-    sgui_widget_destroy( butt );
-    sgui_widget_destroy( tb );
-    sgui_widget_destroy( t1 );
-    sgui_widget_destroy( t2 );
-    sgui_widget_destroy( t3 );
-    sgui_widget_destroy( c0 );
-    sgui_widget_destroy( c1 );
-    sgui_widget_destroy( c2 );
-    sgui_widget_destroy( r0 );
-    sgui_widget_destroy( r1 );
-    sgui_widget_destroy( r2 );
-    sgui_widget_destroy( ra );
-    sgui_widget_destroy( rb );
-    sgui_widget_destroy( rc );
-
-    sgui_widget_destroy( p0 );
-    sgui_widget_destroy( p1 );
-    sgui_widget_destroy( p2 );
-    sgui_widget_destroy( p3 );
-
-    sgui_widget_destroy( i0 );
-    sgui_widget_destroy( i1 );
-
-    sgui_widget_destroy( iv );
 
     sgui_icon_cache_destroy( ic );
 
