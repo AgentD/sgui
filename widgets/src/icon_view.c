@@ -540,7 +540,7 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     {
         memset( this, 0, sizeof(icon_view) );
 
-        sgui_internal_widget_init( super, x, y, width, height );
+        sgui_widget_init( super, x, y, width, height );
 
         this->cache = cache;
         this->draw_background = background;

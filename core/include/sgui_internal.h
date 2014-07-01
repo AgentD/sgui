@@ -103,29 +103,6 @@ SGUI_DLL void sgui_internal_reset_events( void );
 SGUI_DLL void sgui_internal_process_events( void );
 
 /**
- * \brief Initialise a widget structure
- *
- * \param widget A pointer to the widget structure
- * \param x      The horizontal component of the widgets position
- * \param y      The vertical component of the widgets position
- * \param width  The width of the widget
- * \param height The height of the widget
- */
-SGUI_DLL void sgui_internal_widget_init( sgui_widget* widget, int x, int y,
-                                         unsigned int width,
-                                         unsigned int height );
-
-/**
- * \brief Initialise a canvas structure
- *
- * \param cv     A pointer to the canvas structure
- * \param width  The width of the canvas
- * \param height The height of the canvas
- */
-SGUI_DLL void sgui_internal_canvas_init( sgui_canvas* cv, unsigned int width,
-                                         unsigned int height );
-
-/**
  * \brief Perform common operations at the end of sgui_window_create
  *
  * This function stores the size and backend of a window in a window

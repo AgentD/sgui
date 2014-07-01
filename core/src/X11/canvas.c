@@ -473,7 +473,7 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
         goto failure;
 
     /* finish initialisation */
-    sgui_internal_canvas_init( super, width, height );
+    sgui_canvas_init( super, width, height );
     sgui_internal_unlock_mutex( );
 
     super->destroy       = canvas_xrender_destroy;
@@ -531,7 +531,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     }
 
     /* finish initialisation */
-    sgui_internal_canvas_init( super, width, height );
+    sgui_canvas_init( super, width, height );
     sgui_skin_get_window_background_color( this->bg );
 
     sgui_internal_unlock_mutex( );

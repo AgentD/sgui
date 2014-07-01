@@ -364,7 +364,7 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     }
 
     /* initialise remaining fields */
-    sgui_internal_widget_init( super, x, y, width, height );
+    sgui_widget_init( super, x, y, width, height );
 
     this->prev = NULL;
     this->next = NULL;

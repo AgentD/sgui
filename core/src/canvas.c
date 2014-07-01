@@ -37,21 +37,6 @@
 
 
 
-void sgui_internal_canvas_init( sgui_canvas* this, unsigned int width,
-                                unsigned int height )
-{
-    memset( this, 0, sizeof(sgui_canvas) );
-
-    this->width = width;
-    this->height = height;
-
-    sgui_rect_set_size( &this->root.area, 0, 0, width, height );
-    this->root.visible = 1;
-    this->root.canvas = this;
-}
-
-/****************************************************************************/
-
 static void draw_children( sgui_canvas* this, sgui_widget* widget,
                            sgui_rect* r )
 {
@@ -115,6 +100,19 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 }
 
 /****************************************************************************/
+
+void sgui_canvas_init( sgui_canvas* this, unsigned int width,
+                       unsigned int height )
+{
+    memset( this, 0, sizeof(sgui_canvas) );
+
+    this->width = width;
+    this->height = height;
+
+    sgui_rect_set_size( &this->root.area, 0, 0, width, height );
+    this->root.visible = 1;
+    this->root.canvas = this;
+}
 
 sgui_widget* sgui_canvas_get_root( const sgui_canvas* this )
 {

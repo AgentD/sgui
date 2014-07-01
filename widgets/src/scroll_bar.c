@@ -326,7 +326,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
         h = length;
     }
 
-    sgui_internal_widget_init( super, x, y, w, h );
+    sgui_widget_init( super, x, y, w, h );
 
     this->super.window_event_callback = horizontal ? scroll_bar_on_event_h :
                                                      scroll_bar_on_event_v;

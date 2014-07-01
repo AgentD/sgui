@@ -31,25 +31,6 @@
 
 
 
-void sgui_internal_widget_init( sgui_widget* this, int x, int y,
-                                unsigned int width, unsigned int height )
-{
-    sgui_rect_set_size( &this->area, x, y, width, height );
-
-    this->visible               = 1;
-    this->next                  = NULL;
-    this->children              = NULL;
-    this->parent                = NULL;
-    this->canvas                = NULL;
-    this->draw_callback         = NULL;
-    this->window_event_callback = NULL;
-    this->state_change_callback = NULL;
-    this->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
-                                  SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB;
-}
-
-/****************************************************************************/
-
 static void propagate_canvas( sgui_widget* i )
 {
     for( ; i!=NULL; i=i->next )
@@ -90,6 +71,26 @@ static sgui_widget* find_child_focus( const sgui_widget* this )
 }
 
 /****************************************************************************/
+
+void sgui_widget_init( sgui_widget* this, int x, int y,
+                       unsigned int width, unsigned int height )
+{
+    if( !this )
+        return;
+
+    sgui_rect_set_size( &this->area, x, y, width, height );
+
+    this->visible               = 1;
+    this->next                  = NULL;
+    this->children              = NULL;
+    this->parent                = NULL;
+    this->canvas                = NULL;
+    this->draw_callback         = NULL;
+    this->window_event_callback = NULL;
+    this->state_change_callback = NULL;
+    this->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
+                                  SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB;
+}
 
 void sgui_widget_destroy( sgui_widget* this )
 {

@@ -151,7 +151,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
         return NULL;
 
     /* initialise the base widget */
-    sgui_internal_widget_init( super, x, y, width, height );
+    sgui_widget_init( super, x, y, width, height );
     super->window_event_callback = subview_on_parent_event;
     super->state_change_callback = subview_on_state_change;
     super->destroy               = subview_destroy;

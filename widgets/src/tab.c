@@ -217,7 +217,7 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     if( !g )
         return NULL;
 
-    sgui_internal_widget_init( (sgui_widget*)g, x, y, width, height );
+    sgui_widget_init( (sgui_widget*)g, x, y, width, height );
     sgui_skin_get_tap_caption_extents( &r );
 
     g->super.draw_callback         = tab_group_draw;

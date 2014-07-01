@@ -566,7 +566,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     }
 
     /* initialise and store state */
-    sgui_internal_widget_init( super, x, y, width,
+    sgui_widget_init( super, x, y, width,
                                sgui_skin_get_edit_box_height( ) );
 
     super->window_event_callback = edit_box_on_event;

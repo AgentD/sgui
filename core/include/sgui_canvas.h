@@ -196,6 +196,16 @@ extern "C"
 {
 #endif
 
+/**
+ * \brief Used by canvas implementations to initialise the canvas base struct
+ *
+ * \param cv     A pointer to the canvas structure
+ * \param width  The width of the canvas
+ * \param height The height of the canvas
+ */
+SGUI_DLL void sgui_canvas_init( sgui_canvas* cv, unsigned int width,
+                                unsigned int height );
+
 /** \brief Destroy a canvas */
 SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
 

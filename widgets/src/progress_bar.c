@@ -91,7 +91,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
         return NULL;
 
     /* initialise the base widget */
-    sgui_internal_widget_init( super, 0, 0, 0, 0 );
+    sgui_widget_init( super, 0, 0, 0, 0 );
 
     super->draw_callback = progress_draw;
     super->focus_policy  = 0;

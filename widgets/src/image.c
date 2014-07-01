@@ -103,7 +103,7 @@ sgui_widget* sgui_image_create( int x, int y,
     if( !this )
         return NULL;
 
-    sgui_internal_widget_init( super, x, y, width, height );
+    sgui_widget_init( super, x, y, width, height );
 
     if( !useptr )
     {

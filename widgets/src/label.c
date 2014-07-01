@@ -83,7 +83,7 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
     }
 
     /* initialise the base widget */
-    sgui_internal_widget_init( (sgui_widget*)this, 0, 0, 0, 0 );
+    sgui_widget_init( (sgui_widget*)this, 0, 0, 0, 0 );
 
     super->draw_callback = label_draw;
     super->destroy       = label_destroy;

@@ -501,7 +501,7 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     this->bpp = format==SGUI_RGBA8 ? 4 : 3;
     this->swaprb = swaprb;
 
-    sgui_internal_canvas_init( super, width, height );
+    sgui_canvas_init( super, width, height );
 
     if( format==SGUI_RGBA8 )
     {

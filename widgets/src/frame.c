@@ -287,7 +287,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     if( !this )
         return NULL;
 
-    sgui_internal_widget_init( (sgui_widget*)this, x, y, width, height );
+    sgui_widget_init( (sgui_widget*)this, x, y, width, height );
 
     /* try to create a vertical scroll bar */
     sgui_skin_get_scroll_bar_button_extents( &r );

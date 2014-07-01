@@ -126,7 +126,7 @@ sgui_widget* clock_widget_create( int x, int y, int hour, int minute,
         return NULL;
 
     /* initialize super structure */
-    sgui_internal_widget_init( super, x, y, 110, 30 );
+    sgui_widget_init( super, x, y, 110, 30 );
 
     super->draw_callback         = clock_widget_draw;
     super->destroy               = clock_widget_destroy;

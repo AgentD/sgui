@@ -107,6 +107,18 @@ extern "C" {
 #endif
 
 /**
+ * \brief Used by widget implementations to initialise the widget base struct
+ *
+ * \param widget A pointer to the widget structure
+ * \param x      The horizontal component of the widgets position
+ * \param y      The vertical component of the widgets position
+ * \param width  The width of the widget
+ * \param height The height of the widget
+ */
+SGUI_DLL void sgui_widget_init( sgui_widget* widget, int x, int y,
+                                unsigned int width, unsigned int height );
+
+/**
  * \brief Destroy a widget, freeing up all its resources
  *
  * \param widget A pointer to the widget to destroy
