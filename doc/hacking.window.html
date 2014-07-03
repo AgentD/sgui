@@ -32,9 +32,7 @@ lock and unlock the global mutex.<br>
 <h4>The window implementation</h4>
 To create a window, the backend provides the function
 <b>sgui_window_create_desc</b> that creates a structure derived from
-<b>sgui_window</b> with the appropriate super callbacks set. The list of
-callbacks can be retrieved from the declaration of the window structure in
-the <b>sgui_internal.h</b> header.<br>
+<b>sgui_window</b> with the appropriate super callbacks set.<br>
 <br>
 If the backend supports hardware accelerated rendering contexts, the context
 creation function from <b>sgui_context.h</b> is implemented directly in the

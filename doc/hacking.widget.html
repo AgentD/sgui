@@ -11,10 +11,6 @@
 
 <h3>The widget data structure</h3>
 
-The <b>sgui_widget</b> structure is declared in the <b>sgui_internal.h</b>
-header. The interface function declarations can be found in
-<b>sgui_widget.h</b>.<br>
-<br>
 A widget has an area that it occupies (parent relative), pointers to the
 parent widget and to the first child widget. Children are stored in a linked
 list, as there can be a variable numer of children, thus there is also a
@@ -35,7 +31,7 @@ The widget structure has four interesting callback functions:
 </ul>
 The child-parent tree handling, event propagation, etc is already implemented
 by the basic interface functions. To initialize the super structure, a derived
-data type can use the <b>sgui_internal_widget_init</b> function.<br>
+data type can use the <b>sgui_widget_init</b> function.<br>
 <br>
 What a dervied widget has to do at minimum is to implement the beforementioned
 callbacks. Please note that in the <b>draw callback</b>, widgets normaly don't

@@ -39,16 +39,12 @@ Clipping and offseting is taken care of by the interface functions, so the
 callbacks always get sane input with absolute coordinates, clipped to the
 size of the surface.<br>
 <br>
-The callbacks that have to be specified can be obtained from the declaration
-of the <b>sgui_canvas</b> structure in <b>sgui_internal.h</b>.<br>
-<br>
-When creating a canvas instance, <b>sgui_internal_canvas_init</b> has to be
+When creating a canvas instance, <b>sgui_canvas_init</b> has to be
 used at first to initialize the super structure.<br>
 <br>
 A canvas implementation will also have to be able to create instances of the
-asociated <b>sgui_pixmap</b> implementation (the structure is declared in
-<b>sgui_internal.h</b>). A reference implementation that copies the pixel data
-to an internal buffer can be created using
+asociated <b>sgui_pixmap</b> implementation. A reference implementation that
+copies the pixel data to an internal buffer can be created using
 <b>sgui_internal_mem_pixmap_create</b>.<br>
 <br>
 When creating a new canvas implementation it is adviseable to take a look at
