@@ -327,9 +327,6 @@ SGUI_DLL void sgui_canvas_get_size( const sgui_canvas* canvas,
  * A pixmap can only be createad by a canvas and is only valid for the canvas
  * it was created for.
  *
- * \note Creating a pixmap for an OpenGL backend requires that a context is
- *       made current.
- *
  * \param canvas  The canvas for which to create the pixmap
  * \param width   The width of the pixmap in pixels
  * \param height  The height of the pixmap in pixels

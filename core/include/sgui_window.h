@@ -54,7 +54,7 @@ struct sgui_window
     union
     {
         sgui_canvas* canvas;       /**< \brief pointer to a canvas */
-        sgui_context* gl;          /**< \brief Pointer to OpenGL context */
+        sgui_context* ctx;         /**< \brief Pointer to rendering context */
     }
     ctx;
 
@@ -176,8 +176,9 @@ struct sgui_window_description
     /**
      * \brief A pointer to a window with a context to share resources with
      *
-     * If a new window is to be created with an OpenGL context, this can point
-     * to an existing window with a context to share resources with.
+     * If a new window is to be created with a rendering context
+     * (e.g. OpenGL), this can point to an existing window with a context to
+     * share resources with.
      */
     sgui_window* share;
 

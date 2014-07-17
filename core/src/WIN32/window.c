@@ -187,8 +187,8 @@ static void w32_window_destroy( sgui_window* this )
 
     if( this->backend==SGUI_OPENGL_COMPAT || this->backend==SGUI_OPENGL_CORE )
     {
-        sgui_context_destroy( this->ctx.gl );
-        this->ctx.gl = NULL; /* HACK: DestroyWindow calls message proc */
+        sgui_context_destroy( this->ctx.ctx );
+        this->ctx.ctx = NULL; /* HACK: DestroyWindow calls message proc */
 
         if( TO_W32(this)->hDC )
             DeleteDC( TO_W32(this)->hDC );
@@ -490,10 +490,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
             goto failure;
 
         super->backend = desc->backend;
-        super->ctx.gl =
-        sgui_context_create(super, desc->share ? desc->share->ctx.gl : NULL);
+        super->ctx.ctx =
+        sgui_context_create(super, desc->share ? desc->share->ctx.ctx : NULL);
 
-        if( !super->ctx.gl )
+        if( !super->ctx.ctx )
             goto failure;
 
         super->swap_buffers = gl_swap_buffers;

@@ -268,7 +268,7 @@ void sgui_window_make_current( sgui_window* this )
 {
     if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_make_current( this->ctx.gl, this );
+        sgui_context_make_current( this->ctx.ctx, this );
     }
 }
 
@@ -276,7 +276,7 @@ void sgui_window_release_current( sgui_window* this )
 {
     if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_release_current( this->ctx.gl );
+        sgui_context_release_current( this->ctx.ctx );
     }
 }
 
@@ -418,7 +418,7 @@ sgui_context* sgui_window_get_context( const sgui_window* this )
     if( this && (this->backend==SGUI_OPENGL_CORE ||
                  this->backend==SGUI_OPENGL_COMPAT) )
     {
-        return this->ctx.gl;
+        return this->ctx.ctx;
     }
 
     return NULL;
