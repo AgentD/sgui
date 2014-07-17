@@ -27,7 +27,7 @@
 
 
 
-#define INVALID_CHARACTER '?'
+#define INVALID_CHARACTER 0xFFFD
 
 
 
@@ -69,19 +69,12 @@ unsigned int sgui_utf8_encode( unsigned int cp, char* str )
     }
 
     /* invalid characters */
-    if( cp > 0x10FFFF || cp==0xFFFE || cp==0xFFFF )
-    {
-        *str = INVALID_CHARACTER;
-        return 1;
-    }
+    if( cp > 0x10FFFF || cp==0xFFFE || cp==0xFEFF )
+        cp = INVALID_CHARACTER;
 
     /* UTF16 surrogate pairs */
-    if( cp==0xD800 || cp==0xDB7F || cp==0xDB80 || cp==0xDBFF ||
-        cp==0xDC00 || cp==0xDF80 || cp==0xDFFF )
-    {
-        *str = INVALID_CHARACTER;
-        return 1;
-    }
+    if( cp>=0xD800 && cp<=0xDFFF )
+        cp = INVALID_CHARACTER;
 
     /* 0x00000080 - 0x000007FF: 110aaaaa 10bbbbbb */
     if( cp < 0x800 )
