@@ -62,6 +62,7 @@ typedef struct
 {
     sgui_context super;
 
+    sgui_window* wnd;
     GLXContext gl;
 }
 sgui_context_gl;
@@ -80,6 +81,13 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
 
 /* sgui_window_swap_buffers implementation for window with glx context */
 void gl_swap_buffers( sgui_window* wnd );
+
+/* sgui_window_set_vsync implementation for window with glx context */
+void gl_set_vsync( sgui_window* wnd, int interval );
+
+/* create an OpenGL context for an Xlib window */
+sgui_context* gl_context_create( sgui_window* wnd, int core,
+                                 sgui_context_gl* share );
 
 #ifdef __cplusplus
 }

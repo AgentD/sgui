@@ -114,6 +114,7 @@ typedef struct
 {
     sgui_context super;
 
+    sgui_window* wnd;
     HGLRC hRC;
 }
 sgui_gl_context;
@@ -131,6 +132,10 @@ void gl_swap_buffers( sgui_window* wnd );
 
 /* turn vsync on or off for a window with an OpenGL context */
 void gl_set_vsync( sgui_window* wnd, int interval );
+
+/* create an OpenGL context */
+sgui_context* gl_context_create( sgui_window* wnd, int core,
+                                 sgui_gl_context* share );
 
 #ifdef __cplusplus
 }

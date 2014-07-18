@@ -30,6 +30,11 @@
 
 
 
+sgui_context* sgui_context_create_share( sgui_context* this )
+{
+    return this ? this->create_share( this ) : NULL;
+}
+
 void sgui_context_destroy( sgui_context* this )
 {
     if( this )

@@ -131,6 +131,15 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
 
 /****************************************************************************/
 
+static sgui_context* gl_context_create_share( sgui_context* super )
+{
+    sgui_context_gl* this = (sgui_context_gl*)super;
+
+    return gl_context_create( this->wnd,
+                              this->wnd->backend==SGUI_OPENGL_CORE,
+                              this );
+}
+
 static void gl_context_destroy( sgui_context* this )
 {
     sgui_internal_lock_mutex( );
@@ -163,32 +172,21 @@ static sgui_funptr gl_context_load( sgui_context* this, const char* name )
 }
 
 
-
-sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
+sgui_context* gl_context_create( sgui_window* wnd, int core,
+                                 sgui_context_gl* share )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
-    sgui_context_gl* this;
-    sgui_context* super;
-    GLXContext sctx;
+    sgui_context_gl* this = malloc( sizeof(sgui_context_gl) );
+    sgui_context* super = (sgui_context*)this;
+    GLXContext sctx = share ? share->gl : 0;
     int attribs[10];
     unsigned int i;
-    int core;
 
-    if( !wnd )
+    if( !this )
         return NULL;
 
-    if( wnd->backend!=SGUI_OPENGL_CORE && wnd->backend!=SGUI_OPENGL_COMPAT )
-        return NULL;
-
-    if( !(this = malloc( sizeof(sgui_context_gl) )) )
-        return NULL;
-
-    super = (sgui_context*)this;
     sgui_internal_lock_mutex( );
-
     this->gl = 0;
-    sctx = share ? ((sgui_context_gl*)share)->gl : 0;
-    core = (wnd->backend==SGUI_OPENGL_CORE);
 
     /* try to load context creation function */
     CreateContextAttribs = (CREATECONTEXTATTRIBSPROC)
@@ -225,6 +223,9 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
 
     if( this->gl )
     {
+        this->wnd = wnd;
+
+        super->create_share    = gl_context_create_share;
         super->destroy         = gl_context_destroy;
         super->make_current    = gl_context_make_current;
         super->release_current = gl_context_release_current;
@@ -239,6 +240,21 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
     sgui_internal_unlock_mutex( );
 
     return super;
+}
+
+void gl_set_vsync( sgui_window* this, int interval )
+{
+    void(* SwapIntervalEXT )( Display*, GLXDrawable, int );
+
+    sgui_internal_lock_mutex( );
+
+    SwapIntervalEXT = (void(*)(Display*,GLXDrawable,int))
+                      LOAD_GLFUN( "glXSwapIntervalEXT" );
+
+    if( SwapIntervalEXT )
+        SwapIntervalEXT( dpy, TO_X11(this)->wnd, interval );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void gl_swap_buffers( sgui_window* this )
@@ -257,12 +273,6 @@ void gl_swap_buffers( sgui_window* this )
 
     glXSwapBuffers( dpy, TO_X11(this)->wnd );
     sgui_internal_unlock_mutex( );
-}
-#elif defined( SGUI_NOP_IMPLEMENTATIONS )
-sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
-{
-    (void)wnd; (void)share;
-    return NULL;
 }
 #endif
 

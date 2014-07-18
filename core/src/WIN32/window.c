@@ -483,6 +483,17 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
 #ifndef SGUI_NO_OPENGL
+        sgui_gl_context* share = NULL;
+
+        if( desc->share )
+        {
+            if( desc->share->backend==SGUI_OPENGL_CORE || 
+                desc->share->backend==SGUI_OPENGL_COMPAT )
+            {
+                share = (sgui_gl_context*)desc->share->ctx.ctx;
+            }
+        }
+
         if( !(this->hDC = GetDC( this->hWnd )) )
             goto failure;
 
@@ -490,8 +501,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
             goto failure;
 
         super->backend = desc->backend;
-        super->ctx.ctx =
-        sgui_context_create(super, desc->share ? desc->share->ctx.ctx : NULL);
+        super->ctx.ctx = gl_context_create( super,
+                                            desc->backend==SGUI_OPENGL_CORE,
+                                            share );
 
         if( !super->ctx.ctx )
             goto failure;

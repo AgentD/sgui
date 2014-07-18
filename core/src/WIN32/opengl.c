@@ -225,6 +225,14 @@ int set_pixel_format( sgui_window_w32* this,
 
 /****************************************************************************/
 
+static sgui_context* context_gl_create_share( sgui_context* super )
+{
+    sgui_gl_context* this = (sgui_gl_context*)super;
+
+    return gl_context_create( this->wnd, this->wnd->backend==SGUI_OPENGL_CORE,
+                              (sgui_gl_context*)this->wnd->ctx.ctx );
+}
+
 static void context_gl_destroy( sgui_context* this )
 {
     sgui_internal_lock_mutex( );
@@ -256,28 +264,23 @@ static sgui_funptr context_gl_load( sgui_context* this, const char* name )
     return (sgui_funptr)wglGetProcAddress( name );
 }
 
-sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
+sgui_context* gl_context_create( sgui_window* wnd, int core,
+                                 sgui_gl_context* share )
 {
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-    sgui_gl_context* this;
-    sgui_context* super;
+    sgui_gl_context* this = malloc( sizeof(sgui_gl_context) );
+    HGLRC src = share ? ((sgui_gl_context*)share)->hRC : 0;
+    sgui_context* super = (sgui_context*)this;
     HGLRC temp, oldctx;
     int attribs[20];
     unsigned int i;
     HDC olddc;
-    HGLRC src;
-    int core;
-
-    this = malloc( sizeof(sgui_gl_context) );
-    super = (sgui_context*)this;
 
     if( !this )
         return NULL;
 
     sgui_internal_lock_mutex( );
     this->hRC = 0;
-    src = share ? ((sgui_gl_context*)share)->hRC : 0;
-    core = (wnd->backend == SGUI_OPENGL_CORE);
 
     /********** create a trampoline context **********/
     if( !(temp = wglCreateContext( TO_W32(wnd)->hDC )) )
@@ -340,6 +343,9 @@ sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
     }
 
     /* set callbacks */
+    this->wnd = wnd;
+
+    super->create_share    = context_gl_create_share;
     super->destroy         = context_gl_destroy;
     super->make_current    = context_gl_make_current;
     super->release_current = context_gl_release_current;
@@ -373,12 +379,6 @@ void gl_set_vsync( sgui_window* this, int interval )
         wglSwapIntervalEXT( interval );
 
     sgui_internal_unlock_mutex( );
-}
-#else
-sgui_context* sgui_context_create( sgui_window* wnd, sgui_context* share )
-{
-    (void)wnd; (void)share;
-    return NULL;
 }
 #endif
 

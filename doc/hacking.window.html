@@ -34,11 +34,10 @@ To create a window, the backend provides the function
 <b>sgui_window_create_desc</b> that creates a structure derived from
 <b>sgui_window</b> with the appropriate super callbacks set.<br>
 <br>
-If the backend supports hardware accelerated rendering contexts, the context
-creation function from <b>sgui_context.h</b> is implemented directly in the
-backend as well, setting the appropriate callbacks for the <b>sgui_context</b>
-structure. The different kinds of rendering contexts are enumerated in
-<b>sgui_window.h</b>.<br>
+If the backend supports hardware accelerated rendering contexts, there is at
+least one implementation of the <b>sgui_context</b> structure, declared in
+<b>sgui_context.h</b>. The different kinds of rendering contexts are 
+enumerated in <b>sgui_window.h</b>.<br>
 <br>
 For convenience, the function <b>sgui_internal_window_post_init</b> can be
 used at the end of the window creation function to do typcial tasks like

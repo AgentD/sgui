@@ -43,13 +43,28 @@ struct sgui_context
     /** \copydoc sgui_context_destroy */
     void (* destroy )( sgui_context* ctx );
 
-    /** \copydoc sgui_context_make_current */
+    /** \copydoc sgui_context_create_share */
+    sgui_context* (* create_share )( sgui_context* ctx );
+
+    /**
+     * \copydoc sgui_context_make_current
+     *
+     * \note Can be NULL if not implemented
+     */
     void (* make_current )( sgui_context* ctx, sgui_window* wnd );
 
-    /** \copydoc sgui_context_release_current */
+    /**
+     * \copydoc sgui_context_release_current
+     *
+     * \note Can be NULL if not implemented
+     */
     void (* release_current )( sgui_context* ctx );
 
-    /** \copydoc sgui_context_load */
+    /**
+     * \copydoc sgui_context_load
+     *
+     * \note Can be NULL if not implemented
+     */
     sgui_funptr (* load )( sgui_context* ctx, const char* name );
 };
 
@@ -63,14 +78,12 @@ extern "C" {
  * \brief Create a rendering context that shares resources with an
  *        existing context
  *
- * \param wnd   A pointer to a window to get the frame buffer description
- *              from, as well as the type of context to create
- * \param share If not NULL, a pointer to a context to share resources with
+ * \param ctx A pointer to a context for which to create an offscreen,
+ *            resource sharing context
  *
  * \return A pointer to a rendering context object
  */
-SGUI_DLL sgui_context* sgui_context_create( sgui_window* wnd,
-                                            sgui_context* share );
+SGUI_DLL sgui_context* sgui_context_create_share( sgui_context* ctx );
 
 /**
  * \brief Destroy a rendering context
