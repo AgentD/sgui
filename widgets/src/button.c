@@ -295,8 +295,13 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     /* sanity check */
     if( flags & HAVE_ICON )
     {
+#ifndef SGUI_NO_ICON_CACHE
         if( !cache || !sgui_icon_cache_get_icon_area( cache, iconid, &r ) )
             return NULL;
+#else
+        (void)cache; (void)iconid;
+        return NULL;
+#endif
     }
     else
     {

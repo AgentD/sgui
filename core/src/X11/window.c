@@ -26,6 +26,7 @@
 #include "platform.h"
 
 #include "sgui_event.h"
+#include "sgui_context.h"
 
 #include <stdlib.h>
 #include <string.h>
