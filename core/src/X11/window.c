@@ -387,6 +387,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         return NULL;
 #endif
 
+    if( desc->backend==SGUI_DIRECT3D_9 )
+        return NULL;
+
     /********* allocate space for the window structure *********/
     this = malloc( sizeof(sgui_window_xlib) );
     super = (sgui_window*)this;

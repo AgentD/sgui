@@ -185,30 +185,28 @@ static void w32_window_destroy( sgui_window* this )
 
     sgui_internal_lock_mutex( );
 
-    if( this->backend==SGUI_OPENGL_COMPAT || this->backend==SGUI_OPENGL_CORE )
-    {
-        sgui_context_destroy( this->ctx.ctx );
-        this->ctx.ctx = NULL; /* HACK: DestroyWindow calls message proc */
-
-        if( TO_W32(this)->hDC )
-            DeleteDC( TO_W32(this)->hDC );
-    }
-    else if( this->backend==SGUI_NATIVE )
+    if( this->backend==SGUI_NATIVE )
     {
         sgui_canvas_destroy( this->ctx.canvas );
-        this->ctx.canvas = NULL; /* HACK: DestroyWindow calls message proc */
 
         SelectObject( TO_W32(this)->hDC, 0 );
 
         if( TO_W32(this)->bitmap )
             DeleteObject( TO_W32(this)->bitmap );
-
-        if( TO_W32(this)->hDC )
-            DeleteDC( TO_W32(this)->hDC );
     }
+    else
+    {
+        sgui_context_destroy( this->ctx.ctx );
+    }
+
+    if( TO_W32(this)->hDC )
+        DeleteDC( TO_W32(this)->hDC );
 
     if( TO_W32(this)->hWnd )
     {
+        this->ctx.canvas = NULL; /* HACK: DestroyWindow calls message proc */
+        this->ctx.ctx    = NULL;
+
         DestroyWindow( TO_W32(this)->hWnd );
         PeekMessage( &msg, TO_W32(this)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
     }
@@ -409,8 +407,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
                         0, 0, super->w, super->h, ftn );
             EndPaint( this->hWnd, &ps );
         }
-        else if( super->backend==SGUI_OPENGL_CORE ||
-                 super->backend==SGUI_OPENGL_COMPAT )
+        else
         {
             e.type = SGUI_EXPOSE_EVENT;
             sgui_rect_set_size( &e.arg.rect, 0, 0, super->w, super->h );
@@ -439,6 +436,11 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
 #ifdef SGUI_NO_OPENGL
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
+        return NULL;
+#endif
+
+#ifdef SGUI_NO_D3D9
+    if( desc->backend==SGUI_DIRECT3D_9 )
         return NULL;
 #endif
 
@@ -510,6 +512,24 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         super->swap_buffers = gl_swap_buffers;
         super->set_vsync = gl_set_vsync;
+#endif
+    }
+    else if( desc->backend==SGUI_DIRECT3D_9 )
+    {
+#ifndef SGUI_NO_D3D9
+        sgui_d3d9_context* share = NULL;
+
+        if( desc->share && desc->share->backend==SGUI_DIRECT3D_9 )
+            share = (sgui_d3d9_context*)desc->share->ctx.ctx;
+
+        super->backend = desc->backend;
+        super->ctx.ctx = d3d9_context_create( super, desc, share );
+
+        if( !super->ctx.ctx )
+            goto failure;
+
+        super->swap_buffers = d3d9_swap_buffers;
+        super->set_vsync = d3d9_set_vsync;
 #endif
     }
     else

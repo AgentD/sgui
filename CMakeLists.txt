@@ -18,8 +18,14 @@ if( NOT WIN32 )
   endif( )
 endif( )
 
-option( NOFLOAT "Disable all use of floatingpoint data types" OFF )
+if( WIN32 )
+  option( DIRECT3D9 "Compile with Direct3D(R) 9 support" ON )
+else( )
+  set( DIRECT3D9 false )
+endif( )
+
 option( OPENGL "Compile with OpenGL(R) support" ON )
+option( NOFLOAT "Disable all use of floatingpoint data types" OFF )
 option( MESSAGEBOX "Compile with message box dialog" ON )
 option( NATIVE_MB "Compile with native emergency message box function" ON )
 option( ICONCACHE "Compile with icon cache object" ON )
@@ -32,6 +38,10 @@ option( NOPS "Replace disabled features with API compatible NOP functions" ON)
 
 if( NOFLOAT )
   add_definitions( -DSGUI_NO_FLOAT )
+endif( )
+
+if( NOT DIRECT3D9 )
+  add_definitions( -DSGUI_NO_D3D9 )
 endif( )
 
 if( NOT OPENGL )

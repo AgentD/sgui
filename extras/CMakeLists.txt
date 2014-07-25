@@ -13,6 +13,13 @@ if( OPENGL )
   target_link_libraries( gl2 sgui )
 endif( )
 
+if( WIN32 AND DIRECT3D9 )
+  add_executable( d3d9_0 d3d9_0.c )
+  add_executable( d3d9_1 d3d9_1.c )
+  target_link_libraries( d3d9_0 sgui )
+  target_link_libraries( d3d9_1 sgui )
+endif( )
+
 add_executable( demo demo.c )
 add_executable( signalsandslots signalsandslots.c )
 add_executable( simple simple.c )

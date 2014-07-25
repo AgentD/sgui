@@ -210,7 +210,7 @@ struct sgui_window_description
     /**
      * \brief Non-zero if the window should use double buffering
      *
-     * The symbolic constants SGUI_SINGLEBUFFERED and SGUI_SINGLEBUFFERED can
+     * The symbolic constants SGUI_SINGLEBUFFERED and SGUI_DOUBLEBUFFERED can
      * be used to generate more readable code.
      */
     int doublebuffer;
@@ -235,6 +235,7 @@ struct sgui_window_description
 #define SGUI_NATIVE        0
 #define SGUI_OPENGL_CORE   1
 #define SGUI_OPENGL_COMPAT 2
+#define SGUI_DIRECT3D_9    3
 
 
 

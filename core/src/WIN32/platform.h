@@ -36,6 +36,7 @@
 #include "font.h"
 #include "window.h"
 #include "opengl.h"
+#include "direct3d9.h"
 
 
 #define WIN32_LEAN_AND_MEAN
