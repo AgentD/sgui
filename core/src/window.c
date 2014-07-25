@@ -415,11 +415,8 @@ void* sgui_window_get_userptr( const sgui_window* this )
 
 sgui_context* sgui_window_get_context( const sgui_window* this )
 {
-    if( this && (this->backend==SGUI_OPENGL_CORE ||
-                 this->backend==SGUI_OPENGL_COMPAT) )
-    {
+    if( this && this->backend!=SGUI_NATIVE )
         return this->ctx.ctx;
-    }
 
     return NULL;
 }

@@ -326,8 +326,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         this->wnd = 0;
         break;
     case MapNotify:
-        if( super->backend==SGUI_OPENGL_CORE ||
-            super->backend==SGUI_OPENGL_COMPAT )
+        if( super->backend!=SGUI_NATIVE )
         {
             sgui_rect_set_size( &se.arg.rect, 0, 0, super->w, super->h );
             se.type = SGUI_EXPOSE_EVENT;
@@ -358,8 +357,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
             canvas_x11_display( super->ctx.canvas, e->xexpose.x, e->xexpose.y,
                                 e->xexpose.width, e->xexpose.height );
         }
-        else if( super->backend==SGUI_OPENGL_CORE ||
-                 super->backend==SGUI_OPENGL_COMPAT )
+        else
         {
             se.type = SGUI_EXPOSE_EVENT;
             sgui_rect_set_size( &se.arg.rect, 0, 0, super->w, super->h );
