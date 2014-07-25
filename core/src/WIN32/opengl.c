@@ -264,6 +264,11 @@ static sgui_funptr context_gl_load( sgui_context* this, const char* name )
     return (sgui_funptr)wglGetProcAddress( name );
 }
 
+static void* context_gl_get_internal( sgui_context* this )
+{
+    return &(((sgui_gl_context*)this)->hRC);
+}
+
 sgui_context* gl_context_create( sgui_window* wnd, int core,
                                  sgui_gl_context* share )
 {
@@ -349,6 +354,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
     super->destroy         = context_gl_destroy;
     super->make_current    = context_gl_make_current;
     super->release_current = context_gl_release_current;
+    super->get_internal    = context_gl_get_internal;
     super->load            = context_gl_load;
 
     /* restore state and return */

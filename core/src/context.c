@@ -58,3 +58,8 @@ sgui_funptr sgui_context_load( sgui_context* this, const char* name )
     return (this && name && this->load) ? this->load( this, name ) : NULL;
 }
 
+void* sgui_context_get_internal( sgui_context* this )
+{
+    return this ? this->get_internal( this ) : NULL;
+}
+

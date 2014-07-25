@@ -157,6 +157,11 @@ static void gl_context_make_current( sgui_context* this, sgui_window* wnd )
     sgui_internal_unlock_mutex( );
 }
 
+static void* gl_context_get_internal( sgui_context* this )
+{
+    return &(((sgui_context_gl*)this)->gl);
+}
+
 static void gl_context_release_current( sgui_context* this )
 {
     (void)this;
@@ -230,6 +235,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
         super->make_current    = gl_context_make_current;
         super->release_current = gl_context_release_current;
         super->load            = gl_context_load;
+        super->get_internal    = gl_context_get_internal;
     }
     else
     {

@@ -66,6 +66,9 @@ struct sgui_context
      * \note Can be NULL if not implemented
      */
     sgui_funptr (* load )( sgui_context* ctx, const char* name );
+
+    /** \copydoc sgui_context_get_internal */
+    void* (* get_internal )( sgui_context* ctx );
 };
 
 
@@ -129,6 +132,19 @@ SGUI_DLL void sgui_context_release_current( sgui_context* ctx );
  * \return Either a pointer to the function or NULL on failure
  */
 SGUI_DLL sgui_funptr sgui_context_load( sgui_context* ctx, const char* name );
+
+/**
+ * \brief Get a pointer to the internally used data structure
+ *
+ * For OpenGL contexts, this returns a pointer to the platform dependend
+ * context handle. For Direct3D contexts, this returns a pointer to the
+ * underlying device object.
+ *
+ * \param ctx A pointer to a context object
+ *
+ * \return A pointer to an internal object or NULL if the context is NULL
+ */
+SGUI_DLL void* sgui_context_get_internal( sgui_context* ctx );
 
 #ifdef __cplusplus
 }
