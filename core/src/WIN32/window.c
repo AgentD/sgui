@@ -532,7 +532,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         super->set_vsync = d3d9_set_vsync;
 #endif
     }
-    else
+    else if( desc->backend==SGUI_NATIVE )
     {
         /* create an offscreen Device Context */
         if( !(this->hDC = CreateCompatibleDC( NULL )) )

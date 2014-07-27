@@ -496,7 +496,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         super->set_vsync = gl_set_vsync;
 #endif
     }
-    else
+    else if( desc->backend==SGUI_NATIVE )
     {
         super->ctx.canvas = canvas_xrender_create( this->wnd, attr.width,
                                                    attr.height );
