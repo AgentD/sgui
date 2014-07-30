@@ -1,5 +1,5 @@
 #include "sgui.h"
-#include <d3d9.h>
+#include "sgui_d3d9.h"
 
 
 
@@ -7,8 +7,8 @@ int main( void )
 {
     int r=0, g=0, b=0, dr=1, dg=0, db=0;
     sgui_window_description desc;
+    sgui_d3d9_context* ctx;
     IDirect3DDevice9* dev;
-    sgui_context* ctx;
     sgui_window* wnd;
 
     sgui_init( );
@@ -33,8 +33,10 @@ int main( void )
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
     sgui_window_set_vsync( wnd, 1 );
 
-    ctx = sgui_window_get_context( wnd );
-    dev = sgui_context_get_internal( ctx );
+    ctx = (sgui_d3d9_context*)sgui_window_get_context( wnd );
+    dev = ctx->device;
+
+    IDirect3DDevice9_Reset( dev, &ctx->present );
 
     /* main loop */
     while( sgui_main_loop_step( ) )

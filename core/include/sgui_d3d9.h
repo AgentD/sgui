@@ -1,5 +1,5 @@
 /*
- * direct3d9.h
+ * sgui_d3d9.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,35 +22,34 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef SGUI_DIRECT3D9_H
-#define SGUI_DIRECT3D9_H
+#ifndef SGUI_D3D9_H
+#define SGUI_D3D9_H
+
+
 
 #include "sgui_context.h"
-#include "sgui_internal.h"
+#include "sgui_window.h"
 
-#ifndef SGUI_NO_D3D9
-#include "sgui_d3d9.h"
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <d3d9.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-/* swap buffers of a Direct3D 9 window */
-void d3d9_swap_buffers( sgui_window* wnd );
 
-/* turn vsync on or off for a Direct3D 9 window */
-void d3d9_set_vsync( sgui_window* wnd, int interval );
+typedef struct
+{
+    sgui_context super;
+    sgui_window* wnd;
 
-/* create a Direct3D 9 context context */
-sgui_context* d3d9_context_create( sgui_window* wnd,
-                                   const sgui_window_description* desc,
-                                   sgui_d3d9_context* share );
+    /** \brief A pointer to the Direct3D device structure */
+	IDirect3DDevice9* device;
 
-#ifdef __cplusplus
+	/** \brief The present parameters used */
+    D3DPRESENT_PARAMETERS present;
 }
-#endif
+sgui_d3d9_context;
 
-#endif /* SGUI_NO_D3D9 */
 
-#endif /* SGUI_DIRECT3D9_H */
+
+#endif /* SGUI_D3D9_H */
 

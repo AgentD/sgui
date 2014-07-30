@@ -167,8 +167,6 @@ void d3d9_set_vsync( sgui_window* this, int interval )
     sgui_internal_lock_mutex( );
     ctx->present.PresentationInterval = interval ? D3DPRESENT_INTERVAL_ONE :
                                         D3DPRESENT_INTERVAL_IMMEDIATE;
-
-    IDirect3DDevice9_Reset( ctx->device, &ctx->present );
     sgui_internal_unlock_mutex( );
 }
 
@@ -205,12 +203,11 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
     if( IDirect3D9_GetAdapterDisplayMode( d3d9, adapter, &d3ddm ) < 0 )
         goto fail;
 
-    this->present.BackBufferCount        = desc->doublebuffer ? 1 : 0;
-    this->present.EnableAutoDepthStencil = TRUE;
-    this->present.PresentationInterval   = D3DPRESENT_INTERVAL_IMMEDIATE;
-    this->present.BackBufferFormat       = d3ddm.Format;
-    this->present.SwapEffect             = D3DSWAPEFFECT_DISCARD;
-    this->present.Windowed               = TRUE;
+    this->present.BackBufferCount      = desc->doublebuffer ? 1 : 0;
+    this->present.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+    this->present.BackBufferFormat     = d3ddm.Format;
+    this->present.SwapEffect           = D3DSWAPEFFECT_DISCARD;
+    this->present.Windowed             = TRUE;
 
     /* find apropriate anti aliasing settings */
     if( desc->samples > 0 )
@@ -237,6 +234,7 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
     /* find a depth stencil buffer format */
     if( (desc->depth_bits>0) || (desc->stencil_bits>0) )
     {
+        this->present.EnableAutoDepthStencil = TRUE;
         formatfound = 0;
 
         if( desc->stencil_bits>0 )
@@ -269,6 +267,10 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
 
         if( !formatfound )
             goto fail;
+    }
+    else
+    {
+        this->present.EnableAutoDepthStencil = FALSE;
     }
 
     /* try to create the device */
