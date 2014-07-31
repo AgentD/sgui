@@ -242,6 +242,19 @@ void update_window( sgui_window_w32* this )
 
         sgui_canvas_redraw_widgets( super->ctx.canvas, 1 );
     }
+
+    if( super->backend == SGUI_DIRECT3D_9 )
+    {
+        IDirect3DDevice9* dev = ((sgui_d3d9_context*)super->ctx.ctx)->device;
+        sgui_event e;
+
+        if( IDirect3DDevice9_TestCooperativeLevel( dev )==D3DERR_DEVICELOST )
+        {
+            e.type       = SGUI_D3D9_DEVICE_LOST;
+            e.src.window = (sgui_window*)this;
+            sgui_internal_window_fire_event( super, &e );
+        }
+    }
 }
 
 int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,

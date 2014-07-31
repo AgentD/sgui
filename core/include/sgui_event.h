@@ -62,6 +62,8 @@
 
 #define SGUI_EXPOSE_EVENT               0x000B
 
+#define SGUI_D3D9_DEVICE_LOST           0x000C
+
 #define SGUI_MAX_WINDOW_EVENT           0x000F
 
 /**************** canvas events ****************/
