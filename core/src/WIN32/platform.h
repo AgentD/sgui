@@ -37,7 +37,7 @@
 #include "window.h"
 #include "opengl.h"
 #include "direct3d9.h"
-
+#include "direct3d11.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

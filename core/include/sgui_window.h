@@ -236,6 +236,7 @@ struct sgui_window_description
 #define SGUI_OPENGL_CORE   1
 #define SGUI_OPENGL_COMPAT 2
 #define SGUI_DIRECT3D_9    3
+#define SGUI_DIRECT3D_11   4
 #define SGUI_CUSTOM        10
 
 

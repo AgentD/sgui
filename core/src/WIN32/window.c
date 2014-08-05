@@ -457,6 +457,11 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         return NULL;
 #endif
 
+#ifdef SGUI_NO_D3D11
+    if( desc->backend==SGUI_DIRECT3D_11 )
+        return NULL;
+#endif
+
     /*************** allocate space for the window structure ***************/
     this = malloc( sizeof(sgui_window_w32) );
     super = (sgui_window*)this;
@@ -543,6 +548,19 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         super->swap_buffers = d3d9_swap_buffers;
         super->set_vsync = d3d9_set_vsync;
+#endif
+    }
+    else if( desc->backend==SGUI_DIRECT3D_11 )
+    {
+#ifndef SGUI_NO_D3D9
+        super->backend = desc->backend;
+        super->ctx.ctx = d3d11_context_create( super, desc );
+
+        if( !super->ctx.ctx )
+            goto failure;
+
+        super->swap_buffers = d3d11_swap_buffers;
+        super->set_vsync = d3d11_set_vsync;
 #endif
     }
     else if( desc->backend==SGUI_NATIVE )

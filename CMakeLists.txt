@@ -20,8 +20,10 @@ endif( )
 
 if( WIN32 )
   option( DIRECT3D9 "Compile with Direct3D(R) 9 support" ON )
+  option( DIRECT3D11 "Compile with Direct3D(R) 11 support" ON )
 else( )
   set( DIRECT3D9 false )
+  set( DIRECT3D11 false )
 endif( )
 
 option( OPENGL "Compile with OpenGL(R) support" ON )
@@ -42,6 +44,10 @@ endif( )
 
 if( NOT DIRECT3D9 )
   add_definitions( -DSGUI_NO_D3D9 )
+endif( )
+
+if( NOT DIRECT3D11 )
+  add_definitions( -DSGUI_NO_D3D11 )
 endif( )
 
 if( NOT OPENGL )
@@ -166,6 +172,10 @@ if( WIN32 )
 
   set( SGUI_DEP ${SGUI_DEP} msimg32 )
   set( SGUI_DEP ${SGUI_DEP} freetype )
+
+  if( DIRECT3D11 )
+    set( SGUI_DEP ${SGUI_DEP} dxguid )
+  endif( )
 else( )
   find_package( Threads REQUIRED )
   set( SGUI_DEP ${SGUI_DEP} ${CMAKE_THREAD_LIBS_INIT} )

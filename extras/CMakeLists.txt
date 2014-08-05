@@ -20,6 +20,11 @@ if( WIN32 AND DIRECT3D9 )
   target_link_libraries( d3d9_1 sgui )
 endif( )
 
+if( WIN32 AND DIRECT3D11 )
+  add_executable( d3d11_0 d3d11_0.c )
+  target_link_libraries( d3d11_0 sgui d3dcompiler_43 )
+endif( )
+
 add_executable( demo demo.c )
 add_executable( signalsandslots signalsandslots.c )
 add_executable( simple simple.c )
