@@ -22,7 +22,9 @@ endif( )
 
 if( WIN32 AND DIRECT3D11 )
   add_executable( d3d11_0 d3d11_0.c )
+  add_executable( d3d11_1 d3d11_1.c )
   target_link_libraries( d3d11_0 sgui d3dcompiler_43 )
+  target_link_libraries( d3d11_1 sgui d3dcompiler_43 )
 endif( )
 
 add_executable( demo demo.c )
