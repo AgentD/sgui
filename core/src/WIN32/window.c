@@ -120,6 +120,10 @@ static void w32_window_set_size( sgui_window* this,
         resize_pixmap( TO_W32(this) );
         sgui_canvas_resize( this->ctx.canvas, width, height );
     }
+    else if( this->backend == SGUI_DIRECT3D_11 )
+    {
+        d3d11_resize( this->ctx.ctx );
+    }
 
     sgui_internal_unlock_mutex( );
 }
@@ -386,6 +390,10 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         {
             resize_pixmap( this );
             sgui_canvas_resize( super->ctx.canvas, super->w, super->h );
+        }
+        else if( super->backend==SGUI_DIRECT3D_11 )
+        {
+            d3d11_resize( super->ctx.ctx );
         }
 
         /* fire a resize event */

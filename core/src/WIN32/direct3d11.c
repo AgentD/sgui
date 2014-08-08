@@ -163,6 +163,95 @@ void d3d11_set_vsync( sgui_window* wnd, int interval )
     this->syncrate = interval ? 1 : 0;
 }
 
+void d3d11_resize( sgui_context* super )
+{
+    sgui_d3d11_context* this = (sgui_d3d11_context*)super;
+    D3D11_DEPTH_STENCIL_VIEW_DESC ds_view_desc;
+    D3D11_TEXTURE2D_DESC ds_tex_desc;
+    ID3D11Texture2D* pBackBuffer;
+    ID3D11RenderTargetView* tv;
+    DXGI_SWAP_CHAIN_DESC scd;
+    D3D11_VIEWPORT viewport;
+    int is_bound, has_ds;
+
+    /* check if the backbuffer is currently bound, unbind if so */
+    ID3D11DeviceContext_OMGetRenderTargets( this->ctx, 1, &tv, NULL );
+
+    is_bound = (tv == this->backbuffer);
+    has_ds = (this->dsv != NULL);
+
+    if( tv )
+        ID3D11RenderTargetView_Release( tv );
+
+    if( is_bound )
+        ID3D11DeviceContext_OMSetRenderTargets( this->ctx, 0, NULL, NULL );
+
+    /* destroy old buffers, get description first */
+    IDXGISwapChain_GetDesc( this->swapchain, &scd );
+    ID3D11RenderTargetView_Release( this->backbuffer );
+
+    if( has_ds )
+    {
+        ID3D11Texture2D_GetDesc( this->ds_texture, &ds_tex_desc );
+
+        ID3D11Texture2D_Release( this->ds_texture );
+        ID3D11DepthStencilView_Release( this->dsv );
+    }
+
+    /* resize */
+    IDXGISwapChain_ResizeBuffers( this->swapchain, scd.BufferCount,
+                                  this->wnd->w, this->wnd->h,
+                                  scd.BufferDesc.Format,
+                                  scd.Flags );
+
+    /* get back buffer */
+    IDXGISwapChain_GetBuffer( this->swapchain, 0, &IID_ID3D11Texture2D,
+                              (LPVOID*)&pBackBuffer );
+
+    ID3D11Device_CreateRenderTargetView( this->dev,
+                                         (ID3D11Resource*)pBackBuffer,
+                                         NULL, &this->backbuffer );
+
+    ID3D11Texture2D_Release( pBackBuffer );
+
+    /* recreate detph/stencil buffer */
+    if( has_ds )
+    {
+        ds_tex_desc.Width = this->wnd->w;
+        ds_tex_desc.Height = this->wnd->h;
+
+        memset( &ds_view_desc, 0, sizeof(ds_view_desc) );
+        ds_view_desc.Format = ds_tex_desc.Format;
+        ds_view_desc.ViewDimension = scd.SampleDesc.Count>0 ?
+                                     D3D11_DSV_DIMENSION_TEXTURE2DMS :
+                                     D3D11_DSV_DIMENSION_TEXTURE2D;
+
+        ID3D11Device_CreateTexture2D( this->dev, &ds_tex_desc, NULL,
+                                      &this->ds_texture );
+
+        ID3D11Device_CreateDepthStencilView( this->dev,
+                                             (ID3D11Resource*)
+                                             this->ds_texture,
+                                             &ds_view_desc, &this->dsv );
+    }
+
+    /* rebind if it was bound */
+    if( is_bound )
+    {
+        ID3D11DeviceContext_OMSetRenderTargets( this->ctx, 1,
+                                                &this->backbuffer,
+                                                this->dsv );
+
+        memset( &viewport, 0, sizeof(D3D11_VIEWPORT) );
+        viewport.Width    = this->wnd->w;
+        viewport.Height   = this->wnd->h;
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+
+        ID3D11DeviceContext_RSSetViewports( this->ctx, 1, &viewport );
+    }
+}
+
 sgui_context* d3d11_context_create( sgui_window* wnd,
                                     const sgui_window_description* desc )
 {

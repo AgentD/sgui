@@ -41,6 +41,9 @@ void d3d11_swap_buffers( sgui_window* wnd );
 /* turn vsync on or off for a Direct3D 11 window */
 void d3d11_set_vsync( sgui_window* wnd, int interval );
 
+/* resize swapchain and depth/stencil buffer after window resize */
+void d3d11_resize( sgui_context* ctx );
+
 /* create a Direct3D 11 context context */
 sgui_context* d3d11_context_create( sgui_window* wnd,
                                     const sgui_window_description* desc );

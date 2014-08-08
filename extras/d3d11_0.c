@@ -48,6 +48,9 @@ void draw_callback( sgui_window* window )
 
     /* draw frame */
     ID3D11DeviceContext_ClearRenderTargetView(ctx->ctx, ctx->backbuffer, bg);
+    ID3D11DeviceContext_ClearDepthStencilView( ctx->ctx, ctx->dsv,
+                                               D3D11_CLEAR_DEPTH,
+                                               1.0f, 0x00 );
 
     ID3D11DeviceContext_Draw( ctx->ctx, 3, 0 );
 
@@ -78,13 +81,13 @@ int main( void )
     desc.share          = NULL;
     desc.width          = 300;
     desc.height         = 300;
-    desc.resizeable     = SGUI_FIXED_SIZE;
+    desc.resizeable     = SGUI_RESIZEABLE;
     desc.backend        = SGUI_DIRECT3D_11;
     desc.doublebuffer   = SGUI_DOUBLEBUFFERED;
-    desc.bits_per_pixel = 0;
-    desc.depth_bits     = 0;
+    desc.bits_per_pixel = 32;
+    desc.depth_bits     = 16;
     desc.stencil_bits   = 0;
-    desc.samples        = 0;
+    desc.samples        = 4;
 
     wnd = sgui_window_create_desc( &desc );
 
