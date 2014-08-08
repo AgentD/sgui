@@ -66,6 +66,7 @@
  * <li> OpenGL(R) widget for rendering inside a normal GUI application
  * <li> can create a window with OpenGL(R) context
  * </ul>
+ * <li>Direct3D(R) support, verions 9 and 11 (feature level 9.0 to 11.0)
  * <li>Permissive Free Software (aka "Open Source") license
  * <ul>
  * <li> X11, aka MIT license (License text added below)

@@ -81,6 +81,8 @@ extern "C" {
  * \brief Create a rendering context that shares resources with an
  *        existing context
  *
+ * \memberof sgui_context
+ *
  * \param ctx A pointer to a context for which to create an offscreen,
  *            resource sharing context
  *
@@ -91,12 +93,16 @@ SGUI_DLL sgui_context* sgui_context_create_share( sgui_context* ctx );
 /**
  * \brief Destroy a rendering context
  *
+ * \memberof sgui_context
+ *
  * \param ctx A pointer to a context object
  */
 SGUI_DLL void sgui_context_destroy( sgui_context* ctx );
 
 /**
  * \brief Make a rendering context current
+ *
+ * \memberof sgui_context
  *
  * Some rendering systems have the concept of a "context", that has to be made
  * current in order to be used (e.g. OpenGL). A context can only be current in
@@ -116,6 +122,8 @@ SGUI_DLL void sgui_context_make_current( sgui_context* ctx,
 /**
  * \brief Release a context, assuming it is current in the calling thread
  *
+ * \memberof sgui_context
+ *
  * \see sgui_context_make_current
  *
  * \param ctx A pointer to a context previously made current in
@@ -126,6 +134,8 @@ SGUI_DLL void sgui_context_release_current( sgui_context* ctx );
 /**
  * \brief Load an extension function pointer from a rendering context
  *
+ * \memberof sgui_context
+ *
  * \param ctx  A pointer to a context object
  * \param name The name of the function
  *
@@ -135,6 +145,8 @@ SGUI_DLL sgui_funptr sgui_context_load( sgui_context* ctx, const char* name );
 
 /**
  * \brief Get a pointer to the internally used data structure
+ *
+ * \memberof sgui_context
  *
  * For OpenGL contexts, this returns a pointer to the platform dependend
  * context handle. For Direct3D contexts, this returns a pointer to the

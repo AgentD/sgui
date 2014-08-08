@@ -44,6 +44,8 @@ extern "C" {
 /**
  * \brief Create a font cache object
  *
+ * \memberof sgui_font_cache
+ *
  * \param map A pointer to a pixmap to cache the glyphs on. The font cache
  *            takes over ownership of the pixmap and destroys it when the
  *            cache is destroyed.
@@ -55,12 +57,16 @@ SGUI_DLL sgui_font_cache* sgui_font_cache_create( sgui_pixmap* map );
 /**
  * \brief Destroy a font cache object
  *
+ * \memberof sgui_font_cache
+ *
  * \param cache The font cache object
  */
 SGUI_DLL void sgui_font_cache_destroy( sgui_font_cache* cache );
 
 /**
  * \brief Render a glyph using a font cache object
+ *
+ * \memberof sgui_font_cache
  *
  * If the given codepoint and font combination is unknown to the font cache,
  * the coresponding glyph is loaded onto the pixmap object used by the font
@@ -88,6 +94,8 @@ SGUI_DLL int sgui_font_cache_draw_glyph( sgui_font_cache* cache,
 /**
  * \brief Make sure a certain glyph is loaded into a font cache
  *
+ * \memberof sgui_font_cache
+ *
  * \param cache     A pointer to a font cache object
  * \param font      A pointer to a font object to use for glyh rendering
  * \param codepoint The unicode codepoint of the glyph to load
@@ -98,6 +106,8 @@ SGUI_DLL void sgui_font_cache_load_glyph( sgui_font_cache* cache,
 
 /**
  * \brief Get a pointer to the pixmap used by a font cache object
+ *
+ * \memberof sgui_font_cache
  *
  * \param cache A pointer to a font cache object
  *

@@ -248,6 +248,8 @@ extern "C" {
 /**
  * \brief Create a window
  *
+ * \memberof sgui_window
+ *
  * Creates a window using the platforms native window system. The window has
  * to be destroyed again using sgui_window_destroy( ), thus freeing up it's
  * resources.
@@ -279,6 +281,8 @@ SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
 /**
  * \brief Create a window using a pointer to a description structure
  *
+ * \memberof sgui_window
+ *
  * Creates a window using the platforms native window system. The window has
  * to be destroyed again using sgui_window_destroy( ), thus freeing up it's
  * resources.
@@ -298,6 +302,8 @@ SGUI_DLL sgui_window* sgui_window_create_desc(
 /**
  * \brief Make the rendering context for a window current
  *
+ * \memberof sgui_window
+ *
  * If the window was created with, for instance, an OpenGL rendering context
  * (see sgui_window_create), this function makes the context current for the
  * calling thread.
@@ -308,6 +314,8 @@ SGUI_DLL void sgui_window_make_current( sgui_window* window );
 
 /**
  * \brief Release the rendering context for a window
+ *
+ * \memberof sgui_window
  *
  * If the window was created with, for instance, an OpenGL rendering context
  * (see sgui_window_create), and has been made current via
@@ -321,6 +329,8 @@ SGUI_DLL void sgui_window_release_current( sgui_window* window );
 /**
  * \brief Swap the back and the front buffer of a window
  *
+ * \memberof sgui_window
+ *
  * If the window was created with, for instance, an OpenGL rendering context
  * (see sgui_window_create), this function swappes the back buffer of the
  * context with the front buffer.
@@ -329,6 +339,8 @@ SGUI_DLL void sgui_window_swap_buffers( sgui_window* window );
 
 /**
  * \brief Force synchronisation of buffer swapping with vertical rectrace
+ *
+ * \memberof sgui_window
  *
  * For windows with OpenGL or other rendering API backends, this can turn
  * synchronisation of buffer swapping with vertical rectrace of the monitor
@@ -341,6 +353,8 @@ SGUI_DLL void sgui_window_set_vsync( sgui_window* window, int vsync_on );
 
 /**
  * \brief Destroy a previously created window
+ *
+ * \memberof sgui_window
  *
  * The window is closed and all it's resources are freed up, so the window
  * pointer itself is nolonger valid after a call to this function.
@@ -355,6 +369,8 @@ SGUI_DLL void sgui_window_destroy( sgui_window* wnd );
 /**
  * \brief Get the position of the mouse pointer within a window
  *
+ * \memberof sgui_window
+ *
  * \param x Returns the distance of the pointer from the left of the window
  * \param y Returns the distance of the pointer from the top of the window
  */
@@ -363,6 +379,8 @@ SGUI_DLL void sgui_window_get_mouse_position( sgui_window* wnd,
 
 /**
  * \brief Set the mouse pointer to a position within a window
+ *
+ * \memberof sgui_window
  *
  * \param x          The distance of the pointer from the left of the window.
  * \param y          The distance of the pointer from the top of the window.
@@ -376,6 +394,8 @@ SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
 
 /**
  * \brief Make a window visible or invisible
+ *
+ * \memberof sgui_window
  *
  * This function shows or hides a window. The window is hidden by default
  * after creation.
@@ -396,6 +416,8 @@ SGUI_DLL int sgui_window_is_visible( const sgui_window* wnd );
 /**
  * \brief Change the title of a window
  *
+ * \memberof sgui_window
+ *
  * Most windowsystems decorate windows with borders which tend to have a
  * configurable titlebar with a text in it. This function can be used to alter
  * that title.
@@ -407,6 +429,8 @@ SGUI_DLL void sgui_window_set_title( sgui_window* wnd, const char* title );
 
 /**
  * \brief Change the size of a window
+ *
+ * \memberof sgui_window
  *
  * A call to this function will trigger a size change event.
  *
@@ -422,6 +446,8 @@ SGUI_DLL void sgui_window_set_size( sgui_window* wnd,
 /**
  * \brief Get the size of a window
  *
+ * \memberof sgui_window
+ *
  * \param width  Returns width of the window. Pass NULL if you're not
  *               iteressted in it.
  * \param height Returns height of the window. Pass NULL if you're not
@@ -431,11 +457,17 @@ SGUI_DLL void sgui_window_get_size( const sgui_window* wnd,
                                     unsigned int* width,
                                     unsigned int* height );
 
-/** \brief Relocate a window to the center of the screen */
+/**
+ * \brief Relocate a window to the center of the screen
+ *
+ * \memberof sgui_window
+ */
 SGUI_DLL void sgui_window_move_center( sgui_window* wnd );
 
 /**
  * \brief Move a window to a specified position
+ *
+ * \memberof sgui_window
  *
  * \param wnd A pointer to a window
  * \param x   The distance of the left of the window to the left of the screen
@@ -445,6 +477,8 @@ SGUI_DLL void sgui_window_move( sgui_window* wnd, int x, int y );
 
 /**
  * \brief Get the position of a window
+ *
+ * \memberof sgui_window
  *
  * \param wnd A pointer to a window
  * \param x   The distance of the left of the window to the left of the
@@ -458,6 +492,8 @@ SGUI_DLL void sgui_window_get_position( const sgui_window* wnd,
 /**
  * \brief Force redrawing of a portion of a window
  *
+ * \memberof sgui_window
+ *
  * \param wnd A pointer to a window
  * \param r   A pointer to a rect holding the outlines of the redraw area
  */
@@ -465,6 +501,8 @@ SGUI_DLL void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r );
 
 /**
  * \brief Set a window's event callback
+ *
+ * \memberof sgui_window
  *
  * Each window may have ONE callback registered that gets called when an event
  * occours. The callback receives the pointer of the window that triggered it,
@@ -480,6 +518,8 @@ SGUI_DLL void sgui_window_on_event( sgui_window* wnd,
 /**
  * \brief Store a user supplied pointer along with a window
  *
+ * \memberof sgui_window
+ *
  * This function can be used to conviently store a user pointer (e.g. to a C++
  * class managing the window, or a widget managing a sub window, etc...) with
  * a window to be later retrieved on demand.
@@ -492,6 +532,8 @@ SGUI_DLL void sgui_window_set_userptr( sgui_window* wnd, void* ptr );
 /**
  * \brief Obtain a user supplied pointer from a window
  *
+ * \memberof sgui_window
+ *
  * \see sgui_window_set_userptr
  *
  * \param wnd A pointer to a window
@@ -503,6 +545,8 @@ SGUI_DLL void* sgui_window_get_userptr( const sgui_window* wnd );
 /**
  * \brief Add a widget to a window
  *
+ * \memberof sgui_window
+ *
  * Ownership remains with the caller.
  *
  * \param wnd    The window to add the widget to
@@ -512,6 +556,8 @@ SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
 
 /**
  * \brief Write a fraction of text to the system clipboard
+ *
+ * \memberof sgui_window
  *
  * \param wnd    A pointer to a window through which to access the clipboard
  * \param text   A pointer to a text to write to the clipboard
@@ -524,6 +570,8 @@ SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
 /**
  * \brief Read a text string from the system clipboard
  *
+ * \memberof sgui_window
+ *
  * \param wnd A pointer to a window through which to access the clipboard
  *
  * \return A pointer to a global text buffer. DO NOT FREE THIS POINTER OR
@@ -531,14 +579,24 @@ SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
  */
 SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
 
-/** \brief Get a pointer to the back buffer canvas object of the window */
+/**
+ * \brief Get a pointer to the back buffer canvas object of the window
+ *
+ * \memberof sgui_window
+ */
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( const sgui_window* wnd );
 
-/** \brief Get a combination of SGUI_MOD_ flags for the current modifiers */
+/**
+ * \brief Get a combination of SGUI_MOD_ flags for the current modifiers
+ *
+ * \memberof sgui_window
+ */
 SGUI_DLL int sgui_window_get_modifyer_mask( const sgui_window* wnd );
 
 /**
  * \brief This function returns the platform specific objects of a window
+ *
+ * \memberof sgui_window
  *
  * Using this function, it is possible to perform some advanced techniques
  * with a window, like creating an OpenGL context that shares resources, or
@@ -555,6 +613,8 @@ SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
 /**
  * \brief If a window has a rendering context, get a pointer to the
  *        context object
+ *
+ * \memberof sgui_window
  */
 SGUI_DLL sgui_context* sgui_window_get_context( const sgui_window* wnd );
 

@@ -44,6 +44,8 @@ extern "C" {
 /**
  * \brief Create an icon cache object
  *
+ * \memberof sgui_icon_cache
+ *
  * \param canvas The canvas that is supposed to own the icon pixmap
  * \param width  The width of the icon pixmap
  * \param height The height of the icon pixmap
@@ -60,12 +62,16 @@ SGUI_DLL sgui_icon_cache* sgui_icon_cache_create( sgui_canvas* canvas,
 /**
  * \brief Destroy an icon cache object
  *
+ * \memberof sgui_icon_cache
+ *
  * \param cache A pointer to an icon cache object
  */
 SGUI_DLL void sgui_icon_cache_destroy( sgui_icon_cache* cache );
 
 /**
  * \brief Add an icon to an icon cache
+ *
+ * \memberof sgui_icon_cache
  *
  * \param cache  A pointer to an icon cache object
  * \param id     A unique id to asociate with the icon
@@ -81,6 +87,8 @@ SGUI_DLL int sgui_icon_cache_add_icon( sgui_icon_cache* cache,
 
 /**
  * \brief Load icon data into an icon cache
+ *
+ * \memberof sgui_icon_cache
  *
  * \param cache  A pointer to an icon cache object
  * \param id     The unique id of the icon
@@ -98,6 +106,8 @@ SGUI_DLL void sgui_icon_cache_load_icon( sgui_icon_cache* cache,
 /**
  * \brief Draw an icon from an icon cache onto the coresponding canvas
  *
+ * \memberof sgui_icon_cache
+ *
  * \param cache A pointer to an icon cache object
  * \param id    The unique id of the canvas
  * \param x     Distance of the left of the icon from the left of the canvas
@@ -108,6 +118,8 @@ SGUI_DLL void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
 
 /**
  * \brief Get the area occupied by an icon on the icon pixmap
+ *
+ * \memberof sgui_icon_cache
  *
  * \param cache A pointer to the icon cache object
  * \param id    The id of the icon

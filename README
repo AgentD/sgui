@@ -39,6 +39,7 @@
         - core profile as well as compatibillity profile
         - OpenGL(R) widget for rendering inside a normal GUI application
         - can create a window with OpenGL(R) context
+    - Optional Direct3D(R) support (9 and 11, feature levels 9.0 to 11.0)
     - Permissive Free Software (aka "Open Source") license
         - X11, aka MIT license (License text added below)
         - Allows you to do whatever you want, as long as credit is given

@@ -105,6 +105,8 @@ SGUI_DLL void sgui_internal_process_events( void );
 /**
  * \brief Perform common operations at the end of sgui_window_create
  *
+ * \memberof sgui_window
+ *
  * This function stores the size and backend of a window in a window
  * structure.
  *
@@ -120,6 +122,8 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
 
 /**
  * \brief Propagate a window event
+ *
+ * \memberof sgui_window
  *
  * \param wnd   The window that trigered the event
  * \param e     A pointer ot a struct with additional information for an event

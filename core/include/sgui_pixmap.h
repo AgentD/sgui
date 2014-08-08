@@ -72,6 +72,8 @@ extern "C" {
 /**
  * \brief Upload data to a pixmap
  *
+ * \memberof sgui_pixmap
+ *
  * \param pixmap   The pixmap to upload data to.
  * \param dstx     Offset from the left of the destination.
  * \param dsty     Offset from the top of the destination.
@@ -92,6 +94,8 @@ SGUI_DLL void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
 /**
  * \brief Get the size of a pixmap
  *
+ * \memberof sgui_pixmap
+ *
  * \param pixmap The pixmap from wich to get the size
  * \param width  Returns the width of the pixmap
  * \param height Returns the height of the pixmap
@@ -100,7 +104,11 @@ SGUI_DLL void sgui_pixmap_get_size( const sgui_pixmap* pixmap,
                                     unsigned int* width,
                                     unsigned int* height );
 
-/** \brief Destroy a pixmap */
+/**
+ * \brief Destroy a pixmap
+ *
+ * \memberof sgui_pixmap
+ */
 SGUI_DLL void sgui_pixmap_destroy( sgui_pixmap* pixmap );
 
 #ifdef __cplusplus

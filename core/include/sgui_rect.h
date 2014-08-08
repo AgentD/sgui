@@ -66,12 +66,16 @@ extern "C" {
 /**
  * \brief Make sure left is left of right and top is above bottom
  *
+ * \memberof sgui_rect
+ *
  * \param r A pointer to a rect
  */
 SGUI_DLL void sgui_rect_repair( sgui_rect* r );
 
 /**
  * \brief Set the coordinates of a rect using position and size
+ *
+ * \memberof sgui_rect
  *
  * Coordinates are given as signed intgers. The horizontal axis of the
  * coordinate system points to the left, the vertical axis points down, so
@@ -90,6 +94,8 @@ SGUI_DLL void sgui_rect_set_size( sgui_rect* r, int left, int top,
 /**
  * \brief Set the coordinates of rect
  *
+ * \memberof sgui_rect
+ *
  * Coordinates are given as signed intgers. The horizontal axis of the
  * coordinate system points to the left, the vertical axis points down, so
  * that the top edge coordinate of a rect is smaller than the bottom edge
@@ -107,6 +113,8 @@ SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
 /**
  * \brief Reposition a given rect
  *
+ * \memberof sgui_rect
+ *
  * \param left The horizontal distance of the left edge from the origin
  * \param top  The vertical distance of the top edge from the origin
  */
@@ -114,6 +122,8 @@ SGUI_DLL void sgui_rect_set_position( sgui_rect* r, int left, int top );
 
 /**
  * \brief Add an offset to a rect
+ *
+ * \memberof sgui_rect
  *
  * \param h A horizontal offset, added to left and right
  * \param v A vertical offset, added to top and bottom
@@ -123,6 +133,8 @@ SGUI_DLL void sgui_rect_add_offset( sgui_rect* r, int h, int v );
 /**
  * \brief Extend a rect
  *
+ * \memberof sgui_rect
+ *
  * \param h A horizontal extension, added to right and subtracted from left
  * \param v A vertical extension, added to bottom and subtracted from top
  */
@@ -131,6 +143,8 @@ SGUI_DLL void sgui_rect_extend( sgui_rect* r, int h, int v );
 /**
  * \brief Copy the data of one rectangle into another
  *
+ * \memberof sgui_rect
+ *
  * \param dst The rectangle to copy to
  * \param src The rectangle to copy from
  */
@@ -138,6 +152,8 @@ SGUI_DLL void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src );
 
 /**
  * \brief Get the intersection between to rectangles
+ *
+ * \memberof sgui_rect
  *
  * This performs an intersection test between two rectangles and returns the
  * intersection. The pointer to the intersection rectangle can be safely set
@@ -157,6 +173,8 @@ SGUI_DLL int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
 /**
  * \brief Join two rectangles
  *
+ * \memberof sgui_rect
+ *
  * \param acc           The accumulator rectangle.
  * \param r             The rectangle to join to the accumulator rectangle.
  * \param only_if_touch If non-zero, the rectangles are only joined if they
@@ -169,6 +187,8 @@ SGUI_DLL int sgui_rect_join( sgui_rect* acc, const sgui_rect* r,
 
 /**
  * \brief Returns non-zero if a given point lies within the given rectangle
+ *
+ * \memberof sgui_rect
  *
  * \param r The rectangle to test for
  * \param x The hotizontal component of the position

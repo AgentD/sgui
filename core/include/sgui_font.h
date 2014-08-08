@@ -45,6 +45,8 @@ extern "C" {
 /**
  * \brief Load a font face from a file
  *
+ * \memberof sgui_font
+ *
  * \param filename     The path to the font file
  * \param pixel_height The rendering height of the font face in pixels
  *
@@ -55,6 +57,8 @@ SGUI_DLL sgui_font* sgui_font_load( const char* filename,
 
 /**
  * \brief Load a font face from an array in memory
+ *
+ * \memberof sgui_font
  *
  * The given data is copied internally, so the pointer can be freed
  * immediately after calling the function.
@@ -69,14 +73,24 @@ SGUI_DLL sgui_font* sgui_font_load_memory( const void* data,
                                            unsigned long size,
                                            unsigned int pixel_height );
 
-/** \brief Destroy a font object */
+/**
+ * \brief Destroy a font object
+ *
+ * \memberof sgui_font
+ */
 SGUI_DLL void sgui_font_destroy( sgui_font* font );
 
-/** \brief Get the rendering height of a font in pixels */
+/**
+ * \brief Get the rendering height of a font in pixels
+ *
+ * \memberof sgui_font
+ */
 SGUI_DLL unsigned int sgui_font_get_height( const sgui_font* font );
 
 /**
  * \brief Get the kerning distance between to characters
+ *
+ * \memberof sgui_font
  *
  * \param first  The unicode code point of the first character.
  * \param second The unicode code point of the second character
@@ -92,6 +106,8 @@ SGUI_DLL int sgui_font_get_kerning_distance( sgui_font* font,
 /**
  * \brief Load a specific glyph for a font
  *
+ * \memberof sgui_font
+ *
  * \param codepoint The unicode code point for wich to load the coresponding
  *                  glyph.
  */
@@ -100,6 +116,8 @@ SGUI_DLL void sgui_font_load_glyph( sgui_font* font,
 
 /**
  * \brief Get the dimensions of the currently loaded glyph of a font
+ *
+ * \memberof sgui_font
  *
  * \param width   If used, returns the horizontal extents of the glyph.
  * \param width   If used, returns the vertical extents of the glyph.
@@ -114,6 +132,8 @@ SGUI_DLL void sgui_font_get_glyph_metrics( sgui_font* font,
 /**
  * \brief Get a buffer holding a rendering of the currently loaded
  *        glyph of a font
+ *
+ * \memberof sgui_font
  *
  * \return A buffer holding grayscale values.
  */

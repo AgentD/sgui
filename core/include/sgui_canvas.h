@@ -199,6 +199,8 @@ extern "C"
 /**
  * \brief Used by canvas implementations to initialise the canvas base struct
  *
+ * \memberof sgui_canvas
+ *
  * \param cv     A pointer to the canvas structure
  * \param width  The width of the canvas
  * \param height The height of the canvas
@@ -206,11 +208,17 @@ extern "C"
 SGUI_DLL void sgui_canvas_init( sgui_canvas* cv, unsigned int width,
                                 unsigned int height );
 
-/** \brief Destroy a canvas */
+/**
+ * \brief Destroy a canvas
+ *
+ * \memberof sgui_canvas
+ */
 SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
 
 /**
  * \brief Get the root node of a canvas
+ *
+ * \memberof sgui_canvas
  *
  * \param canvas A pointer to the canvas
  *
@@ -220,6 +228,8 @@ SGUI_DLL sgui_widget* sgui_canvas_get_root( const sgui_canvas* canvas );
 
 /**
  * \brief Override the widget that currently has keyboard focus
+ *
+ * \memberof sgui_canvas
  *
  * \param canvas A pointer to a canvas object
  * \param widget A pointer to a widget that should receive focus instead, or
@@ -231,6 +241,8 @@ SGUI_DLL void sgui_canvas_set_focus( sgui_canvas* canvas,
 /**
  * \brief Add a dirty rect (area that needs redraw) to a canvas
  *
+ * \memberof sgui_canvas
+ *
  * \param canvas The canvas
  * \param r      The dirty rectangle
  */
@@ -238,6 +250,8 @@ SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r );
 
 /**
  * \brief Get the number of dirty rectangles from a canvas
+ *
+ * \memberof sgui_canvas
  *
  * \param canvas The canvas
  *
@@ -247,6 +261,8 @@ SGUI_DLL unsigned int sgui_canvas_num_dirty_rects(const sgui_canvas* canvas);
 
 /**
  * \brief Get a dirty rectangle from a canvas by index
+ *
+ * \memberof sgui_canvas
  *
  * \param canvas The canvas
  * \param rect   A pointer to a rectangle to write to
@@ -258,6 +274,8 @@ SGUI_DLL void sgui_canvas_get_dirty_rect( const sgui_canvas* canvas,
 /**
  * \brief Clear the dirty rects of a canvas
  *
+ * \memberof sgui_canvas
+ *
  * \param canvas The canvas
  */
 SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
@@ -265,6 +283,8 @@ SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
 /**
  * \brief Redraw all visible widgets of a canvas that are within areas flaged
  *        as dirty.
+ *
+ * \memberof sgui_canvas
  *
  * The dirty areas are cleared after a call to this function. The function can
  * be called outside a begin-end block and calls begin-end itself if required.
@@ -276,6 +296,8 @@ SGUI_DLL void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear );
 
 /**
  * \brief Redraw all visible widgets of a canvas.
+ *
+ * \memberof sgui_canvas
  *
  * The dirty areas are cleared after a call to this function. The function can
  * calls be called outside a begin-end block and calls begin-end itself if
@@ -289,6 +311,8 @@ SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
 /**
  * \brief Send a window event to all widgets held by a canvas
  *
+ * \memberof sgui_canvas
+ *
  * The canvas automatically manages keyboard focus and generates mouse
  * enter, mouse leave, focus and focus lost events for the widgets it holds.
  *
@@ -301,6 +325,8 @@ SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
 /**
  * \brief Change the size of a canvas
  *
+ * \memberof sgui_canvas
+ *
  * \param canvas The canvas to resize
  * \param width  The width of the canvas
  * \param height The height of the canvas
@@ -310,6 +336,8 @@ SGUI_DLL void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
 
 /**
  * \brief Get the size of a canvas
+ *
+ * \memberof sgui_canvas
  *
  * \param canvas The canvas to report the size of
  * \param width  Returns the width of the canvas
@@ -321,6 +349,8 @@ SGUI_DLL void sgui_canvas_get_size( const sgui_canvas* canvas,
 
 /**
  * \brief Create a pixmap
+ *
+ * \memberof sgui_canvas
  *
  * This function creates a pixmap. A pixmap is a server side memory area that
  * can hold a picture wich can be displayed on a canvas.
@@ -343,6 +373,8 @@ SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
 /**
  * \brief Get a pointer to the currently used drawing scissor rectangle
  *
+ * \memberof sgui_canvas
+ *
  * \param canvas The canvas to get the scissor rectangle from
  * \param r      Returns the scissor rectangle
  */
@@ -352,6 +384,8 @@ SGUI_DLL void sgui_canvas_get_scissor_rect( const sgui_canvas* canvas,
 /**
  * \brief Set the currently used drawing scissor rectangle of a canvas
  *
+ * \memberof sgui_canvas
+ *
  * \param canvas The canvas of which to set the scissor rectangle
  * \param r      A pointer to the new scissor rectangle
  */
@@ -360,6 +394,8 @@ SGUI_DLL void sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
 
 /**
  * \brief Get the currently used drawing offset from a canvas
+ *
+ * \memberof sgui_canvas
  *
  * \param canvas The canvas of which to get the drawing offset
  * \param x      Returns the horizontal offset
@@ -371,6 +407,8 @@ SGUI_DLL void sgui_canvas_get_offset( const sgui_canvas* canvas,
 /**
  * \brief Set an offset added to all positions of canvas drawing functions
  *
+ * \memberof sgui_canvas
+ *
  * \param canvas The canvas of which to set the drawing offset
  * \param x      The horizontal offset
  * \param y      The vertical offset
@@ -379,6 +417,8 @@ SGUI_DLL void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
 
 /**
  * \brief Call to start drawing to an area on the canvas
+ *
+ * \memberof sgui_canvas
  *
  * A call to this function enables redrawing of a certain portion of a canvas.
  * Call sgui_canvas_end( ) when you are done drawing. Drawing outside begin
@@ -398,6 +438,8 @@ SGUI_DLL void sgui_canvas_begin( sgui_canvas* canvas, const sgui_rect* r );
 /**
  * \brief Call when you are done with drawing
  *
+ * \memberof sgui_canvas
+ *
  * \see sgui_canvas_begin
  */
 SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
@@ -407,12 +449,16 @@ SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
 /**
  * \brief Clear a rectangular region on the canvas
  *
+ * \memberof sgui_canvas
+ *
  * \param r The area to clear
  */
 SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
 
 /**
  * \brief Draw a rectangle onto a canvas
+ *
+ * \memberof sgui_canvas
  *
  * \param r      The geometry of the box to draw
  * \param color  The color to draw the box in
@@ -424,6 +470,8 @@ SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
 
 /**
  * \brief Draw a line onto a canvas
+ *
+ * \memberof sgui_canvas
  *
  * \param x          Distance from the left of the canvas to the start of the
  *                   line.
@@ -442,6 +490,8 @@ SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
 /**
  * \brief Draw an image onto a canvas
  *
+ * \memberof sgui_canvas
+ *
  * \param x      Distance from the left of the canvas to the left of the image
  * \param y      Distance from the top of the canvas to the top of the image
  * \param pixmap The pixmap to draw onto the canvas
@@ -455,6 +505,8 @@ SGUI_DLL void sgui_canvas_draw_pixmap( sgui_canvas* canvas, int x, int y,
 
 /**
  * \brief Render one line of text in a single font face
+ *
+ * \memberof sgui_canvas
  *
  * \param x         Distance from the left of the canvas to the left of the
  *                  text.
@@ -477,6 +529,8 @@ SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
 /**
  * \brief Render a multi line text that uses html like tags to switch color
  *        or font face, using the default fonts from the skinning system.
+ *
+ * \memberof sgui_canvas
  *
  * \param x           Distance from the left of the text to the left of the
  *                    canvas.

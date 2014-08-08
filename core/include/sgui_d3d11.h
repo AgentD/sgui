@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_d3d11.h
+ *
+ * This file contains the Direct3D 11 context implementation.
+ */
 #ifndef SGUI_D3D11_H
 #define SGUI_D3D11_H
 
