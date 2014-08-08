@@ -192,14 +192,14 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
     memset( this, 0, sizeof(sgui_d3d11_context) );
 
     /* setup swap chain parameters */
-	memset( &scd, 0, sizeof(scd) );
+    memset( &scd, 0, sizeof(scd) );
 
     scd.BufferDesc.RefreshRate.Numerator = 60;
     scd.BufferDesc.RefreshRate.Denominator = 1;
     scd.BufferDesc.Format = desc->bits_per_pixel==16 ?
                             DXGI_FORMAT_B5G6R5_UNORM :
                             DXGI_FORMAT_R8G8B8A8_UNORM;
-	scd.SampleDesc.Count = desc->samples>0 ? desc->samples : 1;
+    scd.SampleDesc.Count = desc->samples>0 ? desc->samples : 1;
     scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     scd.BufferCount = desc->doublebuffer ? 2 : 1;
     scd.OutputWindow = TO_W32(wnd)->hWnd;
@@ -244,8 +244,8 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
         /* Create depth stencil texture */
         memset( &ds_tex_desc, 0, sizeof(ds_tex_desc) );
 
-        ds_tex_desc.Width              = wnd->w;
-        ds_tex_desc.Height             = wnd->h;
+        ds_tex_desc.Width              = desc->width;
+        ds_tex_desc.Height             = desc->height;
         ds_tex_desc.MipLevels          = 1;
         ds_tex_desc.ArraySize          = 1;
         ds_tex_desc.SampleDesc.Count   = scd.SampleDesc.Count;
@@ -273,7 +273,9 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
         memset( &ds_view_desc, 0, sizeof(ds_view_desc) );
 
         ds_view_desc.Format        = ds_tex_desc.Format;
-        ds_view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+        ds_view_desc.ViewDimension = desc->samples>0 ?
+                                     D3D11_DSV_DIMENSION_TEXTURE2DMS :
+                                     D3D11_DSV_DIMENSION_TEXTURE2D;
 
         hr = ID3D11Device_CreateDepthStencilView( this->dev,
                                                   (ID3D11Resource*)
