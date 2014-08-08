@@ -50,15 +50,65 @@ typedef struct
     sgui_context super;
     sgui_window* wnd;
 
+    /** \brief Non-zero if vsync is enabled, zero if not */
     int syncrate;
 
+    /** \brief A pointer to the swap chain crated for the window */
     IDXGISwapChain* swapchain;
+
+    /** \brief A pointer to the device crated for the window */
     ID3D11Device* dev;
+
+    /** \brief A pointer to an immediate context crated from the device */
     ID3D11DeviceContext* ctx;
 
+    /**
+     * \brief A pointer to a render target view created from the swapchain
+     *
+     * When the window size changes, the swapchain is automatically resized
+     * and the backbuffer is recreated. If and only if this render target view
+     * was bound before resizing, it is bound again afterwards and the
+     * viewport is set to the entire window size.
+     *
+     * \note In order for the automatic resizing to work, you MUST NOT do
+     *       anything that increases the reference count of this object.
+     */
     ID3D11RenderTargetView* backbuffer;
 
+    /**
+     * \brief A pointer to a depth stencil texture or NULL if not requested
+     *
+     * If a depth buffer or stencil buffer was requested during window
+     * creation, a window sized depth/stencil texture is created along with
+     * a depth stencil view. This holds a pointer to the depth/stencil texture
+     * if requested, or NULL if not requested.
+     *
+     * The texture is automatically resized when the window size changes. If
+     * and only if the swap chain back buffer was bound before resizing, the
+     * depth stencil view created for the texture is bound along with the
+     * back buffer after resizing is done.
+     *
+     * \note In order for the automatic resizing to work, you MUST NOT do
+     *       anything that increases the reference count of this object.
+     */
     ID3D11Texture2D* ds_texture;
+
+    /**
+     * \brief A pointer to a depth stencil texture or NULL if not requested
+     *
+     * If a depth buffer or stencil buffer was requested during window
+     * creation, a window sized depth/stencil texture is created along with
+     * a depth stencil view. This holds a pointer to the depth/stencil view
+     * if requested, or NULL if not requested.
+     *
+     * The underlying texture is automatically resized when the window size
+     * changes and the view is recreated. If and only if the swap chain back
+     * buffer was bound before resizing, the depth stencil view is bound
+     * along with the back buffer after resizing is done.
+     *
+     * \note In order for the automatic resizing to work, you MUST NOT do
+     *       anything that increases the reference count of this object.
+     */
     ID3D11DepthStencilView* dsv;
 }
 sgui_d3d11_context;
