@@ -117,7 +117,6 @@ if( MSVC )
   message( STATUS "Compiling with MSVC" )
 
   add_definitions( /D_CRT_SECURE_NO_WARNINGS )
-  add_definitions( /DUNICODE )
 
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4005 /wd4996" )
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /nologo"         )
@@ -134,7 +133,7 @@ endif( )
 # OS detection
 #----------------------------------------------------------------------
 if( WIN32 )
-  add_definitions( -DMACHINE_OS_WINDOWS )
+  add_definitions( -DSGUI_WINDOWS )
 
   if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     message( STATUS "Compiling for 64 bit Windows" )
@@ -144,7 +143,7 @@ if( WIN32 )
 elseif( APPLE )
   message( ERROR "Mac OS X is not supported yet!" )
 elseif( UNIX )
-  add_definitions( -DMACHINE_OS_UNIX )
+  add_definitions( -DSGUI_UNIX )
   message( STATUS "Compiling for a generic UNIX like operating system" )
 else( )
   message( ERROR "Unknown, possibly unsupported operating system!" )

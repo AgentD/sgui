@@ -34,7 +34,7 @@
 #include <string.h>
 
 #if !defined(SGUI_NO_ICON_CACHE) && !defined(SGUI_NO_ICON_VIEW)
-#ifdef MACHINE_OS_WINDOWS
+#ifdef SGUI_WINDOWS
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #else
@@ -90,7 +90,7 @@ icon_view;
 
 static long get_time_ms( void )
 {
-#ifdef MACHINE_OS_WINDOWS
+#ifdef SGUI_WINDOWS
     return GetTickCount( );
 #else
     struct timeval tp;

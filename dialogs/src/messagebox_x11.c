@@ -26,7 +26,7 @@
 #include "sgui_messagebox.h"
 #include "sgui_internal.h"
 
-#ifdef MACHINE_OS_UNIX
+#ifdef SGUI_UNIX
 #ifndef SGUI_NO_NATIVE_MESSAGEBOX
 #include <stdio.h>
 
@@ -231,5 +231,5 @@ void sgui_message_box_emergency( const char* caption, const char* text )
     (void)text;
 }
 #endif /* !SGUI_NO_NATIVE_MESSAGEBOX */
-#endif /* MACHINE_OS_UNIX */
+#endif /* SGUI_UNIX */
 

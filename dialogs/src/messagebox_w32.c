@@ -25,7 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_messagebox.h"
 
-#ifdef MACHINE_OS_WINDOWS
+#ifdef SGUI_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -44,5 +44,5 @@ void sgui_message_box_emergency( const char* caption, const char* text )
 }
 #endif /* !SGUI_NO_NATIVE_MESSAGEBOX */
 
-#endif /* MACHINE_OS_WINDOWS */
+#endif /* SGUI_WINDOWS */
 

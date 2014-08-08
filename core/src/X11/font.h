@@ -32,9 +32,9 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#ifdef MACHINE_OS_UNIX
+#ifdef SGUI_UNIX
     #define SYS_FONT_PATH "/usr/share/fonts/TTF/"
-#elif defined MACHINE_OS_WINDOWS
+#elif defined SGUI_WINDOWS
     #define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
 #else
     #define NO_SYS_FONT_PATH 1

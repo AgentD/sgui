@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef MACHINE_OS_UNIX
+#ifdef SGUI_UNIX
     #include <pthread.h>
     #include <unistd.h>
 
@@ -70,7 +70,7 @@ void glview_on_draw( sgui_widget* glview )
 #endif
 }
 
-#ifdef MACHINE_OS_UNIX
+#ifdef SGUI_UNIX
 void* gl_drawing_thread( void* arg )
 #else
 DWORD __stdcall gl_drawing_thread( LPVOID arg )
