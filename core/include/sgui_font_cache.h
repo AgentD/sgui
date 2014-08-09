@@ -37,6 +37,14 @@
 
 
 
+/**
+ * \struct sgui_font_cache
+ *
+ * \brief Caches rasterized glyphs on a pixmap
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

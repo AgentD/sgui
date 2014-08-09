@@ -55,6 +55,11 @@
 
 
 
+/**
+ * \struct sgui_widget
+ *
+ * \brief The common base for all GUI controls
+ */
 struct sgui_widget
 {
     sgui_rect area;  /**< \brief The area occupied by a widget */

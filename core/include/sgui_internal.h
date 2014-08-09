@@ -106,6 +106,7 @@ SGUI_DLL void sgui_internal_process_events( void );
  * \brief Perform common operations at the end of sgui_window_create
  *
  * \memberof sgui_window
+ * \protected
  *
  * This function stores the size and backend of a window in a window
  * structure.
@@ -124,6 +125,7 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
  * \brief Propagate a window event
  *
  * \memberof sgui_window
+ * \protected
  *
  * \param wnd   The window that trigered the event
  * \param e     A pointer ot a struct with additional information for an event
@@ -144,6 +146,8 @@ SGUI_DLL void sgui_interal_skin_deinit_default( void );
 /**
  * \brief Instantiate an in memory implementation of a pixmap
  *
+ * \memberof sgui_mem_pixmap
+ *
  * Used by the memory canvas implementation.
  *
  * \param width  The width of the pixmap in pixels
@@ -155,10 +159,18 @@ SGUI_DLL sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
                                                        int format,
                                                        int swaprb );
 
-/** \brief Get a pointer to the data of a memory pixmap */
+/**
+ * \brief Get a pointer to the data of a memory pixmap
+ *
+ * \memberof sgui_mem_pixmap
+ */
 SGUI_DLL unsigned char* sgui_internal_mem_pixmap_buffer( sgui_pixmap* pix );
 
-/** \brief Get the color format of a memory pixmap */
+/**
+ * \brief Get the color format of a memory pixmap
+ *
+ * \memberof sgui_mem_pixmap
+ */
 SGUI_DLL int sgui_internal_mem_pixmap_format( sgui_pixmap* pix );
 
 #ifdef __cplusplus

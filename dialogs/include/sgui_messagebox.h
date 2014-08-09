@@ -32,6 +32,16 @@
 
 
 
+/**
+ * \struct sgui_message_box
+ *
+ * \brief A message box dialog window
+ *
+ * \image html messagebox.png "A message box with multi line text and an icon"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,6 +57,8 @@ extern "C" {
 
 /**
  * \brief Create a message box
+ *
+ * \memberof sgui_message_box
  *
  * \param icon    The icon to display (SGUI_MB_INFO, SGUI_MB_WARNING,
  *                SGUI_MB_CRITICAL or SGUI_MB_QUESTION).
@@ -70,12 +82,16 @@ SGUI_DLL sgui_message_box* sgui_message_box_create( int icon,
 /**
  * \brief Destroy a message box and free all its memory
  *
+ * \memberof sgui_message_box
+ *
  * \param mb A pointer to a message box
  */
 SGUI_DLL void sgui_message_box_destroy( sgui_message_box* mb );
 
 /**
  * \brief Display a message box in the center of the screen
+ *
+ * \memberof sgui_message_box
  *
  * When the user presses one of the buttons, the message box window is closed
  * an event is generated (SGUI_MESSAGE_BOX_BUTTON1_EVENT,
@@ -91,6 +107,9 @@ SGUI_DLL void sgui_message_box_display( sgui_message_box* mb );
 
 /**
  * \brief Display a message box by directly using the platform functions
+ *
+ * \memberof sgui_message_box
+ * \static
  *
  * Some platforms have a native window systems and offer a message box
  * function, others don't. This function directly uses the platform dependend

@@ -42,9 +42,19 @@
 
 
 
+/**
+ * \struct sgui_d3d9_context
+ *
+ * \implements sgui_context
+ *
+ * \brief A Direct3D 9 context implementation
+ */
 typedef struct
 {
+#ifndef SGUI_DOXYGEN
     sgui_context super;
+#endif
+
     sgui_window* wnd;
 
     /** \brief A pointer to the Direct3D device structure */

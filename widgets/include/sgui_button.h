@@ -36,6 +36,20 @@
 
 
 
+/**
+ * \struct sgui_button
+ *
+ * \extends sgui_widget
+ *
+ * \brief A button widget
+ *
+ * \image html button.png "A push button"
+ * \image html check.png "Check boxes"
+ * \image html group.png "A group of radio buttons"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -43,6 +57,8 @@ extern "C"
 
 /**
  * \brief Create a button widget
+ *
+ * \memberof sgui_button
  *
  * \param x          X component of the buttons position
  * \param x          Y component of the buttons position
@@ -65,6 +81,8 @@ SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
 /**
  * \brief Create a button with an icon instead of a text displayed on it
  *
+ * \memberof sgui_button
+ *
  * \param x          X component of the buttons position
  * \param x          Y component of the buttons position
  * \param width      The width of the button in pixels
@@ -86,6 +104,8 @@ SGUI_DLL sgui_widget* sgui_icon_button_create( int x, int y,
 /**
  * \brief Create a checkbox button widget
  *
+ * \memberof sgui_button
+ *
  * \param x    X component of the buttons position
  * \param x    Y component of the buttons position
  * \param text UTF8 text written next to the check box
@@ -96,6 +116,8 @@ SGUI_DLL sgui_widget* sgui_checkbox_create( int x, int y, const char* text );
 
 /**
  * \brief Create a radio button widget
+ *
+ * \memberof sgui_button
  *
  * \param x      X component of the radio buttons position
  * \param x      Y component of the radio buttons position
@@ -109,6 +131,8 @@ SGUI_DLL sgui_widget* sgui_radio_button_create( int x, int y,
 /**
  * \brief Connect button widgets to a button group (e.g. a bunch of radio
  *        buttons to a button group)
+ *
+ * \memberof sgui_button
  *
  * \note Button connections MUST NOT be circular (e.g. connecting the
  *       last to the first)!
@@ -132,6 +156,8 @@ SGUI_DLL void sgui_button_set_text( sgui_widget* button, const char* text );
 /**
  * \brief Set an icon to be printed onto a button
  *
+ * \memberof sgui_button
+ *
  * \param button The button to alter.
  * \param cache  A pointer to the icon cache that holds the icon.
  * \param icon   The id of the icon to display.
@@ -143,6 +169,8 @@ SGUI_DLL void sgui_button_set_icon( sgui_widget* button,
 /**
  * \brief Set the state of a checkbox or radio button
  *
+ * \memberof sgui_button
+ *
  * \param button The button to alter.
  * \param state  Non-zero for checked, zero for unchecked
  */
@@ -150,6 +178,8 @@ SGUI_DLL void sgui_button_set_state( sgui_widget* button, int state );
 
 /**
  * \brief Returns the state of a button
+ *
+ * \memberof sgui_button
  *
  * \param button The button to get the state from
  *

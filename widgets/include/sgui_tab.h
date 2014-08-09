@@ -31,12 +31,36 @@
 
 
 
+/**
+ * \struct sgui_tab
+ *
+ * \extends sgui_widget
+ *
+ * \brief A single tab in a tab group
+ *
+ * \image html tab.png "Multiple tabs in a tab group"
+ */
+
+/**
+ * \struct sgui_tab_group
+ *
+ * \extends sgui_widget
+ *
+ * \brief Manages a group of tab widgets
+ *
+ * \image html tab.png "A tab group managing multiple tabs"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
  * \brief Create a tab group widget
+ *
+ * \memberof sgui_tab_group
  *
  * This creates a new tab group widget. Tabs have to be added to the widget by
  * creating them using sgui_tab_create and attaching them using
@@ -57,6 +81,8 @@ SGUI_DLL sgui_widget* sgui_tab_group_create( int x, int y,
 
 /**
  * \brief Create a tab widget
+ *
+ * \memberof sgui_tab
  *
  * This creates a new tab widget. The tab widget has to be added to a tab
  * group manually using sgui_widget_add_child. Widget can be added to the

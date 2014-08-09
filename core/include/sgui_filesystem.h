@@ -37,6 +37,11 @@
 
 
 
+/**
+ * \struct sgui_filesystem
+ *
+ * \brief A filesystem abstraction layer
+ */
 struct sgui_filesystem
 {
     /**

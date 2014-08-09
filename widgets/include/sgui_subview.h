@@ -50,6 +50,17 @@ typedef void (* sgui_subview_window_fun )( sgui_widget* subview,
 
 
 
+/**
+ * \struct sgui_subview
+ *
+ * \extends sgui_widget
+ *
+ * \brief A widget that manages a sub window
+ *
+ * \image html glwidget.png "A sub window with an OpenGL&reg; context"
+ */
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -57,6 +68,8 @@ extern "C"
 
 /**
  * \brief Create a subview widget
+ *
+ * \memberof sgui_subview
  *
  * A subview widget is a widget that creates and manages a small subwindow as
  * a rendering area within a window, so you can, for instance, create an
@@ -85,11 +98,15 @@ SGUI_DLL sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
 
 /**
  * \brief Get a direct pointer to the window managed by a subview widget
+ *
+ * \memberof sgui_subview
  */
 SGUI_DLL sgui_window* sgui_subview_get_window( sgui_widget* subview );
 
 /**
  * \brief Register a callback to be called when a subview requires redrawing
+ *
+ * \memberof sgui_subview
  *
  * \param subview The subview to register the callback to
  * \param drawcb The callback
@@ -101,6 +118,8 @@ SGUI_DLL void sgui_subview_set_draw_callback( sgui_widget* subview,
  * \brief Register a callback to be called when the subwindow of a subview
  *        widget triggers an event (e.g. key pressed, mouse moved, etc...)
  *
+ * \memberof sgui_subview
+ *
  * \param subview  The subview widget to register the callback to
  * \param windowcb The callback
  */
@@ -109,6 +128,8 @@ SGUI_DLL void sgui_subview_on_window_event( sgui_widget* subview,
 
 /**
  * \brief Enforce a redraw of a subview widget
+ *
+ * \memberof sgui_subview
  *
  * \param subview A pointer to a subview widget
  */

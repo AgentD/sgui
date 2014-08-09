@@ -118,6 +118,24 @@
  *     return 0;
  * }
  * \endcode
+ *
+ * \example clipboard.c
+ * \example d3d9_0.c
+ * \example d3d9_1.c
+ * \example d3d9_2.c
+ * \example d3d9_3.c
+ * \example d3d11_0.c
+ * \example d3d11_1.c
+ * \example d3d11_2.c
+ * \example d3d11_3.c
+ * \example dialogs.c
+ * \example events.c
+ * \example gl0.c
+ * \example gl1.c
+ * \example gl2.c
+ * \example gl3.c
+ * \example simple.c
+ * \example widget.c
  */
 #ifndef SGUI_H
 #define SGUI_H

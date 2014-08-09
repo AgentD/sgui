@@ -31,6 +31,18 @@
 
 
 
+/**
+ * \struct sgui_image
+ *
+ * \extends sgui_widget
+ *
+ * \brief A widget that displays a staticially assigned bitmap image
+ *
+ * \image html static.png "Two image widgets, with and without transparency"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -38,6 +50,8 @@ extern "C"
 
 /**
  * \brief Create an image widget
+ *
+ * \memberof sgui_image
  *
  * \param x      Distance from the left of the window to the left of the image
  * \param y      Distance from the top of the window to the top of the image

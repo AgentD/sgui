@@ -44,12 +44,26 @@ typedef int (* sgui_icon_compare_fun )( void* a, void* b );
 
 
 
+/**
+ * \struct sgui_icon_view
+ *
+ * \extends sgui_widget
+ *
+ * \brief A widget that displays icons that can be clicked and draged around
+ *
+ * \image html iconview.png "An icon view widget with one icon selected"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
  * \brief Create an icon view widget
+ *
+ * \memberof sgui_icon_view
  *
  * An icon view is an area that can display icons. Icons can be draged around,
  * selected, etc... Icons have an asociated user data pointer that gets passed
@@ -79,6 +93,8 @@ SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 /**
  * \brief Add an icon to an icon view widget
  *
+ * \memberof sgui_icon_view
+ *
  * \param view    A pointer to an icon view widget
  * \param x       The distance from the left of the view area to the icon
  * \param y       The distance from the top of the view area to the icon
@@ -95,6 +111,8 @@ SGUI_DLL void sgui_icon_view_add_icon( sgui_widget* view, int x, int y,
 /**
  * \brief Snap icons in an icon view to a grid
  *
+ * \memberof sgui_icon_view
+ *
  * This function computes the largest common grid cell size of all icons in an
  * icon view and snaps their positions to the nearest gird coordinate.
  *
@@ -104,6 +122,8 @@ SGUI_DLL void sgui_icon_view_snap_to_grid( sgui_widget* view );
 
 /**
  * \brief Sort the icons of an icon view and arange them in a grid
+ *
+ * \memberof sgui_icon_view
  *
  * \param view A pointer to an icon view widget
  * \param fun  A pointer to a comparison function

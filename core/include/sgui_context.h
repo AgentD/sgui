@@ -38,6 +38,13 @@
 
 
 
+/**
+ * \struct sgui_context
+ *
+ * \brief An abstract hardware accelerated rendering context
+ *
+ * \image html gldemo.png "A window with an OpenGL&reg; context"
+ */
 struct sgui_context
 {
     /** \copydoc sgui_context_destroy */

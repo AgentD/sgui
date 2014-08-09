@@ -50,6 +50,18 @@ typedef void(* sgui_scrollbar_callback )( void* userptr, int new_offset,
 
 
 
+/**
+ * \struct sgui_scroll_bar
+ *
+ * \extends sgui_widget
+ *
+ * \brief A scroll bar widget
+ *
+ * \image html frame.png "A horizontal scroll bar can be seen on the right"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -57,6 +69,8 @@ extern "C"
 
 /**
  * \brief Create a scroll bar widget
+ *
+ * \memberof sgui_scroll_bar
  *
  * \param x                  The horizontal component of the bars position.
  * \param y                  The vertical component of the bars position.
@@ -74,6 +88,8 @@ SGUI_DLL sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 /**
  * \brief Register a function to be called when the user scrolls
  *
+ * \memberof sgui_scroll_bar
+ *
  * \param bar     A pointer to the scroll bar
  * \param fun     A pointer to the function to be called
  * \param userptr A user pointer to be stored in the scroll bar and passed to
@@ -85,6 +101,8 @@ SGUI_DLL void sgui_scroll_bar_on_scroll( sgui_widget* bar,
 
 /**
  * \brief Set the scroll area offset in pixels of a scroll bar
+ *
+ * \memberof sgui_scroll_bar
  *
  * \param bar    The scroll bar
  * \param offset The offset of the scroll area in pixels
@@ -98,6 +116,8 @@ SGUI_DLL unsigned int sgui_scroll_bar_get_offset( sgui_widget* bar );
 /**
  * \brief Inform the scrollbar of a change in the scroll area size
  *
+ * \memberof sgui_scroll_bar
+ *
  * \param bar                The scroll bar
  * \param scroll_area_length The length of the scrolled area in pixels.
  * \param disp_area_length   The length of the displayable area in pixels.
@@ -108,6 +128,8 @@ SGUI_DLL void sgui_scroll_bar_set_area( sgui_widget* bar,
 
 /**
  * \brief Resize a scrollbar
+ *
+ * \memberof sgui_scroll_bar
  *
  * \note This does not adjust the pane length of the scrollbar, this adjusts
  *       the length of the scrollbar itself. (The pane length is adjusted

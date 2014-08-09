@@ -38,6 +38,11 @@
 
 
 
+/**
+ * \struct sgui_skin
+ *
+ * \brief An abstract widget rendering facility
+ */
 struct sgui_skin
 {
     unsigned int font_height;   /**< \brief The pixel height of the font */

@@ -49,6 +49,11 @@ typedef void (* sgui_window_callback ) (void* user, const sgui_event* event);
 
 
 
+/**
+ * \struct sgui_window
+ *
+ * \brief Represents a window that either has a sgui_canvas or an sgui_context
+ */
 struct sgui_window
 {
     union
@@ -162,6 +167,11 @@ struct sgui_window
 
 
 
+/**
+ * \struct sgui_window_description
+ *
+ * \brief Holds advanced window creation parameters
+ */
 struct sgui_window_description
 {
     /**
@@ -204,6 +214,11 @@ struct sgui_window_description
      * create a core profile OpenGL context for the window, SGUI_OPENGL_COMPAT
      * for compatibillity profile. OpenGL contexts are created for the highest
      * version available on the current system.
+     * The constants SGUI_DIRECT3D_9 and SGUI_DIRECT3D_11 can be used to
+     * request a window with a Direct3D 9 and 11 context respectively.
+     * Direct3D 11 windows try to created feature levels 11.0 down to 9.0.
+     * The constant SGUI_CUSTOM requests a window that has neither a canvas
+     * nor a context object for custom applications.
      */
     int backend;
 
@@ -215,9 +230,27 @@ struct sgui_window_description
      */
     int doublebuffer;
 
-    int bits_per_pixel; /**< \brief The desired number of bits per pixel */
-    int depth_bits;   /**< \brief The number of bits for the depth buffer */
-    int stencil_bits; /**< \brief The number of bits for the stencil buffer */
+    /**
+     * \brief The desired number of bits per pixel
+     *
+     * Valid values are 16, 24 and 32. Invalid values are interpreted as 32.
+     */
+    int bits_per_pixel;
+
+    /**
+     * \brief The number of bits for the depth buffer
+     *
+     * Valid values are 0, 16 and 24.
+     */
+    int depth_bits;
+
+    /**
+     * \brief The number of bits for the stencil buffer
+     *
+     * Valid values are 0 and 8.
+     */
+    int stencil_bits;
+
     int samples;    /**< \brief Desired number of multisampling samples */
 };
 

@@ -31,6 +31,18 @@
 
 
 
+/**
+ * \struct sgui_frame
+ *
+ * \extends sgui_widget
+ *
+ * \brief A scrollable container widget
+ *
+ * \image html frame.png "A frame with multiple children inside"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -38,6 +50,8 @@ extern "C"
 
 /**
  * \brief Create a frame widget
+ *
+ * \memberof sgui_frame
  *
  * A frame is a simple widget that can contain other widgets. A frame uses a
  * scroll bar in case there are more widgets than it can display at once.
@@ -54,6 +68,8 @@ SGUI_DLL sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
 
 /**
  * \brief Override dynamic internal scrollbar enabling/disabling of a frame
+ *
+ * \memberof sgui_frame
  *
  * \param frame       A pointer to a frame widget
  * \param always_draw If non-zero, the scroll bars of a frame are always

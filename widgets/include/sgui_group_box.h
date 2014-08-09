@@ -31,12 +31,27 @@
 
 
 
+/**
+ * \struct sgui_group_box
+ *
+ * \extends sgui_widget
+ *
+ * \brief A container widget that draws a box with a caption around
+ *        its children
+ *
+ * \image html group.png "Radio buttons grouped together in a group box"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
  * \brief Create a group box
+ *
+ * \memberof sgui_group_box
  *
  * A group box is a very simple widget that may group other widgets
  * (e.g. radio buttons for a radio button menu). A group box has a border that

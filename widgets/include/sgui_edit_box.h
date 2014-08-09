@@ -37,12 +37,26 @@
 
 
 
+/**
+ * \struct sgui_edit_box
+ *
+ * \extends sgui_widget
+ *
+ * \brief An edit box with textual, numeric only and password modes
+ *
+ * \image html edit.png "Edit boxes with different edit modes"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
  * \brief Create an edit box
+ *
+ * \memberof sgui_edit_box
  *
  * \param x         Distance from the left of the window.
  * \param y         Distance from the top of the window.
@@ -59,6 +73,8 @@ SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 /**
  * \brief Get a pointer to the text in an edit box
  *
+ * \memberof sgui_edit_box
+ *
  * \param box The edit box to get the text from
  *
  * \return A pointer to a null-terminated UTF8 string holding the text
@@ -67,6 +83,8 @@ SGUI_DLL const char* sgui_edit_box_get_text( sgui_widget* box );
 
 /**
  * \brief Set the text displayed in an edit box
+ *
+ * \memberof sgui_edit_box
  *
  * \param box  The edit box to set the text to
  * \param text The UTF8 text to display in the edit box

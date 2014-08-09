@@ -37,6 +37,14 @@
 
 
 
+/**
+ * \struct sgui_icon_cache
+ *
+ * \brief Maps icon IDs to icon images on a pixmap
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -38,6 +38,11 @@
 
 
 
+/**
+ * \struct sgui_rect
+ *
+ * \brief An axis aligned rectangle represented by four edge distances
+ */
 struct sgui_rect
 {
     int left;

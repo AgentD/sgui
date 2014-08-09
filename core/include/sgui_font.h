@@ -38,6 +38,14 @@
 
 
 
+/**
+ * \struct sgui_font
+ *
+ * \brief An abstract font rendering object implemented in the backend
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

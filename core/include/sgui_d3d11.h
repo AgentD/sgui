@@ -51,9 +51,19 @@
 
 
 
+/**
+ * \struct sgui_d3d11_context
+ *
+ * \implements sgui_context
+ *
+ * \brief A Direct3D 11 context implementation
+ */
 typedef struct
 {
+#ifndef SGUI_DOXYGEN
     sgui_context super;
+#endif
+
     sgui_window* wnd;
 
     /** \brief Non-zero if vsync is enabled, zero if not */

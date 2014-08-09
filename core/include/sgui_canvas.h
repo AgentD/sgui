@@ -43,6 +43,11 @@
 
 
 
+/**
+ * \struct sgui_canvas
+ *
+ * \brief An abstract 2D drawing surface that can manage widgets
+ */
 struct sgui_canvas
 {
     int ox, oy;                     /**< \brief current offset */
@@ -183,7 +188,13 @@ struct sgui_canvas
                          unsigned int length );
 };
 
-
+/**
+ * \struct sgui_mem_canvas
+ *
+ * \brief A canvas reference implementation that draws to an off-screen buffer
+ *
+ * \implements sgui_canvas
+ */
 
 #define SGUI_A8    0
 #define SGUI_RGB8  1
@@ -552,6 +563,8 @@ SGUI_DLL void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
  * \brief Create an instance of a reference implementation of a canvas that
  *        uses a memory buffer
  *
+ * \memberof sgui_mem_canvas
+ *
  * \param buffer A pointer to a buffer to draw to
  * \param width  The width of the memory buffer
  * \param height The height of the memory buffer
@@ -568,6 +581,8 @@ SGUI_DLL sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
 
 /**
  * \brief Set a new buffer pointer for a memory canvas
+ *
+ * \memberof sgui_mem_canvas
  *
  * \param canvas A pointer to a memory canvas object
  * \param buffer A pointer to a buffer to draw to

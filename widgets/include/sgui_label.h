@@ -31,6 +31,18 @@
 
 
 
+/**
+ * \struct sgui_label
+ *
+ * \extends sgui_widget
+ *
+ * \brief A widget that draws a statically assigned text string
+ *
+ * \image html static.png "A multi line text displayed by a label widget"
+ */
+
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -38,6 +50,8 @@ extern "C"
 
 /**
  * \brief Create a label widget that can display static text
+ *
+ * \memberof sgui_label
  *
  * \param x    The x component of the widget position.
  * \param y    The y component of the widget position.

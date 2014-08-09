@@ -39,6 +39,11 @@
 
 
 
+/**
+ * \struct sgui_pixmap
+ *
+ * \brief Represents an image that can be blited or blended onto a canvas
+ */
 struct sgui_pixmap
 {
     unsigned int width, height;     /**< \brief Size of the pixmap */
@@ -63,7 +68,13 @@ struct sgui_pixmap
                    unsigned int width, unsigned int height, int format );
 };
 
-
+/**
+ * \struct sgui_mem_pixmap
+ *
+ * \brief The pixmap implementation used by sgui_mem_canvas
+ *
+ * \implements sgui_pixmap
+ */
 
 #ifdef __cplusplus
 extern "C" {

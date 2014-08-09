@@ -37,12 +37,25 @@
 #define SGUI_PROGRESS_BAR_VERTICAL    1
 
 
+/**
+ * \struct sgui_progress_bar
+ *
+ * \extends sgui_widget
+ *
+ * \brief A progress bar widget
+ *
+ * \image html progress.png "Two types of horizontal progress bars"
+ */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
  * \brief Create a progress bar widget
+ *
+ * \memberof sgui_progress_bar
  *
  * \param x        Distance from the left of the window.
  * \param y        Distance from the top of the window.
@@ -61,6 +74,8 @@ SGUI_DLL sgui_widget* sgui_progress_bar_create( int x, int y, int style,
 /**
  * \brief Set the progress on a progress bar
  *
+ * \memberof sgui_progress_bar
+ *
  * \param bar      The progress bar to alter.
  * \param progress Value between 0 and 100 for the bar to display.
  */
@@ -69,6 +84,8 @@ SGUI_DLL void sgui_progress_bar_set_progress( sgui_widget* bar,
 
 /**
  * \brief Get the progress on a progress bar
+ *
+ * \memberof sgui_progress_bar
  *
  * \param bar The progress bar.
  *
