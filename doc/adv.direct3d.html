@@ -13,7 +13,7 @@
 
 Similar to <a href="adv.opengl.html">OpenGL&reg;</a>, the SGUI library can
 create windows with a Direct3D&reg; device/context. The Windows&reg; backend
-directly supports Direct3D&reg; 9 and 11 (feature level 9.0 to 11.1). Because
+directly supports Direct3D&reg; 9 and 11 (feature level 9.0 to 11.0). Because
 Direct3D&reg; requires access to a lot of data structures created with the
 context, the declarations of the underlying context structures are exposed via
 the headers <b>sgui_d3d9.h</b> and <b>sgui_d3d11.h</b> that have to be
@@ -69,20 +69,40 @@ fetch and process window system messages (if any) at every iteration. Drawing
 is done directly in the loop body at maximum framerate.<br>
 <br>
 
-<h4>Creating a Direct3D&reg; subwindow</h4>
+<h4>Creating a Direct3D&reg; sub window</h4>
 
-It is also possible to create a subwindow with a Direct3D&reg; device/context
-as a small drawing area inside of a window containing normal widgets. Such a
-sub window can be easily handled like a normal widget by using the
-<b>sgui_subview</b> widget. An OpenGL&reg; example on how to use the subview
-widget can be found in <b>extras/gl2.c</b>.<br>
+It is also possible to create a sub window with a Direct3D&reg; device/context
+as a small drawing area inside of a window containing normal widgets. Sub
+windows can be created by specifying a parent window pointer in the
+<b>sgui_window_desc</b> structure, used by <b>sgui_window_create_desc</b>
+function.<br>
 <br>
-A subview widget can use either a redrawing callback, similar to the
-<b>extras/d3d*_0.c</b> programs, or a dedicated drawing thread can be created
-that grabs the device/context of the underlying window and continuously
-redraws the scene in a loop.
+To make things easier, there is a sub view wiget that takes care of managing
+a sub window, making sure it sticks to the widget coordinate system and
+interacts propperly with parent widgets. The sub view widget exposes normal
+widget functions and calls a callback whenever the underlying window needs
+a redraw.<br>
+<br>
+Examples on how to use the subview widget with Direct3D&reg; can be found in
+<b>extras/d3d9_2.c</b> and <b>extras/d3d11_2.c</b>.<br>
+<br>
 
+<h4>Direct3D&reg; sub windows with drawing threads</h4>
+
+If not creating a sub window manually, the function
+<b>sgui_subview_get_window</b> can be used to obtain a pointer to the window
+object created by a subview widget.<br>
 <br>
+The context object of the returned window can be obtained by calling
+<b>sgui_window_get_context</b>.<br>
+<br>
+The data fields from the context object can then be used in a dedicated
+drawing thread that redraws the window content in a loop at maximum frame
+rate, calling <b>sgui_window_swap_buffers</b> after every iteration to swap
+the front and back buffer.<br>
+<br>
+Example applications that do this can be found in <b>extras/d3d9_3.c</b> and
+<b>extras/d3d11_3.c</b>.
 <br>
 
 <h4>Getting the internals</h4>
