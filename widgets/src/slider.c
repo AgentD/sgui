@@ -95,11 +95,13 @@ static int value_from_position( sgui_widget* super, int x, int y )
 static void slider_on_event( sgui_widget* super, const sgui_event* e )
 {
     sgui_slider* this = (sgui_slider*)super;
-    int delta = this->steps ? ((this->max - this->min) / (this->steps-1)) : 1;
-    int old_val = this->value;
-    int new_val = this->value;
+    int delta, old_val, new_val;
     sgui_event ev;
     sgui_rect r;
+
+    sgui_internal_lock_mutex( );
+    old_val = new_val = this->value;
+    delta = this->steps ? ((this->max - this->min) / (this->steps-1)) : 1;
 
     switch( e->type )
     {
@@ -153,6 +155,8 @@ static void slider_on_event( sgui_widget* super, const sgui_event* e )
         ev.arg.i      = this->value;
         sgui_event_post( &ev );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 static void slider_draw( sgui_widget* super )
@@ -236,6 +240,8 @@ void sgui_slider_set_value( sgui_widget* super, int value )
 
     if( this )
     {
+        sgui_internal_lock_mutex( );
+
         /* sanitize value */
         if( this->steps )
         {
@@ -258,6 +264,8 @@ void sgui_slider_set_value( sgui_widget* super, int value )
             sgui_widget_get_absolute_rect( super, &r );
             sgui_canvas_add_dirty_rect( this->super.canvas, &r );
         }
+
+        sgui_internal_unlock_mutex( );
     }
 }
 
