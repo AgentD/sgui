@@ -106,19 +106,20 @@ static void slider_on_event( sgui_widget* super, const sgui_event* e )
     switch( e->type )
     {
     case SGUI_KEY_PRESSED_EVENT:
-        if( this->vertical )
+        switch( e->arg.i )
         {
-            if( e->arg.i==SGUI_KC_UP )
-                new_val += delta;
-            else if( e->arg.i==SGUI_KC_DOWN )
-                new_val -= delta;
-        }
-        else
-        {
-            if( e->arg.i==SGUI_KC_RIGHT )
-                new_val += delta;
-            else if( e->arg.i==SGUI_KC_LEFT )
-                new_val -= delta;
+        case SGUI_KC_HOME:  new_val = this->min; break;
+        case SGUI_KC_END:   new_val = this->max; break;
+        case SGUI_KC_RIGHT: if( !this->vertical ) { new_val += delta; } break;
+        case SGUI_KC_LEFT:  if( !this->vertical ) { new_val -= delta; } break;
+        case SGUI_KC_UP:    if(  this->vertical ) { new_val += delta; } break;
+        case SGUI_KC_DOWN:  if(  this->vertical ) { new_val -= delta; } break;
+        case SGUI_KC_PRIOR:
+            new_val += this->steps ? 2*delta : (this->max-this->min)/10;
+            break;
+        case SGUI_KC_NEXT:
+            new_val -= this->steps ? 2*delta : (this->max-this->min)/10;
+            break;
         }
         break;
     case SGUI_MOUSE_PRESS_EVENT:
