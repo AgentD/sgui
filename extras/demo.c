@@ -33,7 +33,7 @@ sgui_window *a, *b;
 sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *tb, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *ebn, *ebp, *f, *gb, *ra, *rb, *rc, *tab;
 sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
-sgui_widget *t1, *t2, *t3, *iv;
+sgui_widget *t1, *t2, *t3, *iv, *s1, *s2, *s3, *s4;
 sgui_icon_cache* ic;
 unsigned char image[128*128*4];
 int running = 1;
@@ -98,6 +98,11 @@ void print_password( sgui_widget* e )
     puts( sgui_edit_box_get_text( e ) );
 }
 
+void print_slider( const char* name, int value )
+{
+    printf( "%s: %d%%\n", name, value );
+}
+
 
 
 int main( int argc, char** argv )
@@ -116,16 +121,16 @@ int main( int argc, char** argv )
 
     sgui_init( );
 
-    a = sgui_window_create_desc( &desc );
+    b = sgui_window_create_desc( &desc );
 
     desc.resizeable = SGUI_FIXED_SIZE;
-    b = sgui_window_create_desc( &desc );
+    a = sgui_window_create_desc( &desc );
 
     sgui_window_set_visible( a, SGUI_VISIBLE );
     sgui_window_set_visible( b, SGUI_VISIBLE );
 
-    sgui_window_set_title( a, "resizeable" );
-    sgui_window_set_title( b, "fixed size" );
+    sgui_window_set_title( b, "resizeable" );
+    sgui_window_set_title( a, "fixed size" );
 
     sgui_window_move( a, 200, 200 );
     sgui_window_move_center( b );
@@ -183,6 +188,10 @@ int main( int argc, char** argv )
     tab = sgui_tab_group_create( 10, 10, 500, 400 );
 
     /* input widget tab */
+    s1 = sgui_slider_create( 450, 35, 200, 1, 0, 100, 11 );
+    s2 = sgui_slider_create( 420, 35, 200, 1, 0, 100, 0  );
+    s3 = sgui_slider_create( 280, 310, 200, 0, 0, 100, 0  );
+    s4 = sgui_slider_create( 280, 335, 200, 0, 0, 100, 11 );
     butt = sgui_button_create( 10, 275, 80, 30, "Button", 0 );
     tb = sgui_button_create( 95, 275, 80, 30, "Toggle", 1 );
     t1 = sgui_icon_button_create( 360,  35, 30, 30, ic, 0, 1 );
@@ -237,16 +246,21 @@ int main( int argc, char** argv )
 
     t = sgui_tab_create( tab, "Input" );
     sgui_widget_add_child( tab, t );
-    sgui_widget_add_child( t, butt );
-    sgui_widget_add_child( t, tb );
+
+    sgui_widget_add_child( t, f );
+    sgui_widget_add_child( t, gb );
     sgui_widget_add_child( t, t1 );
     sgui_widget_add_child( t, t2 );
     sgui_widget_add_child( t, t3 );
-    sgui_widget_add_child( t, gb );
-    sgui_widget_add_child( t, f );
+    sgui_widget_add_child( t, s2 );
+    sgui_widget_add_child( t, s1 );
     sgui_widget_add_child( t, eb );
-    sgui_widget_add_child( t, ebn );
     sgui_widget_add_child( t, ebp );
+    sgui_widget_add_child( t, ebn );
+    sgui_widget_add_child( t, butt );
+    sgui_widget_add_child( t, tb );
+    sgui_widget_add_child( t, s3 );
+    sgui_widget_add_child( t, s4 );
 
     /* static widget tab */
     tex = sgui_label_create( 10, 175, text );
@@ -324,6 +338,15 @@ int main( int argc, char** argv )
                         sgui_icon_view_snap_to_grid, iv, SGUI_VOID );
     sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT,
                         sgui_icon_view_sort, iv, SGUI_POINTER, NULL );
+
+    sgui_event_connect( s1, SGUI_SLIDER_CHANGED_EVENT,
+                        print_slider, "slider 1", SGUI_FROM_EVENT, SGUI_I );
+    sgui_event_connect( s2, SGUI_SLIDER_CHANGED_EVENT,
+                        print_slider, "slider 2", SGUI_FROM_EVENT, SGUI_I );
+    sgui_event_connect( s3, SGUI_SLIDER_CHANGED_EVENT,
+                        print_slider, "slider 3", SGUI_FROM_EVENT, SGUI_I );
+    sgui_event_connect( s4, SGUI_SLIDER_CHANGED_EVENT,
+                        print_slider, "slider 4", SGUI_FROM_EVENT, SGUI_I );
 
     sgui_main_loop( );
 

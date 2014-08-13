@@ -75,6 +75,9 @@ struct sgui_skin
 
     void(* get_tap_caption_extents )( sgui_skin* skin, sgui_rect* r );
 
+    void(* get_slider_extents )( sgui_skin* skin, sgui_rect* r,
+                                 int vertical );
+
     void(* draw_focus_box )( sgui_skin* skin, sgui_canvas* canvas,
                              sgui_rect* r );
 
@@ -115,6 +118,10 @@ struct sgui_skin
 
     void(* draw_tab )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                        unsigned int gap, unsigned int gap_width );
+
+    void(* draw_slider )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
+                          int vertical, int min, int max,
+                          int value, int steps );
 };
 
 
@@ -209,6 +216,8 @@ SGUI_DLL void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r );
 
 SGUI_DLL void sgui_skin_get_tap_caption_extents( sgui_rect* r );
 
+SGUI_DLL void sgui_skin_get_slider_extents( sgui_rect* r, int vertical );
+
 SGUI_DLL void sgui_skin_draw_focus_box( sgui_canvas* canvas, sgui_rect* r );
 
 SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
@@ -251,6 +260,10 @@ SGUI_DLL void sgui_skin_draw_tab_caption( sgui_canvas* canvas, int x, int y,
 
 SGUI_DLL void sgui_skin_draw_tab( sgui_canvas* canvas, sgui_rect* r,
                                   unsigned int gap, unsigned int gap_width );
+
+SGUI_DLL void sgui_skin_draw_slider( sgui_canvas* canvas, sgui_rect* r,
+                                     int vertical, int min, int max,
+                                     int value, int steps );
 
 #ifdef __cplusplus
 }

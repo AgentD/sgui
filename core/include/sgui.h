@@ -166,6 +166,7 @@
 #include "sgui_label.h"
 #include "sgui_progress_bar.h"
 #include "sgui_scroll_bar.h"
+#include "sgui_slider.h"
 #include "sgui_subview.h"
 #include "sgui_tab.h"
 

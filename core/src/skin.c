@@ -241,6 +241,12 @@ void sgui_skin_get_tap_caption_extents( sgui_rect* r )
         skin->get_tap_caption_extents( skin, r );
 }
 
+void sgui_skin_get_slider_extents( sgui_rect* r, int vertical )
+{
+    if( r )
+        skin->get_slider_extents( skin, r, vertical );
+}
+
 void sgui_skin_draw_focus_box( sgui_canvas* canvas, sgui_rect* r )
 {
     if( canvas && r )
@@ -334,5 +340,13 @@ void sgui_skin_draw_tab( sgui_canvas* canvas, sgui_rect* r,
 {
     if( canvas )
         skin->draw_tab( skin, canvas, r, gap, gap_width );
+}
+
+void sgui_skin_draw_slider( sgui_canvas* canvas, sgui_rect* r,
+                            int vertical, int min, int max,
+                            int value, int steps )
+{
+    if( canvas && r && min<max && value>=min && value<=max && steps>=0 )
+        skin->draw_slider(skin, canvas, r, vertical, min, max, value, steps);
 }
 

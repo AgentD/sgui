@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_skin.h"
 #include "sgui_font.h"
+#include "sgui_rect.h"
 #include "sgui_pixmap.h"
 #include "sgui_internal.h"
 
@@ -100,6 +101,13 @@ static void default_get_tap_caption_extents( sgui_skin* this, sgui_rect* r )
 {
     (void)this;
     sgui_rect_set_size( r, 0, 0, 16, 25 );
+}
+
+static void default_get_slider_extents( sgui_skin* this, sgui_rect* r,
+                                        int vertical )
+{
+    (void)this;
+    sgui_rect_set_size( r, 0, 0, vertical ? 20 : 10, vertical ? 10 : 20 );
 }
 
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
@@ -525,6 +533,107 @@ static void default_draw_focus_box( sgui_skin* skin, sgui_canvas* canvas,
     }
 }
 
+static void default_draw_slider( sgui_skin* skin, sgui_canvas* canvas,
+                                 sgui_rect* r, int vertical, int min, int max,
+                                 int value, int steps )
+{
+    unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
+    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    unsigned char bg[4] = { 0x64, 0x64, 0x64, 0xFF };
+    int x, y, i, delta, draglen;
+    sgui_rect r0;
+    (void)skin;
+
+    draglen = vertical ? SGUI_RECT_HEIGHT_V(r) : SGUI_RECT_WIDTH_V(r);
+    draglen -= 10;
+
+    /* dashes for discrete slider */
+    if( steps )
+    {
+        delta = draglen / (steps-1);
+
+        if( vertical )
+        {
+            x = r->left;
+            y = r->top + 5;
+
+            for( i=0; i<steps; ++i, y+=delta )
+                sgui_canvas_draw_line( canvas, x, y, 6, 1, white, SGUI_RGB8 );
+        }
+        else
+        {
+            x = r->left + 5;
+            y = r->bottom - 6;
+
+            for( i=0; i<steps; ++i, x+=delta )
+                sgui_canvas_draw_line( canvas, x, y, 6, 0, white, SGUI_RGB8 );
+        }
+    }
+
+    /* sliding area */
+    if( vertical )
+    {
+        x = (r->left + r->right)/2;
+        y = r->top;
+
+        sgui_canvas_draw_line(canvas,x,  y+3,draglen+6,0,black,SGUI_RGB8);
+        sgui_canvas_draw_line(canvas,x+1,y+3,draglen+6,0,white,SGUI_RGB8);
+    }
+    else
+    {
+        x = r->left;
+        y = (r->top + r->bottom)/2;
+
+        sgui_canvas_draw_line(canvas,x+3,y,  draglen+6,1,black,SGUI_RGB8);
+        sgui_canvas_draw_line(canvas,x+3,y+1,draglen+6,1,white,SGUI_RGB8);
+    }
+
+    /* slider box */
+    if( steps )
+    {
+        i = ((steps-1)*(value - min)) / (max - min);
+        i *= draglen / (steps-1);
+    }
+    else
+    {
+        i = draglen - 1;
+        i = (i * (value - min)) / (max - min);
+    }
+
+    if( vertical )
+    {
+        r0.left   = r->left;
+        r0.right  = r->right;
+        r0.top    = r->bottom - 10 - i;
+        r0.top    = MAX(r0.top, r->top);
+        r0.bottom = r0.top + 10;
+        r0.bottom = MIN(r0.bottom, r->bottom);
+    }
+    else
+    {
+        r0.top    = r->top;
+        r0.bottom = r->bottom;
+        r0.left   = r->left + i;
+        r0.left   = MAX(r0.left, r->left);
+        r0.right  = r0.left + 10;
+        r0.right  = MIN(r0.right, r->right);
+    }
+
+    sgui_canvas_draw_box( canvas, &r0, bg, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, r0.left, r0.top,
+                           SGUI_RECT_WIDTH(r0), 1, white, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, r0.left, r0.top,
+                           SGUI_RECT_HEIGHT(r0), 0, white, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, r0.right, r0.top,
+                           SGUI_RECT_HEIGHT(r0), 0, black, SGUI_RGB8 );
+
+    sgui_canvas_draw_line( canvas, r0.left, r0.bottom,
+                           SGUI_RECT_WIDTH(r0), 1, black, SGUI_RGB8 );
+}
+
 /****************************************************************************/
 
 void sgui_interal_skin_init_default( void )
@@ -551,6 +660,8 @@ void sgui_interal_skin_init_default( void )
     sgui_default_skin.draw_tab = default_draw_tab;
     sgui_default_skin.get_focus_box_width = default_get_focus_box_width;
     sgui_default_skin.draw_focus_box = default_draw_focus_box;
+    sgui_default_skin.draw_slider = default_draw_slider;
+    sgui_default_skin.get_slider_extents = default_get_slider_extents;
     sgui_default_skin.get_edit_box_border_width =
     default_get_edit_box_border_width;
     sgui_default_skin.get_scroll_bar_button_extents =

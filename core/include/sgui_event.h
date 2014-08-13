@@ -108,6 +108,10 @@
 /* the paste shortcut got pressed on an icon */
 #define SGUI_ICON_PASTE_EVENT           0x0054
 
+/**************** slider events ****************/
+/* slider value changed (int argument) */
+#define SGUI_SLIDER_CHANGED_EVENT       0x0060
+
 /************ dialog window events *************/
 #define SGUI_MESSAGE_BOX_BUTTON1_EVENT  0x0100
 #define SGUI_MESSAGE_BOX_BUTTON2_EVENT  0x0101
