@@ -270,7 +270,7 @@ void sgui_font_cache_destroy( sgui_font_cache* this )
 
 int sgui_font_cache_draw_glyph( sgui_font_cache* this, sgui_font* font,
                                 unsigned int codepoint, int x, int y,
-                                sgui_canvas* cv, unsigned char* color )
+                                sgui_canvas* cv, const unsigned char* color )
 {
     GLYPH* g;
 

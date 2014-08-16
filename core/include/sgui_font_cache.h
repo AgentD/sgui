@@ -97,7 +97,7 @@ SGUI_DLL int sgui_font_cache_draw_glyph( sgui_font_cache* cache,
                                          sgui_font* font,
                                          unsigned int codepoint,
                                          int x, int y, sgui_canvas* canvas,
-                                         unsigned char* color );
+                                         const unsigned char* color );
 
 /**
  * \brief Make sure a certain glyph is loaded into a font cache

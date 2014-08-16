@@ -41,10 +41,19 @@
 #define FONT_ALT_PATH "font/"
 #define FONT_ALT_PATH2 "../font/"
 
+#define FONT_HEIGHT 16
+
 
 
 sgui_skin sgui_default_skin;
 static int is_init = 0;
+static const unsigned char black[4]       = { 0x00, 0x00, 0x00, 0xFF };
+static const unsigned char white[4]       = { 0xFF, 0xFF, 0xFF, 0xFF };
+static const unsigned char windowcolor[4] = { 0x64, 0x64, 0x64, 0xFF };
+static const unsigned char darkoverlay[4] = { 0x00, 0x00, 0x00, 0x80 };
+static const unsigned char focusbox[4]    = { 0xFF, 0x80, 0x25, 0xFF };
+static const unsigned char fontcolor[4]   = { 0xFF, 0xFF, 0xFF, 0xFF };
+static const unsigned char yellow[4]      = { 0xFF, 0xFF, 0x00, 0xFF };
 
 
 
@@ -113,14 +122,11 @@ static void default_get_slider_extents( sgui_skin* this, sgui_rect* r,
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
                                    int x, int y, int checked )
 {
-    unsigned char bg[4] = { 0, 0, 0, 0x80 };
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     sgui_rect r;
     (void)this;
 
     sgui_rect_set_size( &r, x+1, y+1, 10, 10 );
-    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
     sgui_canvas_draw_line( canvas, x,    y,    12, 1, black, SGUI_RGB8 );
     sgui_canvas_draw_line( canvas, x,    y,    12, 0, black, SGUI_RGB8 );
@@ -142,23 +148,20 @@ static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
 static void default_draw_radio_button( sgui_skin* this, sgui_canvas* canvas,
                                        int x, int y, int checked )
 {
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned char bg[4] = { 0, 0, 0, 0x80 };
     sgui_rect r;
     (void)this;
 
     sgui_rect_set_size( &r, x+4, y+1, 4, 10 );
-    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
     sgui_rect_set_size( &r, x+2, y+2, 2, 8 );
-    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
     sgui_rect_set_size( &r, x+8, y+2, 2, 8 );
-    sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
-    sgui_canvas_draw_line( canvas, x+1, y+4, 4, 0, bg, SGUI_RGBA8 );
-    sgui_canvas_draw_line( canvas, x+10, y+4, 4, 0, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_line( canvas, x+1, y+4, 4, 0, darkoverlay, SGUI_RGBA8 );
+    sgui_canvas_draw_line( canvas, x+10, y+4, 4, 0, darkoverlay, SGUI_RGBA8 );
 
     sgui_canvas_draw_line( canvas, x+4, y,   4, 1, black, SGUI_RGB8 );
     sgui_canvas_draw_line( canvas, x+2, y+1, 2, 1, black, SGUI_RGB8 );
@@ -189,8 +192,6 @@ static void default_draw_radio_button( sgui_skin* this, sgui_canvas* canvas,
 static void default_draw_button( sgui_skin* skin, sgui_canvas* canvas,
                                  sgui_rect* r, int pressed )
 {
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
     (void)skin;
 
@@ -214,9 +215,6 @@ static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
                                   sgui_rect* r, const char* text, int offset,
                                   int cursor, int selection )
 {
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned char bg[4] = { 0, 0, 0, 0x80 };
     unsigned char cur[4] = { 0x7F, 0x7F, 0x7F, 0xFF };
     unsigned char selcolor[4] = { 0xFF, 0x80, 0x25, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
@@ -224,7 +222,7 @@ static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
     int cx;
     (void)this;
 
-    sgui_canvas_draw_box( canvas, r, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_box( canvas, r, darkoverlay, SGUI_RGBA8 );
     text += offset;
     cursor -= offset;
     selection -= offset;
@@ -272,13 +270,10 @@ static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
 static void default_draw_frame( sgui_skin* this, sgui_canvas* canvas,
                                 sgui_rect* r )
 {
-    unsigned char bg[4] = { 0, 0, 0, 0x80 };
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
     (void)this;
 
-    sgui_canvas_draw_box( canvas, r, bg, SGUI_RGBA8 );
+    sgui_canvas_draw_box( canvas, r, darkoverlay, SGUI_RGBA8 );
 
     sgui_canvas_draw_line( canvas, x,     y,     w, 1, black, SGUI_RGB8 );
     sgui_canvas_draw_line( canvas, x,     y,     h, 0, black, SGUI_RGB8 );
@@ -289,8 +284,6 @@ static void default_draw_frame( sgui_skin* this, sgui_canvas* canvas,
 static void default_draw_group_box( sgui_skin* this, sgui_canvas* canvas,
                                     sgui_rect* r, const char* caption )
 {
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
     int txw = sgui_skin_default_font_extents( caption, -1, 0, 0 );
     (void)this;
@@ -319,10 +312,6 @@ static void default_draw_progress_bar( sgui_skin* this, sgui_canvas* canvas,
                                        int x, int y, unsigned int length,
                                        int vertical, int percentage )
 {
-    unsigned char bg[4] = { 0, 0, 0, 0x80 };
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned char yellow[4] = { 0xFF, 0xFF, 0x00, 0xFF };
     unsigned int bar = (percentage*(length-2))/100;
     sgui_rect r;
     (void)this;
@@ -330,7 +319,7 @@ static void default_draw_progress_bar( sgui_skin* this, sgui_canvas* canvas,
     if( vertical )
     {
         sgui_rect_set_size( &r, x, y, 30, length-bar-1 );
-        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+        sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
         sgui_canvas_draw_line(canvas, x, y, 30, 1, black, SGUI_RGB8);
         sgui_canvas_draw_line(canvas, x, y, length, 0, black, SGUI_RGB8);
@@ -343,7 +332,7 @@ static void default_draw_progress_bar( sgui_skin* this, sgui_canvas* canvas,
     else
     {
         sgui_rect_set_size( &r, x, y, length, 30 );
-        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+        sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
         sgui_canvas_draw_line(canvas, x, y, 30, 0, black, SGUI_RGB8);
         sgui_canvas_draw_line(canvas, x, y, length, 1, black, SGUI_RGB8);
@@ -360,9 +349,6 @@ static void default_draw_progress_stippled( sgui_skin* this,
                                             unsigned int length, int vertical,
                                             int percentage )
 {
-    unsigned char bg[4] = { 0, 0, 0, 0x80 };
-    unsigned char black[4] = { 0, 0, 0, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     unsigned int i, bar = (percentage*(length-2))/100;
     sgui_rect r;
     (void)this;
@@ -370,7 +356,7 @@ static void default_draw_progress_stippled( sgui_skin* this,
     if( vertical )
     {
         sgui_rect_set_size( &r, x, y, 30, length );
-        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+        sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
         sgui_canvas_draw_line(canvas, x, y, 30, 1, black, SGUI_RGB8);
         sgui_canvas_draw_line(canvas, x, y, length, 0, black, SGUI_RGB8);
@@ -386,7 +372,7 @@ static void default_draw_progress_stippled( sgui_skin* this,
     else
     {
         sgui_rect_set_size( &r, x, y, length, 30 );
-        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGBA8 );
+        sgui_canvas_draw_box( canvas, &r, darkoverlay, SGUI_RGBA8 );
 
         sgui_canvas_draw_line(canvas, x, y, 30, 0, black, SGUI_RGB8);
         sgui_canvas_draw_line(canvas, x, y, length, 1, black, SGUI_RGB8);
@@ -407,8 +393,6 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
                                      unsigned int pane_length,
                                      int decbutton, int incbutton )
 {
-    unsigned char bg[4] = { 0x64, 0x64, 0x64, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
     sgui_rect r;
     int i;
 
@@ -416,7 +400,7 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
     {
         /* background */
         sgui_rect_set_size( &r, x, y, 20, length );
-        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGB8 );
+        sgui_canvas_draw_box( canvas, &r, windowcolor, SGUI_RGB8 );
 
         /* upper button */
         sgui_rect_set_size( &r, x, y, 20, 20 );
@@ -447,7 +431,7 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
     {
         /* background */
         sgui_rect_set_size( &r, x, y, length, 20 );
-        sgui_canvas_draw_box( canvas, &r, bg, SGUI_RGB8 );
+        sgui_canvas_draw_box( canvas, &r, windowcolor, SGUI_RGB8 );
 
         /* left button */
         sgui_rect_set_size( &r, x, y, 20, 20 );
@@ -480,8 +464,6 @@ static void default_draw_tab_caption( sgui_skin* this, sgui_canvas* canvas,
                                       int x, int y, const char* caption,
                                       unsigned int text_width )
 {
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
     (void)this;
 
     sgui_canvas_draw_line( canvas, x, y, text_width, 1, white, SGUI_RGB8 );
@@ -494,8 +476,6 @@ static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
                               sgui_rect* r, unsigned int gap,
                               unsigned int gap_width )
 {
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
     (void)this;
 
@@ -511,7 +491,6 @@ static void default_draw_tab( sgui_skin* this, sgui_canvas* canvas,
 static void default_draw_focus_box( sgui_skin* skin, sgui_canvas* canvas,
                                     sgui_rect* r )
 {
-    unsigned char color[4] = { 0xFF, 0x80, 0x25, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
     int i, l;
     (void)skin;
@@ -520,16 +499,16 @@ static void default_draw_focus_box( sgui_skin* skin, sgui_canvas* canvas,
     {
         l = w-2-i;
         l = l>=6 ? 3 : l;
-        sgui_canvas_draw_line( canvas, x+1+i, y+1,   l, 1, color, SGUI_RGB8 );
-        sgui_canvas_draw_line( canvas, x+1+i, y+h-2, l, 1, color, SGUI_RGB8 );
+        sgui_canvas_draw_line(canvas,x+1+i,y+1,  l,1,focusbox,SGUI_RGB8);
+        sgui_canvas_draw_line(canvas,x+1+i,y+h-2,l,1,focusbox,SGUI_RGB8);
     }
 
     for( i=0; i<h-2; i+=6 )
     {
         l = h-2-i;
         l = l>=6 ? 3 : l;
-        sgui_canvas_draw_line( canvas, x+1,   y+1+i, 3, 0, color, SGUI_RGB8 );
-        sgui_canvas_draw_line( canvas, x+w-2, y+1+i, 3, 0, color, SGUI_RGB8 );
+        sgui_canvas_draw_line(canvas,x+1,  y+1+i,3,0,focusbox,SGUI_RGB8);
+        sgui_canvas_draw_line(canvas,x+w-2,y+1+i,3,0,focusbox,SGUI_RGB8);
     }
 }
 
@@ -537,9 +516,6 @@ static void default_draw_slider( sgui_skin* skin, sgui_canvas* canvas,
                                  sgui_rect* r, int vertical, int min, int max,
                                  int value, int steps )
 {
-    unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
-    unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    unsigned char bg[4] = { 0x64, 0x64, 0x64, 0xFF };
     int x, y, i, delta, draglen;
     sgui_rect r0;
     (void)skin;
@@ -619,7 +595,7 @@ static void default_draw_slider( sgui_skin* skin, sgui_canvas* canvas,
         r0.right  = MIN(r0.right, r->right);
     }
 
-    sgui_canvas_draw_box( canvas, &r0, bg, SGUI_RGB8 );
+    sgui_canvas_draw_box( canvas, &r0, windowcolor, SGUI_RGB8 );
 
     sgui_canvas_draw_line( canvas, r0.left, r0.top,
                            SGUI_RECT_WIDTH(r0), 1, white, SGUI_RGB8 );
@@ -669,56 +645,58 @@ void sgui_interal_skin_init_default( void )
     sgui_default_skin.get_tap_caption_extents =
     default_get_tap_caption_extents;
 
-    sgui_default_skin.window_color[0] = 0x64;
-    sgui_default_skin.window_color[1] = 0x64;
-    sgui_default_skin.window_color[2] = 0x64;
-    sgui_default_skin.window_color[3] = 0x80;
+    sgui_default_skin.window_color[0] = windowcolor[0];
+    sgui_default_skin.window_color[1] = windowcolor[1];
+    sgui_default_skin.window_color[2] = windowcolor[2];
+    sgui_default_skin.window_color[3] = windowcolor[3];
 
-    sgui_default_skin.font_color[0] = 0xFF;
-    sgui_default_skin.font_color[1] = 0xFF;
-    sgui_default_skin.font_color[2] = 0xFF;
-    sgui_default_skin.font_color[3] = 0xFF;
+    sgui_default_skin.font_color[0] = fontcolor[0];
+    sgui_default_skin.font_color[1] = fontcolor[1];
+    sgui_default_skin.font_color[2] = fontcolor[2];
+    sgui_default_skin.font_color[3] = fontcolor[3];
 
-    sgui_default_skin.font_height = 16;
+    sgui_default_skin.font_height = FONT_HEIGHT;
 
     /* load default fonts */
-    sgui_default_skin.font_norm = sgui_font_load( FONT, 16 );
+    sgui_default_skin.font_norm = sgui_font_load( FONT, FONT_HEIGHT );
 
     if( !sgui_default_skin.font_norm )
-        sgui_default_skin.font_norm = sgui_font_load(FONT_ALT_PATH FONT, 16);
+        sgui_default_skin.font_norm =
+        sgui_font_load( FONT_ALT_PATH FONT, FONT_HEIGHT );
 
     if( !sgui_default_skin.font_norm )
-        sgui_default_skin.font_norm = sgui_font_load(FONT_ALT_PATH2 FONT, 16);
+        sgui_default_skin.font_norm =
+        sgui_font_load( FONT_ALT_PATH2 FONT,FONT_HEIGHT );
 
-    sgui_default_skin.font_ital = sgui_font_load( FONT_ITAL, 16 );
+    sgui_default_skin.font_ital = sgui_font_load( FONT_ITAL, FONT_HEIGHT );
 
     if( !sgui_default_skin.font_ital )
         sgui_default_skin.font_ital =
-        sgui_font_load( FONT_ALT_PATH FONT_ITAL, 16 );
+        sgui_font_load( FONT_ALT_PATH FONT_ITAL, FONT_HEIGHT );
 
     if( !sgui_default_skin.font_ital )
         sgui_default_skin.font_ital =
-        sgui_font_load( FONT_ALT_PATH2 FONT_ITAL, 16 );
+        sgui_font_load( FONT_ALT_PATH2 FONT_ITAL, FONT_HEIGHT );
 
-    sgui_default_skin.font_bold = sgui_font_load( FONT_BOLD, 16 );
-
-    if( !sgui_default_skin.font_bold )
-        sgui_default_skin.font_bold =
-        sgui_font_load( FONT_ALT_PATH FONT_BOLD, 16 );
+    sgui_default_skin.font_bold = sgui_font_load( FONT_BOLD, FONT_HEIGHT );
 
     if( !sgui_default_skin.font_bold )
         sgui_default_skin.font_bold =
-        sgui_font_load( FONT_ALT_PATH2 FONT_BOLD, 16 );
+        sgui_font_load( FONT_ALT_PATH FONT_BOLD, FONT_HEIGHT );
 
-    sgui_default_skin.font_boit = sgui_font_load( FONT_BOLD_ITAL, 16 );
+    if( !sgui_default_skin.font_bold )
+        sgui_default_skin.font_bold =
+        sgui_font_load( FONT_ALT_PATH2 FONT_BOLD, FONT_HEIGHT );
+
+    sgui_default_skin.font_boit = sgui_font_load(FONT_BOLD_ITAL, FONT_HEIGHT);
 
     if( !sgui_default_skin.font_boit )
         sgui_default_skin.font_boit =
-        sgui_font_load( FONT_ALT_PATH FONT_BOLD_ITAL, 16 );
+        sgui_font_load( FONT_ALT_PATH FONT_BOLD_ITAL, FONT_HEIGHT );
 
     if( !sgui_default_skin.font_boit )
         sgui_default_skin.font_boit =
-        sgui_font_load( FONT_ALT_PATH2 FONT_BOLD_ITAL, 16 );
+        sgui_font_load( FONT_ALT_PATH2 FONT_BOLD_ITAL, FONT_HEIGHT );
 
     is_init = 1;
 }

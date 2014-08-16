@@ -30,7 +30,8 @@
 
 
 static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
-                                   sgui_font* font, unsigned char* color,
+                                   sgui_font* font,
+                                   const unsigned char* color,
                                    const char* text, unsigned int length )
 {
     sgui_canvas_x11* this = (sgui_canvas_x11*)super;
@@ -165,7 +166,7 @@ static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
 }
 
 static void canvas_xlib_draw_box( sgui_canvas* super, sgui_rect* r,
-                                  unsigned char* color, int format )
+                                  const unsigned char* color, int format )
 {
     sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
     unsigned long R, G, B, A, iA;
@@ -215,7 +216,7 @@ static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
 
 static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
                                      sgui_pixmap* pixmap, sgui_rect* r,
-                                     unsigned char* color )
+                                     const unsigned char* color )
 
 {
     sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
@@ -327,7 +328,7 @@ static void canvas_xrender_clear( sgui_canvas* super, sgui_rect* r )
 }
 
 static void canvas_xrender_draw_box( sgui_canvas* super, sgui_rect* r,
-                                     unsigned char* color, int format )
+                                     const unsigned char* color, int format )
 {
     sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     XRenderColor c;
@@ -385,7 +386,7 @@ static void canvas_xrender_blend( sgui_canvas* super, int x, int y,
 
 static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
                                         sgui_pixmap* pixmap, sgui_rect* r,
-                                        unsigned char* color )
+                                        const unsigned char* color )
 {
     sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
     XRenderColor c;

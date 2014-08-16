@@ -42,7 +42,7 @@ typedef struct
 
     void (* blend_stencil )( sgui_canvas*, unsigned char*, int, int,
                              unsigned int, unsigned int, unsigned int,
-                             unsigned char* );
+                             const unsigned char* );
 
     unsigned char* data;
     int bpp, swaprb;
@@ -85,7 +85,7 @@ static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
 /****************************************************************************/
 
 static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
-                                     unsigned char* color, int format )
+                                     const unsigned char* color, int format )
 {
     mem_canvas* this = (mem_canvas*)super;
     unsigned int R=0, G=0, B=0, A=0, iA=0;
@@ -220,7 +220,7 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
                                           int x, int y,
                                           unsigned int w, unsigned int h,
                                           unsigned int scan,
-                                          unsigned char* color )
+                                          const unsigned char* color )
 {
     mem_canvas* this = (mem_canvas*)super;
     unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*3;
@@ -247,7 +247,7 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
 /****************************************************************************/
 
 static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
-                                      unsigned char* color, int format )
+                                      const unsigned char* color, int format )
 {
     mem_canvas* this = (mem_canvas*)super;
     unsigned int R=0, G=0, B=0, A=0, iA=0;
@@ -393,7 +393,7 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
                                            int x, int y,
                                            unsigned int w, unsigned int h,
                                            unsigned int scan,
-                                           unsigned char* color )
+                                           const unsigned char* color )
 {
     mem_canvas* this = (mem_canvas*)super;
     unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*4;
@@ -421,7 +421,8 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
 /****************************************************************************/
 
 static int canvas_mem_draw_string( sgui_canvas* super, int x, int y,
-                                   sgui_font* font, unsigned char* color,
+                                   sgui_font* font,
+                                   const unsigned char* color,
                                    const char* text, unsigned int length )
 {
     mem_canvas* this = (mem_canvas*)super;

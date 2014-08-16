@@ -128,7 +128,7 @@ struct sgui_canvas
      * \param format  The format of the color
      */
     void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
-                       unsigned char* color, int format );
+                       const unsigned char* color, int format );
 
     /**
      * \brief Blit onto a canvas
@@ -168,7 +168,7 @@ struct sgui_canvas
      */
     void (* blend_glyph )( sgui_canvas* canvas, int x, int y,
                            sgui_pixmap* pixmap, sgui_rect* r,
-                           unsigned char* color );
+                           const unsigned char* color );
 
     /**
      * \brief Draw a string of text onto a canvas
@@ -184,7 +184,7 @@ struct sgui_canvas
      * \return The length of the rendered string in pixels.
      */
     int(* draw_string )( sgui_canvas* canvas, int x, int y, sgui_font* font,
-                         unsigned char* color, const char* text,
+                         const unsigned char* color, const char* text,
                          unsigned int length );
 };
 
@@ -476,7 +476,7 @@ SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
  * \param format The color format stored in the color array (SGUI_RGB8, ...)
  */
 SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
-                                    unsigned char* color,
+                                    const unsigned char* color,
                                     int format );
 
 /**
@@ -496,7 +496,7 @@ SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
  */
 SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                                      unsigned int length, int horizontal,
-                                     unsigned char* color, int format );
+                                     const unsigned char* color, int format );
 
 /**
  * \brief Draw an image onto a canvas
@@ -533,7 +533,7 @@ SGUI_DLL void sgui_canvas_draw_pixmap( sgui_canvas* canvas, int x, int y,
  */
 SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                           int bold, int italic,
-                                          unsigned char* color,
+                                          const unsigned char* color,
                                           const char* text,
                                           unsigned int length );
 

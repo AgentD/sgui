@@ -557,7 +557,7 @@ void sgui_canvas_clear( sgui_canvas* this, sgui_rect* r )
 /**************************** drawing functions ****************************/
 
 void sgui_canvas_draw_box( sgui_canvas* this, sgui_rect* r,
-                           unsigned char* color, int format )
+                           const unsigned char* color, int format )
 {
     sgui_rect r1;
 
@@ -576,7 +576,7 @@ void sgui_canvas_draw_box( sgui_canvas* this, sgui_rect* r,
 
 void sgui_canvas_draw_line( sgui_canvas* this, int x, int y,
                             unsigned int length, int horizontal,
-                            unsigned char* color, int format )
+                            const unsigned char* color, int format )
 {
     sgui_rect r;
 
@@ -631,7 +631,7 @@ void sgui_canvas_draw_pixmap( sgui_canvas* this, int x, int y,
 
 int sgui_canvas_draw_text_plain( sgui_canvas* this, int x, int y,
                                  int bold, int italic,
-                                 unsigned char* color,
+                                 const unsigned char* color,
                                  const char* text, unsigned int length )
 {
     sgui_font* font = sgui_skin_get_default_font( bold, italic );
