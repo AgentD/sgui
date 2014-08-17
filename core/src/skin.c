@@ -165,3 +165,79 @@ void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
     r->bottom = lines * skin->font_height + skin->font_height/2 - 1;
 }
 
+void sgui_skin_draw_text( sgui_canvas* canvas, int x, int y,
+                          const char* text )
+{
+    int i = 0, X = 0, font_stack_index = 0, font_height;
+    unsigned char col[3], font_stack[10], f = 0;
+    long c;
+
+    /* sanity check */
+    if( !canvas || !text )
+        return;
+
+    memcpy( col, skin->font_color, 3 );
+
+    font_height = skin->font_height;
+
+    for( ; text && text[ i ]; ++i )
+    {
+        if( text[ i ] == '<' )  /* we encountered a tag */
+        {
+            /* draw what we got so far with the current settings */
+            X += sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
+                                              col, text, i );
+
+            if( !strncmp( text+i+1, "color=", 6 ) ) /* it's a color tag */
+            {
+                if( !strncmp( text+i+9, "default", 7 ) )
+                {
+                    memcpy( col, skin->font_color, 3 );
+                }
+                else
+                {
+                    c = strtol( text+i+9, NULL, 16 );
+
+                    col[0] = (c>>16) & 0xFF;
+                    col[1] = (c>>8 ) & 0xFF;
+                    col[2] =  c      & 0xFF;
+                }
+            }
+            else if( text[ i+1 ] == 'b' )   /* it's a <b> tag */
+            {
+                font_stack[ font_stack_index++ ] = f;
+                f |= 0x02;
+            }
+            else if( text[ i+1 ] == 'i' )   /* it's an <i> tag */
+            {
+                font_stack[ font_stack_index++ ] = f;
+                f |= 0x01;
+            }
+            else if( text[ i+1 ] == '/' && font_stack_index )   /* end tag */
+            {
+                f = font_stack[ --font_stack_index ];   /* pop from stack */
+            }
+
+            /* skip to the end of the tag */
+            if( (text = strchr( text+i, '>' )) )
+                ++text;
+
+            i = -1; /* reset i to 0 at next iteration */
+        }
+        else if( text[ i ] == '\n' )
+        {
+            /* draw what we got so far */
+            sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
+                                         col, text, i );
+
+            text += i + 1;    /* skip to next line */
+            i = -1;           /* reset i to 0 at next iteration */
+            X = 0;            /* adjust move cursor */
+            y += font_height;
+        }
+    }
+
+    /* draw what is still left */
+    sgui_canvas_draw_text_plain(canvas, x+X, y, f&0x02, f&0x01, col, text, i);
+}
+

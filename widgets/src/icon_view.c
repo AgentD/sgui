@@ -475,10 +475,10 @@ static void icon_view_draw( sgui_widget* super )
                                        super->area.left + i->icon_area.left,
                                        super->area.top  + i->icon_area.top );
 
-            sgui_canvas_draw_text( super->canvas,
-                                   super->area.left + i->text_area.left,
-                                   super->area.top  + i->text_area.top,
-                                   i->subtext );
+            sgui_skin_draw_text( super->canvas,
+                                 super->area.left + i->text_area.left,
+                                 super->area.top  + i->text_area.top,
+                                 i->subtext );
         }
     }
 
@@ -495,10 +495,10 @@ static void icon_view_draw( sgui_widget* super )
             sgui_rect_add_offset( &r, super->area.left, super->area.top );
             skin->draw_focus_box( skin, super->canvas, &r );
 
-            sgui_canvas_draw_text( super->canvas,
-                                   super->area.left + i->text_area.left,
-                                   super->area.top  + i->text_area.top,
-                                   i->subtext );
+            sgui_skin_draw_text( super->canvas,
+                                 super->area.left + i->text_area.left,
+                                 super->area.top  + i->text_area.top,
+                                 i->subtext );
         }
     }
 }

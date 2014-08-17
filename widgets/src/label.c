@@ -49,8 +49,8 @@ static void label_draw( sgui_widget* super )
 {
     sgui_label* this = (sgui_label*)super;
 
-    sgui_canvas_draw_text( super->canvas, super->area.left, super->area.top,
-                           this->text );
+    sgui_skin_draw_text( super->canvas, super->area.left, super->area.top,
+                         this->text );
 }
 
 static void label_destroy( sgui_widget* this )

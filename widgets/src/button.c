@@ -155,10 +155,10 @@ static void button_draw( sgui_widget* super )
         }
         else
         {
-            sgui_canvas_draw_text( super->canvas,
-                                   super->area.left+this->cx-in,
-                                   super->area.top+this->cy-in,
-                                   this->dpy.text );
+            sgui_skin_draw_text( super->canvas,
+                                 super->area.left+this->cx-in,
+                                 super->area.top+this->cy-in,
+                                 this->dpy.text );
         }
     }
     else
@@ -185,8 +185,8 @@ static void button_draw( sgui_widget* super )
         }
         else
         {
-            sgui_canvas_draw_text( super->canvas, super->area.left+this->cx,
-                                   super->area.top, this->dpy.text );
+            sgui_skin_draw_text( super->canvas, super->area.left+this->cx,
+                                 super->area.top, this->dpy.text );
         }
     }
 }

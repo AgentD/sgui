@@ -537,26 +537,6 @@ SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                           const char* text,
                                           unsigned int length );
 
-/**
- * \brief Render a multi line text that uses html like tags to switch color
- *        or font face, using the default fonts from the skinning system.
- *
- * \memberof sgui_canvas
- *
- * \param x           Distance from the left of the text to the left of the
- *                    canvas.
- * \param y           Distance from the top of the text to the top of the
- *                    canvas.
- * \param text        The UTF8 text to print. The LF ('\n') character can be
- *                    used for line wraps, the \<b\> \</b\> and \<i\> \</i\>
- *                    for writing text bold or italic. A \<color="#RRGGBB"\>
- *                    tag can be used to switch text color, where the value
- *                    "default" for color switches back to default color.
- */
-SGUI_DLL void sgui_canvas_draw_text( sgui_canvas* canvas, int x, int y,
-                                     const char* text );
-
-
 
 
 /**

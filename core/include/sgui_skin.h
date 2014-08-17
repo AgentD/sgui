@@ -192,6 +192,22 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  */
 SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
 
+/**
+ * \brief Render a multi line text that uses html like tags to switch color
+ *        or font face, using the default fonts from the skinning system.
+ *
+ * \param canvas A pointer to the canvas object ot use for drawing.
+ * \param x      Distance from the left of the text to the left of the canvas.
+ * \param y      Distance from the top of the text to the top of the canvas.
+ * \param text   The UTF8 text to print. The LF ('\n') character can be
+ *               used for line wraps, the \<b\> \</b\> and \<i\> \</i\>
+ *               for writing text bold or italic. A \<color="#RRGGBB"\>
+ *               tag can be used to switch text color, where the value
+ *               "default" for color switches back to default color.
+ */
+SGUI_DLL void sgui_skin_draw_text( sgui_canvas* canvas, int x, int y,
+                                   const char* text );
+
 #ifdef __cplusplus
 }
 #endif
