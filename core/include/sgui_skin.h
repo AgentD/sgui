@@ -134,6 +134,8 @@ extern "C"
 /**
  * \brief Set the skin to use for rendering UI elements
  *
+ * \memberof sgui_skin
+ *
  * The skin can only be set globally and should only be changed while no
  * window or widget exists.
  * 
@@ -151,11 +153,15 @@ SGUI_DLL void sgui_skin_set( sgui_skin* skin );
 
 /**
  * \brief Retrieve a pointer to the currently set GUI skin renderer
+ *
+ * \memberof sgui_skin
  */
 SGUI_DLL sgui_skin* sgui_skin_get( void );
 
 /**
  * \brief Get the default font face
+ *
+ * \memberof sgui_skin
  *
  * \param bold   Nonzero to get the font face for bold text.
  * \param italic Nonzero to get the font face for italic text.
@@ -166,6 +172,8 @@ SGUI_DLL sgui_font* sgui_skin_get_default_font( int bold, int italic );
 
 /**
  * \brief Get the width (in pixels) of a string rendered with the default font
+ *
+ * \memberof sgui_skin
  *
  * \param text   An UTF8 string.
  * \param length The length of the string in bytes.
@@ -182,7 +190,9 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  * \brief Get the with and height of a multi line text that uses html like
  *        tags to determine color and font face
  *
- * The functions uses  the default fonts from the skinning system.
+ * \memberof sgui_skin
+ *
+ * The functions uses the default fonts from the skinning system.
  *
  * \see sgui_canvas_draw_text
  *
@@ -195,6 +205,8 @@ SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
 /**
  * \brief Render a multi line text that uses html like tags to switch color
  *        or font face, using the default fonts from the skinning system.
+ *
+ * \memberof sgui_skin
  *
  * \param canvas A pointer to the canvas object ot use for drawing.
  * \param x      Distance from the left of the text to the left of the canvas.
