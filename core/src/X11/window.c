@@ -429,7 +429,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
     else
     {
-        sgui_skin_get_window_background_color( rgb );
+        memcpy( rgb, sgui_skin_get( )->window_color, 3 );
 
         color = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
 

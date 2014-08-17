@@ -102,6 +102,7 @@ static void tab_on_state_change( sgui_widget* super, int change )
 static void tab_on_draw( sgui_widget* super )
 {
     sgui_tab* this = ((sgui_tab*)super);
+    sgui_skin* skin = sgui_skin_get( );
     unsigned int gap = 0;
     sgui_widget* i;
 
@@ -109,7 +110,7 @@ static void tab_on_draw( sgui_widget* super )
     for( i=super->parent->children; i!=super; i=i->next )
         gap += ((sgui_tab*)i)->caption_width;
 
-    sgui_skin_draw_tab(super->canvas, &super->area, gap, this->caption_width);
+    skin->draw_tab(skin,super->canvas,&super->area,gap,this->caption_width);
     sgui_internal_unlock_mutex( );
 }
 
@@ -190,15 +191,16 @@ static void tab_group_on_event( sgui_widget* super, const sgui_event* e )
 static void tab_group_draw( sgui_widget* super )
 {
     int x = super->area.left, y = super->area.top;
+    sgui_skin* skin = sgui_skin_get( );
     sgui_widget* i;
 
     sgui_internal_lock_mutex( );
 
     for( i=super->children; i!=NULL; i=i->next )
     {
-        sgui_skin_draw_tab_caption( super->canvas, x, y,
-                                    ((sgui_tab*)i)->caption,
-                                    ((sgui_tab*)i)->caption_width );
+        skin->draw_tab_caption( skin, super->canvas, x, y,
+                                ((sgui_tab*)i)->caption,
+                                ((sgui_tab*)i)->caption_width );
         x += ((sgui_tab*)i)->caption_width;
     }
 
@@ -211,6 +213,7 @@ sgui_widget* sgui_tab_group_create( int x, int y,
                                     unsigned int width, unsigned int height )
 {
     sgui_tab_group* this = malloc( sizeof(sgui_tab_group) );
+    sgui_skin* skin = sgui_skin_get( );
     sgui_rect r;
 
     if( !this )
@@ -218,7 +221,7 @@ sgui_widget* sgui_tab_group_create( int x, int y,
 
     memset( this, 0, sizeof(sgui_tab_group) );
     sgui_widget_init( (sgui_widget*)this, x, y, width, height );
-    sgui_skin_get_tap_caption_extents( &r );
+    skin->get_tap_caption_extents( skin, &r );
 
     this->super.state_change_callback = tab_group_on_state_change;
     this->super.draw_callback         = tab_group_draw;

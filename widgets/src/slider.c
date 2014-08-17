@@ -163,10 +163,11 @@ static void slider_on_event( sgui_widget* super, const sgui_event* e )
 static void slider_draw( sgui_widget* super )
 {
     sgui_slider* this = (sgui_slider*)super;
+    sgui_skin* skin = sgui_skin_get( );
 
-    sgui_skin_draw_slider( super->canvas, &super->area,
-                           this->vertical, this->min, this->max,
-                           this->value, this->steps );
+    skin->draw_slider( skin, super->canvas, &super->area,
+                       this->vertical, this->min, this->max,
+                       this->value, this->steps );
 }
 
 static void slider_destroy( sgui_widget* this )
@@ -180,6 +181,7 @@ sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
                                  int vertical, int min, int max,
                                  unsigned int steps )
 {
+    sgui_skin* skin = sgui_skin_get( );
     sgui_widget* super;
     sgui_slider* this;
     sgui_rect r;
@@ -206,7 +208,7 @@ sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
     memset( this, 0, sizeof(sgui_slider) );
 
     /* initialize */
-    sgui_skin_get_slider_extents( &r, vertical );
+    skin->get_slider_extents( skin, &r, vertical );
 
     if( vertical )
         sgui_widget_init( super, x, y, SGUI_RECT_WIDTH(r), length );

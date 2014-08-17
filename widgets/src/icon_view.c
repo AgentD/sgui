@@ -449,12 +449,13 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 static void icon_view_draw( sgui_widget* super )
 {
     icon_view* this = (icon_view*)super;
+    sgui_skin* skin = sgui_skin_get( );
     sgui_rect r;
     icon* i;
 
     if( this->draw_background )
     {
-        sgui_skin_draw_frame( super->canvas, &(super->area) );
+        skin->draw_frame( skin, super->canvas, &(super->area) );
     }
 
     if( this->flags & IV_SELECTBOX )
@@ -462,7 +463,7 @@ static void icon_view_draw( sgui_widget* super )
         SGUI_RECT_SET(r, this->grab_x, this->grab_y, this->endx, this->endy);
         sgui_rect_repair( &r );
         sgui_rect_add_offset( &r, super->area.left, super->area.top );
-        sgui_skin_draw_focus_box( super->canvas, &r );
+        skin->draw_focus_box( skin, super->canvas, &r );
     }
 
     /* draw non selected icons */
@@ -492,7 +493,7 @@ static void icon_view_draw( sgui_widget* super )
 
             r = i->subtext ? i->text_area : i->icon_area;
             sgui_rect_add_offset( &r, super->area.left, super->area.top );
-            sgui_skin_draw_focus_box( super->canvas, &r );
+            skin->draw_focus_box( skin, super->canvas, &r );
 
             sgui_canvas_draw_text( super->canvas,
                                    super->area.left + i->text_area.left,
@@ -530,6 +531,7 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
                                     sgui_icon_cache* cache,
                                     int background )
 {
+    sgui_skin* skin = sgui_skin_get( );
     sgui_widget* super;
     icon_view* this;
 
@@ -544,7 +546,7 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 
         this->cache = cache;
         this->draw_background = background;
-        this->offset = background ? sgui_skin_get_frame_border_width( ) : 0;
+        this->offset = background ? skin->get_frame_border_width( skin ) : 0;
 
         super->window_event_callback = icon_view_on_event;
         super->draw_callback = icon_view_draw;

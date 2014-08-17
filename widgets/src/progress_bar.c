@@ -46,21 +46,22 @@ sgui_progress_bar;
 
 static void progress_draw( sgui_widget* super )
 {
+    sgui_skin* skin = sgui_skin_get( );
     sgui_progress_bar* this = (sgui_progress_bar*)super;
     unsigned int length = this->vertical ? SGUI_RECT_HEIGHT(super->area) :
                                            SGUI_RECT_WIDTH(super->area);
 
     if( this->stippled )
     {
-        sgui_skin_draw_progress_stippled( super->canvas, super->area.left,
-                                          super->area.top, length,
-                                          this->vertical, this->progress );
+        skin->draw_progress_stippled( skin, super->canvas, super->area.left,
+                                      super->area.top, length,
+                                      this->vertical, this->progress );
     }
     else
     {
-        sgui_skin_draw_progress_bar( super->canvas, super->area.left,
-                                     super->area.top, length, this->vertical,
-                                     this->progress );
+        skin->draw_progress_bar( skin, super->canvas, super->area.left,
+                                 super->area.top, length, this->vertical,
+                                 this->progress );
     }
 }
 
@@ -75,6 +76,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
                                        unsigned int progress,
                                        unsigned int length )
 {
+    sgui_skin* skin = sgui_skin_get( );
     unsigned int width, height;
     sgui_progress_bar* this;
     sgui_widget* super;
@@ -101,8 +103,8 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     this->vertical       = vertical;
 
     /* get the size of the progress bar */
-    width  = vertical ? sgui_skin_get_progess_bar_width( ) : length;
-    height = vertical ? length : sgui_skin_get_progess_bar_width( );
+    width  = vertical ? skin->get_progess_bar_width( skin ) : length;
+    height = vertical ? length : skin->get_progess_bar_width( skin );
 
     sgui_rect_set_size( &super->area, x, y, width, height );
 

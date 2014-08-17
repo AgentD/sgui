@@ -106,6 +106,7 @@ sgui_edit_box_passwd;
 static void determine_offset( sgui_edit_box* this )
 {
     unsigned int cx, w;
+    sgui_skin* skin;
 
     /* only adjust if there are characters entered */
     if( !this->num_entered || !this->cursor )
@@ -114,8 +115,9 @@ static void determine_offset( sgui_edit_box* this )
         return;
     }
 
+    skin = sgui_skin_get( );
     w = SGUI_RECT_WIDTH( this->super.area );
-    w -= sgui_skin_get_edit_box_border_width( ) << 1;
+    w -= skin->get_edit_box_border_width( skin ) << 1;
 
     /* if the cursor moved out of the edit box to the left */
     if( this->offset && (this->cursor <= this->offset) )
@@ -163,8 +165,9 @@ static void determine_offset( sgui_edit_box* this )
 static unsigned int cursor_from_mouse( sgui_edit_box* this, int mouse_x )
 {
     unsigned int len = 0, cur = this->offset;
+    sgui_skin* skin = sgui_skin_get( );
 
-    mouse_x -= sgui_skin_get_edit_box_border_width( );
+    mouse_x -= skin->get_edit_box_border_width( skin );
 
     /* move 'cur' to the right until it the text extents from
        the beginning to 'cur' catch up with the mouse offset */
@@ -304,11 +307,12 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
 static void edit_box_draw( sgui_widget* super )
 {
     sgui_edit_box* this = (sgui_edit_box*)super;
+    sgui_skin* skin = sgui_skin_get( );
 
-    sgui_skin_draw_editbox( super->canvas, &(super->area),
-                            this->buffer, this->offset,
-                            this->draw_cursor ? (int)this->cursor : -1,
-                            this->selection );
+    skin->draw_editbox( skin, super->canvas, &(super->area),
+                              this->buffer, this->offset,
+                              this->draw_cursor ? (int)this->cursor : -1,
+                              this->selection );
 }
 
 static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
@@ -526,6 +530,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     unsigned int size;
     sgui_edit_box* this;
     sgui_widget* super;
+    sgui_skin* skin;
 
     /* allocate structure */
     size = mode==SGUI_EDIT_PASSWORD ? sizeof(sgui_edit_box_passwd) :
@@ -566,8 +571,8 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
     }
 
     /* initialise and store state */
-    sgui_widget_init( super, x, y, width,
-                               sgui_skin_get_edit_box_height( ) );
+    skin = sgui_skin_get( );
+    sgui_widget_init( super, x, y, width, skin->get_edit_box_height( skin ) );
 
     super->window_event_callback = edit_box_on_event;
     super->destroy               = edit_box_destroy;

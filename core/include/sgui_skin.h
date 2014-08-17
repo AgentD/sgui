@@ -149,14 +149,10 @@ extern "C"
  */
 SGUI_DLL void sgui_skin_set( sgui_skin* skin );
 
-/** \brief Get the default window background color */
-SGUI_DLL void sgui_skin_get_window_background_color( unsigned char* color );
-
-/** \brief Get the default font color */
-SGUI_DLL void sgui_skin_get_default_font_color( unsigned char* color );
-
-/** \brief Get the default font height in pixels */
-SGUI_DLL unsigned int sgui_skin_get_default_font_height( void );
+/**
+ * \brief Retrieve a pointer to the currently set GUI skin renderer
+ */
+SGUI_DLL sgui_skin* sgui_skin_get( void );
 
 /**
  * \brief Get the default font face
@@ -195,75 +191,6 @@ SGUI_DLL unsigned int sgui_skin_default_font_extents( const char* text,
  * \param height      Returns the height of the rendererd text
  */
 SGUI_DLL void sgui_skin_get_text_extents( const char* text, sgui_rect* r );
-
-SGUI_DLL void sgui_skin_get_checkbox_extents( sgui_rect* r );
-
-SGUI_DLL void sgui_skin_get_radio_button_extents( sgui_rect* r );
-
-SGUI_DLL unsigned int sgui_skin_get_edit_box_height( void );
-
-SGUI_DLL unsigned int sgui_skin_get_edit_box_border_width( void );
-
-SGUI_DLL unsigned int sgui_skin_get_frame_border_width( void );
-
-SGUI_DLL unsigned int sgui_skin_get_progess_bar_width( void );
-
-SGUI_DLL unsigned int sgui_skin_get_scroll_bar_width( void );
-
-SGUI_DLL unsigned int sgui_skin_get_focus_box_width( void );
-
-SGUI_DLL void sgui_skin_get_scroll_bar_button_extents( sgui_rect* r );
-
-SGUI_DLL void sgui_skin_get_tap_caption_extents( sgui_rect* r );
-
-SGUI_DLL void sgui_skin_get_slider_extents( sgui_rect* r, int vertical );
-
-SGUI_DLL void sgui_skin_draw_focus_box( sgui_canvas* canvas, sgui_rect* r );
-
-SGUI_DLL void sgui_skin_draw_checkbox( sgui_canvas* canvas, int x, int y,
-                                       int checked );
-
-SGUI_DLL void sgui_skin_draw_radio_button( sgui_canvas* canvas, int x, int y,
-                                           int checked );
-
-SGUI_DLL void sgui_skin_draw_button( sgui_canvas* canvas, sgui_rect* r,
-                                     int pressed );
-
-SGUI_DLL void sgui_skin_draw_editbox( sgui_canvas* canvas, sgui_rect* r,
-                                      const char* text, int offset,
-                                      int cursor, int selection );
-
-SGUI_DLL void sgui_skin_draw_frame( sgui_canvas* canvas, sgui_rect* r );
-
-SGUI_DLL void sgui_skin_draw_group_box( sgui_canvas* canvas, sgui_rect* r,
-                                        const char* caption );
-
-SGUI_DLL void sgui_skin_draw_progress_bar( sgui_canvas* canvas, int x, int y,
-                                           unsigned int length,
-                                           int vertical, int percentage );
-
-SGUI_DLL void sgui_skin_draw_progress_stippled( sgui_canvas* canvas,
-                                                int x, int y,
-                                                unsigned int length,
-                                                int vertical,
-                                                int percentage );
-
-SGUI_DLL void sgui_skin_draw_scroll_bar( sgui_canvas* canvas, int x, int y,
-                                         unsigned int length, int vertical,
-                                         int pane_offset,
-                                         unsigned int pane_length,
-                                         int decbutton, int incbutton );
-
-SGUI_DLL void sgui_skin_draw_tab_caption( sgui_canvas* canvas, int x, int y,
-                                          const char* caption,
-                                          unsigned int text_width );
-
-SGUI_DLL void sgui_skin_draw_tab( sgui_canvas* canvas, sgui_rect* r,
-                                  unsigned int gap, unsigned int gap_width );
-
-SGUI_DLL void sgui_skin_draw_slider( sgui_canvas* canvas, sgui_rect* r,
-                                     int vertical, int min, int max,
-                                     int value, int steps );
 
 #ifdef __cplusplus
 }

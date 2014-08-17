@@ -47,8 +47,9 @@ sgui_group_box;
 static void group_box_draw( sgui_widget* super )
 {
     sgui_group_box* this = (sgui_group_box*)super;
+    sgui_skin* skin = sgui_skin_get( );
 
-    sgui_skin_draw_group_box( super->canvas, &(super->area), this->caption );
+    skin->draw_group_box(skin, super->canvas, &(super->area), this->caption);
 }
 
 static void group_box_destroy( sgui_widget* super )

@@ -280,13 +280,14 @@ static void scroll_bar_on_event_v( sgui_widget* super, const sgui_event* e )
 static void scroll_bar_draw( sgui_widget* super )
 {
     sgui_scroll_bar* this = (sgui_scroll_bar*)super;
+    sgui_skin* skin = sgui_skin_get( );
 
-    sgui_skin_draw_scroll_bar( super->canvas,
-                               super->area.left, super->area.top,
-                               this->length, !this->horizontal,
-                               this->p_offset, this->p_length,
-                               this->inc_button_state,
-                               this->dec_button_state );
+    skin->draw_scroll_bar( skin, super->canvas,
+                                super->area.left, super->area.top,
+                                this->length, !this->horizontal,
+                                this->p_offset, this->p_length,
+                                this->inc_button_state,
+                                this->dec_button_state );
 }
 
 static void scroll_bar_destroy( sgui_widget* this )
@@ -303,6 +304,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 {
     sgui_scroll_bar* this = malloc( sizeof(sgui_scroll_bar) );
     sgui_widget* super = (sgui_widget*)this;
+    sgui_skin* skin = sgui_skin_get( );
     unsigned int w=0, h=0;
     sgui_rect r;
 
@@ -310,7 +312,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
         return NULL;
 
     memset( this, 0, sizeof(sgui_scroll_bar) );
-    sgui_skin_get_scroll_bar_button_extents( &r );
+    skin->get_scroll_bar_button_extents( skin, &r );
 
     this->bw = SGUI_RECT_WIDTH( r );
     this->bh = SGUI_RECT_HEIGHT( r );
@@ -318,11 +320,11 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     if( horizontal )
     {
         w = length;
-        h = sgui_skin_get_scroll_bar_width( );
+        h = skin->get_scroll_bar_width( skin );
     }
     else
     {
-        w = sgui_skin_get_scroll_bar_width( );
+        w = skin->get_scroll_bar_width( skin );
         h = length;
     }
 

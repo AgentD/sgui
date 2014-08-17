@@ -533,7 +533,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
 
     /* finish initialisation */
     sgui_canvas_init( super, width, height );
-    sgui_skin_get_window_background_color( this->bg );
+    memcpy( this->bg, sgui_skin_get( )->window_color, 4 );
 
     sgui_internal_unlock_mutex( );
 

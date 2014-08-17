@@ -138,10 +138,11 @@ static void button_draw( sgui_widget* super )
     sgui_button* this = (sgui_button*)super;
     int in = (this->flags & SELECTED)!=0;
     int type = (this->flags & 0x03);
+    sgui_skin* skin = sgui_skin_get( );
 
     if( type==BUTTON || type==TOGGLE_BUTTON )
     {
-        sgui_skin_draw_button( super->canvas, &super->area, in );
+        skin->draw_button( skin, super->canvas, &super->area, in );
 
         if( this->flags & HAVE_ICON )
         {
@@ -164,13 +165,13 @@ static void button_draw( sgui_widget* super )
     {
         if( type==CHECKBOX )
         {
-            sgui_skin_draw_checkbox( super->canvas, super->area.left,
-                                     super->area.top+this->cy, in );
+            skin->draw_checkbox( skin, super->canvas, super->area.left,
+                                      super->area.top+this->cy, in );
         }
         else
         {
-            sgui_skin_draw_radio_button( super->canvas, super->area.left,
-                                         super->area.top+this->cy, in );
+            skin->draw_radio_button( skin, super->canvas, super->area.left,
+                                           super->area.top+this->cy, in );
         }
 
         if( this->flags & HAVE_ICON )
@@ -290,6 +291,7 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     unsigned int len, text_width, text_height;
     sgui_widget* super;
     sgui_button* this;
+    sgui_skin* skin;
     sgui_rect r;
 
     /* sanity check */
@@ -315,6 +317,8 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
 
     if( !this )
         return NULL;
+
+    skin = sgui_skin_get( );
 
     /* allocate space for the text */
     if( flags & HAVE_ICON )
@@ -354,9 +358,9 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     else
     {
         if( (flags & 0x03)==CHECKBOX )
-            sgui_skin_get_checkbox_extents( &r );
+            skin->get_checkbox_extents( skin, &r );
         else if( (flags & 0x03)==RADIO_BUTTON )
-            sgui_skin_get_radio_button_extents( &r );
+            skin->get_radio_button_extents( skin, &r );
 
         this->cx = SGUI_RECT_WIDTH( r );
         this->cy = SGUI_RECT_HEIGHT( r );
@@ -487,6 +491,7 @@ void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
 #ifndef SGUI_NO_ICON_CACHE
     unsigned int img_width, img_height, width, height;
     sgui_button* this = (sgui_button*)super;
+    sgui_skin* skin;
     sgui_rect r;
 
     /* sanity check */
@@ -517,10 +522,12 @@ void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
     }
     else
     {
+        skin = sgui_skin_get( );
+
         if( (this->flags & 0x03)==CHECKBOX )
-            sgui_skin_get_checkbox_extents( &r );
+            skin->get_checkbox_extents( skin, &r );
         else if( (this->flags & 0x03)==RADIO_BUTTON )
-            sgui_skin_get_radio_button_extents( &r );
+            skin->get_radio_button_extents( skin, &r );
 
         this->cx = SGUI_RECT_WIDTH( r );
         this->cy = SGUI_RECT_HEIGHT( r );

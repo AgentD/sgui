@@ -610,7 +610,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
                                      desc->width, desc->height,
                                      desc->backend );
 
-    sgui_skin_get_window_background_color( color );
+    memcpy( color, sgui_skin_get( )->window_color, 3 );
     this->bgbrush = CreateSolidBrush( RGB(color[0],color[1],color[2]) );
 
     /* store entry points */

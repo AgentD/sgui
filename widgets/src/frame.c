@@ -106,7 +106,8 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
 
 static void frame_draw( sgui_widget* this )
 {
-    sgui_skin_draw_frame( this->canvas, &(this->area) );
+    sgui_skin* skin = sgui_skin_get( );
+    skin->draw_frame( skin, this->canvas, &(this->area) );
 }
 
 static void frame_destroy( sgui_widget* super )
@@ -145,6 +146,7 @@ static void frame_on_state_change( sgui_widget* super, int change )
 {
     sgui_frame* this = (sgui_frame*)super;
     unsigned int w, ww, wh, width, height, new_height, new_width;
+    sgui_skin* skin = sgui_skin_get( );
     sgui_widget* i;
     sgui_rect r;
     int wx, wy;
@@ -177,7 +179,7 @@ static void frame_on_state_change( sgui_widget* super, int change )
             /* if the horizontal scroll bar is drawn, take it into account */
             if( new_width > width )
             {
-                sgui_skin_get_scroll_bar_button_extents( &r );
+                skin->get_scroll_bar_button_extents( skin, &r );
                 new_height += SGUI_RECT_HEIGHT( r );
             }
 
@@ -197,7 +199,7 @@ static void frame_on_state_change( sgui_widget* super, int change )
             /* if the vertical scroll bar is drawn, take it into account */
             if( new_height > height )
             {
-                sgui_skin_get_scroll_bar_button_extents( &r );
+                skin->get_scroll_bar_button_extents( skin, &r );
                 new_width += SGUI_RECT_WIDTH( r );
                 ww = SGUI_RECT_WIDTH( r );
 
@@ -304,6 +306,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
 {
     sgui_frame* this = malloc( sizeof(sgui_frame) );
     sgui_widget* super = (sgui_widget*)this;
+    sgui_skin* skin = sgui_skin_get( );
     unsigned int w, h;
     sgui_rect r;
 
@@ -313,12 +316,12 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     sgui_widget_init( (sgui_widget*)this, x, y, width, height );
 
     /* try to create a vertical scroll bar */
-    sgui_skin_get_scroll_bar_button_extents( &r );
+    skin->get_scroll_bar_button_extents( skin, &r );
     w = SGUI_RECT_WIDTH( r );
     h = SGUI_RECT_HEIGHT( r ) + height;
 
-    this->h_border = sgui_skin_get_frame_border_width( );
-    this->v_border = sgui_skin_get_frame_border_width( );
+    this->h_border = skin->get_frame_border_width( skin );
+    this->v_border = skin->get_frame_border_width( skin );
     this->v_bar_dist = width - w - this->v_border;
     this->v_bar = sgui_scroll_bar_create( this->v_bar_dist, this->v_border, 0,
                                           height-2*this->v_border,
@@ -332,7 +335,7 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     }
 
     /* try to create a horizontal scroll bar */
-    sgui_skin_get_scroll_bar_button_extents( &r );
+    skin->get_scroll_bar_button_extents( skin, &r );
     w = SGUI_RECT_WIDTH( r ) + width;
     h = SGUI_RECT_HEIGHT( r );
 
