@@ -195,6 +195,22 @@ struct sgui_canvas
  *
  * \implements sgui_canvas
  */
+typedef struct
+{
+    sgui_canvas super;
+
+    void (* blend_stencil )( sgui_canvas*, unsigned char*, int, int,
+                             unsigned int, unsigned int, unsigned int,
+                             const unsigned char* );
+
+    unsigned char* data;
+    int bpp, swaprb;
+
+    sgui_rect locked;
+}
+sgui_mem_canvas;
+
+
 
 #define SGUI_A8    0
 #define SGUI_RGB8  1
@@ -558,6 +574,29 @@ SGUI_DLL sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
                                                  unsigned int height,
                                                  int format,
                                                  int swaprb );
+
+/**
+ * \brief Initialize an instance of a reference implementation of a canvas
+ *        that uses a memory buffer
+ *
+ * \memberof sgui_mem_canvas
+ *
+ * This is usefull for canvases that inherit the memory canvas to initialize
+ * the sgui_mem_canvas fields.
+ *
+ * \param buffer A pointer to a buffer to draw to
+ * \param width  The width of the memory buffer
+ * \param height The height of the memory buffer
+ * \param format The color format of the memory buffer
+ * \param swaprb If non-zero (TRUE), red and blue are swapped
+ *
+ * \return Non-zero on success, zero on failur (invalid arguments)
+ */
+SGUI_DLL int sgui_memory_canvas_init( sgui_canvas* cv,
+                                      unsigned char* buffer,
+                                      unsigned int width,
+                                      unsigned int height,
+                                      int format, int swaprb );
 
 /**
  * \brief Set a new buffer pointer for a memory canvas

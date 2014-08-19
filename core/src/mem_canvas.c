@@ -36,23 +36,6 @@
 
 
 #ifndef SGUI_NO_MEM_CANVAS
-typedef struct
-{
-    sgui_canvas super;
-
-    void (* blend_stencil )( sgui_canvas*, unsigned char*, int, int,
-                             unsigned int, unsigned int, unsigned int,
-                             const unsigned char* );
-
-    unsigned char* data;
-    int bpp, swaprb;
-
-    sgui_rect locked;
-}
-mem_canvas;
-
-
-
 static void canvas_mem_destroy( sgui_canvas* this )
 {
     free( this );
@@ -66,7 +49,7 @@ static void canvas_mem_resize( sgui_canvas* super, unsigned int width,
 
 static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int deltax, deltay;
     unsigned char* dst;
     int i;
@@ -87,7 +70,7 @@ static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
 static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
                                      const unsigned char* color, int format )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int R=0, G=0, B=0, A=0, iA=0;
     unsigned char *dst, *row;
     int i, j;
@@ -146,7 +129,7 @@ static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
 static void canvas_mem_blit_rgb( sgui_canvas* super, int x, int y,
                                  sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int w = SGUI_RECT_WIDTH_V( srcrect ) * 3;
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
     unsigned char *dst = this->data + (y*super->width + x)*3, *row;
@@ -183,7 +166,7 @@ static void canvas_mem_blit_rgb( sgui_canvas* super, int x, int y,
 static void canvas_mem_blend_rgb( sgui_canvas* super, int x, int y,
                                   sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
     unsigned char iA, *src, *dst, *row, *srow;
@@ -222,7 +205,7 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
                                           unsigned int scan,
                                           const unsigned char* color )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*3;
     unsigned int i, j;
 
@@ -249,7 +232,7 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
 static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
                                       const unsigned char* color, int format )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int R=0, G=0, B=0, A=0, iA=0;
     unsigned char *dst, *row;
     int i, j;
@@ -312,7 +295,7 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
 static void canvas_mem_blit_rgba( sgui_canvas* super, int x, int y,
                                   sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
     unsigned char *dst = this->data + (y*super->width + x)*4, *row;
@@ -355,7 +338,7 @@ static void canvas_mem_blit_rgba( sgui_canvas* super, int x, int y,
 static void canvas_mem_blend_rgba( sgui_canvas* super, int x, int y,
                                    sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
     unsigned char iA, *src, *dst, *row, *srow;
@@ -395,7 +378,7 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
                                            unsigned int scan,
                                            const unsigned char* color )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*4;
     unsigned int i, j;
 
@@ -425,7 +408,7 @@ static int canvas_mem_draw_string( sgui_canvas* super, int x, int y,
                                    const unsigned char* color,
                                    const char* text, unsigned int length )
 {
-    mem_canvas* this = (mem_canvas*)super;
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     int bearing, oldx = x;
     unsigned int i, w, h, len = 0;
     unsigned long character, previous=0;
@@ -473,7 +456,7 @@ static sgui_pixmap* canvas_mem_create_pixmap( sgui_canvas* this,
                                               int format )
 {
     return sgui_internal_mem_pixmap_create( width, height, format,
-                                            ((mem_canvas*)this)->swaprb );
+                                            ((sgui_mem_canvas*)this)->swaprb);
 }
 
 /****************************************************************************/
@@ -483,26 +466,38 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
                                         unsigned int height,
                                         int format, int swaprb )
 {
-    mem_canvas* this;
-    sgui_canvas* super;
-
-    if( !buffer || !width || !height )
-        return NULL;
-
-    if( format!=SGUI_RGBA8 && format!=SGUI_RGB8 )
-        return NULL;
-
-    this = malloc( sizeof(mem_canvas) );
-    super = (sgui_canvas*)this;
+    sgui_mem_canvas* this = malloc( sizeof(sgui_mem_canvas) );
+    sgui_canvas* super = (sgui_canvas*)this;
 
     if( !this )
         return NULL;
 
+    if( !sgui_memory_canvas_init(super,buffer,width,height,format,swaprb) )
+    {
+        free( this );
+        this = NULL;
+    }
+    return (sgui_canvas*)this;
+}
+
+int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
+                             unsigned int width,
+                             unsigned int height,
+                             int format, int swaprb )
+{
+    sgui_mem_canvas* this = (sgui_mem_canvas*)super;
+
+    if( !this || !buffer || !width || !height )
+        return 0;
+
+    if( format!=SGUI_RGBA8 && format!=SGUI_RGB8 )
+        return 0;
+
+    sgui_canvas_init( super, width, height );
+
     this->data = buffer;
     this->bpp = format==SGUI_RGBA8 ? 4 : 3;
     this->swaprb = swaprb;
-
-    sgui_canvas_init( super, width, height );
 
     if( format==SGUI_RGBA8 )
     {
@@ -524,8 +519,7 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     super->clear = canvas_mem_clear;
     super->draw_string = canvas_mem_draw_string;
     super->create_pixmap = canvas_mem_create_pixmap;
-
-    return (sgui_canvas*)this;
+    return 1;
 }
 
 void sgui_memory_canvas_set_buffer( sgui_canvas* this,
@@ -533,7 +527,7 @@ void sgui_memory_canvas_set_buffer( sgui_canvas* this,
 {
     if( this && buffer )
     {
-        ((mem_canvas*)this)->data = buffer;
+        ((sgui_mem_canvas*)this)->data = buffer;
     }
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
@@ -548,6 +542,11 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     (void)format;
     (void)swaprb;
     return NULL;
+}
+
+void sgui_memory_canvas_init( sgui_canvas* super )
+{
+    (void)super;
 }
 
 void sgui_memory_canvas_set_buffer( sgui_canvas* canvas,
