@@ -188,18 +188,6 @@ int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
 
     sgui_internal_lock_mutex( );
 
-    /* check if there is enought space for the icon */
-    if( (this->next_x + width) > this->width )
-    {
-        if( (this->next_y + this->row_height + height) > this->height )
-            goto fail;
-    }
-    else
-    {
-        if( (this->next_y + height) > this->height )
-            goto fail;
-    }
-
     /* create icon */
     i = malloc( sizeof(sgui_icon) );
 
@@ -210,19 +198,11 @@ int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
     i->red = 1;
     i->id = id;
 
-    /* allocate icon rectangle */
-    if( (this->next_x + width) > this->width )
+    if( !sgui_icon_cache_alloc_area( this, width, height, &i->area ) )
     {
-        this->next_x  = 0;
-        this->next_y += this->row_height;
-        this->row_height = height;
+        free( i );
+        goto fail;
     }
-
-    sgui_rect_set_size( &(i->area), this->next_x, this->next_y,
-                        width, height );
-
-    this->next_x += width;
-    this->row_height = height>this->row_height ? height : this->row_height;
 
     /* insert into tree */
     this->root = sgui_icon_cache_tree_insert( this, this->root, i );
@@ -276,6 +256,47 @@ void sgui_icon_cache_draw_icon( const sgui_icon_cache* this, unsigned int id,
     sgui_internal_unlock_mutex( );
 }
 
+int sgui_icon_cache_alloc_area( sgui_icon_cache* this,
+                                unsigned int width, unsigned int height,
+                                sgui_rect* out )
+{
+    if( !this || !width || !height || !out )
+        return 0;
+
+    sgui_internal_lock_mutex( );
+
+    /* check if there is enought space for the icon */
+    if( (this->next_x + width) > this->width )
+    {
+        if( (this->next_y + this->row_height + height) > this->height )
+            goto fail;
+    }
+    else
+    {
+        if( (this->next_y + height) > this->height )
+            goto fail;
+    }
+
+    /* allocate area */
+    if( (this->next_x + width) > this->width )
+    {
+        this->next_x  = 0;
+        this->next_y += this->row_height;
+        this->row_height = height;
+    }
+
+    sgui_rect_set_size( out, this->next_x, this->next_y, width, height );
+
+    this->next_x += width;
+    this->row_height = height>this->row_height ? height : this->row_height;
+
+    sgui_internal_unlock_mutex( );
+    return 1;
+fail:
+    sgui_internal_unlock_mutex( );
+    return 0;
+}
+
 int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
                                    unsigned int id, sgui_rect* out )
 {
@@ -299,6 +320,11 @@ int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
 
     sgui_internal_unlock_mutex( );
     return 1;
+}
+
+sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* this )
+{
+    return this ? this->pixmap : NULL;
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_icon_cache* sgui_icon_cache_create( sgui_canvas* canvas,
@@ -342,6 +368,14 @@ void sgui_icon_cache_draw_icon( const sgui_icon_cache* this, unsigned int id,
     (void)this; (void)id; (void)x; (void)y;
 }
 
+int sgui_icon_cache_alloc_area( sgui_icon_cache* this,
+                                unsigned int width, unsigned int height,
+                                sgui_rect* out )
+{
+    (void)this; (void)width; (void)height; (void)out;
+    return 0;
+}
+
 int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
                                    unsigned int id, sgui_rect* out )
 {
@@ -349,6 +383,11 @@ int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
     if( out ) { out->left=out->top=out->right=out->bottom; }
     return 0;
 }
-#endif /* !SGUI_NO_ICON_CACHE */
 
+sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* this )
+{
+    (void)this;
+    return NULL;
+}
+#endif /* !SGUI_NO_ICON_CACHE */
 

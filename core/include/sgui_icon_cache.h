@@ -92,6 +92,9 @@ struct sgui_icon_cache
      * \param icon A pointer to an icon to destroy
      */
     void (* icon_destroy )( sgui_icon* icon );
+
+    /** \brief Called to cleanup an icon cache. free( ) is used if NULL */
+    void (* destroy )( sgui_icon_cache* cache );
 };
 
 
@@ -198,6 +201,23 @@ SGUI_DLL void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
                                          unsigned int id, int x, int y );
 
 /**
+ * \brief Allocate a rectangular area on the underlying pixmap
+ *
+ * \memberof sgui_icon_cache
+ *
+ * \param cache  A pointer to an icon cache object
+ * \param width  The width of the area to allocate
+ * \param height The height of the area to allocate
+ * \param out    Returns the exact outline of the allocated area on the pixmap
+ *
+ * \return Non-zero on success, zero on failure (i.e. no enough space)
+ */
+SGUI_DLL int sgui_icon_cache_alloc_area( sgui_icon_cache* cache,
+                                         unsigned int width,
+                                         unsigned int height,
+                                         sgui_rect* out );
+
+/**
  * \brief Get the area occupied by an icon on the icon pixmap
  *
  * \memberof sgui_icon_cache
@@ -211,6 +231,17 @@ SGUI_DLL void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
 SGUI_DLL int sgui_icon_cache_get_icon_area( const sgui_icon_cache* cache,
                                             unsigned int id,
                                             sgui_rect* out );
+
+/**
+ * \brief Get a pointer to the pixmap used by an icon cache object
+ *
+ * \memberof sgui_icon_cache
+ *
+ * \param cache A pointer to an icon cache object
+ *
+ * \return A pointer to a pixmap object on success, NULL otherwise.
+ */
+SGUI_DLL sgui_pixmap* sgui_font_cache_get_pixmap( sgui_icon_cache* cache );
 
 #ifdef __cplusplus
 }
