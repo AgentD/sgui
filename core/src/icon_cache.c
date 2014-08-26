@@ -39,13 +39,17 @@
 
 
 
-static void tree_destroy( sgui_icon* this )
+static void tree_destroy( sgui_icon_cache* this, sgui_icon* icon )
 {
-    if( this )
+    if( this && icon )
     {
-        tree_destroy( this->left );
-        tree_destroy( this->right );
-        free( this );
+        tree_destroy( this, icon->left );
+        tree_destroy( this, icon->right );
+
+        if( this->icon_destroy )
+            this->icon_destroy( icon );
+        else
+            free( icon );
     }
 }
 
@@ -86,18 +90,7 @@ static sgui_icon* tree_balance( sgui_icon* this )
     return this;
 }
 
-static sgui_icon* tree_insert( sgui_icon* this, sgui_icon* new )
-{ 
-    if( !this )
-        return new;
-
-    if( new->id < this->id )
-        this->left = tree_insert( this->left, new );
-    else
-        this->right = tree_insert( this->right, new );
-
-    return tree_balance( this );
-}
+/****************************************************************************/
 
 static sgui_icon* find_icon( sgui_icon* this, unsigned int id )
 {
@@ -151,10 +144,37 @@ void sgui_icon_cache_destroy( sgui_icon_cache* this )
 {
     if( this )
     {
-        tree_destroy( this->root );
+        tree_destroy( this, this->root );
         sgui_pixmap_destroy( this->pixmap );
-        free( this );
+
+        if( this->destroy )
+        {
+            this->destroy( this );
+        }
+        else
+        {
+            free( this );
+        }
     }
+}
+
+sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* this,
+                                        sgui_icon* root, sgui_icon* new )
+{
+    int smaller;
+
+    if( !this || !root || !new )
+        return new;
+
+    smaller = this->icon_compare ? this->icon_compare( new, root )<0 :
+                                   new->id < root->id;
+
+    if( smaller )
+        root->left = sgui_icon_cache_tree_insert( this, root->left, new );
+    else
+        root->right = sgui_icon_cache_tree_insert( this, root->right, new );
+
+    return tree_balance( root );
 }
 
 int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
@@ -205,7 +225,7 @@ int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
     this->row_height = height>this->row_height ? height : this->row_height;
 
     /* insert into tree */
-    this->root = tree_insert( this->root, i );
+    this->root = sgui_icon_cache_tree_insert( this, this->root, i );
     this->root->red = 0;
 
     sgui_internal_unlock_mutex( );
@@ -293,6 +313,13 @@ sgui_icon_cache* sgui_icon_cache_create( sgui_canvas* canvas,
 void sgui_icon_cache_destroy( sgui_icon_cache* this )
 {
     (void)this;
+}
+
+sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* this,
+                                        sgui_icon* root, sgui_icon* new )
+{
+    (void)this; (void)root;
+    return new;
 }
 
 int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,

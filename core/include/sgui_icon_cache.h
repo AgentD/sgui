@@ -73,6 +73,25 @@ struct sgui_icon_cache
     unsigned int width, height; /**< width of the current icon row */
 
     int format;                 /**< color format of the pixmap */
+
+    /**
+     * \brief Compare two icons
+     *
+     * \note If this is NULL, the IDs are used for comparison
+     *
+     * \return 0 if both are equal, a positive number if left &gt; right,
+     *         a negative number if left &lt; right
+     */
+    int (* icon_compare )( sgui_icon* left, sgui_icon* right );
+
+    /**
+     * \brief Destroy icons created by an icon cache implementation
+     *
+     * \note If this is NULL, free is used for deletion
+     *
+     * \param icon A pointer to an icon to destroy
+     */
+    void (* icon_destroy )( sgui_icon* icon );
 };
 
 
@@ -107,6 +126,28 @@ SGUI_DLL sgui_icon_cache* sgui_icon_cache_create( sgui_canvas* canvas,
  * \param cache A pointer to an icon cache object
  */
 SGUI_DLL void sgui_icon_cache_destroy( sgui_icon_cache* cache );
+
+/**
+ * \brief Insert an icon into the icon tree of an icon cache
+ *
+ * \memberof sgui_icon_cache
+ * \protected
+ *
+ * \note This funcion is used by sgui_icon_cache_add_icon and should only be
+ *       used by subclasses of sgui_icon_cache that extend sgui_icon
+ *
+ * \param cache  A pointer to an icon cache object
+ * \param root   The root of the subtree to insert at
+ * \param insert The icon to insert into the subtree. The icon cache takes
+ *               over ownership of this icon.
+ *
+ * \return A pointer to the root node if the sub-tree was not rotated, a
+ *         pointer to the new root if it was, the value of the new node if
+ *         either cache or root is NULL.
+ */
+SGUI_DLL sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* cache,
+                                                 sgui_icon* root,
+                                                 sgui_icon* insert );
 
 /**
  * \brief Add an icon to an icon cache
