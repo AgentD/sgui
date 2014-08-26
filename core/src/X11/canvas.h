@@ -46,7 +46,7 @@ typedef struct sgui_canvas_x11
     sgui_canvas super;
     Window wnd;
 
-    sgui_font_cache* cache;
+    sgui_icon_cache* cache; /* a font cache by the canvas */
 
     void(* display )( struct sgui_canvas_x11* cv, int x, int y,
                       unsigned int width, unsigned int height );

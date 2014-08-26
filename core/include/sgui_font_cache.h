@@ -34,11 +34,14 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_icon_cache.h"
 
 
 
 /**
  * \struct sgui_font_cache
+ *
+ * \extends sgui_icon_cache
  *
  * \brief Caches rasterized glyphs on a pixmap
  */
@@ -60,16 +63,7 @@ extern "C" {
  *
  * \return A pointer to a new font cache object on success, NULL otherwise.
  */
-SGUI_DLL sgui_font_cache* sgui_font_cache_create( sgui_pixmap* map );
-
-/**
- * \brief Destroy a font cache object
- *
- * \memberof sgui_font_cache
- *
- * \param cache The font cache object
- */
-SGUI_DLL void sgui_font_cache_destroy( sgui_font_cache* cache );
+SGUI_DLL sgui_icon_cache* sgui_font_cache_create( sgui_pixmap* map );
 
 /**
  * \brief Render a glyph using a font cache object
@@ -93,7 +87,7 @@ SGUI_DLL void sgui_font_cache_destroy( sgui_font_cache* cache );
  *
  * \return The width of the given glyph in pixels
  */
-SGUI_DLL int sgui_font_cache_draw_glyph( sgui_font_cache* cache,
+SGUI_DLL int sgui_font_cache_draw_glyph( sgui_icon_cache* cache,
                                          sgui_font* font,
                                          unsigned int codepoint,
                                          int x, int y, sgui_canvas* canvas,
@@ -108,20 +102,9 @@ SGUI_DLL int sgui_font_cache_draw_glyph( sgui_font_cache* cache,
  * \param font      A pointer to a font object to use for glyh rendering
  * \param codepoint The unicode codepoint of the glyph to load
  */
-SGUI_DLL void sgui_font_cache_load_glyph( sgui_font_cache* cache,
+SGUI_DLL void sgui_font_cache_load_glyph( sgui_icon_cache* cache,
                                           sgui_font* font,
                                           unsigned int codepoint );
-
-/**
- * \brief Get a pointer to the pixmap used by a font cache object
- *
- * \memberof sgui_font_cache
- *
- * \param cache A pointer to a font cache object
- *
- * \return A pointer to a pixmap object on success, NULL otherwise.
- */
-SGUI_DLL sgui_pixmap* sgui_font_cache_get_pixmap( sgui_font_cache* cache );
 
 #ifdef __cplusplus
 }

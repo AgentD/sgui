@@ -94,7 +94,7 @@ static void canvas_xlib_destroy( sgui_canvas* super )
 
     sgui_internal_lock_mutex( );
     if( ((sgui_canvas_x11*)this)->cache )
-        sgui_font_cache_destroy( ((sgui_canvas_x11*)this)->cache );
+        sgui_icon_cache_destroy( ((sgui_canvas_x11*)this)->cache );
 
     XFreeGC( dpy, this->gc );
     XFreePixmap( dpy, this->pixmap );
@@ -262,7 +262,7 @@ static void canvas_xrender_destroy( sgui_canvas* super )
     sgui_internal_lock_mutex( );
 
     if( ((sgui_canvas_x11*)this)->cache )
-        sgui_font_cache_destroy( ((sgui_canvas_x11*)this)->cache );
+        sgui_icon_cache_destroy( ((sgui_canvas_x11*)this)->cache );
 
     if( this->pic ) XRenderFreePicture( dpy, this->pic );
     if( this->pen ) XRenderFreePicture( dpy, this->pen );
