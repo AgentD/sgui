@@ -35,39 +35,11 @@
 
 
 #ifndef SGUI_NO_ICON_CACHE
-struct icon
-{
-    sgui_rect area;         /* area on pixmap */
-    unsigned int id;        /* icon id */
-
-    int red;                /* red or black? */
-    struct icon* left;      /* left tree node */
-    struct icon* right;     /* right tree node */
-};
-
-struct sgui_icon_cache
-{
-    sgui_canvas* owner;             /* the canvas that created the pixmap */
-    sgui_pixmap* pixmap;            /* the icon pixmap */
-
-    struct icon* root;              /* the root of the icon tree */
-
-    int next_x, next_y;             /* next insertion position on pixmap */
-    unsigned int row_height;        /* height of the current icon row */
-
-    unsigned int width, height;     /* width of the current icon row */
-
-    int format;                     /* color format of the pixmap */
-};
-
-
-
-
 #define IS_RED( i ) ((i) && (i)->red)
 
 
 
-static void tree_destroy( struct icon* this )
+static void tree_destroy( sgui_icon* this )
 {
     if( this )
     {
@@ -77,9 +49,9 @@ static void tree_destroy( struct icon* this )
     }
 }
 
-static struct icon* tree_balance( struct icon* this )
+static sgui_icon* tree_balance( sgui_icon* this )
 {
-    struct icon* i;
+    sgui_icon* i;
 
     if( IS_RED(this->right) && !IS_RED(this->left) )
     {
@@ -114,7 +86,7 @@ static struct icon* tree_balance( struct icon* this )
     return this;
 }
 
-static struct icon* tree_insert( struct icon* this, struct icon* new )
+static sgui_icon* tree_insert( sgui_icon* this, sgui_icon* new )
 { 
     if( !this )
         return new;
@@ -127,7 +99,7 @@ static struct icon* tree_insert( struct icon* this, struct icon* new )
     return tree_balance( this );
 }
 
-static struct icon* find_icon( struct icon* this, unsigned int id )
+static sgui_icon* find_icon( sgui_icon* this, unsigned int id )
 {
     while( this && this->id!=id )
     {
@@ -188,7 +160,7 @@ void sgui_icon_cache_destroy( sgui_icon_cache* this )
 int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
                               unsigned int width, unsigned int height )
 {
-    struct icon* i;
+    sgui_icon* i;
 
     /* sanity check */
     if( !this || !width || !height || find_icon( this->root, id ) )
@@ -209,12 +181,12 @@ int sgui_icon_cache_add_icon( sgui_icon_cache* this, unsigned int id,
     }
 
     /* create icon */
-    i = malloc( sizeof(struct icon) );
+    i = malloc( sizeof(sgui_icon) );
 
     if( !i )
         goto fail;
 
-    memset( i, 0, sizeof(struct icon) );
+    memset( i, 0, sizeof(sgui_icon) );
     i->red = 1;
     i->id = id;
 
@@ -247,7 +219,7 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
                                 unsigned char* data, unsigned int scan,
                                 int format )
 {
-    struct icon* i;
+    sgui_icon* i;
 
     if( !this || !data )
         return;
@@ -267,7 +239,7 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, unsigned int id,
 void sgui_icon_cache_draw_icon( const sgui_icon_cache* this, unsigned int id,
                                 int x, int y )
 {
-    struct icon* i;
+    sgui_icon* i;
 
     if( !this )
         return;
@@ -287,7 +259,7 @@ void sgui_icon_cache_draw_icon( const sgui_icon_cache* this, unsigned int id,
 int sgui_icon_cache_get_icon_area( const sgui_icon_cache* this,
                                    unsigned int id, sgui_rect* out )
 {
-    struct icon* i;
+    sgui_icon* i;
 
     if( !this )
         return 0;

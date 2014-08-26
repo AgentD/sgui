@@ -34,14 +34,46 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_rect.h"
 
 
+
+/**
+ * \struct sgui_icon
+ *
+ * \brief Represents an icon stored inside an sgui_icon_cache
+ *
+ * This holds the location and size of the icon on the icon pixmap and is
+ * stored in a red-black tree, using the specified icon ID as key.
+ */
+struct sgui_icon
+{
+    sgui_rect area;     /**< area on pixmap */
+    unsigned int id;    /**< icon id */
+    int red;            /**< non-zero if red, zero if black */
+    sgui_icon* left;    /**< left tree node */
+    sgui_icon* right;   /**< right tree node */
+};
 
 /**
  * \struct sgui_icon_cache
  *
  * \brief Maps icon IDs to icon images on a pixmap
  */
+struct sgui_icon_cache
+{
+    sgui_canvas* owner;         /**< the canvas that created the pixmap */
+    sgui_pixmap* pixmap;        /**< the icon pixmap */
+
+    sgui_icon* root;            /**< the root of the icon tree */
+
+    int next_x, next_y;         /**< next insertion position on pixmap */
+    unsigned int row_height;    /**< height of the current icon row */
+
+    unsigned int width, height; /**< width of the current icon row */
+
+    int format;                 /**< color format of the pixmap */
+};
 
 
 
