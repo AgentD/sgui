@@ -82,7 +82,7 @@ struct sgui_icon_cache
      * \return 0 if both are equal, a positive number if left &gt; right,
      *         a negative number if left &lt; right
      */
-    int (* icon_compare )( sgui_icon* left, sgui_icon* right );
+    int (* icon_compare )( const sgui_icon* left, const sgui_icon* right );
 
     /**
      * \brief Destroy icons created by an icon cache implementation
@@ -242,6 +242,20 @@ SGUI_DLL int sgui_icon_cache_get_icon_area( const sgui_icon_cache* cache,
  * \return A pointer to a pixmap object on success, NULL otherwise.
  */
 SGUI_DLL sgui_pixmap* sgui_font_cache_get_pixmap( sgui_icon_cache* cache );
+
+/**
+ * \brief Search for an icon in an icon cache
+ *
+ * \memberof sgui_icon_cache
+ *
+ * \param cache A pointer to an icon cache object
+ * \param icon  A pointer to an icon to compare against, using the comparion
+ *              function
+ *
+ * \return A pointer to the icon if found, NULL if not
+ */
+SGUI_DLL sgui_icon* sgui_icon_find( const sgui_icon_cache* cache,
+                                    const sgui_icon* icon );
 
 #ifdef __cplusplus
 }

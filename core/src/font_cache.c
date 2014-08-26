@@ -42,7 +42,7 @@ typedef struct
 GLYPH;
 
 
-static int glyph_compare( sgui_icon* left, sgui_icon* right )
+static int glyph_compare( const sgui_icon* left, const sgui_icon* right )
 {
     if( left->id == right->id )
     {
@@ -103,33 +103,18 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
 static GLYPH* fetch_glyph( sgui_icon_cache* this,
                            sgui_font* font, unsigned int codepoint)
 {
-    sgui_icon* node;
+    GLYPH cmp, *g=NULL;
 
-    if( !this || !font )
-        return NULL;
-
-    sgui_internal_lock_mutex( );
-    node = this->root;
-
-    while( node )
+    if( this && font )
     {
-        if( node->id == codepoint )
-        {
-            if( ((GLYPH*)node)->font == font )
-                goto done;
-
-            node = (font < ((GLYPH*)node)->font) ? node->left : node->right;
-        }
-        else
-        {
-            node = (codepoint < node->id) ? node->left : node->right;
-        }
+        sgui_internal_lock_mutex( );
+        cmp.font = font;
+        cmp.super.id = codepoint;
+        g = (GLYPH*)sgui_icon_find( this, (sgui_icon*)&cmp );
+        g = g ? g : create_glyph( this, font, codepoint );
+        sgui_internal_unlock_mutex( );
     }
-
-    node = (sgui_icon*)create_glyph( this, font, codepoint );
-done:
-    sgui_internal_unlock_mutex( );
-    return (GLYPH*)node;
+    return g;
 }
 
 /****************************************************************************/
