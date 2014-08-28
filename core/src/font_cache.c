@@ -35,8 +35,8 @@
 typedef struct
 {
     sgui_icon super;
-
     int bearing;            /* bearing of the glyph */
+    unsigned int codepoint; /* unicode code point  */
     sgui_font* font;        /* the font used by the glyph */
 }
 GLYPH;
@@ -44,7 +44,7 @@ GLYPH;
 
 static int glyph_compare( const sgui_icon* left, const sgui_icon* right )
 {
-    if( left->id == right->id )
+    if( ((GLYPH*)left)->codepoint == ((GLYPH*)right)->codepoint )
     {
         if( ((GLYPH*)left)->font == ((GLYPH*)right)->font )
             return 0;
@@ -52,7 +52,7 @@ static int glyph_compare( const sgui_icon* left, const sgui_icon* right )
         return ((GLYPH*)left)->font < ((GLYPH*)right)->font ? -1 : 1;
     }
 
-    return left->id < right->id ? -1 : 1;
+    return ((GLYPH*)left)->codepoint < ((GLYPH*)right)->codepoint ? -1 : 1;
 }
 
 static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
@@ -74,7 +74,7 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
 
     memset( g, 0, sizeof(GLYPH) );
     g->super.red = 1;
-    g->super.id = codepoint;
+    g->codepoint = codepoint;
     g->bearing = b;
     g->font = font;
 
@@ -87,8 +87,7 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
             return NULL;
         }
 
-        sgui_pixmap_load( this->pixmap, g->super.area.left, g->super.area.top,
-                          src, 0, 0, w, h, w, SGUI_A8 );
+        sgui_icon_cache_load_icon( this, (sgui_icon*)g, src, w, SGUI_A8 );
     }
     else
     {
@@ -109,8 +108,8 @@ static GLYPH* fetch_glyph( sgui_icon_cache* this,
     {
         sgui_internal_lock_mutex( );
         cmp.font = font;
-        cmp.super.id = codepoint;
-        g = (GLYPH*)sgui_icon_find( this, (sgui_icon*)&cmp );
+        cmp.codepoint = codepoint;
+        g = (GLYPH*)sgui_icon_cache_find( this, (sgui_icon*)&cmp );
         g = g ? g : create_glyph( this, font, codepoint );
         sgui_internal_unlock_mutex( );
     }

@@ -51,7 +51,7 @@
 
 typedef struct icon
 {
-    unsigned int id;        /* id of the icon */
+    sgui_icon* icon;        /* id of the icon */
     sgui_rect icon_area;    /* area inside the view */
     sgui_rect text_area;    /* area of the subtext inside the view */
     char* subtext;          /* the text to write underneath the icon */
@@ -471,7 +471,7 @@ static void icon_view_draw( sgui_widget* super )
     {
         if( !i->selected )
         {
-            sgui_icon_cache_draw_icon( this->cache, i->id,
+            sgui_icon_cache_draw_icon( this->cache, i->icon,
                                        super->area.left + i->icon_area.left,
                                        super->area.top  + i->icon_area.top );
 
@@ -487,7 +487,7 @@ static void icon_view_draw( sgui_widget* super )
     {
         if( i->selected )
         {
-            sgui_icon_cache_draw_icon( this->cache, i->id,
+            sgui_icon_cache_draw_icon( this->cache, i->icon,
                                        super->area.left + i->icon_area.left,
                                        super->area.top  + i->icon_area.top );
 
@@ -561,7 +561,7 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 }
 
 void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
-                              const char* subtext, unsigned int id,
+                              const char* subtext, sgui_icon* ic,
                               void* user )
 {
     unsigned int txt_w, txt_h, img_w, img_h;
@@ -570,13 +570,10 @@ void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
     icon* i;
 
     /* sanity check */
-    if( !this )
+    if( !this || !ic )
         return;
 
-    /* obtain icon size */
-    if( !sgui_icon_cache_get_icon_area( this->cache, id, &r ) )
-        return;
-
+    sgui_icon_get_area( ic, &r );
     img_w = SGUI_RECT_WIDTH(r);
     img_h = SGUI_RECT_HEIGHT(r);
 
@@ -629,7 +626,7 @@ void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
 
     i->selected = 0;
     i->user = user;
-    i->id = id;
+    i->icon = ic;
 
     sgui_internal_lock_mutex( );
     i->next = this->icons;

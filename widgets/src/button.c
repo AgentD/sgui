@@ -59,7 +59,7 @@ typedef struct sgui_button
         struct
         {
             sgui_icon_cache* cache;
-            unsigned int id;
+            sgui_icon* i;
         }
         icon;
 #endif
@@ -148,7 +148,7 @@ static void button_draw( sgui_widget* super )
         {
 #ifndef SGUI_NO_ICON_CACHE
             sgui_icon_cache_draw_icon( this->dpy.icon.cache,
-                                       this->dpy.icon.id,
+                                       this->dpy.icon.i,
                                        super->area.left+ this->cx - in,
                                        super->area.top + this->cy - in );
 #endif
@@ -178,7 +178,7 @@ static void button_draw( sgui_widget* super )
         {
 #ifndef SGUI_NO_ICON_CACHE
             sgui_icon_cache_draw_icon( this->dpy.icon.cache,
-                                       this->dpy.icon.id,
+                                       this->dpy.icon.i,
                                        super->area.left+this->cx,
                                        super->area.top );
 #endif
@@ -284,7 +284,7 @@ static void button_destroy( sgui_widget* super )
 
 static sgui_widget* button_create_common( int x, int y, unsigned int width,
                                           unsigned int height,
-                                          unsigned int iconid,
+                                          sgui_icon* icon,
                                           sgui_icon_cache* cache,
                                           const char* text, int flags )
 {
@@ -298,10 +298,10 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     if( flags & HAVE_ICON )
     {
 #ifndef SGUI_NO_ICON_CACHE
-        if( !cache || !sgui_icon_cache_get_icon_area( cache, iconid, &r ) )
+        if( !cache || !icon )
             return NULL;
 #else
-        (void)cache; (void)iconid;
+        (void)cache; (void)icon;
         return NULL;
 #endif
     }
@@ -325,7 +325,8 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     {
 #ifndef SGUI_NO_ICON_CACHE
         this->dpy.icon.cache = cache;
-        this->dpy.icon.id = iconid;
+        this->dpy.icon.i = icon;
+        sgui_icon_get_area( icon, &r );
 #else
         this->dpy.text = 0;
         r.left = r.right = r.top = r.bottom = 0;
@@ -394,7 +395,7 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
 sgui_widget* sgui_icon_button_create( int x, int y, unsigned int width,
                                       unsigned int height,
                                       sgui_icon_cache* cache,
-                                      unsigned int icon, int toggleable )
+                                      sgui_icon* icon, int toggleable )
 {
     return button_create_common( x, y, width, height, icon, cache, NULL,
                                  (toggleable ? TOGGLE_BUTTON : BUTTON) |
@@ -486,7 +487,7 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
 }
 
 void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
-                           unsigned int icon )
+                           sgui_icon* icon )
 {
 #ifndef SGUI_NO_ICON_CACHE
     unsigned int img_width, img_height, width, height;
@@ -495,12 +496,10 @@ void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
     sgui_rect r;
 
     /* sanity check */
-    if( !this || !cache )
+    if( !this || !cache || !icon )
         return;
 
-    if( !sgui_icon_cache_get_icon_area( cache, icon, &r ) )
-        return;
-
+    sgui_icon_get_area( icon, &r );
     sgui_internal_lock_mutex( );
 
     /* copy display data */
@@ -509,7 +508,7 @@ void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
 
     this->flags |= HAVE_ICON;
     this->dpy.icon.cache = cache;
-    this->dpy.icon.id = icon;
+    this->dpy.icon.i = icon;
 
     img_width = SGUI_RECT_WIDTH( r );
     img_height = SGUI_RECT_HEIGHT( r );

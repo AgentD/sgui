@@ -88,7 +88,7 @@ SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
  * \param width      The width of the button in pixels
  * \param height     The height of the button in pixels
  * \param cache      A pointer to an icon cache object owning the icon
- * \param icon       The id of the icon to display
+ * \param icon       The icon to display
  * \param toggleable Non-zero for toggle buttons that remain in a state after
  *                   being clicked. Zero for normal buttons. The constants
  *                   SGUI_BUTTON_NORMAL and SGUI_BUTTON_TOGGLEABLE can be used
@@ -98,7 +98,7 @@ SGUI_DLL sgui_widget* sgui_icon_button_create( int x, int y,
                                                unsigned int width,
                                                unsigned int height,
                                                sgui_icon_cache* cache,
-                                               unsigned int icon,
+                                               sgui_icon* icon,
                                                int toggleable );
 
 /**
@@ -160,11 +160,11 @@ SGUI_DLL void sgui_button_set_text( sgui_widget* button, const char* text );
  *
  * \param button The button to alter.
  * \param cache  A pointer to the icon cache that holds the icon.
- * \param icon   The id of the icon to display.
+ * \param icon   The icon to display.
  */
 SGUI_DLL void sgui_button_set_icon( sgui_widget* button,
                                     sgui_icon_cache* cache,
-                                    unsigned int icon );
+                                    sgui_icon* icon );
 
 /**
  * \brief Set the state of a checkbox or radio button

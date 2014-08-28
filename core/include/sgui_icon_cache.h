@@ -43,22 +43,33 @@
  *
  * \brief Represents an icon stored inside an sgui_icon_cache
  *
- * This holds the location and size of the icon on the icon pixmap and is
- * stored in a red-black tree, using the specified icon ID as key.
+ * This holds the location and size of an icon on a pixmap and is stored in a
+ * red-black tree. A subclass of sgui_icon_cache adds its own key to a
+ * subclass and implements the comparison method in sgui_icon_cache.
  */
 struct sgui_icon
 {
-    sgui_rect area;     /**< area on pixmap */
-    unsigned int id;    /**< icon id */
-    int red;            /**< non-zero if red, zero if black */
-    sgui_icon* left;    /**< left tree node */
-    sgui_icon* right;   /**< right tree node */
+    sgui_rect area;     /**< \brief area on pixmap */
+    int red;            /**< \brief non-zero if red, zero if black */
+    sgui_icon* left;    /**< \brief pointer to left child node */
+    sgui_icon* right;   /**< \brief pointer to right child node */
 };
 
 /**
  * \struct sgui_icon_cache
  *
- * \brief Maps icon IDs to icon images on a pixmap
+ * \brief Allocates rectangles icons on a pixmap and maps them to keys
+ *
+ * An sgui_icon_cache manages a pixmap and allocates rectangular areas on the
+ * pixmap (the icons, represented by sgui_icon implementations). The icons are
+ * internally stored in a red-black tree to allow for mapping of an arbitrary
+ * key to an icon area in linearithmic time.
+ *
+ * The sgui_font_cache is an implementation of an sgui_icon_cache that uses
+ * a font-codepoint pair as a key.
+ *
+ * The sgui_icon_map is an implementation of an sgui_icon_cache that allows
+ * mapping arbitrary (but unique) integer IDs to icon areas.
  */
 struct sgui_icon_cache
 {
@@ -99,27 +110,35 @@ struct sgui_icon_cache
 
 
 
+/**
+ * \struct sgui_icon_map
+ *
+ * \implements sgui_icon_cache
+ *
+ * \brief An implementation of an sgui_icon_cache that uses integer IDs
+ *
+ * An sgui_icon_map manages a pixmap and allocates rectangular areas on the
+ * pixmap (the icons). The icons have unique integer IDs assigned to them that
+ * can be used to look them up later on.
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * \brief Create an icon cache object
+ * \brief Get the area occupied by an icon on the icon pixmap
  *
- * \memberof sgui_icon_cache
+ * \memberof sgui_icon
  *
- * \param canvas The canvas that is supposed to own the icon pixmap
- * \param width  The width of the icon pixmap
- * \param height The height of the icon pixmap
- * \param alpha  Non-zero if the underlying pixmap should have an alpha
- *               channel, zero for RGB only.
- *
- * \return On success, a pointer to an icon pixmap object, NULL on failure
+ * \param icon A pointer to an icon
+ * \param out  Returns the area of the icon on the pixmap
  */
-SGUI_DLL sgui_icon_cache* sgui_icon_cache_create( sgui_canvas* canvas,
-                                                  unsigned int width,
-                                                  unsigned int height,
-                                                  int alpha );
+SGUI_DLL void sgui_icon_get_area( const sgui_icon* icon, sgui_rect* out );
+
+
 
 /**
  * \brief Destroy an icon cache object
@@ -153,37 +172,20 @@ SGUI_DLL sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* cache,
                                                  sgui_icon* insert );
 
 /**
- * \brief Add an icon to an icon cache
- *
- * \memberof sgui_icon_cache
- *
- * \param cache  A pointer to an icon cache object
- * \param id     A unique id to asociate with the icon
- * \param width  The width of the icon
- * \param height The height of the icon
- *
- * \return Non-zero on success, zero on failure (e.g. out of space on pixmap)
- */
-SGUI_DLL int sgui_icon_cache_add_icon( sgui_icon_cache* cache,
-                                       unsigned int id,
-                                       unsigned int width,
-                                       unsigned int height );
-
-/**
  * \brief Load icon data into an icon cache
  *
  * \memberof sgui_icon_cache
  *
  * \param cache  A pointer to an icon cache object
- * \param id     The unique id of the icon
+ * \param icon   A pointer to an icon object
  * \param data   A pointer to the image data to load
  * \param scan   Number of pixels to skip to get to the first pixel in the
  *               next line of the image.
  * \param format The color format of the image data.
  */
 SGUI_DLL void sgui_icon_cache_load_icon( sgui_icon_cache* cache,
-                                         unsigned int id,
-                                         unsigned char* data,
+                                         sgui_icon* icon,
+                                         const unsigned char* data,
                                          unsigned int scan,
                                          int format );
 
@@ -193,12 +195,13 @@ SGUI_DLL void sgui_icon_cache_load_icon( sgui_icon_cache* cache,
  * \memberof sgui_icon_cache
  *
  * \param cache A pointer to an icon cache object
- * \param id    The unique id of the canvas
+ * \param icon  A pointer to an icon object
  * \param x     Distance of the left of the icon from the left of the canvas
  * \param y     Distance of the top of the icon from the top of the canvas
  */
 SGUI_DLL void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
-                                         unsigned int id, int x, int y );
+                                         const sgui_icon* icon,
+                                         int x, int y );
 
 /**
  * \brief Allocate a rectangular area on the underlying pixmap
@@ -218,21 +221,6 @@ SGUI_DLL int sgui_icon_cache_alloc_area( sgui_icon_cache* cache,
                                          sgui_rect* out );
 
 /**
- * \brief Get the area occupied by an icon on the icon pixmap
- *
- * \memberof sgui_icon_cache
- *
- * \param cache A pointer to the icon cache object
- * \param id    The id of the icon
- * \param out   Returns the area of the icon on the pixmaü
- *
- * \return Non-zero on success, zero on failure (e.g. no icon with that id)
- */
-SGUI_DLL int sgui_icon_cache_get_icon_area( const sgui_icon_cache* cache,
-                                            unsigned int id,
-                                            sgui_rect* out );
-
-/**
  * \brief Get a pointer to the pixmap used by an icon cache object
  *
  * \memberof sgui_icon_cache
@@ -241,7 +229,7 @@ SGUI_DLL int sgui_icon_cache_get_icon_area( const sgui_icon_cache* cache,
  *
  * \return A pointer to a pixmap object on success, NULL otherwise.
  */
-SGUI_DLL sgui_pixmap* sgui_font_cache_get_pixmap( sgui_icon_cache* cache );
+SGUI_DLL sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* cache );
 
 /**
  * \brief Search for an icon in an icon cache
@@ -254,8 +242,61 @@ SGUI_DLL sgui_pixmap* sgui_font_cache_get_pixmap( sgui_icon_cache* cache );
  *
  * \return A pointer to the icon if found, NULL if not
  */
-SGUI_DLL sgui_icon* sgui_icon_find( const sgui_icon_cache* cache,
-                                    const sgui_icon* icon );
+SGUI_DLL sgui_icon* sgui_icon_cache_find( const sgui_icon_cache* cache,
+                                          const sgui_icon* icon );
+
+
+
+
+
+
+/**
+ * \brief Create an icon map object
+ *
+ * \memberof sgui_icon_map
+ *
+ * \param canvas The canvas to create the pixmap from
+ * \param width  The width of the icon pixmap
+ * \param height The height of the icon pixmap
+ * \param alpha  Non-zero if the underlying pixmap should have an alpha
+ *               channel, zero for RGB only.
+ *
+ * \return On success, a pointer to an icon map object, NULL on failure
+ */
+SGUI_DLL sgui_icon_cache* sgui_icon_map_create( sgui_canvas* canvas,
+                                                unsigned int width,
+                                                unsigned int height,
+                                                int alpha );
+
+/**
+ * \brief Add an icon to an icon map object
+ *
+ * \memberof sgui_icon_map
+ *
+ * \param map    A pointer to an icon map object
+ * \param id     A unique id to asociate with the icon
+ * \param width  The width of the icon
+ * \param height The height of the icon
+ *
+ * \return Non-zero on success, zero on failure (e.g. out of space on pixmap)
+ */
+SGUI_DLL int sgui_icon_map_add_icon( sgui_icon_cache* map,
+                                     unsigned int id,
+                                     unsigned int width,
+                                     unsigned int height );
+
+/**
+ * \brief Search for an icon in an icon map
+ *
+ * \memberof sgui_icon_map
+ *
+ * \param map A pointer to an icon map object
+ * \param id  The unique ID of the icon
+ *
+ * \return A pointer to the icon if found, NULL if not
+ */
+SGUI_DLL sgui_icon* sgui_icon_map_find( const sgui_icon_cache* map,
+                                        unsigned int id );
 
 #ifdef __cplusplus
 }

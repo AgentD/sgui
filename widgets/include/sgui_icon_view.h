@@ -106,7 +106,7 @@ SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
  */
 SGUI_DLL void sgui_icon_view_add_icon( sgui_widget* view, int x, int y,
                                        const char* subtext,
-                                       unsigned int id, void* user );
+                                       sgui_icon* icon, void* user );
 
 /**
  * \brief Snap icons in an icon view to a grid

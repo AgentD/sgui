@@ -41,7 +41,7 @@
 /**
  * \struct sgui_font_cache
  *
- * \extends sgui_icon_cache
+ * \implements sgui_icon_cache
  *
  * \brief Caches rasterized glyphs on a pixmap
  */

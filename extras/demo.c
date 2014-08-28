@@ -139,11 +139,11 @@ int main( int argc, char** argv )
     sgui_window_set_size( b, 200, 100 );
 
     /* create icon cache */
-    ic = sgui_icon_cache_create( sgui_window_get_canvas( a ), 32, 32, 0 );
+    ic = sgui_icon_map_create( sgui_window_get_canvas( a ), 32, 32, 0 );
 
-    sgui_icon_cache_add_icon( ic, 0, 16, 16 );
-    sgui_icon_cache_add_icon( ic, 1, 16, 16 );
-    sgui_icon_cache_add_icon( ic, 2, 16, 16 );
+    sgui_icon_map_add_icon( ic, 0, 16, 16 );
+    sgui_icon_map_add_icon( ic, 1, 16, 16 );
+    sgui_icon_map_add_icon( ic, 2, 16, 16 );
 
     /* generte images */
     for( y=0; y<16; ++y )
@@ -154,7 +154,8 @@ int main( int argc, char** argv )
             image[ (y*16 + x)*3 + 2 ] = 0x00;
         }
 
-    sgui_icon_cache_load_icon( ic, 0, image, 16, SGUI_RGB8 );
+    sgui_icon_cache_load_icon( ic, sgui_icon_map_find(ic,0),
+                               image, 16, SGUI_RGB8 );
 
     for( y=0; y<16; ++y )
         for( x=0; x<16; ++x )
@@ -164,7 +165,8 @@ int main( int argc, char** argv )
             image[ (y*16 + x)*3 + 2 ] = y << 4;
         }
 
-    sgui_icon_cache_load_icon( ic, 1, image, 16, SGUI_RGB8 );
+    sgui_icon_cache_load_icon( ic, sgui_icon_map_find(ic,1),
+                               image, 16, SGUI_RGB8 );
 
     for( y=0; y<16; ++y )
         for( x=0; x<16; ++x )
@@ -174,7 +176,8 @@ int main( int argc, char** argv )
             image[ (y*16 + x)*3 + 2 ] = x << 4;
         }
 
-    sgui_icon_cache_load_icon( ic, 2, image, 16, SGUI_RGB8 );
+    sgui_icon_cache_load_icon( ic, sgui_icon_map_find(ic,2),
+                               image, 16, SGUI_RGB8 );
 
     for( y=0; y<128; ++y )
         for( x=0; x<128; ++x )
@@ -194,9 +197,12 @@ int main( int argc, char** argv )
     s4 = sgui_slider_create( 280, 335, 200, 0, 0, 100, 11 );
     butt = sgui_button_create( 10, 275, 80, 30, "Button", 0 );
     tb = sgui_button_create( 95, 275, 80, 30, "Toggle", 1 );
-    t1 = sgui_icon_button_create( 360,  35, 30, 30, ic, 0, 1 );
-    t2 = sgui_icon_button_create( 360,  70, 30, 30, ic, 1, 1 );
-    t3 = sgui_icon_button_create( 360, 105, 30, 30, ic, 2, 1 );
+    t1 = sgui_icon_button_create( 360,  35, 30, 30, ic,
+                                  sgui_icon_map_find(ic,0), 1 );
+    t2 = sgui_icon_button_create( 360,  70, 30, 30, ic,
+                                  sgui_icon_map_find(ic,1), 1 );
+    t3 = sgui_icon_button_create( 360, 105, 30, 30, ic,
+                                  sgui_icon_map_find(ic,2), 1 );
     eb = sgui_edit_box_create( 10, 195, 100, 100, 0 );
     ebn = sgui_edit_box_create( 10, 235, 100, 100, SGUI_EDIT_NUMERIC );
     ebp = sgui_edit_box_create( 120, 195, 100, 100, SGUI_EDIT_PASSWORD );
@@ -290,9 +296,12 @@ int main( int argc, char** argv )
     /* view widgets */
     iv = sgui_icon_view_create( 15, 15, 200, 150, ic, 1 );
 
-    sgui_icon_view_add_icon( iv,  10, 10, "icon", 0, (void*)0x01 );
-    sgui_icon_view_add_icon( iv,  80, 80, "view", 1, (void*)0x02 );
-    sgui_icon_view_add_icon( iv, 150, 20, "test", 2, (void*)0x03 );
+    sgui_icon_view_add_icon( iv,  10, 10, "icon",
+                             sgui_icon_map_find(ic,0), (void*)0x01 );
+    sgui_icon_view_add_icon( iv,  80, 80, "view",
+                             sgui_icon_map_find(ic,1), (void*)0x02 );
+    sgui_icon_view_add_icon( iv, 150, 20, "test",
+                             sgui_icon_map_find(ic,2), (void*)0x03 );
 
     t = sgui_tab_create( tab, "Views" );
     sgui_widget_add_child( tab, t );
