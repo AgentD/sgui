@@ -122,7 +122,9 @@ static void w32_window_set_size( sgui_window* this,
     }
     else if( this->backend == SGUI_DIRECT3D_11 )
     {
+#ifndef SGUI_NO_D3D11
         d3d11_resize( this->ctx.ctx );
+#endif
     }
 
     sgui_internal_unlock_mutex( );
@@ -393,7 +395,9 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         }
         else if( super->backend==SGUI_DIRECT3D_11 )
         {
+#ifndef SGUI_NO_D3D11
             d3d11_resize( super->ctx.ctx );
+#endif
         }
 
         /* fire a resize event */
@@ -560,7 +564,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
     else if( desc->backend==SGUI_DIRECT3D_11 )
     {
-#ifndef SGUI_NO_D3D9
+#ifndef SGUI_NO_D3D11
         super->backend = desc->backend;
         super->ctx.ctx = d3d11_context_create( super, desc );
 
