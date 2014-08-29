@@ -50,14 +50,14 @@
     defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
 
     #define SET_USER_PTR( hwnd, ptr )\
-            SetWindowLongPtr( hwnd, GWLP_USERDATA, (LONG_PTR)ptr )
+            SetWindowLongPtrA( hwnd, GWLP_USERDATA, (LONG_PTR)ptr )
 
-    #define GET_USER_PTR( hwnd ) GetWindowLongPtr( hwnd, GWLP_USERDATA )
+    #define GET_USER_PTR( hwnd ) GetWindowLongPtrA( hwnd, GWLP_USERDATA )
 #else
     #define SET_USER_PTR( hwnd, ptr )\
-            SetWindowLong( hwnd, GWL_USERDATA, (LONG)ptr )
+            SetWindowLongA( hwnd, GWL_USERDATA, (LONG)ptr )
 
-    #define GET_USER_PTR( hwnd ) GetWindowLong( hwnd, GWL_USERDATA )
+    #define GET_USER_PTR( hwnd ) GetWindowLongA( hwnd, GWL_USERDATA )
 #endif
 
 #ifndef MAPVK_VSC_TO_VK_EX
@@ -68,6 +68,12 @@
 
 extern HINSTANCE hInstance;
 extern const char* wndclass;
+
+/* convert an UTF-8 string to UTF-16 */
+WCHAR* utf8_to_utf16( const char* utf8, int rdbytes );
+
+/* convert an UTF-16 string to UTF-8 */
+char* utf16_to_utf8( WCHAR* utf16 );
 
 /* implementation of the clipboard write function */
 void w32_window_write_clipboard( sgui_window* wnd, const char* text,

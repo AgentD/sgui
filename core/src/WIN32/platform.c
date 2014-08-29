@@ -52,7 +52,7 @@ static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
     sgui_internal_unlock_mutex( );
 
     /* return result, call default window proc if result < 0 */
-    return result < 0 ? DefWindowProc( hWnd, msg, wp, lp ) : result;
+    return result < 0 ? DefWindowProcA( hWnd, msg, wp, lp ) : result;
 }
 
 static int is_window_active( void )
@@ -80,99 +80,30 @@ static void update_windows( void )
 
 /****************************************************************************/
 
-static WCHAR* utf8_to_utf16( const char* utf8, unsigned int rdbytes )
+WCHAR* utf8_to_utf16( const char* utf8, int rdbytes )
 {
-    unsigned int slength, length, cp, i;
-    WCHAR* ptr;
+    unsigned int length = MultiByteToWideChar(CP_UTF8,0,utf8,rdbytes,NULL,0);
+    WCHAR* out = malloc( sizeof(WCHAR)*(length+1) );
 
-    /* compute number of WCHAR elements required */
-    for( slength=0, i=0; utf8[i] && i<rdbytes; i+=length )
+    if( out )
     {
-        cp = sgui_utf8_decode( utf8+i, &length );
-        slength += (cp>0x0000FFFF && cp<0x00110000) ? 2 : 1;
+        MultiByteToWideChar( CP_UTF8, 0, utf8, -1, out, length );
+        out[length] = '\0';
     }
-
-    /* allocate destination buffer */
-    ptr = malloc( sizeof(WCHAR)*(slength+1) );
-
-    /* convert */
-    if( ptr )
-    {
-        for( slength=0, i=0; *utf8 && slength<rdbytes; ++i, utf8+=length,
-                                                       slength+=length )
-        {
-            cp = sgui_utf8_decode( utf8, &length );
-
-            if( cp<0x0800 || (cp>0xDFFF && cp<0xF000) )
-            {
-                ptr[i] = cp;
-            }
-            else if( cp>0x0000FFFF && cp<0x00110000 )
-            {
-                ptr[i++] = 0xD800|((((cp>>16)&0x0F)-1)<<6)|((cp>>10)&0x3F);
-                ptr[i] = 0xDC00 | (cp & 0x03FF);
-            }
-            else
-            {
-                ptr[i] = '?';
-            }
-        }
-
-        ptr[i] = 0;
-    }
-
-    return ptr;
+    return out;
 }
 
-static char* utf16_to_utf8( WCHAR* utf16 )
+char* utf16_to_utf8( WCHAR* utf16 )
 {
-    unsigned int i, cp, length;
-    unsigned char* ptr;
-    char temp[ 8 ];
+    unsigned int size = WideCharToMultiByte(CP_UTF8,0,utf16,-1,0,0,0,0);
+    char* out = malloc( size+1 );
 
-    /* compute the number of bytes required */
-    for( length=0, i=0; utf16[i]; ++i )
+    if( out )
     {
-        if( (utf16[i] & 0xFC00) == 0xD800 )
-        {
-            cp  = (((utf16[i] >> 6) & 0x0F) + 1) << 16;
-            cp |= (utf16[i] & 0x003F) << 10;
-            cp |= utf16[++i] & 0x03FF;
-        }
-        else
-        {
-            cp = utf16[i];
-        }
-
-        length += sgui_utf8_encode( cp, temp );
+        WideCharToMultiByte( CP_UTF8, 0, utf16, -1, out, size, NULL, NULL );
+        out[size] = '\0';
     }
-
-    /* allocate the destination buffer */
-    ptr = malloc( length+1 );
-
-    /* convert */
-    if( ptr )
-    {
-        for( i=0; *utf16; ++utf16 )
-        {
-            if( (*utf16 & 0xFC00) == 0xD800 )
-            {
-                cp  = (((*utf16 >> 6) & 0x0F) + 1) << 16;
-                cp |= (*utf16 & 0x003F) << 10;
-                cp |= *(++utf16) & 0x03FF;
-            }
-            else
-            {
-                cp = *utf16;
-            }
-
-            i += sgui_utf8_encode( cp, (char*)(ptr+i) );
-        }
-
-        ptr[i] = 0;
-    }
-
-    return (char*)ptr;
+    return out;
 }
 
 void w32_window_write_clipboard( sgui_window* this, const char* text,
@@ -266,7 +197,7 @@ void sgui_internal_unlock_mutex( void )
 
 int sgui_init( void )
 {
-    WNDCLASSEX wc;
+    WNDCLASSEXA wc;
 
     /* initalize global mutex */
     InitializeCriticalSection( &mutex );
@@ -276,20 +207,20 @@ int sgui_init( void )
         goto failure;
 
     /* get hInstance */
-    if( !(hInstance = GetModuleHandle( NULL )) )
+    if( !(hInstance = GetModuleHandleA( NULL )) )
         goto failure;
 
     /* Register window class */
-    memset( &wc, 0, sizeof(WNDCLASSEX) );
+    memset( &wc, 0, sizeof(WNDCLASSEXA) );
 
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc   = WindowProcFun;
     wc.hInstance     = hInstance;
     wc.lpszClassName = wndclass;
-    wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
+    wc.hCursor       = LoadCursorA( NULL, IDC_ARROW );
 
-    if( RegisterClassEx( &wc ) == 0 )
+    if( RegisterClassExA( &wc ) == 0 )
         goto failure;
 
     /* initialise default GUI skin */
@@ -309,7 +240,7 @@ void sgui_deinit( void )
     sgui_interal_skin_deinit_default( );
 
     /* unregister window class */
-    UnregisterClass( wndclass, hInstance );
+    UnregisterClassA( wndclass, hInstance );
 
     font_deinit( );
 
@@ -331,10 +262,10 @@ int sgui_main_loop_step( void )
 
     update_windows( );
 
-    if( PeekMessage( &msg, 0, 0, 0, PM_REMOVE ) )
+    if( PeekMessageA( &msg, 0, 0, 0, PM_REMOVE ) )
     {
         TranslateMessage( &msg );
-        DispatchMessage( &msg );
+        DispatchMessageA( &msg );
     }
 
     sgui_internal_process_events( );
@@ -349,9 +280,9 @@ void sgui_main_loop( void )
     while( is_window_active( ) )
     {
         update_windows( );
-        GetMessage( &msg, 0, 0, 0 );
+        GetMessageA( &msg, 0, 0, 0 );
         TranslateMessage( &msg );
-        DispatchMessage( &msg );
+        DispatchMessageA( &msg );
         sgui_internal_process_events( );
     }
 }

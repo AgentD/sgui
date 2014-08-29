@@ -88,9 +88,41 @@ static void w32_window_set_visible( sgui_window* this, int visible )
 
 static void w32_window_set_title( sgui_window* this, const char* title )
 {
+    WCHAR* utf16 = NULL;
+    int isascii = 1;
+    unsigned int i;
+
+    /* check if the title contains non-ascii characters */
+    for( i=0; isascii && title[i]; ++i )
+    {
+        if( title[i] & 0x80 )
+            isascii = 0;
+    }
+
+    /* if so, try to convert to utf16 */
+    if( !isascii )
+    {
+        utf16 = utf8_to_utf16( title, -1 );
+
+        if( !utf16 )
+            return;
+    }
+
+    /* change title */
     sgui_internal_lock_mutex( );
-    SetWindowTextA( TO_W32(this)->hWnd, title );
+
+    if( isascii )
+    {
+        SetWindowTextA( TO_W32(this)->hWnd, title );
+    }
+    else
+    {
+        SetWindowTextW( TO_W32(this)->hWnd, utf16 );
+    }
+
     sgui_internal_unlock_mutex( );
+
+    free( utf16 );
 }
 
 static void w32_window_set_size( sgui_window* this,
@@ -214,7 +246,7 @@ static void w32_window_destroy( sgui_window* this )
         this->ctx.ctx    = NULL;
 
         DestroyWindow( TO_W32(this)->hWnd );
-        PeekMessage( &msg, TO_W32(this)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
+        PeekMessageA( &msg, TO_W32(this)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
     }
 
     DeleteObject( TO_W32(this)->bgbrush );
@@ -341,8 +373,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         c[0] = (WCHAR)wp;
         c[1] = '\0';
 
-        WideCharToMultiByte( CP_UTF8, 0, c, 2, (LPSTR)e.arg.utf8, 8,
-                             NULL, NULL );
+        WideCharToMultiByte( CP_UTF8, 0, c, 2, e.arg.utf8, 8, NULL, NULL );
 
         if( (e.arg.utf8[0] & 0x80) || !iscntrl( e.arg.utf8[0] ) )
         {
@@ -503,7 +534,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
     style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-    this->hWnd = CreateWindowEx( 0, wndclass, "", style, 0, 0, r.right-r.left,
+    this->hWnd = CreateWindowExA(0, wndclass, "", style, 0, 0, r.right-r.left,
                                  r.bottom-r.top, parent_hnd, 0, hInstance, 0);
 
     if( !this->hWnd )
