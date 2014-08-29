@@ -1,6 +1,10 @@
 #include "sgui.h"
 
 #include <stdio.h>
+
+#ifdef SGUI_WINDOWS
+    #include <windows.h>
+#endif
 #include <GL/gl.h>
 
 #ifdef SGUI_UNIX

@@ -116,7 +116,11 @@ if( MINGW )
   add_definitions( -D_WIN32_WINNT=0x0400 )
   add_definitions( -DWINVER=0x0410 )
 
-  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mwindows" )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mwindows -static-libgcc" )
+
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc")
+  set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -static-libgcc")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libgcc")
 endif( )
 
 if( MSVC )
@@ -176,7 +180,12 @@ if( WIN32 )
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin )
 
   set( SGUI_DEP ${SGUI_DEP} msimg32 )
-  set( SGUI_DEP ${SGUI_DEP} freetype )
+
+  if( MSVC )
+    set( SGUI_DEP ${SGUI_DEP} libfreetype.dll.lib )
+  else( )
+    set( SGUI_DEP ${SGUI_DEP} freetype )
+  endif( )
 
   if( DIRECT3D11 )
     set( SGUI_DEP ${SGUI_DEP} dxguid )
@@ -216,4 +225,9 @@ target_link_libraries( sgui ${SGUI_DEP} )
 target_link_libraries( sgui_static ${SGUI_DEP} )
 
 add_subdirectory( extras )
+
+if( WIN32 )
+  set_target_properties(sgui PROPERTIES PREFIX "")
+  set_target_properties(sgui_static PROPERTIES PREFIX "")
+endif( )
 

@@ -1,5 +1,9 @@
 #include "sgui.h"
 
+#ifdef SGUI_WINDOWS
+    #include <windows.h>
+#endif
+
 #ifndef SGUI_NO_OPENGL
     #include <GL/gl.h>
 #endif
@@ -17,8 +21,6 @@
     #define WAIT_THREAD( t ) pthread_join( (t), NULL )
     #define SLEEP_MS( ms ) usleep( (ms)*1000 )
 #else
-    #include <windows.h>
-
     typedef HANDLE thread_type;
 
     #define CREATE_THREAD( t, fun ) (t) = CreateThread( 0, 0, fun, 0, 0, 0 )

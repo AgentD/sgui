@@ -1,5 +1,8 @@
 #include "sgui.h"
 
+#ifdef SGUI_WINDOWS
+    #include <windows.h>
+#endif
 #include <GL/gl.h>
 #include <stdio.h>
 
