@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+#ifndef SGUI_NO_ICON_CACHE
 typedef struct
 {
     sgui_icon super;
@@ -156,4 +156,26 @@ void sgui_font_cache_load_glyph( sgui_icon_cache* this, sgui_font* font,
 {
     fetch_glyph( this, font, codepoint );
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_icon_cache* sgui_font_cache_create( sgui_pixmap* map )
+{
+    (void)map;
+    return NULL;
+}
+
+int sgui_font_cache_draw_glyph( sgui_icon_cache* this, sgui_font* font,
+                                unsigned int codepoint, int x, int y,
+                                sgui_canvas* cv, const unsigned char* color )
+{
+    (void)this; (void)font; (void)codepoint; (void)x; (void)y; (void)cv;
+    (void)color;
+    return 0;
+}
+
+void sgui_font_cache_load_glyph( sgui_icon_cache* this, sgui_font* font,
+                                 unsigned int codepoint )
+{
+    (void)this; (void)font; (void)codepoint;
+}
+#endif /* !SGUI_NO_ICON_CACHE */
 

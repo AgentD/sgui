@@ -320,5 +320,65 @@ sgui_icon* sgui_icon_map_find( const sgui_icon_cache* this, unsigned int id )
     return sgui_icon_cache_find( this, (sgui_icon*)&cmp );
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
+void sgui_icon_get_area( const sgui_icon* icon, sgui_rect* out )
+{
+    (void)icon; (void)out;
+}
+void sgui_icon_cache_destroy( sgui_icon_cache* cache )
+{
+    (void)cache;
+}
+sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* cache,
+                                        sgui_icon* root, sgui_icon* insert )
+{
+    (void)cache; (void)root;
+    return insert;
+}
+void sgui_icon_cache_load_icon( sgui_icon_cache* cache, sgui_icon* icon,
+                                const unsigned char* data, unsigned int scan,
+                                int format )
+{
+    (void)cache; (void)icon; (void)data; (void)scan; (void)format;
+}
+void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
+                                const sgui_icon* icon, int x, int y )
+{
+    (void)cache; (void)icon; (void)x; (void)y;
+}
+int sgui_icon_cache_alloc_area( sgui_icon_cache* cache, unsigned int width,
+                                unsigned int height, sgui_rect* out )
+{
+    (void)cache; (void)width; (void)height; (void)out;
+    return 0;
+}
+sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* cache )
+{
+    (void)cache;
+    return NULL;
+}
+sgui_icon* sgui_icon_cache_find( const sgui_icon_cache* cache,
+                                 const sgui_icon* icon )
+{
+    (void)cache; (void)icon;
+    return NULL;
+}
+sgui_icon_cache* sgui_icon_map_create( sgui_canvas* canvas,
+                                       unsigned int width,
+                                       unsigned int height, int alpha )
+{
+    (void)canvas; (void)width; (void)height; (void)alpha;
+    return NULL;
+}
+int sgui_icon_map_add_icon( sgui_icon_cache* map, unsigned int id,
+                            unsigned int width, unsigned int height )
+{
+    (void)map; (void)id; (void)width; (void)height;
+    return 0;
+}
+sgui_icon* sgui_icon_map_find( const sgui_icon_cache* map, unsigned int id )
+{
+    (void)map; (void)id;
+    return NULL;
+}
 #endif /* !SGUI_NO_ICON_CACHE */
 

@@ -790,10 +790,10 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
 }
 
 void sgui_icon_view_add_icon( sgui_widget* super, int x, int y,
-                              const char* subtext, unsigned int id,
+                              const char* subtext, sgui_icon* icon,
                               void* user )
 {
-    (void)super; (void)x; (void)y; (void)subtext; (void)id; (void)user;
+    (void)super; (void)x; (void)y; (void)subtext; (void)icon; (void)user;
 }
 
 void sgui_icon_view_sort( sgui_widget* super, sgui_icon_compare_fun fun )
