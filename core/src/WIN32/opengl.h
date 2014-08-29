@@ -34,10 +34,12 @@
 
 
 
-typedef HGLRC (* WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC, const int* );
-typedef int   (* WGLCHOOSEPIXELFORMATARBPROC )( HDC, const int*, const FLOAT*,
-                                                UINT, int*, UINT* );
-typedef BOOL  (* WGLSWAPINTERVALEXT )( int );
+typedef HGLRC (__stdcall * WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC,
+                                                             const int* );
+typedef int   (__stdcall * WGLCHOOSEPIXELFORMATARBPROC )( HDC, const int*,
+                                                          const FLOAT*, UINT,
+                                                          int*, UINT* );
+typedef BOOL  (__stdcall * WGLSWAPINTERVALEXT )( int );
 
 
 
