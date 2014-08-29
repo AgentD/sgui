@@ -94,7 +94,7 @@ static void mem_pixmap_load_rgb8( sgui_pixmap* super, int dstx, int dsty,
 
         for( j=0; j<height; ++j, dst+=super->width*3 )
         {
-            for( dstrow=dst, i=0; i<width; ++i, ++row, dstrow+=3 )
+            for( dstrow=dst, i=0; i<width; ++i, dstrow+=3 )
             {
                 temp = dstrow[0];
                 dstrow[0] = dstrow[2];
