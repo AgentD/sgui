@@ -168,7 +168,7 @@ sgui_widget* sgui_pass_box_create( int x, int y, unsigned int width,
     memset( this, 0, sizeof(sgui_pass_box) );
 
     /* allocate storage for the text buffer */
-    if( !sgui_edit_box_init( super, x, y, width, max_chars, 0 ) )
+    if( !sgui_edit_box_init( super, x, y, width, max_chars ) )
     {
         free( this );
         return NULL;

@@ -42,9 +42,9 @@
  *
  * \extends sgui_widget
  *
- * \brief An edit box with textual, numeric only and password modes
+ * \brief An edit box with textual, numeric only and password versions
  *
- * \image html edit.png "Edit boxes with different edit modes"
+ * \image html edit.png "Different kinds of edit boxes"
  */
 typedef struct sgui_edit_box
 {
@@ -70,7 +70,6 @@ typedef struct sgui_edit_box
     int selecting;      /* boolean: currently in selection mode? */
     int draw_cursor;    /* boolean: draw the cursor? */
     char* buffer;       /* text buffer */
-    int mode;           /* editing mode */
 
     /**
      * \brief Insert a piece of text at the current cursor position
@@ -119,13 +118,9 @@ extern "C" {
  * \param y         Distance from the top of the window.
  * \param width     The width of the edit box.
  * \param max_chars The maximum number of characters that can be entered.
- * \param mode      The edit box editing mode. 0 or SGUI_EDIT_NORMAL for
- *                  normal editing mode, SGUI_EDIT_NUMERIC for numeric input
- *                  only.
  */
 SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
-                                            unsigned int max_chars,
-                                            int mode );
+                                            unsigned int max_chars );
 
 /**
  * \brief Initialize an edit box
@@ -138,15 +133,11 @@ SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
  * \param y         Distance from the top of the window.
  * \param width     The width of the edit box.
  * \param max_chars The maximum number of characters that can be entered.
- * \param mode      The edit box editing mode. 0 or SGUI_EDIT_NORMAL for
- *                  normal editing mode, SGUI_EDIT_NUMERIC for numeric input
- *                  only.
  *
  * \return Non-zero on success, zero on failure
  */
 SGUI_DLL int sgui_edit_box_init( sgui_edit_box* eb, int x, int y,
-                                 unsigned int width, unsigned int max_chars,
-                                 int mode );
+                                 unsigned int width, unsigned int max_chars );
 
 /**
  * \brief Get a pointer to the text in an edit box

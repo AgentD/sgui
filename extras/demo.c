@@ -205,8 +205,8 @@ int main( int argc, char** argv )
                                   sgui_icon_map_find(ic,1), 1 );
     t3 = sgui_icon_button_create( 360, 105, 30, 30, ic,
                                   sgui_icon_map_find(ic,2), 1 );
-    eb = sgui_edit_box_create( 10, 195, 100, 100, 0 );
-    ebn = sgui_edit_box_create( 10, 235, 100, 100, SGUI_EDIT_NUMERIC );
+    eb = sgui_edit_box_create( 10, 195, 100, 100 );
+    ebn = sgui_numeric_edit_create( 10, 235, 100, 100 );
     ebp = sgui_pass_box_create( 120, 195, 100, 10 );
 
     sgui_button_group_connect( t1, NULL, t2   );

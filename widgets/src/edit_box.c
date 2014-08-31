@@ -177,15 +177,6 @@ static int insert( sgui_edit_box* this, unsigned int len, const char* utf8 )
     if( !len || !ulen )
         return 0;
 
-    if( this->mode == SGUI_EDIT_NUMERIC )
-    {
-        for( i=0; i<len; ++i )
-        {
-            if( !isdigit( utf8[i] ) )
-                return 0;
-        }
-    }
-
     /* copy data */
     this->remove_selection( this );
 
@@ -420,7 +411,7 @@ static void edit_box_destroy( sgui_widget* this )
 /****************************************************************************/
 
 sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
-                                   unsigned int max_chars, int mode )
+                                   unsigned int max_chars )
 {
     sgui_edit_box* this = malloc( sizeof(sgui_edit_box) );
     sgui_widget* super = (sgui_widget*)this;
@@ -430,7 +421,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 
     memset( this, 0, sizeof(sgui_edit_box) );
 
-    if( !sgui_edit_box_init( this, x, y, width, max_chars, mode ) )
+    if( !sgui_edit_box_init( this, x, y, width, max_chars ) )
     {
         free( this );
         return NULL;
@@ -440,7 +431,7 @@ sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
 }
 
 int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
-                        unsigned int max_chars, int mode )
+                        unsigned int max_chars )
 {
     sgui_widget* super = (sgui_widget*)this;
     sgui_skin* skin;
@@ -459,7 +450,6 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
     super->window_event_callback = edit_box_on_event;
     super->destroy               = edit_box_destroy;
     super->draw_callback         = edit_box_draw;
-    this->mode                   = mode;
     this->max_chars              = max_chars;
     this->buffer[0]              = '\0';
     this->insert                 = insert;

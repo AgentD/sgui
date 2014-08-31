@@ -164,6 +164,7 @@
 #include "sgui_icon_view.h"
 #include "sgui_image.h"
 #include "sgui_label.h"
+#include "sgui_numeric_edit.h"
 #include "sgui_pass_box.h"
 #include "sgui_progress_bar.h"
 #include "sgui_scroll_bar.h"
