@@ -16,6 +16,7 @@ set( WIDGETS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/button.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/subview.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/tab.c
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/slider.c
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/pass_box.c
 
      PARENT_SCOPE )
 

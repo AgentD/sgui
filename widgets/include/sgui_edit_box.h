@@ -28,12 +28,12 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_widget.h"
 
 
 
 #define SGUI_EDIT_NORMAL 0
 #define SGUI_EDIT_NUMERIC 1
-#define SGUI_EDIT_PASSWORD 2
 
 
 
@@ -46,6 +46,63 @@
  *
  * \image html edit.png "Edit boxes with different edit modes"
  */
+typedef struct sgui_edit_box
+{
+    sgui_widget super;
+
+    /* maximum number of UTF8 characters the user can enter and
+       the number of UTF8 characters that have already been entered */
+    unsigned int max_chars, num_entered;
+
+    /* BYTE OFFSET of the last character in the text buffer */
+    unsigned int end;
+
+    /* BYTE OFFSET of the character after which to draw the cursor */
+    unsigned int cursor;
+
+    /* BYTE OFFSET of the cursor before selection started */
+    unsigned int selection;
+
+    /* BYTE OFFSET of the first character
+       visible at the left side of the box */
+    unsigned int offset;
+
+    int selecting;      /* boolean: currently in selection mode? */
+    int draw_cursor;    /* boolean: draw the cursor? */
+    char* buffer;       /* text buffer */
+    int mode;           /* editing mode */
+
+    /**
+     * \brief Insert a piece of text at the current cursor position
+     *
+     * \param box  A pointer to an edit box
+     * \param len  The number of bytes to copy from the source string
+     * \param utf8 A pointer to the source string
+     *
+     * \return Non-zero on success, zero on failure (invalid arguments)
+     */
+    int (* insert )( struct sgui_edit_box* box, unsigned int len,
+                     const char* utf8 );
+
+    /**
+     * \brief Remove the currently selected text
+     *
+     * \param box A pointer to an edit box
+     */
+    void (* remove_selection )( struct sgui_edit_box* box );
+
+    /**
+     * \brief Synchronize cursors if the implementation uses a shadow buffer
+     *
+     * Some edit box derivatives (e.g. the sgui_pass_box) use a shadow buffer
+     * containing the actual text and write something different into the
+     * displayed buffer. This function synchronizes the two cursors.
+     *
+     * \param box A pointer to an edit box
+     */
+    void (* sync_cursors )( struct sgui_edit_box* box );
+}
+sgui_edit_box;
 
 
 
@@ -69,6 +126,27 @@ extern "C" {
 SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                             unsigned int max_chars,
                                             int mode );
+
+/**
+ * \brief Initialize an edit box
+ *
+ * \note This function is used when subclassing an editbox to initialize the
+ *       base structure.
+ *
+ * \param eb        A pointer to the edit box base structure
+ * \param x         Distance from the left of the window.
+ * \param y         Distance from the top of the window.
+ * \param width     The width of the edit box.
+ * \param max_chars The maximum number of characters that can be entered.
+ * \param mode      The edit box editing mode. 0 or SGUI_EDIT_NORMAL for
+ *                  normal editing mode, SGUI_EDIT_NUMERIC for numeric input
+ *                  only.
+ *
+ * \return Non-zero on success, zero on failure
+ */
+SGUI_DLL int sgui_edit_box_init( sgui_edit_box* eb, int x, int y,
+                                 unsigned int width, unsigned int max_chars,
+                                 int mode );
 
 /**
  * \brief Get a pointer to the text in an edit box

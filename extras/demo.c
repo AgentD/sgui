@@ -97,7 +97,7 @@ DWORD __stdcall gl_drawing_thread( LPVOID arg )
 
 void print_password( sgui_widget* e )
 {
-    puts( sgui_edit_box_get_text( e ) );
+    puts( sgui_pass_box_get_text( e ) );
 }
 
 void print_slider( const char* name, int value )
@@ -207,7 +207,7 @@ int main( int argc, char** argv )
                                   sgui_icon_map_find(ic,2), 1 );
     eb = sgui_edit_box_create( 10, 195, 100, 100, 0 );
     ebn = sgui_edit_box_create( 10, 235, 100, 100, SGUI_EDIT_NUMERIC );
-    ebp = sgui_edit_box_create( 120, 195, 100, 100, SGUI_EDIT_PASSWORD );
+    ebp = sgui_pass_box_create( 120, 195, 100, 10 );
 
     sgui_button_group_connect( t1, NULL, t2   );
     sgui_button_group_connect( t2, t1,   t3   );
