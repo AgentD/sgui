@@ -51,16 +51,40 @@ extern "C" {
  *
  * \memberof sgui_numeric_edit
  *
- * \param x         The distance from the left of the parent widget
- * \param y         The distance from the top of the parent widget
- * \param width     The width of the box in pixels
- * \param max_chars The maximum number of characters that can be entered
+ * \param x       The distance from the left of the parent widget
+ * \param y       The distance from the top of the parent widget
+ * \param width   The width of the box in pixels
+ * \param min     The minimum value that can be entered
+ * \param max     The maximum value that can be entered
+ * \param current The currently set value
  *
  * \return A pointer to a numeric edit box on success, NULL on failure
  */
 SGUI_DLL sgui_widget* sgui_numeric_edit_create( int x, int y,
                                                 unsigned int width,
-                                                unsigned int max_chars );
+                                                int min, int max,
+                                                int current );
+
+/**
+ * \brief Get the value currently set in a numeric edit box
+ *
+ * \memberof sgui_numeric_edit
+ *
+ * \param eb A pointer to a numeric edit box
+ *
+ * \return The value currently set
+ */
+SGUI_DLL int sgui_numeric_edit_get_value( sgui_widget* eb );
+
+/**
+ * \brief Set the value of a numeric edit box
+ *
+ * \memberof sgui_numeric_edit
+ *
+ * \param eb    A pointer to a numeric edit box
+ * \param value The value to set
+ */
+SGUI_DLL void sgui_numeric_edit_set_value( sgui_widget* eb, int value );
 
 #ifdef __cplusplus
 }

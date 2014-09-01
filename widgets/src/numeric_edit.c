@@ -29,74 +29,149 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 
 
 
-static int insert( sgui_edit_box* this, unsigned int len, const char* utf8 )
+typedef struct
 {
-    unsigned int i, ulen;
+    sgui_edit_box super;
 
-    /* clip length to maximum allowed characters */
-    ulen = sgui_utf8_strlen( utf8 );
+    int min, max, current;   /* minimum, maximum and current values */
+}
+sgui_numeric_edit;
 
-    if( (ulen+this->num_entered) > this->max_chars )
-    {
-        ulen = this->max_chars - this->num_entered;
 
-        for( len=0, i=0; i<ulen && utf8[len]; ++i )
-        {
-            ++len;
-            while( (utf8[ len ] & 0xC0) == 0x80 )
-                ++len;
-        }
-    }
 
-    /* sanity check */
-    if( !len || !ulen )
-        return 0;
+static int charlen( int number )
+{
+    number = number<0 ? -number : number;
+    if( number >= 1000000000 ) return 10;
+    if( number >= 100000000  ) return 9;
+    if( number >= 10000000   ) return 8;
+    if( number >= 1000000    ) return 7;
+    if( number >= 100000     ) return 6;
+    if( number >= 10000      ) return 5;
+    if( number >= 1000       ) return 4;
+    if( number >= 100        ) return 3;
+    if( number >= 10         ) return 2;
+    return 1;
+}
 
-    for( i=0; i<len; ++i )
+static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
+{
+    sgui_numeric_edit* this = (sgui_numeric_edit*)super;
+    char temp[ 128 ];
+    unsigned int i;
+    int val;
+
+    for( i = utf8[0]=='-' ? 1 : 0; i<len; ++i )
     {
         if( !isdigit( utf8[i] ) )
             return 0;
     }
 
-    this->remove_selection( this );
+    /* clip length to maximum allowed characters */
+    if( (len + super->num_entered) > super->max_chars )
+        len = super->max_chars - super->num_entered;
 
-    /* move text block after curser to the right */
-    memmove( this->buffer + this->cursor + len,
-             this->buffer + this->cursor,
-             this->end - this->cursor + 1 );
+    if( !len )
+        return 0;
+
+    /* stitch together */
+    memcpy( temp, super->buffer, super->cursor );
+    memcpy( temp+super->cursor, utf8, len );
+    memcpy( temp+super->cursor+len, super->buffer+super->cursor,
+            super->end - super->cursor );
+
+    /* check */
+    val = strtol( temp, NULL, 10 );
+
+    if( val < this->min || val > this->max )
+        return 0;
 
     /* insert */
-    memcpy( this->buffer + this->cursor, utf8, len );
+    memcpy( super->buffer, temp, super->num_entered+len );
 
-    this->num_entered += ulen;
-    this->end += len;
-    this->cursor += len;
+    this->current = val;
+    super->num_entered += len;
+    super->end += len;
+    super->cursor += len;
     return 1;
 }
 
 /****************************************************************************/
 
 sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
-                                       unsigned int max_chars )
+                                       int min, int max, int current )
 {
-    sgui_edit_box* this = malloc( sizeof(sgui_edit_box) );
+    sgui_numeric_edit* this = malloc( sizeof(sgui_numeric_edit) );
+    sgui_edit_box* super = (sgui_edit_box*)this;
+    unsigned int max_chars, minlen, maxlen;
 
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_edit_box) );
+    memset( this, 0, sizeof(sgui_numeric_edit) );
 
-    if( !sgui_edit_box_init( this, x, y, width, max_chars ) )
+    /* determine maximum number of characters */
+    minlen    = charlen( min );
+    maxlen    = charlen( max );
+    max_chars = MAX(minlen,maxlen);
+
+    if( min<0 || max<0 )
+        ++max_chars;
+
+    current = MAX(current,min);
+    current = MIN(current,max);
+
+    /* init */
+    if( !sgui_edit_box_init( (sgui_edit_box*)this, x, y, width, max_chars ) )
     {
         free( this );
         return NULL;
     }
 
-    this->insert = insert;
+    this->min = min;
+    this->max = max;
+    this->current = current;
+    super->insert = insert;
+
+    sprintf( super->buffer, "%d", current );
+    super->end = super->num_entered = strlen( super->buffer );
+    super->selecting=super->offset=super->selection=super->cursor = 0;
     return (sgui_widget*)this;
+}
+
+int sgui_numeric_edit_get_value( sgui_widget* this )
+{
+    return this ? ((sgui_numeric_edit*)this)->current : 0;
+}
+
+void sgui_numeric_edit_set_value( sgui_widget* box, int value )
+{
+    sgui_numeric_edit* this = (sgui_numeric_edit*)box;
+    sgui_edit_box* super = (sgui_edit_box*)box;
+    sgui_rect r;
+
+    if( this )
+    {
+        value = MAX(this->min, value);
+        value = MIN(this->max, value);
+
+        sprintf( super->buffer, "%d", value );
+
+        super->end = super->num_entered = strlen( super->buffer );
+        super->selecting=super->offset=super->selection=super->cursor = 0;
+
+        super->sync_cursors( super );
+
+        this->current = value;
+
+        /* flag area dirty */
+        sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
+        sgui_canvas_add_dirty_rect( ((sgui_widget*)this)->canvas, &r );
+    }
 }
 

@@ -206,7 +206,7 @@ int main( int argc, char** argv )
     t3 = sgui_icon_button_create( 360, 105, 30, 30, ic,
                                   sgui_icon_map_find(ic,2), 1 );
     eb = sgui_edit_box_create( 10, 195, 100, 100 );
-    ebn = sgui_numeric_edit_create( 10, 235, 100, 100 );
+    ebn = sgui_numeric_edit_create( 10, 235, 100, -2000, 2000, 1337 );
     ebp = sgui_pass_box_create( 120, 195, 100, 10 );
 
     sgui_button_group_connect( t1, NULL, t2   );
@@ -215,7 +215,6 @@ int main( int argc, char** argv )
     sgui_button_set_state( t2, 1 );
 
     sgui_edit_box_set_text(eb,"An edit box test string for an edit box test");
-    sgui_edit_box_set_text( ebn, "1337" );
     sgui_edit_box_set_text( ebp, "secret" );
 
     f = sgui_frame_create( 10, 25, 150, 150 );
