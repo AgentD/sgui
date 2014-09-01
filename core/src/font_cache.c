@@ -79,6 +79,9 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
     g->font = font;
 
     /* copy glyph to pixmap */
+    if( w==1 ) ++w; /* FIXME: ugly hack */
+    if( h==1 ) ++h;
+
     if( src && w && h )
     {
         if( !sgui_icon_cache_alloc_area( this, w, h, &g->super.area ) )
