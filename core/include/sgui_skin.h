@@ -92,7 +92,7 @@ struct sgui_skin
 
     void(* draw_editbox )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                            const char* text, int offset, int cursor,
-                           int selection );
+                           int selection, int numeric );
 
     void(* draw_frame )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r );
 

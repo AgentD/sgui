@@ -213,13 +213,13 @@ static void default_draw_button( sgui_skin* skin, sgui_canvas* canvas,
 
 static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
                                   sgui_rect* r, const char* text, int offset,
-                                  int cursor, int selection )
+                                  int cursor, int selection, int numeric )
 {
     unsigned char cur[4] = { 0x7F, 0x7F, 0x7F, 0xFF };
     unsigned char selcolor[4] = { 0xFF, 0x80, 0x25, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
     sgui_rect r0;
-    int cx;
+    int cx, dx=0;
     (void)this;
 
     sgui_canvas_draw_box( canvas, r, darkoverlay, SGUI_RGBA8 );
@@ -227,6 +227,13 @@ static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
     cursor -= offset;
     selection -= offset;
 
+    if( numeric )
+    {
+        dx = sgui_skin_default_font_extents( text, -1, 0, 0 );
+        dx = w - 2 - dx;
+    }
+
+    /* draw selection */
     if( cursor>=0 && cursor!=selection )
     {
         r0.left = sgui_skin_default_font_extents( text, cursor, 0, 0 );
@@ -243,21 +250,21 @@ static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
             r0.right = cx;
         }
 
-        r0.left += x+2;
-        r0.right += x+2;
+        r0.left += x+2 + dx;
+        r0.right += x+2 + dx;
         r0.top = y+2;
         r0.bottom = y+h-3;
         sgui_canvas_draw_box( canvas, &r0, selcolor, SGUI_RGB8 );
     }
 
     /* draw text */
-    sgui_canvas_draw_text_plain(canvas, x+2, y+4, 0, 0, white, text, -1);
+    sgui_canvas_draw_text_plain(canvas, x+2+dx, y+4, 0, 0, white, text, -1);
 
     /* draw cursor */
     if( cursor>=0 )
     {
         cx = sgui_skin_default_font_extents(text, cursor, 0, 0) + 2;
-        sgui_canvas_draw_line(canvas, x+cx, y+5, h-10, 0, cur, SGUI_RGB8);
+        sgui_canvas_draw_line(canvas, dx+x+cx, y+5, h-10, 0, cur, SGUI_RGB8);
     }
 
     /* draw borders */

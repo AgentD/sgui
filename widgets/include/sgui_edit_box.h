@@ -100,6 +100,14 @@ typedef struct sgui_edit_box
      * \param box A pointer to an edit box
      */
     void (* sync_cursors )( struct sgui_edit_box* box );
+
+    /**
+     * \brief Get a character offset from a position in the edit box
+     *
+     * \param box A pointer to an edit box
+     * \param x   The distance from the left of the edit box
+     */
+    unsigned int (* offset_from_position )(struct sgui_edit_box* box, int x);
 }
 sgui_edit_box;
 

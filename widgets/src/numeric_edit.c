@@ -88,7 +88,7 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
     /* check */
     val = strtol( temp, NULL, 10 );
 
-    if( val < this->min || val > this->max )
+    if( val < this->min || val > this->max || val==this->current )
         return 0;
 
     /* insert */
@@ -99,6 +99,43 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
     super->end += len;
     super->cursor += len;
     return 1;
+}
+
+static unsigned int offset_from_position( sgui_edit_box* this, int x )
+{
+    unsigned int len = 0, cur = this->offset;
+    sgui_skin* skin = sgui_skin_get( );
+
+    x -= skin->get_edit_box_border_width( skin );
+    x -= SGUI_RECT_WIDTH(this->super.area) -
+         sgui_skin_default_font_extents( this->buffer, -1, 0, 0 );
+
+    /* move 'cur' to the right until it the text extents from
+       the beginning to 'cur' catch up with the mouse offset */
+    while( (len < (unsigned int)x) && (cur < this->end) )
+    {
+        ++cur;
+        while( (this->buffer[ cur ] & 0xC0) == 0x80 )
+            ++cur;
+
+        /* get the text extents from the rendering offset to 'cur' */
+        len = sgui_skin_default_font_extents( this->buffer+this->offset,
+                                              cur         -this->offset,
+                                              0, 0 );
+    }
+
+    return cur;
+}
+
+static void numeric_edit_draw( sgui_widget* super )
+{
+    sgui_edit_box* this = (sgui_edit_box*)super;
+    sgui_skin* skin = sgui_skin_get( );
+
+    skin->draw_editbox( skin, super->canvas, &(super->area),
+                              this->buffer, this->offset,
+                              this->draw_cursor ? (int)this->cursor : -1,
+                              this->selection, 1 );
 }
 
 /****************************************************************************/
@@ -137,6 +174,9 @@ sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
     this->max = max;
     this->current = current;
     super->insert = insert;
+    super->offset_from_position = offset_from_position;
+
+    ((sgui_widget*)this)->draw_callback = numeric_edit_draw;
 
     sprintf( super->buffer, "%d", current );
     super->end = super->num_entered = strlen( super->buffer );

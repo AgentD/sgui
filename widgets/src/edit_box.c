@@ -202,7 +202,7 @@ static void edit_box_draw( sgui_widget* super )
     skin->draw_editbox( skin, super->canvas, &(super->area),
                               this->buffer, this->offset,
                               this->draw_cursor ? (int)this->cursor : -1,
-                              this->selection );
+                              this->selection, 0 );
 }
 
 static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
@@ -242,7 +242,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
              this->num_entered )
     {
         this->selecting = 0;
-        this->cursor = cursor_from_mouse( this, e->arg.i3.x );
+        this->cursor = this->offset_from_position( this, e->arg.i3.x );
         this->selection = this->cursor;
         this->sync_cursors( this );
         update = 1;
@@ -455,6 +455,7 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
     this->insert                 = insert;
     this->remove_selection       = remove_selection;
     this->sync_cursors           = sync_cursors;
+    this->offset_from_position   = cursor_from_mouse;
     super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
                                    SGUI_FOCUS_DROP_TAB;
     return 1;
