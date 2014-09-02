@@ -38,7 +38,7 @@ typedef struct
 {
     sgui_edit_box super;
 
-    int min, max, current;   /* minimum, maximum and current values */
+    int min, max;   /* minimum and maximum values */
 }
 sgui_numeric_edit;
 
@@ -62,7 +62,7 @@ static int charlen( int number )
 static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
 {
     sgui_numeric_edit* this = (sgui_numeric_edit*)super;
-    char temp[ 128 ];
+    char temp[ 128 ], *end;
     unsigned int i;
     int val;
 
@@ -80,21 +80,21 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
         return 0;
 
     /* stitch together */
+    memset( temp, 0, sizeof(temp) );
     memcpy( temp, super->buffer, super->cursor );
     memcpy( temp+super->cursor, utf8, len );
     memcpy( temp+super->cursor+len, super->buffer+super->cursor,
             super->end - super->cursor );
 
     /* check */
-    val = strtol( temp, NULL, 10 );
+    val = strtol( temp, &end, 10 );
 
-    if( val < this->min || val > this->max || val==this->current )
+    if( val < this->min || val > this->max || *end )
         return 0;
 
     /* insert */
     memcpy( super->buffer, temp, super->num_entered+len );
 
-    this->current = val;
     super->num_entered += len;
     super->end += len;
     super->cursor += len;
@@ -172,7 +172,6 @@ sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
 
     this->min = min;
     this->max = max;
-    this->current = current;
     super->insert = insert;
     super->offset_from_position = offset_from_position;
 
@@ -186,7 +185,7 @@ sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
 
 int sgui_numeric_edit_get_value( sgui_widget* this )
 {
-    return this ? ((sgui_numeric_edit*)this)->current : 0;
+    return this ? strtol( ((sgui_edit_box*)this)->buffer, NULL, 10 ) : 0;
 }
 
 void sgui_numeric_edit_set_value( sgui_widget* box, int value )
@@ -206,8 +205,6 @@ void sgui_numeric_edit_set_value( sgui_widget* box, int value )
         super->selecting=super->offset=super->selection=super->cursor = 0;
 
         super->sync_cursors( super );
-
-        this->current = value;
 
         /* flag area dirty */
         sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
