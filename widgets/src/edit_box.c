@@ -202,7 +202,7 @@ static void edit_box_draw( sgui_widget* super )
     skin->draw_editbox( skin, super->canvas, &(super->area),
                               this->buffer, this->offset,
                               this->draw_cursor ? (int)this->cursor : -1,
-                              this->selection, 0 );
+                              this->selection, 0, 0 );
 }
 
 static void edit_box_text_changed( sgui_edit_box* this, int type )

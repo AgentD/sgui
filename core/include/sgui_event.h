@@ -144,8 +144,9 @@ struct sgui_event
         struct { int x, y; } i2;
 
         /**
-         * \brief Int vector. Used by SGUI_MOUSE_PRESS_EVENT with z being a
-         *        mouse button identifyer.
+         * \brief Int vector. Used by SGUI_MOUSE_PRESS_EVENT and
+         *        SGUI_MOUSE_RELEASE_EVENT with z being a mouse button
+         *        identifyer.
          */
         struct { int x, y, z; } i3;
 

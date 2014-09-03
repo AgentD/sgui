@@ -51,6 +51,7 @@ static const unsigned char black[4]       = { 0x00, 0x00, 0x00, 0xFF };
 static const unsigned char white[4]       = { 0xFF, 0xFF, 0xFF, 0xFF };
 static const unsigned char windowcolor[4] = { 0x64, 0x64, 0x64, 0xFF };
 static const unsigned char darkoverlay[4] = { 0x00, 0x00, 0x00, 0x80 };
+static const unsigned char whiteoverlay[4]= { 0xFF, 0xFF, 0xFF, 0xC0 };
 static const unsigned char focusbox[4]    = { 0xFF, 0x80, 0x25, 0xFF };
 static const unsigned char fontcolor[4]   = { 0xFF, 0xFF, 0xFF, 0xFF };
 static const unsigned char yellow[4]      = { 0xFF, 0xFF, 0x00, 0xFF };
@@ -117,6 +118,14 @@ static void default_get_slider_extents( sgui_skin* this, sgui_rect* r,
 {
     (void)this;
     sgui_rect_set_size( r, 0, 0, vertical ? 20 : 10, vertical ? 10 : 20 );
+}
+
+static void default_get_spin_buttons( sgui_skin* this, sgui_rect* up,
+                                      sgui_rect* down )
+{
+    (void)this;
+    sgui_rect_set_size( up,   5,  5, 15, 10 );
+    sgui_rect_set_size( down, 5, 15, 15, 10 );
 }
 
 static void default_draw_checkbox( sgui_skin* this, sgui_canvas* canvas,
@@ -213,13 +222,14 @@ static void default_draw_button( sgui_skin* skin, sgui_canvas* canvas,
 
 static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
                                   sgui_rect* r, const char* text, int offset,
-                                  int cursor, int selection, int numeric )
+                                  int cursor, int selection, int numeric,
+                                  int spinbuttons )
 {
     unsigned char cur[4] = { 0x7F, 0x7F, 0x7F, 0xFF };
     unsigned char selcolor[4] = { 0xFF, 0x80, 0x25, 0xFF };
     int x=r->left, y=r->top, w=SGUI_RECT_WIDTH_V(r), h=SGUI_RECT_HEIGHT_V(r);
+    int cx, i, dx=0;
     sgui_rect r0;
-    int cx, dx=0;
     (void)this;
 
     sgui_canvas_draw_box( canvas, r, darkoverlay, SGUI_RGBA8 );
@@ -272,6 +282,22 @@ static void default_draw_editbox( sgui_skin* this, sgui_canvas* canvas,
     sgui_canvas_draw_line( canvas, x,     y,     h, 0, black, SGUI_RGB8 );
     sgui_canvas_draw_line( canvas, x,     y+h-1, w, 1, white, SGUI_RGB8 );
     sgui_canvas_draw_line( canvas, x+w-1, y,     h, 0, white, SGUI_RGB8 );
+
+    /* spin box buttons */
+    if( spinbuttons )
+    {
+        for( i=0; i<4; ++i )
+        {
+            sgui_canvas_draw_line( canvas, x+5+7-i, y+5+2+i,
+                                   i*2+1, 1, whiteoverlay, SGUI_RGBA8 );
+        }
+
+        for( i=0; i<4; ++i )
+        {
+            sgui_canvas_draw_line( canvas, x+5+7-i, y+15+6-i,
+                                   i*2+1, 1, whiteoverlay, SGUI_RGBA8 );
+        }
+    }
 }
 
 static void default_draw_frame( sgui_skin* this, sgui_canvas* canvas,
@@ -645,6 +671,7 @@ void sgui_interal_skin_init_default( void )
     sgui_default_skin.draw_focus_box = default_draw_focus_box;
     sgui_default_skin.draw_slider = default_draw_slider;
     sgui_default_skin.get_slider_extents = default_get_slider_extents;
+    sgui_default_skin.get_spin_buttons = default_get_spin_buttons;
     sgui_default_skin.get_edit_box_border_width =
     default_get_edit_box_border_width;
     sgui_default_skin.get_scroll_bar_button_extents =

@@ -43,6 +43,17 @@ typedef struct
 }
 sgui_numeric_edit;
 
+typedef struct
+{
+    sgui_numeric_edit super;
+
+    sgui_rect up, down; /* up and down buttons */
+    int step;           /* step size */
+
+    void (* on_event )( sgui_widget* widget, const sgui_event* event );
+}
+sgui_spin_box;
+
 
 
 static int charlen( int number )
@@ -148,27 +159,80 @@ static void numeric_edit_draw( sgui_widget* super )
     skin->draw_editbox( skin, super->canvas, &(super->area),
                               this->buffer, this->offset,
                               this->draw_cursor ? (int)this->cursor : -1,
-                              this->selection, 1 );
+                              this->selection, 1, 0 );
 }
 
-/****************************************************************************/
-
-sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
-                                       int min, int max, int current )
+static void spin_box_draw( sgui_widget* super )
 {
-    sgui_numeric_edit* this = malloc( sizeof(sgui_numeric_edit) );
+    sgui_edit_box* this = (sgui_edit_box*)super;
+    sgui_skin* skin = sgui_skin_get( );
+
+    skin->draw_editbox( skin, super->canvas, &(super->area),
+                              this->buffer, this->offset,
+                              this->draw_cursor ? (int)this->cursor : -1,
+                              this->selection, 1, 1 );
+}
+
+static void spin_box_on_event( sgui_widget* super, const sgui_event* event )
+{
+    sgui_spin_box* this = (sgui_spin_box*)super;
+    int value;
+
+    switch( event->type )
+    {
+    case SGUI_MOUSE_MOVE_EVENT:
+        if( sgui_rect_is_point_inside( &this->up, event->arg.i2.x,
+                                                  event->arg.i2.y ) )
+            return;
+        if( sgui_rect_is_point_inside( &this->down, event->arg.i2.x,
+                                                    event->arg.i2.y ) )
+            return;
+        break;
+    case SGUI_MOUSE_PRESS_EVENT:
+        if( sgui_rect_is_point_inside( &this->up, event->arg.i3.x,
+                                                  event->arg.i3.y ) )
+            return;
+        if( sgui_rect_is_point_inside( &this->down, event->arg.i3.x,
+                                                    event->arg.i3.y ) )
+            return;
+        break;
+    case SGUI_MOUSE_RELEASE_EVENT:
+        if( sgui_rect_is_point_inside( &this->up, event->arg.i3.x,
+                                                  event->arg.i3.y ) )
+        {
+            value = sgui_numeric_edit_get_value( super );
+            sgui_numeric_edit_set_value( super, value + this->step );
+            numeric_edit_text_changed( (sgui_edit_box*)this, 0 );
+            return;
+        }
+        if( sgui_rect_is_point_inside( &this->down, event->arg.i3.x,
+                                                    event->arg.i3.y ) )
+        {
+            value = sgui_numeric_edit_get_value( super );
+            sgui_numeric_edit_set_value( super, value - this->step );
+            numeric_edit_text_changed( (sgui_edit_box*)this, 0 );
+            return;
+        }
+        break;
+    case SGUI_MOUSE_WHEEL_EVENT:
+        value = sgui_numeric_edit_get_value( super );
+        value = event->arg.i>0 ? (value + this->step) : (value - this->step);
+        sgui_numeric_edit_set_value( super, value );
+        numeric_edit_text_changed( (sgui_edit_box*)this, 0 );
+        return;
+    }
+
+    if( this->on_event )
+        this->on_event( super, event );
+}
+
+static int numeric_edit_init( sgui_numeric_edit* this,
+                              int x, int y, unsigned int width,
+                              int min, int max, int current )
+{
+    unsigned int minlen = charlen( min ), maxlen = charlen( max );
+    unsigned int max_chars = MAX(minlen,maxlen);
     sgui_edit_box* super = (sgui_edit_box*)this;
-    unsigned int max_chars, minlen, maxlen;
-
-    if( !this )
-        return NULL;
-
-    memset( this, 0, sizeof(sgui_numeric_edit) );
-
-    /* determine maximum number of characters */
-    minlen    = charlen( min );
-    maxlen    = charlen( max );
-    max_chars = MAX(minlen,maxlen);
 
     if( min<0 || max<0 )
         ++max_chars;
@@ -176,12 +240,8 @@ sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
     current = MAX(current,min);
     current = MIN(current,max);
 
-    /* init */
     if( !sgui_edit_box_init( (sgui_edit_box*)this, x, y, width, max_chars ) )
-    {
-        free( this );
-        return NULL;
-    }
+        return 0;
 
     this->min = min;
     this->max = max;
@@ -194,6 +254,58 @@ sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
     sprintf( super->buffer, "%d", current );
     super->end = super->num_entered = strlen( super->buffer );
     super->selecting=super->offset=super->selection=super->cursor = 0;
+    return 1;
+}
+
+/****************************************************************************/
+
+sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
+                                       int min, int max, int current )
+{
+    sgui_numeric_edit* this = malloc( sizeof(sgui_numeric_edit) );
+
+    if( this )
+    {
+        memset( this, 0, sizeof(sgui_numeric_edit) );
+
+        if( !numeric_edit_init( this, x, y, width, min, max, current ) )
+        {
+            free( this );
+            return NULL;
+        }
+    }
+    return (sgui_widget*)this;
+}
+
+sgui_widget* sgui_spin_box_create( int x, int y, unsigned int width,
+                                   int min, int max, int current,
+                                   unsigned int stepsize, int editable )
+{
+    sgui_spin_box* this = malloc( sizeof(sgui_spin_box) );
+    sgui_numeric_edit* super = (sgui_numeric_edit*)this;
+    sgui_skin* skin;
+
+    if( this )
+    {
+        memset( this, 0, sizeof(sgui_spin_box) );
+
+        if( !numeric_edit_init( super, x, y, width, min, max, current ) )
+        {
+            free( this );
+            return NULL;
+        }
+
+        ((sgui_widget*)this)->draw_callback = spin_box_draw;
+
+        skin = sgui_skin_get( );
+        skin->get_spin_buttons( skin, &this->up, &this->down );
+        this->step     = stepsize>0 ? stepsize : 1;
+
+        if( editable )
+            this->on_event = ((sgui_widget*)this)->window_event_callback;
+
+        ((sgui_widget*)this)->window_event_callback = spin_box_on_event;
+    }
     return (sgui_widget*)this;
 }
 

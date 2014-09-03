@@ -78,6 +78,9 @@ struct sgui_skin
     void(* get_slider_extents )( sgui_skin* skin, sgui_rect* r,
                                  int vertical );
 
+    void(* get_spin_buttons )( sgui_skin* skin, sgui_rect* up,
+                               sgui_rect* down );
+
     void(* draw_focus_box )( sgui_skin* skin, sgui_canvas* canvas,
                              sgui_rect* r );
 
@@ -92,7 +95,7 @@ struct sgui_skin
 
     void(* draw_editbox )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                            const char* text, int offset, int cursor,
-                           int selection, int numeric );
+                           int selection, int numeric, int spinbuttons );
 
     void(* draw_frame )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r );
 

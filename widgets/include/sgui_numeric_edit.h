@@ -40,6 +40,14 @@
  * \brief An edit box for numeric values
  */
 
+/**
+ * \struct sgui_spin_box
+ *
+ * \extends sgui_numeric_edit
+ *
+ * \brief A numeric edit box with spin box buttons
+ */
+
 
 
 #ifdef __cplusplus
@@ -64,6 +72,27 @@ SGUI_DLL sgui_widget* sgui_numeric_edit_create( int x, int y,
                                                 unsigned int width,
                                                 int min, int max,
                                                 int current );
+
+/**
+ * \brief Create a spin box widget
+ *
+ * \memberof sgui_spin_box
+ *
+ * \param x        The distance from the left of the parent widget
+ * \param y        The distance from the top of the parent widget
+ * \param width    The width of the box in pixels
+ * \param min      The minimum value that can be entered
+ * \param max      The maximum value that can be entered
+ * \param current  The currently set value
+ * \param stepsize The value to add/subtract when the spin buttons are used
+ * \param editable Non-zero if the number should be editable, zero if not
+ *
+ * \return A pointer to a spin box on success, NULL on failure
+ */
+SGUI_DLL sgui_widget* sgui_spin_box_create( int x, int y, unsigned int width,
+                                            int min, int max, int current,
+                                            unsigned int stepsize,
+                                            int editable );
 
 /**
  * \brief Get the value currently set in a numeric edit box
