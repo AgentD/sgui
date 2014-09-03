@@ -73,7 +73,40 @@ SGUI_DLL sgui_widget* sgui_color_picker_create( int x, int y );
  * \param hsva   A pointer to a 4 component hsva color vector
  */
 SGUI_DLL void sgui_color_picker_set_hsv( sgui_widget* picker,
+                                         const unsigned char* hsva );
+
+/**
+ * \brief Change the currently selected RGBA color of an sgui_color_picker
+ *
+ * \memberof sgui_color_picker
+ *
+ * \param picker A pointer to an sgui_color_picker
+ * \param rgba   A pointer to a 4 component rgba color vector
+ */
+SGUI_DLL void sgui_color_picker_set_rgb( sgui_widget* picker,
+                                         const unsigned char* rgba );
+
+/**
+ * \brief Get the currently selected HSVA color of an sgui_color_picker
+ *
+ * \memberof sgui_color_picker
+ *
+ * \param picker A pointer to an sgui_color_picker
+ * \param hsva   A pointer to a 4 component hsva color vector
+ */
+SGUI_DLL void sgui_color_picker_get_hsv( const sgui_widget* picker,
                                          unsigned char* hsva );
+
+/**
+ * \brief Get the currently selected RGBA color of an sgui_color_picker
+ *
+ * \memberof sgui_color_picker
+ *
+ * \param picker A pointer to an sgui_color_picker
+ * \param rgba   A pointer to a 4 component rgba color vector
+ */
+SGUI_DLL void sgui_color_picker_get_rgb( const sgui_widget* picker,
+                                         unsigned char* rgba );
 
 #ifdef __cplusplus
 }

@@ -228,6 +228,7 @@ static void color_picker_destroy( sgui_widget* super )
     sgui_color_picker* this = (sgui_color_picker*)super;
 
     free( this->vbardata );
+    free( this->abardata );
     free( this->hsdata );
     sgui_pixmap_destroy( this->hs );
     sgui_pixmap_destroy( this->vbar );
@@ -434,7 +435,8 @@ sgui_widget* sgui_color_picker_create( int x, int y )
     super->state_change_callback = color_picker_on_state_change;
     super->destroy               = color_picker_destroy;
     super->window_event_callback = color_picker_on_event;
-    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC;
+    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                   SGUI_FOCUS_DROP_TAB;
     return super;
 fail:
     free( this->vbardata );
@@ -444,7 +446,7 @@ fail:
 }
 
 void sgui_color_picker_set_hsv( sgui_widget* super,
-                                unsigned char* hsva )
+                                const unsigned char* hsva )
 {
     sgui_color_picker* this = (sgui_color_picker*)super;
     unsigned char oldhsva[4];
@@ -510,6 +512,55 @@ void sgui_color_picker_set_hsv( sgui_widget* super,
         }
 
         sgui_internal_unlock_mutex( );
+    }
+}
+
+void sgui_color_picker_set_rgb( sgui_widget* super,
+                                const unsigned char* rgba )
+{
+    unsigned char hsva[4], min, max;
+    int h;
+
+    if( !super || !rgba )
+        return;
+
+    min = MIN(MIN(rgba[0],rgba[1]),rgba[2]);
+    max = MAX(MAX(rgba[0],rgba[1]),rgba[2]);
+
+         if( max==min     ) { h = 0;                                     }
+    else if( max==rgba[0] ) { h =      (43*(rgba[1]-rgba[2]))/(max-min); }
+    else if( max==rgba[1] ) { h = 86 + (43*(rgba[2]-rgba[0]))/(max-min); }
+    else if( max==rgba[2] ) { h =172 + (43*(rgba[0]-rgba[1]))/(max-min); }
+
+    hsva[0] = h<0 ? (0xFF + h) : h;
+    hsva[1] = max ? (((max-min) * 0xFF) / max) : 0;
+    hsva[2] = max;
+    hsva[3] = rgba[3];
+
+    sgui_color_picker_set_hsv( super, hsva );
+}
+
+void sgui_color_picker_get_hsv( const sgui_widget* super,
+                                unsigned char* hsva )
+{
+    sgui_color_picker* this = (sgui_color_picker*)super;
+
+    if( this && hsva )
+        memcpy( hsva, this->hsva, 4 );
+}
+
+void sgui_color_picker_get_rgb( const sgui_widget* super,
+                                unsigned char* rgba )
+{
+    sgui_color_picker* this = (sgui_color_picker*)super;
+    unsigned char hsva[4];
+
+    if( this && rgba )
+    {
+        memcpy( hsva, this->hsva, 4 );
+
+        hsv_to_rgb( hsva[0], hsva[1], hsva[2], rgba );
+        rgba[3] = hsva[3];
     }
 }
 
