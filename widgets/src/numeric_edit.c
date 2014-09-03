@@ -84,19 +84,13 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
             return 0;
     }
 
-    /* clip length to maximum allowed characters */
     if( (len + super->num_entered) > super->max_chars )
-        len = super->max_chars - super->num_entered;
-
-    if( !len )
         return 0;
 
     /* stitch together */
-    memset( temp, 0, sizeof(temp) );
     memcpy( temp, super->buffer, super->cursor );
     memcpy( temp+super->cursor, utf8, len );
-    memcpy( temp+super->cursor+len, super->buffer+super->cursor,
-            super->end - super->cursor );
+    strcpy( temp+super->cursor+len, super->buffer+super->cursor );
 
     /* check */
     val = strtol( temp, &end, 10 );
@@ -105,12 +99,35 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
         return 0;
 
     /* insert */
-    memcpy( super->buffer, temp, super->num_entered+len );
+    strcpy( super->buffer, temp );
 
     super->num_entered += len;
     super->end += len;
     super->cursor += len;
     return 1;
+}
+
+static void remove_selection( sgui_edit_box* super )
+{
+    sgui_numeric_edit* this = (sgui_numeric_edit*)super;
+    int start = MIN( super->cursor, super->selection );
+    int end = MAX( super->cursor, super->selection );
+    char temp[ 128 ];
+    int val;
+
+    memcpy( temp, super->buffer, start );
+    strcpy( temp+start, super->buffer+end );
+
+    val = strtol( temp, NULL, 10 );
+
+    if( val >= this->min && val <= this->max )
+    {
+        strcpy( super->buffer, temp );
+
+        super->num_entered -= (end - start);
+        super->end -= (end - start);
+        super->selection = super->cursor = start;
+    }
 }
 
 static void numeric_edit_text_changed( sgui_edit_box* this, int type )
@@ -139,8 +156,6 @@ static unsigned int offset_from_position( sgui_edit_box* this, int x )
     while( (len < (unsigned int)x) && (cur < this->end) )
     {
         ++cur;
-        while( (this->buffer[ cur ] & 0xC0) == 0x80 )
-            ++cur;
 
         /* get the text extents from the rendering offset to 'cur' */
         len = sgui_skin_default_font_extents( this->buffer+this->offset,
@@ -246,6 +261,7 @@ static int numeric_edit_init( sgui_numeric_edit* this,
     this->min = min;
     this->max = max;
     super->insert = insert;
+    super->remove_selection = remove_selection;
     super->text_changed = numeric_edit_text_changed;
     super->offset_from_position = offset_from_position;
 
