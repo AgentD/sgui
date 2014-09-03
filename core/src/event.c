@@ -246,6 +246,7 @@ void sgui_internal_process_events( void )
                 case SGUI_UI2_Y: l->callback(l->receiver,e->arg.ui2.y );break;
                 case SGUI_UTF8:  l->callback(l->receiver,e->arg.utf8  );break;
                 case SGUI_RECT:  l->callback(l->receiver,&e->arg.rect );break;
+                case SGUI_COLOR: l->callback(l->receiver,e->arg.color );break;
                 case SGUI_UI2_XY:
                     l->callback(l->receiver,e->arg.ui2.x,e->arg.ui2.y); break;
                 case SGUI_UI2_YX:

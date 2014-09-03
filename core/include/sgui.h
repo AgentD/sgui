@@ -158,6 +158,7 @@
 
 #include "sgui_widget.h"
 #include "sgui_button.h"
+#include "sgui_color_picker.h"
 #include "sgui_edit_box.h"
 #include "sgui_frame.h"
 #include "sgui_group_box.h"

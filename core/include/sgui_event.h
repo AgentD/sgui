@@ -115,6 +115,13 @@
 /* slider value changed (int argument) */
 #define SGUI_SLIDER_CHANGED_EVENT       0x0060
 
+/************* color picker events *************/
+/* color picker rgba value changed */
+#define SGUI_RGBA_CHANGED_EVENT         0x0070
+
+/* color picker hsva value changed */
+#define SGUI_HSVA_CHANGED_EVENT         0x0071
+
 /************ dialog window events *************/
 #define SGUI_MESSAGE_BOX_BUTTON1_EVENT  0x0100
 #define SGUI_MESSAGE_BOX_BUTTON2_EVENT  0x0101
@@ -172,6 +179,13 @@ struct sgui_event
          * Used by SGUI_EXPOSE_EVENT as expose rectangle
          */
         sgui_rect rect;
+
+        /**
+         * \brief Color value
+         *
+         * Used by SGUI_RGBA_CHANGED_EVENT and SGUI_HSVA_CHANGED_EVENT.
+         */
+        unsigned char color[4];
     }
     arg;
 
@@ -227,6 +241,7 @@ struct sgui_event
 #define SGUI_UI2_YX 0x2B
 #define SGUI_UTF8 0x2C
 #define SGUI_RECT 0x2D
+#define SGUI_COLOR 0x2E
 
 #define SGUI_VOID 0x00
 #define SGUI_CHAR 0x01
