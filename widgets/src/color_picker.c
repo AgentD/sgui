@@ -49,6 +49,11 @@
 #define DISP_GAP 10
 #define DISP_GAP_H 10
 
+#define CHANGED_NONE 0
+#define CHANGED_HS 1
+#define CHANGED_V 2
+#define CHANGED_A 3
+
 
 
 typedef struct
@@ -61,6 +66,7 @@ typedef struct
     sgui_pixmap* vbar;          /* dynamic value slider */
     sgui_pixmap* abar;          /* dynamic alpha slider */
 
+    int last_changed;
     unsigned char hsva[4];      /* currently set color */
 }
 sgui_color_picker;
@@ -236,14 +242,70 @@ static void color_picker_on_event( sgui_widget* super, const sgui_event* e )
     int fire_event = 0;
     sgui_event ev;
 
-    if( e->type!=SGUI_MOUSE_PRESS_EVENT && e->type!=SGUI_MOUSE_RELEASE_EVENT )
+    if( e->type!=SGUI_MOUSE_PRESS_EVENT && e->type!=SGUI_MOUSE_RELEASE_EVENT
+        && e->type!=SGUI_KEY_PRESSED_EVENT )
         return;
 
-    if( e->arg.i3.y>=IMAGE_H )
+    if( (e->type==SGUI_MOUSE_PRESS_EVENT||e->type==SGUI_MOUSE_RELEASE_EVENT)&&
+         e->arg.i3.y>=IMAGE_H )
         return;
 
     sgui_internal_lock_mutex( );
     memcpy( hsva, this->hsva, 4 );
+
+    if( e->type==SGUI_KEY_PRESSED_EVENT )
+    {
+        if( this->last_changed == CHANGED_HS )
+        {
+            if( e->arg.i==SGUI_KC_UP && hsva[1]<0xFF )
+            {
+                ++hsva[1];
+                fire_event = 1;
+            }
+            else if( e->arg.i==SGUI_KC_DOWN && hsva[1]>0 )
+            {
+                --hsva[1];
+                fire_event = 1;
+            }
+            else if( e->arg.i==SGUI_KC_LEFT && hsva[0]>0 )
+            {
+                --hsva[0];
+                fire_event = 1;
+            }
+            else if( e->arg.i==SGUI_KC_RIGHT && hsva[0]<0xFF )
+            {
+                ++hsva[0];
+                fire_event = 1;
+            }
+        }
+        else if( this->last_changed == CHANGED_V )
+        {
+            if( e->arg.i==SGUI_KC_UP && hsva[2]<0xFF )
+            {
+                ++hsva[2];
+                fire_event = 1;
+            }
+            else if( e->arg.i==SGUI_KC_DOWN && hsva[2]>0 )
+            {
+                --hsva[2];
+                fire_event = 1;
+            }
+        }
+        else if( this->last_changed == CHANGED_A )
+        {
+            if( e->arg.i==SGUI_KC_UP && hsva[3]<0xFF )
+            {
+                ++hsva[3];
+                fire_event = 1;
+            }
+            else if( e->arg.i==SGUI_KC_DOWN && hsva[3]>0 )
+            {
+                --hsva[3];
+                fire_event = 1;
+            }
+        }
+        goto done;
+    }
 
     /* hue-saturation selector */
     if( e->arg.i3.x<IMAGE_W )
@@ -266,7 +328,7 @@ static void color_picker_on_event( sgui_widget* super, const sgui_event* e )
         hsva[3] = 0xFF - (e->arg.i3.y * DELTA_A);
         fire_event = 1;
     }
-
+done:
     sgui_color_picker_set_hsv( super, hsva );
 
     if( fire_event )
@@ -372,7 +434,7 @@ sgui_widget* sgui_color_picker_create( int x, int y )
     super->state_change_callback = color_picker_on_state_change;
     super->destroy               = color_picker_destroy;
     super->window_event_callback = color_picker_on_event;
-    super->focus_policy          = 0;
+    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC;
     return super;
 fail:
     free( this->vbardata );
@@ -425,7 +487,14 @@ void sgui_color_picker_set_hsv( sgui_widget* super,
             r.left += IMAGE_W + BAR_W/4;
 
             if( oldhsva[2]==hsva[2] )
+            {
                 r.left += BAR_W + BAR_W/2;
+                this->last_changed = CHANGED_A;
+            }
+            else
+            {
+                this->last_changed = CHANGED_V;
+            }
 
             sgui_canvas_add_dirty_rect( super->canvas, &r );
 
@@ -436,6 +505,7 @@ void sgui_color_picker_set_hsv( sgui_widget* super,
         }
         else
         {
+            this->last_changed = CHANGED_HS;
             sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
 
