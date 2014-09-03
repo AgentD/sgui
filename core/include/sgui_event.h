@@ -85,6 +85,9 @@
 /* text got modified, user pressed enter */
 #define SGUI_EDIT_BOX_TEXT_ENTERED      0x0031
 
+/* sgui_numeric_edit value changed */
+#define SGUI_EDIT_VALUE_CHANGED         0x0032
+
 /***************** tab events ******************/
 /* the parent tab of a widget got deselected */
 #define SGUI_TAB_DESELECTED             0x0040
@@ -151,7 +154,7 @@ struct sgui_event
          *
          * Used by SGUI_MOUSE_WHEEL_EVENT as direction (1=up, -1=donw).
          * Used by SGUI_KEY_PRESSED_EVENT and SGUI_KEY_RELEASED_EVENT as
-         * keycode.
+         * keycode. Used by SGUI_EDIT_VALUE_CHANGED for the new value.
          */
         int i;
 

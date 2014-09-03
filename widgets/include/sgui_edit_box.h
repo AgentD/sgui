@@ -108,6 +108,16 @@ typedef struct sgui_edit_box
      * \param x   The distance from the left of the edit box
      */
     unsigned int (* offset_from_position )(struct sgui_edit_box* box, int x);
+
+    /**
+     * \brief Called by the event processing function when the text changes
+     *
+     * This function is expected to generate an event for the edit box.
+     *
+     * \param box  A pointer to an edit box
+     * \param type The event type suggested by the edit box event callback
+     */
+    void (* text_changed )( struct sgui_edit_box* box, int type );
 }
 sgui_edit_box;
 

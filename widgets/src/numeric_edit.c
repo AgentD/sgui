@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_numeric_edit.h"
 #include "sgui_internal.h"
+#include "sgui_event.h"
 #include "sgui_utf8.h"
 
 #include <stdlib.h>
@@ -101,6 +102,18 @@ static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
     return 1;
 }
 
+static void numeric_edit_text_changed( sgui_edit_box* this, int type )
+{
+    sgui_event se;
+    (void)type;
+
+    se.src.widget = (sgui_widget*)this;
+    se.arg.i = sgui_numeric_edit_get_value( (sgui_widget*)this );
+    se.type = SGUI_EDIT_VALUE_CHANGED;
+
+    sgui_event_post( &se );
+}
+
 static unsigned int offset_from_position( sgui_edit_box* this, int x )
 {
     unsigned int len = 0, cur = this->offset;
@@ -173,6 +186,7 @@ sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
     this->min = min;
     this->max = max;
     super->insert = insert;
+    super->text_changed = numeric_edit_text_changed;
     super->offset_from_position = offset_from_position;
 
     ((sgui_widget*)this)->draw_callback = numeric_edit_draw;

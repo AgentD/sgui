@@ -205,15 +205,21 @@ static void edit_box_draw( sgui_widget* super )
                               this->selection, 0 );
 }
 
+static void edit_box_text_changed( sgui_edit_box* this, int type )
+{
+    sgui_event se;
+
+    se.src.widget = (sgui_widget*)this;
+    se.type = type;
+    sgui_event_post( &se );
+}
+
 static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
 {
     sgui_edit_box* this = (sgui_edit_box*)super;
     const char* ptr;
     int update = 0;
-    sgui_event se;
     sgui_rect r;
-
-    se.src.widget = super;
 
     sgui_internal_lock_mutex( );
 
@@ -232,10 +238,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
         this->draw_cursor = 0;
         update = 1;
         this->sync_cursors( this );
-
-        /* fire a text changed event */
-        se.type = SGUI_EDIT_BOX_TEXT_CHANGED;
-        sgui_event_post( &se );
+        this->text_changed( this, SGUI_EDIT_BOX_TEXT_CHANGED );
     }
     else if( (e->type == SGUI_MOUSE_RELEASE_EVENT) &&
              (e->arg.i3.z == SGUI_MOUSE_BUTTON_LEFT) &&
@@ -376,8 +379,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             }
             break;
         case SGUI_KC_RETURN:
-            se.type = SGUI_EDIT_BOX_TEXT_ENTERED;
-            sgui_event_post( &se );
+            this->text_changed( this, SGUI_EDIT_BOX_TEXT_ENTERED );
             this->selecting = 0;
             this->selection = this->cursor;
             break;
@@ -456,6 +458,7 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
     this->remove_selection       = remove_selection;
     this->sync_cursors           = sync_cursors;
     this->offset_from_position   = cursor_from_mouse;
+    this->text_changed           = edit_box_text_changed;
     super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
                                    SGUI_FOCUS_DROP_TAB;
     return 1;
