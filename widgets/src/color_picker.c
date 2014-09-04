@@ -35,17 +35,17 @@
 
 
 
-#define IMAGE_W 128
-#define IMAGE_H 128
-#define DELTA_H 2
-#define DELTA_S 2
-#define DELTA_V 2
-#define DELTA_A 2
+#define IMAGE_W 256
+#define IMAGE_H 256
+#define DELTA_H 1
+#define DELTA_S 1
+#define DELTA_V 1
+#define DELTA_A 1
 
-#define BAR_W 10
+#define BAR_W 20
 
-#define DISP_W 30
-#define DISP_H 20
+#define DISP_W 50
+#define DISP_H 30
 #define DISP_GAP 10
 #define DISP_GAP_H 10
 
