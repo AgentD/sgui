@@ -123,10 +123,15 @@
 #define SGUI_HSVA_CHANGED_EVENT         0x0071
 
 /************ dialog window events *************/
-#define SGUI_MESSAGE_BOX_BUTTON1_EVENT  0x0100
-#define SGUI_MESSAGE_BOX_BUTTON2_EVENT  0x0101
-#define SGUI_MESSAGE_BOX_BUTTON3_EVENT  0x0102
-#define SGUI_MESSAGE_BOX_CLOSED_EVENT   0x0103
+#define SGUI_DIALOG_REJECTED            0x0100
+
+#define SGUI_MESSAGE_BOX_BUTTON1_EVENT  0x0101
+#define SGUI_MESSAGE_BOX_BUTTON2_EVENT  0x0102
+#define SGUI_MESSAGE_BOX_BUTTON3_EVENT  0x0103
+#define SGUI_MESSAGE_BOX_CLOSED_EVENT   0x0104
+
+#define SGUI_COLOR_SELECTED_RGBA_EVENT  0x0110
+#define SGUI_COLOR_SELECTED_HSVA_EVENT  0x0111
 
 
 
@@ -183,7 +188,8 @@ struct sgui_event
         /**
          * \brief Color value
          *
-         * Used by SGUI_RGBA_CHANGED_EVENT and SGUI_HSVA_CHANGED_EVENT.
+         * Used by SGUI_RGBA_CHANGED_EVENT, SGUI_HSVA_CHANGED_EVENT,
+         * SGUI_COLOR_SELECTED_RGBA_EVENT and SGUI_COLOR_SELECTED_HSVA_EVENT.
          */
         unsigned char color[4];
     }

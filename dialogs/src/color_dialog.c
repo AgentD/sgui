@@ -78,6 +78,34 @@ static void update_rgb_from_spinbox( sgui_color_dialog* this )
     sgui_color_dialog_set_rgba( this, rgba );
 }
 
+static void on_accept( sgui_color_dialog* this )
+{
+    sgui_event ev;
+
+    ev.src.other = this;
+    ev.type = SGUI_COLOR_SELECTED_RGBA_EVENT;
+    sgui_color_picker_get_rgb( this->picker, ev.arg.color );
+    sgui_event_post( &ev );
+
+    ev.src.other = this;
+    ev.type = SGUI_COLOR_SELECTED_HSVA_EVENT;
+    sgui_color_picker_get_hsv( this->picker, ev.arg.color );
+    sgui_event_post( &ev );
+
+    sgui_window_set_visible( this->window, SGUI_INVISIBLE );
+}
+
+static void on_reject( sgui_color_dialog* this )
+{
+    sgui_event ev;
+
+    ev.src.other = this;
+    ev.type = SGUI_DIALOG_REJECTED;
+    sgui_event_post( &ev );
+
+    sgui_window_set_visible( this->window, SGUI_INVISIBLE );
+}
+
 /****************************************************************************/
 
 static int add_spinbox( sgui_widget** box, sgui_widget** label,
@@ -243,9 +271,9 @@ sgui_color_dialog* sgui_color_dialog_create( const char* caption,
     sgui_event_connect( this->spin_b, SGUI_EDIT_VALUE_CHANGED,
                         update_rgb_from_spinbox, this, SGUI_VOID );
     sgui_event_connect( this->button_accept, SGUI_BUTTON_OUT_EVENT,
-                        sgui_window_set_visible, this->window, SGUI_INT, 0 );
+                        on_accept, this, SGUI_VOID );
     sgui_event_connect( this->button_reject, SGUI_BUTTON_OUT_EVENT,
-                        sgui_window_set_visible, this->window, SGUI_INT, 0 );
+                        on_reject, this, SGUI_VOID );
 
     /* init */
     sgui_color_picker_get_hsv( this->picker, color );
@@ -279,12 +307,10 @@ void sgui_color_dialog_destroy( sgui_color_dialog* this )
                               (sgui_function)update_rgb_from_spinbox,this);
         sgui_event_disconnect(this->spin_b, SGUI_EDIT_VALUE_CHANGED,
                               (sgui_function)update_rgb_from_spinbox,this);
-        sgui_event_disconnect(this->button_accept, SGUI_BUTTON_OUT_EVENT,
-                              (sgui_function)sgui_window_set_visible,
-                              this->window );
-        sgui_event_disconnect(this->button_reject, SGUI_BUTTON_OUT_EVENT,
-                              (sgui_function)sgui_window_set_visible,
-                              this->window );
+        sgui_event_disconnect( this->button_accept, SGUI_BUTTON_OUT_EVENT,
+                               (sgui_function)on_accept, this );
+        sgui_event_disconnect( this->button_reject, SGUI_BUTTON_OUT_EVENT,
+                               (sgui_function)on_reject, this );
 
         sgui_window_destroy( this->window );
 
