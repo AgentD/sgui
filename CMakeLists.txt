@@ -42,6 +42,8 @@ option( SUBVIEW "Compile with sub view widget" ON )
 option( TABS "Compile with tab widget" ON )
 option( FRAME "Compile with frame widget" ON )
 option( GROUP "Compile with group box widget" ON )
+option( COLPICKER "Compile with color picker widget" ON )
+option( COLDIALOG "Compile with color selection dialog" ON )
 option( NOPS "Replace disabled features with API compatible NOP functions" ON)
 
 if( NOFLOAT )
@@ -90,6 +92,14 @@ endif( )
 
 if( NOT GROUP )
   add_definitions( -DSGUI_NO_GROUP_BOX )
+endif( )
+
+if( NOT COLPICKER )
+  add_definitions( -DSGUI_NO_COLOR_PICKER )
+endif( )
+
+if( NOT COLDIALOG )
+  add_definitions( -DSGUI_NO_COLOR_DIALOG )
 endif( )
 
 if( NOPS )

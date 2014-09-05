@@ -35,6 +35,7 @@
 
 
 
+#if !defined(SGUI_NO_COLOR_PICKER) || !defined(SGUI_NO_COLOR_DIALOG)
 #define IMAGE_W 256
 #define IMAGE_H 256
 #define DELTA_H 1
@@ -563,4 +564,31 @@ void sgui_color_picker_get_rgb( const sgui_widget* super,
         rgba[3] = hsva[3];
     }
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_widget* sgui_color_picker_create( int x, int y )
+{
+    (void)x; (void)y;
+    return NULL;
+}
+void sgui_color_picker_set_hsv( sgui_widget* super,
+                                const unsigned char* hsva )
+{
+    (void)super; (void)hsva;
+}
+void sgui_color_picker_set_rgb( sgui_widget* super,
+                                const unsigned char* rgba )
+{
+    (void)super; (void)rgba;
+}
+void sgui_color_picker_get_hsv( const sgui_widget* super,
+                                unsigned char* hsva )
+{
+    (void)super; (void)hsva;
+}
+void sgui_color_picker_get_rgb( const sgui_widget* super,
+                                unsigned char* rgba )
+{
+    (void)super; (void)rgba;
+}
+#endif
 

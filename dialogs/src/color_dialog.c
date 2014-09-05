@@ -37,6 +37,7 @@
 
 
 
+#ifndef SGUI_NO_COLOR_DIALOG
 struct sgui_color_dialog
 {
     sgui_window* window;
@@ -386,4 +387,31 @@ void sgui_color_dialog_set_hsva( sgui_color_dialog* this,
     sgui_numeric_edit_set_value( this->spin_g, rgba[1] );
     sgui_numeric_edit_set_value( this->spin_b, rgba[2] );
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+sgui_color_dialog* sgui_color_dialog_create( const char* caption,
+                                             const char* accept,
+                                             const char* reject )
+{
+    (void)caption; (void)accept; (void)reject;
+    return NULL;
+}
+void sgui_color_dialog_destroy( sgui_color_dialog* this )
+{
+    (void)this;
+}
+void sgui_color_dialog_display( sgui_color_dialog* this )
+{
+    (void)this;
+}
+void sgui_color_dialog_set_rgba( sgui_color_dialog* this,
+                                 const unsigned char* rgba )
+{
+    (void)this; (void)rgba;
+}
+void sgui_color_dialog_set_hsva( sgui_color_dialog* this,
+                                 const unsigned char* hsva )
+{
+    (void)this; (void)hsva;
+}
+#endif
 
