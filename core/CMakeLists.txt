@@ -33,6 +33,7 @@ set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/icon_cache.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_pixmap.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/model.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/rect.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/skin.c
