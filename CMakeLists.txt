@@ -252,6 +252,9 @@ target_link_libraries( sgui_static ${SGUI_DEP} )
 
 add_subdirectory( extras )
 
+enable_testing( )
+add_subdirectory( tests )
+
 if( WIN32 )
   set_target_properties(sgui PROPERTIES PREFIX "")
   set_target_properties(sgui_static PROPERTIES PREFIX "")
