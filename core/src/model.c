@@ -52,7 +52,7 @@ const sgui_item* sgui_model_query_items( const sgui_model* this,
                                          unsigned int start,
                                          unsigned int count )
 {
-    if( this && count )
+    if( this )
         return this->query_items( this, parent, start, count );
 
     return NULL;
