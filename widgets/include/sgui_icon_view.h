@@ -34,13 +34,13 @@
 /**
  * \brief A function used to compare the user data pointers of two icons
  *
- * \param a A pointer to the user data of the first icon
- * \param b A pointer to the user data of the second icon
+ * \param a A pointer to the first item
+ * \param b A pointer to the second item
  *
  * \return A value <0 if the first is smaller than the second, >0 if the
  *         second is smaller than the first and =0 if they are equal
  */
-typedef int (* sgui_icon_compare_fun )( void* a, void* b );
+typedef int (* sgui_item_compare_fun )( sgui_item* a, sgui_item* b );
 
 
 
@@ -79,7 +79,7 @@ extern "C" {
  * \param y          The distance of the view area from the top of the canvas
  * \param width      The horizontal length of the icon view area
  * \param height     The vertical length of the icon view area
- * \param cache      An icon cache object holding icons
+ * \param model      An abstract model to represent the data of
  * \param background Non-zero to draw a frame widget style background around
  *                   the icon view area, zero to disable
  *
@@ -87,26 +87,18 @@ extern "C" {
  */
 SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
                                              unsigned int height,
-                                             sgui_icon_cache* cache,
+                                             sgui_model* model,
                                              int background );
 
 /**
- * \brief Add an icon to an icon view widget
+ * \brief Reload the items of a model into an icon view
  *
  * \memberof sgui_icon_view
  *
- * \param view    A pointer to an icon view widget
- * \param x       The distance from the left of the view area to the icon
- * \param y       The distance from the top of the view area to the icon
- * \param subtext If not NULL, a text to drawn under the icon
- * \param id      The id of icon used by the icon cache object
- * \param user    A user data pointer to asociated with the icon. When an icon
- *                gets clicked, this pointer is given as event source.
- *                (SGUI_ICON_SELECTED event)
+ * \param view A pointer to an icon view widget
+ * \param root The model item to load the children from
  */
-SGUI_DLL void sgui_icon_view_add_icon( sgui_widget* view, int x, int y,
-                                       const char* subtext,
-                                       sgui_icon* icon, void* user );
+SGUI_DLL void sgui_icon_view_populate( sgui_widget* view, sgui_item* root );
 
 /**
  * \brief Snap icons in an icon view to a grid
@@ -129,7 +121,7 @@ SGUI_DLL void sgui_icon_view_snap_to_grid( sgui_widget* view );
  * \param fun  A pointer to a comparison function
  */
 SGUI_DLL void sgui_icon_view_sort( sgui_widget* view,
-                                   sgui_icon_compare_fun fun );
+                                   sgui_item_compare_fun fun );
 
 #ifdef __cplusplus
 }

@@ -36,7 +36,9 @@ sgui_widget *p0, *p1, *p2, *p3, *tex, *butt, *tb, *c0, *c1, *c2, *i0, *i1;
 sgui_widget *r0, *r1, *r2, *eb, *ebn, *ebp, *f, *gb, *ra, *rb, *rc, *tab;
 sgui_widget *gl_view, *gl_view2, *gl_sub0, *gl_sub1;
 sgui_widget *t1, *t2, *t3, *iv, *s1, *s2, *s3, *s4;
+sgui_item *item1, *item2, *item3;
 sgui_icon_cache* ic;
+sgui_model* model;
 unsigned char image[128*128*4];
 int running = 1;
 
@@ -295,14 +297,24 @@ int main( int argc, char** argv )
     sgui_widget_add_child( t, p3 );
 
     /* view widgets */
-    iv = sgui_icon_view_create( 15, 15, 200, 150, ic, 1 );
+    model = sgui_simple_model_create( 1, ic );
 
-    sgui_icon_view_add_icon( iv,  10, 10, "icon",
-                             sgui_icon_map_find(ic,0), (void*)0x01 );
-    sgui_icon_view_add_icon( iv,  80, 80, "view",
-                             sgui_icon_map_find(ic,1), (void*)0x02 );
-    sgui_icon_view_add_icon( iv, 150, 20, "test",
-                             sgui_icon_map_find(ic,2), (void*)0x03 );
+    item1 = sgui_simple_model_add_item( model, NULL );
+    sgui_simple_item_set_text( model, item1, 0, "foo" );
+    sgui_simple_item_set_icon( model, item1, 0, sgui_icon_map_find(ic,0) );
+
+    item2 = sgui_simple_model_add_item( model, NULL );
+    sgui_simple_item_set_text( model, item2, 0, "bar" );
+    sgui_simple_item_set_icon( model, item2, 0, sgui_icon_map_find(ic,1) );
+    sgui_event_connect( item2, SGUI_ICON_SELECTED_EVENT,
+                        puts, "Icon 2 selected -> sort icons", SGUI_VOID );
+
+    item3 = sgui_simple_model_add_item( model, NULL );
+    sgui_simple_item_set_text( model, item3, 0, "baz" );
+    sgui_simple_item_set_icon( model, item3, 0, sgui_icon_map_find(ic,2) );
+
+    iv = sgui_icon_view_create( 15, 15, 200, 150, model, 1 );
+    sgui_icon_view_populate( iv, NULL );
 
     t = sgui_tab_create( tab, "Views" );
     sgui_widget_add_child( tab, t );
@@ -337,17 +349,6 @@ int main( int argc, char** argv )
                         print_password, ebp, SGUI_VOID );
     sgui_event_connect( ebp, SGUI_EDIT_BOX_TEXT_ENTERED,
                         print_password, ebp, SGUI_VOID );
-    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED_EVENT,
-                        puts, "Icon 1 selected -> snap to grid", SGUI_VOID );
-    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT,
-                        puts, "Icon 2 selected -> sort icons", SGUI_VOID );
-    sgui_event_connect( (void*)0x03, SGUI_ICON_SELECTED_EVENT,
-                        puts, "Icon 3 selected", SGUI_VOID );
-
-    sgui_event_connect( (void*)0x01, SGUI_ICON_SELECTED_EVENT,
-                        sgui_icon_view_snap_to_grid, iv, SGUI_VOID );
-    sgui_event_connect( (void*)0x02, SGUI_ICON_SELECTED_EVENT,
-                        sgui_icon_view_sort, iv, SGUI_POINTER, NULL );
 
     sgui_event_connect( s1, SGUI_SLIDER_CHANGED_EVENT,
                         print_slider, "slider 1", SGUI_FROM_EVENT, SGUI_I );
@@ -357,6 +358,15 @@ int main( int argc, char** argv )
                         print_slider, "slider 3", SGUI_FROM_EVENT, SGUI_I );
     sgui_event_connect( s4, SGUI_SLIDER_CHANGED_EVENT,
                         print_slider, "slider 4", SGUI_FROM_EVENT, SGUI_I );
+
+    sgui_event_connect( item1, SGUI_ICON_SELECTED_EVENT,
+                        puts, "Icon 1 selected -> snap to grid", SGUI_VOID );
+    sgui_event_connect( item1, SGUI_ICON_SELECTED_EVENT,
+                        sgui_icon_view_snap_to_grid, iv, SGUI_VOID );
+    sgui_event_connect( item2, SGUI_ICON_SELECTED_EVENT,
+                        sgui_icon_view_sort, iv, SGUI_POINTER, NULL );
+    sgui_event_connect( item3, SGUI_ICON_SELECTED_EVENT,
+                        puts, "Icon 3 selected", SGUI_VOID );
 
     sgui_main_loop( );
 
@@ -374,6 +384,7 @@ int main( int argc, char** argv )
     sgui_widget_destroy_all_children( tab );
     sgui_widget_destroy( tab );
 
+    sgui_model_destroy( model );
     sgui_icon_cache_destroy( ic );
 
     sgui_deinit( );

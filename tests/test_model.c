@@ -219,10 +219,8 @@ int main( void )
     sgui_model_destroy( model );
 
     /* must not segfault */
-    sgui_model_query_items( NULL,   NULL,   0, 0 );
-    sgui_model_query_items( BADPTR, NULL,   0, 0 );
-    sgui_model_query_items( NULL,   BADPTR, 0, 0 );
-    sgui_model_query_items( BADPTR, BADPTR, 0, 0 );
+    sgui_model_query_items( NULL, NULL,   0, 0 );
+    sgui_model_query_items( NULL, BADPTR, 0, 0 );
 
     sgui_model_free_item_list( NULL,   NULL   );
     sgui_model_free_item_list( BADPTR, NULL   );
