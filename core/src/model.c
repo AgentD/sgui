@@ -109,16 +109,28 @@ sgui_simple_model;
 
 
 
-static void destroy_itemlist( sgui_item* list )
+static void destroy_itemlist( sgui_simple_model* this, sgui_item* list )
 {
+    unsigned char* text;
+    unsigned int col;
     sgui_item* old;
 
     while( list )
     {
-        destroy_itemlist( ((sgui_simple_item*)list)->children );
+        destroy_itemlist( this, ((sgui_simple_item*)list)->children );
 
         old = list;
         list = list->next;
+
+        text  = (unsigned char*)old;
+        text += sizeof(sgui_simple_item);
+
+        for( col=0; col<this->super.cols; ++col )
+        {
+            free( *((char**)text) );
+            text += sizeof(void*)*2;
+        }
+
         free( old );
     }
 }
@@ -129,7 +141,7 @@ static void simple_destroy( sgui_model* super )
 {
     sgui_simple_model* this = (sgui_simple_model*)super;
 
-    destroy_itemlist( this->items );
+    destroy_itemlist( this, this->items );
     free( this );
 }
 
