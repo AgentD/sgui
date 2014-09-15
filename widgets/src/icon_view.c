@@ -38,12 +38,13 @@
 #define IV_MULTISELECT 0x01
 #define IV_DRAG        0x02
 #define IV_SELECTBOX   0x04
+#define IV_DRAW_BG     0x08
 
 
 
 typedef struct icon
 {
-    sgui_item* item;        /* underlying model item */
+    const sgui_item* item;  /* underlying model item */
     sgui_rect icon_area;    /* area of the icon inside the view */
     sgui_rect text_area;    /* area of the subtext inside the view */
     int selected;           /* non-zero if the icon is selected */
@@ -56,9 +57,7 @@ typedef struct
     sgui_model* model;      /* underlying model */
     icon* icons;            /* an array of icons */
     unsigned int num_icons; /* number of icons */
-    int draw_background;    /* whether to draw the background */
-    int grab_x, grab_y;     /* the last mouse grabbing position */
-    int endx, endy;
+    sgui_rect selection;    /* selection rect */
     int flags;
     int offset;             /* the offset from the border of the view */
 
@@ -78,10 +77,28 @@ static int compare( icon_view* this, sgui_item_compare_fun fun,
                     icon* a, icon* b )
 {
     if( fun )
-        return fun( a->item, b->item );
+        return fun( this->model, a->item, b->item );
 
     return strcmp( sgui_item_text( this->model, a->item, 0 ),
                    sgui_item_text( this->model, b->item, 0 ) );
+}
+
+static void sink( icon_view* this, sgui_item_compare_fun fun,
+                  icon* pq, unsigned int k, unsigned int n )
+{
+    unsigned int j;
+    icon temp;
+
+    for( j=2*k; j<=n; k=j, j*=2 )
+    {
+        if( j<n && compare( this, fun, pq+j-1, pq+j )<0 )
+            ++j;
+
+        if( compare( this, fun, pq+k-1, pq+j-1 )>=0 )
+            break;
+
+        temp=pq[k-1]; pq[k-1]=pq[j-1]; pq[j-1]=temp;
+    }
 }
 
 static void draw_icon( icon_view* this, icon* i, sgui_skin* skin )
@@ -181,18 +198,16 @@ static void get_icon_bounding_box( icon_view* this, icon* i, sgui_rect* r )
     sgui_rect_add_offset( r, x, y );
 }
 
-static void deselect_all_icons( icon_view* this )
+static void set_all_icons( icon_view* this, int state )
 {
     unsigned int i;
     sgui_rect r;
 
     for( i=0; i<this->num_icons; ++i )
-    {
-        if( this->icons[i].selected )
-        {
-            SELECT( this->icons[i], 0 );
-        }
-    }
+        this->icons[i].selected = state;
+
+    sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
+    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
 }
 
 static icon* icon_from_point( icon_view* this, int x, int y )
@@ -236,7 +251,7 @@ static void generate_event_for_each_selected( icon_view* this, int type )
     {
         if( this->icons[i].selected )
         {
-            ev.src.other = this->icons[i].item;
+            ev.src.other = (void*)this->icons[i].item;
             ev.type = type;
             sgui_event_post( &ev );
         }
@@ -246,100 +261,90 @@ static void generate_event_for_each_selected( icon_view* this, int type )
 static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 {
     icon_view* this = (icon_view*)super;
-    int x, y, dx, dy;
+    int x, y, dx, dy, hit;
     sgui_rect r, r1;
     unsigned int i;
     sgui_event ev;
     icon* new;
 
+    if( !this->icons )
+        return;
+
     sgui_internal_lock_mutex( );
 
     if(e->type==SGUI_MOUSE_PRESS_EVENT && e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT)
     {
-        this->endx = this->grab_x = e->arg.i3.x;
-        this->endy = this->grab_y = e->arg.i3.y;
+        sgui_rect_set_size(&this->selection, e->arg.i3.x, e->arg.i3.y, 0, 0);
         new = icon_from_point( this, e->arg.i3.x, e->arg.i3.y );
+
+        if( !(this->flags & IV_MULTISELECT) && !(new && new->selected) )
+            set_all_icons( this, 0 );
 
         if( new )
         {
-            if( !new->selected )
-            {
-                if( !(this->flags & IV_MULTISELECT) )
-                    deselect_all_icons( this );
-
-                SELECT( *new, 1 );
-            }
-            else if( this->flags & IV_MULTISELECT )
-            {
-                SELECT( *new, 0 );
-            }
-
             this->flags |= IV_DRAG;
+            new->selected = !(new->selected && (this->flags&IV_MULTISELECT));
+            get_icon_bounding_box( this, new, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
         else if( !(this->flags & IV_MULTISELECT) )
         {
-            deselect_all_icons( this );
-            this->flags = IV_SELECTBOX;
+            this->flags = (this->flags|IV_SELECTBOX) & (~IV_DRAG);
         }
     }
     else if( e->type==SGUI_DOUBLE_CLICK_EVENT )
     {
-        deselect_all_icons( this );
+        set_all_icons( this, 0 );
         this->flags &= ~IV_SELECTBOX;
         new = icon_from_point( this, e->arg.i2.x, e->arg.i2.y );
 
         if( new )
         {
-            SELECT( *new, 1 );
+            new->selected = 1;
             ev.type = SGUI_ICON_SELECTED_EVENT;
-            ev.src.other = new->item;
+            ev.src.other = (void*)new->item;
             sgui_event_post( &ev );
         }
     }
     else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_SELECTBOX) )
     {
-        /* get absolute affected bounding area */
-        SGUI_RECT_SET(r, this->grab_x, this->grab_y, this->endx, this->endy);
-        sgui_rect_repair( &r );
-
-        this->endx = e->arg.i2.x;
-        this->endy = e->arg.i2.y;
-
-        SGUI_RECT_SET(r1, this->grab_x, this->grab_y, this->endx, this->endy);
+        /* get affected area */
+        r1 = this->selection;
         sgui_rect_repair( &r1 );
-        sgui_rect_join( &r, &r1, 0 );
+
+        this->selection.right  = e->arg.i2.x;
+        this->selection.bottom = e->arg.i2.y;
+
+        r = this->selection;
+        sgui_rect_repair( &r );
+        sgui_rect_join( &r1, &r, 0 );
 
         /* flag area as dity */
         sgui_widget_get_absolute_position( &(this->super), &x, &y );
-        sgui_rect_add_offset( &r, x, y );
-        sgui_rect_extend( &r, 1, 1 );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
+        sgui_rect_add_offset( &r1, x, y );
+        sgui_rect_extend( &r1, 1, 1 );
+        sgui_canvas_add_dirty_rect( super->canvas, &r1 );
 
         /* get selected icons */
         for( i=0; i<this->num_icons; ++i )
         {
-            if( sgui_rect_get_intersection( NULL, &r1, &(this->icons[i].icon_area) ) ||
-                sgui_rect_get_intersection( NULL, &r1, &(this->icons[i].text_area) ) )
+            hit=sgui_rect_get_intersection(0,&r,&(this->icons[i].icon_area))||
+                sgui_rect_get_intersection(0,&r,&(this->icons[i].text_area));
+
+            if( hit != this->icons[i].selected )
             {
-                if( !this->icons[i].selected )
-                {
-                    SELECT( this->icons[i], 1 );
-                }
-            }
-            else if( this->icons[i].selected )
-            {
-                SELECT( this->icons[i], 0 );
+                this->icons[i].selected = hit;
+                get_icon_bounding_box( this, this->icons+i, &r );
+                sgui_canvas_add_dirty_rect( super->canvas, &r );
             }
         }
     }
     else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_DRAG) )
     {
         /* get mouse movement difference vector */
-        dx = e->arg.i2.x - this->grab_x;
-        dy = e->arg.i2.y - this->grab_y;
-
-        this->grab_x = e->arg.i2.x;
-        this->grab_y = e->arg.i2.y;
+        dx = e->arg.i2.x - this->selection.left;
+        dy = e->arg.i2.y - this->selection.top;
+        sgui_rect_set_size(&this->selection, e->arg.i2.x, e->arg.i2.y, 0, 0);
 
         x = SGUI_RECT_WIDTH(super->area) - this->offset;
         y = SGUI_RECT_HEIGHT(super->area) - this->offset;
@@ -379,23 +384,14 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
     }
     else if( e->type==SGUI_KEY_PRESSED_EVENT )
     {
-        switch( e->arg.i )
+        if( e->arg.i==SGUI_KC_CONTROL || e->arg.i==SGUI_KC_LCONTROL ||
+            e->arg.i==SGUI_KC_RCONTROL )
         {
-        case SGUI_KC_CONTROL:
-        case SGUI_KC_LCONTROL:
-        case SGUI_KC_RCONTROL:
             this->flags |= IV_MULTISELECT;
-            break;
-        case SGUI_KC_SELECT_ALL:
-            for( i=0; i<this->num_icons; ++i )
-            {
-                if( !this->icons[i].selected )
-                {
-                    SELECT( this->icons[i], 1 );
-                }
-            }
-            break;
         }
+
+        if( e->arg.i==SGUI_KC_SELECT_ALL )
+            set_all_icons( this, 1 );
     }
     else if( e->type==SGUI_KEY_RELEASED_EVENT )
     {
@@ -408,24 +404,18 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             break;
         case SGUI_KC_HOME:
             this->flags &= ~IV_MULTISELECT;
-            if( this->icons )
-            {
-                deselect_all_icons( this );
-                SELECT( this->icons[0], 1 );
-            }
+            set_all_icons( this, 0 );
+            this->icons[0].selected = 1;
             break;
         case SGUI_KC_END:
             this->flags &= ~IV_MULTISELECT;
-            if( this->icons )
-            {
-                deselect_all_icons( this );
-                SELECT( this->icons[this->num_icons-1], 1 );
-            }
+            set_all_icons( this, 0 );
+            this->icons[this->num_icons-1].selected = 1;
             break;
         case SGUI_KC_LEFT:
         case SGUI_KC_UP:
             this->flags &= ~IV_MULTISELECT;
-            if( this->icons && this->icons[0].selected )
+            if( this->icons[0].selected )
             {
                 for( i=1; i<this->num_icons; ++i )
                 {
@@ -458,7 +448,7 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             break;
         case SGUI_KC_RETURN:
         case SGUI_KC_SPACE:
-            generate_event_for_each_selected( this, SGUI_ICON_SELECTED_EVENT );
+            generate_event_for_each_selected(this, SGUI_ICON_SELECTED_EVENT);
             break;
         case SGUI_KC_COPY:
             generate_event_for_each_selected( this, SGUI_ICON_COPY_EVENT );
@@ -482,7 +472,7 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
     {
         if( this->flags & IV_SELECTBOX )
         {
-            SGUI_RECT_SET(r,this->grab_x,this->grab_y,this->endx,this->endy);
+            r = this->selection;
             sgui_rect_repair( &r );
             sgui_widget_get_absolute_position( &(this->super), &x, &y );
             sgui_rect_add_offset( &r, x, y );
@@ -494,7 +484,7 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
     }
     else if( e->type==SGUI_FOCUS_LOSE_EVENT )
     {
-        deselect_all_icons( this );
+        set_all_icons( this, 0 );
         this->flags &= ~(IV_MULTISELECT|IV_DRAG|IV_SELECTBOX);
     }
 
@@ -508,14 +498,12 @@ static void icon_view_draw( sgui_widget* super )
     unsigned int i;
     sgui_rect r;
 
-    if( this->draw_background )
-    {
+    if( this->flags & IV_DRAW_BG )
         skin->draw_frame( skin, super->canvas, &(super->area) );
-    }
 
     if( this->flags & IV_SELECTBOX )
     {
-        SGUI_RECT_SET(r, this->grab_x, this->grab_y, this->endx, this->endy);
+        r = this->selection;
         sgui_rect_repair( &r );
         sgui_rect_add_offset( &r, super->area.left, super->area.top );
         skin->draw_focus_box( skin, super->canvas, &r );
@@ -555,41 +543,38 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     sgui_widget* super;
     icon_view* this;
 
+    if( !model )
+        return NULL;
+
     this = malloc( sizeof(icon_view) );
     super = (sgui_widget*)this;
 
-    if( this )
-    {
-        memset( this, 0, sizeof(icon_view) );
+    if( !this )
+        return NULL;
 
-        sgui_widget_init( super, x, y, width, height );
+    memset( this, 0, sizeof(icon_view) );
+    sgui_widget_init( super, x, y, width, height );
 
-        this->model = model;
-        this->draw_background = background;
-        this->offset = background ? skin->get_frame_border_width( skin ) : 0;
+    this->model  = model;
+    this->flags  = background ? IV_DRAW_BG : 0;
+    this->offset = background ? skin->get_frame_border_width(skin):0;
 
-        super->window_event_callback = icon_view_on_event;
-        super->draw_callback = icon_view_draw;
-        super->destroy = icon_view_destroy;
-
-        super->focus_policy = SGUI_FOCUS_ACCEPT|
-                              SGUI_FOCUS_DROP_ESC|
-                              SGUI_FOCUS_DROP_TAB;
-    }
-
+    super->window_event_callback = icon_view_on_event;
+    super->draw_callback         = icon_view_draw;
+    super->destroy               = icon_view_destroy;
+    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                   SGUI_FOCUS_DROP_TAB;
     return super;
 }
 
 void sgui_icon_view_populate( sgui_widget* super, sgui_item* root )
 {
-    unsigned int txt_w, txt_h, img_w, img_h, j;
     icon_view* this = (icon_view*)super;
     const sgui_item* i;
     const char* subtext;
     const sgui_icon* ic;
-    sgui_rect r;
+    unsigned int j;
 
-    /* sanity check */
     if( !this )
         return;
 
@@ -598,65 +583,35 @@ void sgui_icon_view_populate( sgui_widget* super, sgui_item* root )
     this->itemlist = sgui_model_query_items( this->model, root, 0, 0 );
 
     if( !this->itemlist )
-    {
-        this->num_icons = 0;
-        sgui_internal_unlock_mutex( );
-        return;
-    }
+        goto fail;
 
     this->num_icons = sgui_model_item_children_count( this->model, root );
     this->icons = realloc( this->icons, this->num_icons*sizeof(icon) );
 
     if( !this->icons )
-    {
-        sgui_model_free_item_list( this->model, this->itemlist );
-        this->num_icons = 0;
-        sgui_internal_unlock_mutex( );
-        return;
-    }
+        goto fail;
+
+    memset( this->icons, 0, this->num_icons*sizeof(icon) );
 
     for( i=this->itemlist, j=0; i && j<this->num_icons; i=i->next, ++j )
     {
-        /* get icon an text */
-        ic = sgui_item_icon( this->model, i, 0 );
+        ic      = sgui_item_icon( this->model, i, 0 );
         subtext = sgui_item_text( this->model, i, 0 );
 
-        /* determine size */
-        img_w = img_h = txt_w = txt_h = 0;
+        sgui_icon_get_area( ic, &this->icons[j].icon_area );
+        sgui_skin_get_text_extents( subtext, &this->icons[j].text_area );
 
-        if( ic )
-        {
-            sgui_icon_get_area( ic, &r );
-            img_w = SGUI_RECT_WIDTH(r);
-            img_h = SGUI_RECT_HEIGHT(r);
-        }
-        if( subtext )
-        {
-            sgui_skin_get_text_extents( subtext, &r );
-            txt_w = SGUI_RECT_WIDTH(r);
-            txt_h = SGUI_RECT_HEIGHT(r);
-        }
-
-        /* initialize icon */
-        if( img_w>=txt_w )
-        {
-            sgui_rect_set_size( &(this->icons[j].icon_area),0,0,img_w,img_h );
-            sgui_rect_set_size( &(this->icons[j].text_area), (img_w-txt_w)/2,
-                                this->icons[j].icon_area.bottom,txt_w,txt_h );
-        }
-        else
-        {
-            sgui_rect_set_size( &(this->icons[j].icon_area),
-                                (txt_w-img_w)/2, 0, img_w, img_h );
-            sgui_rect_set_size( &(this->icons[j].text_area), 0,
-                                this->icons[j].icon_area.bottom,txt_w,txt_h );
-        }
-
-        this->icons[j].selected = 0;
-        this->icons[j].item = (sgui_item*)i;
+        this->icons[j].item = i;
     }
 
     gridify( this );
+    sgui_internal_unlock_mutex( );
+    return;
+fail:
+    free( this->icons );
+    sgui_model_free_item_list( this->model, this->itemlist );
+    this->itemlist = NULL;
+    this->num_icons = 0;
     sgui_internal_unlock_mutex( );
 }
 
@@ -705,45 +660,20 @@ void sgui_icon_view_snap_to_grid( sgui_widget* super )
 void sgui_icon_view_sort( sgui_widget* super, sgui_item_compare_fun fun )
 {
     icon_view* this = (icon_view*)super;
-    unsigned int j, k, l, n;
-    icon *pq, *last;
-    icon temp;
+    unsigned int k, n;
+    icon temp, *last;
 
     if( !this || !this->icons )
         return;
 
     sgui_internal_lock_mutex( );
-    n = this->num_icons;
-    pq = this->icons;
+    for( k=this->num_icons/2; k>=1; --k )
+        sink( this, fun, this->icons, k, this->num_icons );
 
-    for( k=n/2; k>=1; --k )
+    for( n=this->num_icons, last=this->icons+n-1; n>1; --last )
     {
-        for( l=k, j=2*k; j<=n; l=j, j*=2 )
-        {
-            if( j<n && compare( this, fun, pq+j-1, pq+j )<0 )
-                ++j;
-
-            if( compare( this, fun, pq+l-1, pq+j-1 )>=0 )
-                break;
-
-            temp=pq[l-1]; pq[l-1]=pq[j-1]; pq[j-1]=temp;
-        }
-    }
-
-    for( last=pq+n-1; n>1; --last )
-    {
-        temp = *pq; *pq = *last; *last = temp;
-        --n;
-        for( l=1, j=2; j<=n; l=j, j*=2 )
-        {
-            if( j<n && compare( this, fun, pq+j-1, pq+j )<0 )
-                ++j;
-
-            if( compare( this, fun, pq+l-1, pq+j-1 )>=0 )
-                break;
-
-            temp=pq[l-1]; pq[l-1]=pq[j-1]; pq[j-1]=temp;
-        }
+        temp = this->icons[0]; this->icons[0] = *last; *last = temp;
+        sink( this, fun, this->icons, 1, --n );
     }
 
     gridify( this );

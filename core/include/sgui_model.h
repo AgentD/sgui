@@ -115,6 +115,22 @@ struct sgui_model
 
 
 /**
+ * \brief A function used to compare the user data pointers of two icons
+ *
+ * \param model A pointer to the model that the items belong to
+ * \param a     A pointer to the first item
+ * \param b     A pointer to the second item
+ *
+ * \return A value <0 if the first is smaller than the second, >0 if the
+ *         second is smaller than the first and =0 if they are equal
+ */
+typedef int (* sgui_item_compare_fun )( const sgui_model* model,
+                                        const sgui_item* a,
+                                        const sgui_item* b );
+
+
+
+/**
  * \struct sgui_simple_item
  *
  * \implements sgui_item

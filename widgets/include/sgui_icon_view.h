@@ -28,19 +28,7 @@
 
 
 #include "sgui_predef.h"
-
-
-
-/**
- * \brief A function used to compare the user data pointers of two icons
- *
- * \param a A pointer to the first item
- * \param b A pointer to the second item
- *
- * \return A value <0 if the first is smaller than the second, >0 if the
- *         second is smaller than the first and =0 if they are equal
- */
-typedef int (* sgui_item_compare_fun )( sgui_item* a, sgui_item* b );
+#include "sgui_model.h"
 
 
 
