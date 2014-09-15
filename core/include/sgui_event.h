@@ -71,6 +71,7 @@
 #define SGUI_MOUSE_LEAVE_EVENT          0x0011
 #define SGUI_FOCUS_EVENT                0x0012
 #define SGUI_FOCUS_LOSE_EVENT           0x0013
+#define SGUI_DOUBLE_CLICK_EVENT         0x0014
 
 #define SGUI_MAX_CANVAS_EVENT           0x001F
 
@@ -151,7 +152,8 @@ struct sgui_event
         struct { unsigned int x, y; } ui2;
 
         /**
-         * \brief Int vector. Used by SGUI_MOUSE_MOVE_EVENT
+         * \brief Int vector. Used by SGUI_MOUSE_MOVE_EVENT and
+         *        SGUI_DOUBLE_CLICK_EVENT
          */
         struct { int x, y; } i2;
 

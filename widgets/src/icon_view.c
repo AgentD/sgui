@@ -35,15 +35,6 @@
 #include <string.h>
 
 #if !defined(SGUI_NO_ICON_CACHE) && !defined(SGUI_NO_ICON_VIEW)
-#ifdef SGUI_WINDOWS
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-#else
-    #include <sys/time.h>
-#endif
-
-
-
 #define IV_MULTISELECT 0x01
 #define IV_DRAG        0x02
 #define IV_SELECTBOX   0x04
@@ -71,36 +62,17 @@ typedef struct
     int flags;
     int offset;             /* the offset from the border of the view */
 
-    icon* grabed;           /* the last icon that was clicked */
-    long grabtime;          /* when the last icon was clicked */
-
     const sgui_item* itemlist;
 }
 icon_view;
 
 
 
-#define DOUBLE_CLICK_MS 750
-
 #define SELECT( icon, state )\
         (icon).selected = (state);\
         get_icon_bounding_box( this, &(icon), &r );\
         sgui_canvas_add_dirty_rect( this->super.canvas, &r )
 
-
-
-static long get_time_ms( void )
-{
-#ifdef SGUI_WINDOWS
-    return GetTickCount( );
-#else
-    struct timeval tp;
-
-    gettimeofday( &tp, NULL );
-
-    return tp.tv_sec*1000 + tp.tv_usec/1000;
-#endif
-}
 
 static int compare( icon_view* this, sgui_item_compare_fun fun,
                     icon* a, icon* b )
@@ -282,20 +254,6 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 
     sgui_internal_lock_mutex( );
 
-    /*
-        stop double click detection if mouse moved, key pressed/released or
-        any mouse button other than the left one did something
-     */
-    if( e->type==SGUI_MOUSE_MOVE_EVENT || e->type==SGUI_KEY_PRESSED_EVENT ||
-        e->type==SGUI_KEY_RELEASED_EVENT ||
-        (e->type==SGUI_MOUSE_PRESS_EVENT &&
-         e->arg.i3.z!=SGUI_MOUSE_BUTTON_LEFT)||
-        (e->type==SGUI_MOUSE_RELEASE_EVENT &&
-         e->arg.i3.z!=SGUI_MOUSE_BUTTON_LEFT) )
-    {
-        this->grabed = NULL;
-    }
-
     if(e->type==SGUI_MOUSE_PRESS_EVENT && e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT)
     {
         this->endx = this->grab_x = e->arg.i3.x;
@@ -323,28 +281,19 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             deselect_all_icons( this );
             this->flags = IV_SELECTBOX;
         }
+    }
+    else if( e->type==SGUI_DOUBLE_CLICK_EVENT )
+    {
+        deselect_all_icons( this );
+        this->flags &= ~IV_SELECTBOX;
+        new = icon_from_point( this, e->arg.i2.x, e->arg.i2.y );
 
-        /* double click detection timeout */
-        if( this->grabed && (get_time_ms( )-this->grabtime)>DOUBLE_CLICK_MS )
+        if( new )
         {
-            this->grabed = NULL;
-        }
-
-        /* double click detection */
-        if( !(this->flags&IV_MULTISELECT) )
-        {
-            if( this->grabed && this->grabed==new )
-            {
-                ev.src.other = this->grabed->item;
-                ev.type = SGUI_ICON_SELECTED_EVENT;
-                this->grabed = NULL;
-                sgui_event_post( &ev );
-            }
-            else
-            {
-                this->grabed = new;
-                this->grabtime = get_time_ms( );
-            }
+            SELECT( *new, 1 );
+            ev.type = SGUI_ICON_SELECTED_EVENT;
+            ev.src.other = new->item;
+            sgui_event_post( &ev );
         }
     }
     else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_SELECTBOX) )
