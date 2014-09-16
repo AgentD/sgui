@@ -60,6 +60,7 @@ option( FRAME "Compile with frame widget" ON )
 option( GROUP "Compile with group box widget" ON )
 option( COLPICKER "Compile with color picker widget" ON )
 option( COLDIALOG "Compile with color selection dialog" ON )
+option( MVC "Compile with model object for MVC widgets" ON )
 option( NOPS "Replace disabled features with API compatible NOP functions" ON)
 
 if( NOFLOAT )
@@ -116,6 +117,10 @@ endif( )
 
 if( NOT COLDIALOG )
   add_definitions( -DSGUI_NO_COLOR_DIALOG )
+endif( )
+
+if( NOT MVC )
+  add_definitions( -DSGUI_NO_MODEL )
 endif( )
 
 if( NOPS )

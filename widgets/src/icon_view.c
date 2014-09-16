@@ -34,7 +34,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if !defined(SGUI_NO_ICON_CACHE) && !defined(SGUI_NO_ICON_VIEW)
+#if !defined(SGUI_NO_ICON_CACHE) && !defined(SGUI_NO_ICON_VIEW) &&\
+    !defined(SGUI_NO_MODEL)
 #define IV_MULTISELECT 0x01
 #define IV_DRAG        0x02
 #define IV_SELECTBOX   0x04

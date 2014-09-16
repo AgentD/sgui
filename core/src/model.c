@@ -31,6 +31,7 @@
 
 
 
+#ifndef SGUI_NO_MODEL
 void sgui_model_destroy( sgui_model* this )
 {
     if( this )
@@ -314,4 +315,72 @@ void sgui_simple_item_set_text( sgui_model* this, sgui_item* item,
         sgui_internal_unlock_mutex( );
     }
 }
+#elif defined(SGUI_NOP_IMPLEMENTATIONS)
+void sgui_model_destroy( sgui_model* model )
+{
+    (void)model;
+}
+sgui_icon_cache* sgui_model_get_icon_cache( const sgui_model* model )
+{
+    (void)model;
+    return NULL;
+}
+unsigned int sgui_model_column_count( const sgui_model* model )
+{
+    (void)model;
+    return 0;
+}
+const sgui_item* sgui_model_query_items( const sgui_model* model,
+                                         const sgui_item* parent,
+                                         unsigned int start,
+                                         unsigned int count )
+{
+    (void)model; (void)parent; (void)start; (void)count;
+    return NULL;
+}
+void sgui_model_free_item_list( sgui_model* model, const sgui_item* start )
+{
+    (void)model; (void)start;
+}
+unsigned int sgui_model_item_children_count( const sgui_model* model,
+                                             const sgui_item* item )
+{
+    (void)model; (void)item;
+    return 0;
+}
+const char* sgui_item_text( const sgui_model* model, const sgui_item* item,
+                            unsigned int column )
+{
+    (void)model; (void)item; (void)column;
+    return NULL;
+}
+const sgui_icon* sgui_item_icon( const sgui_model* model,
+                                 const sgui_item* item,
+                                 unsigned int column )
+{
+    (void)model; (void)item; (void)column;
+    return NULL;
+}
+sgui_model* sgui_simple_model_create( unsigned int columns,
+                                      sgui_icon_cache* cache )
+{
+    (void)columns; (void)cache;
+    return NULL;
+}
+sgui_item* sgui_simple_model_add_item( sgui_model* model, sgui_item* parent )
+{
+    (void)model; (void)parent;
+    return NULL;
+}
+void sgui_simple_item_set_icon( sgui_model* model, sgui_item* item,
+                                unsigned int column, const sgui_icon* icon )
+{
+    (void)model; (void)item; (void)column; (void)icon;
+}
+void sgui_simple_item_set_text( sgui_model* model, sgui_item* item,
+                                unsigned int column, const char* text )
+{
+    (void)model; (void)item; (void)column; (void)text;
+}
+#endif
 
