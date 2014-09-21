@@ -28,8 +28,8 @@
 
 
 #ifndef SGUI_NO_OPENGL
-int glversions[][2] = { {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
-                               {3,3}, {3,2}, {3,1}, {3,0} };
+int glversions[][2] = { {4,5}, {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
+                                      {3,3}, {3,2}, {3,1}, {3,0} };
 
 
 static void set_attributes( int* attr, int bpp, int depth, int stencil,
