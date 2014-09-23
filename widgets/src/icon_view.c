@@ -43,7 +43,7 @@
 
 
 
-typedef struct icon
+typedef struct
 {
     const sgui_item* item;  /* underlying model item */
     sgui_rect icon_area;    /* area of the icon inside the view */
@@ -59,6 +59,8 @@ typedef struct
     icon* icons;            /* an array of icons */
     unsigned int num_icons; /* number of icons */
     sgui_rect selection;    /* selection rect */
+    unsigned int icon_col;
+    unsigned int txt_col;
     int flags;
     int offset;             /* the offset from the border of the view */
 
@@ -80,8 +82,8 @@ static int compare( icon_view* this, sgui_item_compare_fun fun,
     if( fun )
         return fun( this->model, a->item, b->item );
 
-    return strcmp( sgui_item_text( this->model, a->item, 0 ),
-                   sgui_item_text( this->model, b->item, 0 ) );
+    return strcmp( sgui_item_text( this->model, a->item, this->txt_col ),
+                   sgui_item_text( this->model, b->item, this->txt_col ) );
 }
 
 static void sink( icon_view* this, sgui_item_compare_fun fun,
@@ -107,13 +109,13 @@ static void draw_icon( icon_view* this, icon* i, sgui_skin* skin )
     sgui_rect r;
 
     sgui_icon_cache_draw_icon( sgui_model_get_icon_cache(this->model),
-                               sgui_item_icon(this->model,i->item,0),
-                               this->super.area.left + i->icon_area.left,
-                               this->super.area.top  + i->icon_area.top );
+                           sgui_item_icon(this->model,i->item,this->icon_col),
+                           this->super.area.left + i->icon_area.left,
+                           this->super.area.top  + i->icon_area.top );
 
     if( i->selected )
     {
-        r = sgui_item_text(this->model,i->item,0) ?
+        r = sgui_item_text(this->model,i->item,this->txt_col) ?
             i->text_area : i->icon_area;
 
         sgui_rect_add_offset(&r, this->super.area.left, this->super.area.top);
@@ -123,7 +125,7 @@ static void draw_icon( icon_view* this, icon* i, sgui_skin* skin )
     sgui_skin_draw_text( this->super.canvas,
                          this->super.area.left + i->text_area.left,
                          this->super.area.top  + i->text_area.top,
-                         sgui_item_text(this->model,i->item,0) );
+                         sgui_item_text(this->model,i->item,this->txt_col) );
 }
 
 static void ideal_grid_size( icon_view* this,
@@ -538,7 +540,9 @@ static void icon_view_destroy( sgui_widget* super )
 sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
                                     unsigned int height,
                                     sgui_model* model,
-                                    int background )
+                                    int background,
+                                    unsigned int icon_col,
+                                    unsigned int txt_col )
 {
     sgui_skin* skin = sgui_skin_get( );
     sgui_widget* super;
@@ -556,9 +560,11 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     memset( this, 0, sizeof(icon_view) );
     sgui_widget_init( super, x, y, width, height );
 
-    this->model  = model;
-    this->flags  = background ? IV_DRAW_BG : 0;
-    this->offset = background ? skin->get_frame_border_width(skin):0;
+    this->model    = model;
+    this->flags    = background ? IV_DRAW_BG : 0;
+    this->offset   = background ? skin->get_frame_border_width(skin):0;
+    this->icon_col = icon_col;
+    this->txt_col  = txt_col;
 
     super->window_event_callback = icon_view_on_event;
     super->draw_callback         = icon_view_draw;
@@ -596,8 +602,8 @@ void sgui_icon_view_populate( sgui_widget* super, sgui_item* root )
 
     for( i=this->itemlist, j=0; i && j<this->num_icons; i=i->next, ++j )
     {
-        ic      = sgui_item_icon( this->model, i, 0 );
-        subtext = sgui_item_text( this->model, i, 0 );
+        ic      = sgui_item_icon( this->model, i, this->icon_col );
+        subtext = sgui_item_text( this->model, i, this->txt_col );
 
         sgui_icon_get_area( ic, &this->icons[j].icon_area );
         sgui_skin_get_text_extents( subtext, &this->icons[j].text_area );

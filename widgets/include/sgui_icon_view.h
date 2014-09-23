@@ -70,13 +70,17 @@ extern "C" {
  * \param model      An abstract model to represent the data of
  * \param background Non-zero to draw a frame widget style background around
  *                   the icon view area, zero to disable
+ * \param icon_col   The model column to get the icon from
+ * \param txt_col    The model column to get the subtext from
  *
  * \return A pointer to an icon view widget
  */
 SGUI_DLL sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
                                              unsigned int height,
                                              sgui_model* model,
-                                             int background );
+                                             int background,
+                                             unsigned int icon_col,
+                                             unsigned int txt_col );
 
 /**
  * \brief Reload the items of a model into an icon view

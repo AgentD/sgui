@@ -313,7 +313,7 @@ int main( int argc, char** argv )
     sgui_simple_item_set_text( model, item3, 0, "baz" );
     sgui_simple_item_set_icon( model, item3, 0, sgui_icon_map_find(ic,2) );
 
-    iv = sgui_icon_view_create( 15, 15, 200, 150, model, 1 );
+    iv = sgui_icon_view_create( 15, 15, 200, 150, model, 1, 0, 0 );
     sgui_icon_view_populate( iv, NULL );
 
     t = sgui_tab_create( tab, "Views" );
