@@ -1,4 +1,14 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    with a Direct3D 9 rendering context through sgui.
+ */
 #include "sgui.h"
+#include "sgui_d3d9.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -28,22 +38,26 @@ LPDIRECT3DVERTEXBUFFER9 v_buffer;
 
 void draw_callback( sgui_window* window )
 {
-    sgui_context* ctx = sgui_window_get_context( window );
-    IDirect3DDevice9* dev = sgui_context_get_internal( ctx );
+    /* get the context from the window */
+    sgui_d3d9_context* ctx =
+    (sgui_d3d9_context*)sgui_window_get_context( window );
 
-    IDirect3DDevice9_Clear( dev, 0, NULL, D3DCLEAR_TARGET,
+    /* clear the screen, begin drawing */
+    IDirect3DDevice9_Clear( ctx->device, 0, NULL, D3DCLEAR_TARGET,
                             D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0 );
 
-    IDirect3DDevice9_BeginScene( dev );
+    IDirect3DDevice9_BeginScene( ctx->device );
 
-    IDirect3DDevice9_SetFVF( dev, CUSTOMFVF );
-    IDirect3DDevice9_SetStreamSource( dev, 0, v_buffer, 0,
+    /* draw the scene */
+    IDirect3DDevice9_SetFVF( ctx->device, CUSTOMFVF );
+    IDirect3DDevice9_SetStreamSource( ctx->device, 0, v_buffer, 0,
                                       sizeof(CUSTOMVERTEX) );
 
-    IDirect3DDevice9_DrawPrimitive( dev, D3DPT_TRIANGLELIST, 0, 1 );
+    IDirect3DDevice9_DrawPrimitive( ctx->device, D3DPT_TRIANGLELIST, 0, 1 );
 
-    IDirect3DDevice9_EndScene( dev );
+    IDirect3DDevice9_EndScene( ctx->device );
 
+    /* swap front and back buffer */
     sgui_window_swap_buffers( window );
 }
 
@@ -59,7 +73,7 @@ int main( void )
 
     sgui_init( );
 
-    /* create a window */
+    /* create a window. See gl0.c for furhter explanation */
     desc.parent         = NULL;
     desc.share          = NULL;
     desc.width          = 300;
@@ -73,6 +87,7 @@ int main( void )
 
     wnd = sgui_window_create_desc( &desc );
 
+    /* make the window visible */
     sgui_window_set_title( wnd, "Direct3D 9 Sample" );
     sgui_window_move_center( wnd );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
@@ -90,7 +105,7 @@ int main( void )
     memcpy( pVoid, vertices, sizeof(vertices) );
     IDirect3DVertexBuffer9_Unlock( v_buffer );
 
-    /* hook event callbacks */
+    /* hook event callbacks. See gl0.c for furhter explanation */
     sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
                         draw_callback, wnd, SGUI_VOID );
 

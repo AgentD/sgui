@@ -1,3 +1,14 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    an embedded Direct3D 9 rendering widget through sgui and how to use a
+    manual event/drawing loop in a thread for real-time rendering
+    applications.
+ */
 #include "sgui.h"
 #include "sgui_d3d9.h"
 
@@ -32,6 +43,7 @@ static int running = 1;
 
 DWORD __stdcall d3d9_drawing_thread( LPVOID arg )
 {
+    /* grab context and internal data from sub-window */
     sgui_window* window = sgui_subview_get_window( subview );
     sgui_context* ctx = sgui_window_get_context( window );
     IDirect3DDevice9* dev = sgui_context_get_internal( ctx );
@@ -67,11 +79,13 @@ DWORD __stdcall d3d9_drawing_thread( LPVOID arg )
 
         IDirect3DDevice9_EndScene( dev );
 
+        /* swap front and back buffer */
         sgui_window_swap_buffers( window );
 
         Sleep( 500 );
     }
 
+    /* release vertex buffer */
     IDirect3DVertexBuffer9_Release( v_buffer );
     return 0;
 }
@@ -84,7 +98,7 @@ int main( void )
 
     sgui_init( );
 
-    /* create a window */
+    /* create an ordinary window window */
     wnd = sgui_window_create( NULL, 200, 160, SGUI_FIXED_SIZE );
 
     sgui_window_set_title( wnd, "Direct3D widget" );
@@ -93,6 +107,8 @@ int main( void )
 
     /* create widgets */
     text = sgui_label_create( 20, 130, "D3D9 Drawing Thread" );
+
+    /* create a subview widget. See gl2.c for further explanation */
     subview = sgui_subview_create( wnd, 10, 10, 180, 120,
                                    SGUI_DIRECT3D_9, NULL );
 

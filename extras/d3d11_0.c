@@ -1,3 +1,12 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    with a Direct3D 11 rendering context through sgui.
+ */
 #include "sgui.h"
 #include "sgui_d3d11.h"
 
@@ -44,6 +53,7 @@ void draw_callback( sgui_window* window )
     sgui_d3d11_context* ctx;
     FLOAT bg[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
 
+    /* get context object from the window */
     ctx = (sgui_d3d11_context*)sgui_window_get_context( window );
 
     /* draw frame */
@@ -54,6 +64,7 @@ void draw_callback( sgui_window* window )
 
     ID3D11DeviceContext_Draw( ctx->ctx, 3, 0 );
 
+    /* swap front and back buffer */
     sgui_window_swap_buffers( window );
 }
 
@@ -76,7 +87,7 @@ int main( void )
 
     sgui_init( );
 
-    /* create a window */
+    /* create a window. See gl0.c for further explanation */
     desc.parent         = NULL;
     desc.share          = NULL;
     desc.width          = 300;
@@ -96,6 +107,7 @@ int main( void )
         return -1;
     }
 
+    /* make the window visible, get the context */
     sgui_window_set_title( wnd, "Direct3D 11 Sample" );
     sgui_window_move_center( wnd );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
@@ -151,7 +163,7 @@ int main( void )
     ID3D11DeviceContext_VSSetShader( ctx->ctx, vs, NULL, 0 );
     ID3D11DeviceContext_PSSetShader( ctx->ctx, ps, NULL, 0 );
 
-    /* hook event callbacks */
+    /* hook event callbacks. See gl0.c for further explanation */
     sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
                         draw_callback, wnd, SGUI_VOID );
 

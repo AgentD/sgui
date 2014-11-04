@@ -1,3 +1,12 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how the systems clipboard
+    can be accessed through sgui.
+ */
 #include "sgui.h"
 
 #include <stdio.h>
@@ -16,6 +25,7 @@ void read_clipboard( sgui_window* wnd )
 void write_clipboard( sgui_window* wnd, sgui_widget* editbox )
 {
     const char* text = sgui_edit_box_get_text( editbox );
+
     sgui_window_write_clipboard( wnd, text, strlen(text) );
 }
 

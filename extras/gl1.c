@@ -1,3 +1,13 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    with a OpenGL rendering context through sgui and how to use a manual
+    event/drawing loop for real-time rendering applications.
+ */
 #include "sgui.h"
 
 #ifdef SGUI_WINDOWS
@@ -29,16 +39,33 @@ int main( void )
 
     wnd = sgui_window_create_desc( &desc );
 
+    /* set window title and make it visible */
     sgui_window_set_title( wnd, "OpenGL Sample" );
     sgui_window_move_center( wnd );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
-    /* main loop with continuos redrawing */
+    /*
+        Make the rendering context of the window current and force the
+        window to synchronize buffer swapping with vertical retrace.
+     */
     sgui_window_make_current( wnd );
     sgui_window_set_vsync( wnd, 1 );
 
+    /*
+        Enter a manuall drawing loop.
+
+        The function sgui_main_loop_step( ) fetches a message from the window
+        systems, processes it and flushes the internal message queue.
+
+        The function does not wait for system messages and returns
+        immediately, even if there were no messages.
+
+        If at least one window is visible, the function returns non-zero. It
+        returns zero after the last window got set invisible.
+     */
     while( sgui_main_loop_step( ) )
     {
+        /* draw a triangle, rotate it a bit every frame */
         glClear( GL_COLOR_BUFFER_BIT );
 
         glMatrixMode( GL_MODELVIEW );
@@ -53,6 +80,7 @@ int main( void )
         glVertex2f(  0.0f,  0.5f );
         glEnd( );
 
+        /* swap the front and back buffers */
         sgui_window_swap_buffers( wnd );
     }
 

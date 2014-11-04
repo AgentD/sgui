@@ -1,3 +1,14 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    an embedded Direct3D 11 rendering widget through sgui and how to use a
+    manual event/drawing loop in a thread for real-time rendering
+    applications.
+ */
 #include "sgui.h"
 #include "sgui_d3d11.h"
 
@@ -59,6 +70,7 @@ DWORD __stdcall d3d11_drawing_thread( LPVOID arg )
     ID3D11Buffer* vbo;
     (void)arg;
 
+    /* get window and context object from sub-view widget */
     window = sgui_subview_get_window( subview );
     ctx = (sgui_d3d11_context*)sgui_window_get_context( window );
 
@@ -145,6 +157,7 @@ DWORD __stdcall d3d11_drawing_thread( LPVOID arg )
         Sleep( 20 );
     }
 
+    /* cleanup */
     ID3D11Buffer_Release( vbo );
     ID3D11InputLayout_Release( il );
     ID3D11VertexShader_Release( vs );
@@ -163,7 +176,7 @@ int main( void )
 
     sgui_init( );
 
-    /* create a window */
+    /* create an ordinary window */
     wnd = sgui_window_create( NULL, 200, 160, SGUI_FIXED_SIZE );
 
     sgui_window_set_title( wnd, "Direct3D widget" );
@@ -172,6 +185,8 @@ int main( void )
 
     /* create widgets */
     text = sgui_label_create( 20, 130, "D3D11 Drawing Thread" );
+
+    /* create sub-view widget. See gl2.c for further explanation */
     subview = sgui_subview_create( wnd, 10, 10, 180, 120,
                                    SGUI_DIRECT3D_11, NULL );
 

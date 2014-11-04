@@ -1,3 +1,12 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create custom
+    widgets for sgui.
+ */
 #include "sgui.h"
 #include "sgui_internal.h"
 
@@ -7,6 +16,9 @@
 
 typedef struct
 {
+    /*
+        Inherit/extend the widget structure
+     */
     sgui_widget super;
 
     int hour;
@@ -17,6 +29,9 @@ clock_widget;
 
 
 
+/*
+    helper function to draw a seven segment digit
+ */
 static void draw_segment_digit( sgui_canvas* cv, int digit, int x, int y,
                                 int seglength )
 {
@@ -74,6 +89,9 @@ static void draw_segment_digit( sgui_canvas* cv, int digit, int x, int y,
     }
 }
 
+/*
+    helper function to draw a colon
+ */
 static void draw_colon( sgui_canvas* cv, int x, int y, int seglength )
 {
     unsigned char color[4] = { 0xFF, 0x00, 0x00, 0xFF };
@@ -87,6 +105,9 @@ static void draw_colon( sgui_canvas* cv, int x, int y, int seglength )
     sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
 }
 
+/*
+    draw callback for our custom widget
+ */
 static void clock_widget_draw( sgui_widget* super )
 {
     clock_widget* this = (clock_widget*)super;
@@ -105,6 +126,9 @@ static void clock_widget_draw( sgui_widget* super )
     draw_segment_digit( super->canvas, this->second % 10, x+93, y, 10 );
 }
 
+/*
+    destroy callback for our custom widget
+ */
 static void clock_widget_destroy( sgui_widget* this )
 {
     free( this );
@@ -112,6 +136,9 @@ static void clock_widget_destroy( sgui_widget* this )
 
 
 
+/*
+    a function that creates an instance of our custom digital clock widget
+ */
 sgui_widget* clock_widget_create( int x, int y, int hour, int minute,
                                   int second )
 {
@@ -125,15 +152,39 @@ sgui_widget* clock_widget_create( int x, int y, int hour, int minute,
     if( !this )
         return NULL;
 
-    /* initialize super structure */
+    /*
+        initialize the base structure. Set position and size, initialize all
+        all internal callbacks and pointers to NULL, and initialize all flags.
+     */
     sgui_widget_init( super, x, y, 110, 30 );
 
-    super->draw_callback         = clock_widget_draw;
-    super->destroy               = clock_widget_destroy;
-    super->focus_policy          = 0;
-    this->hour                   = hour<0 ? 0 : (hour % 12);
-    this->minute                 = minute<0 ? 0 : (minute % 60);
-    this->second                 = second<0 ? 0 : (second % 60);
+    /*
+        Set the internal callbacks for widget redrawing and widget cleanup
+     */
+    super->draw_callback = clock_widget_draw;
+    super->destroy       = clock_widget_destroy;
+
+    /*
+        Clear the focus policy flags, so our widget cannot get keyboard focus
+
+        Possible flags are:
+         - SGUI_FOCUS_ACCEPT If set, the widget accepts focus, if not set, it
+                             does not accept any focus at all
+         - SGUI_FOCUS_DRAW If set, a box is drawn around the widgetif it
+                           has keyboard focus
+         - SGUI_FOCUS_DROP_ESC If set, the focus is withdrawn from the widget
+                               when the user presses the escape key
+         - SGUI_FOCUS_DROP_TAB If set, the focus is withdrawn from the widget
+                               when the user presses the tab key
+     */
+    super->focus_policy = 0;
+
+    /*
+        setup the internal values of the widget
+     */
+    this->hour   = hour  <0 ? 0 : (hour   % 12);
+    this->minute = minute<0 ? 0 : (minute % 60);
+    this->second = second<0 ? 0 : (second % 60);
 
     return (sgui_widget*)this;
 }
@@ -154,7 +205,7 @@ int main( void )
     sgui_window_move_center( wnd );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
-    /* */
+    /* create our custom widget */
     clk = clock_widget_create( 10, 10, 1, 2, 3 );
 
     sgui_window_add_widget( wnd, clk );

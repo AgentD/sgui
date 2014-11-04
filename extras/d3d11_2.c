@@ -1,3 +1,12 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    an embedded Direct3D 11 rendering widget through sgui.
+ */
 #include "sgui.h"
 #include "sgui_d3d11.h"
 
@@ -82,7 +91,7 @@ int main( void )
 
     sgui_init( );
 
-    /* create a window */
+    /* create an ordinary window */
     wnd = sgui_window_create( NULL, 200, 200, SGUI_FIXED_SIZE );
 
     sgui_window_set_title( wnd, "D3D11 widget" );
@@ -92,6 +101,8 @@ int main( void )
     /* create some widgets */
     text = sgui_label_create( 40, 130, "Direct3D\302\256 widget" );
     button = sgui_button_create( 10, 155, 75, 30, "Refresh", 0 );
+
+    /* create a subview widget. See gl2.c for further explanation */
     subview = sgui_subview_create( wnd, 10, 10, 180, 120,
                                    SGUI_DIRECT3D_11, NULL );
 
@@ -147,7 +158,7 @@ int main( void )
     ID3D11DeviceContext_VSSetShader( ctx->ctx, vs, NULL, 0 );
     ID3D11DeviceContext_PSSetShader( ctx->ctx, ps, NULL, 0 );
 
-    /* hook callbacks */
+    /* hook callbacks. See gl2.c for further explanation */
     sgui_subview_set_draw_callback( subview, d3dview_on_draw );
     sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
                         sgui_subview_refresh, subview, SGUI_VOID );

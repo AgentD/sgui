@@ -1,3 +1,13 @@
+/*
+    This file is part of the sgui samples collection. I, David Oberhollenzer,
+    author of this file hereby place the contents of this file into
+    the public domain.
+ */
+/*
+    This small programm is supposed to demonstrate how to create a window
+    with a Direct3D 9 rendering context through sgui and how to use a manual
+    event/drawing loop for real-time rendering applications.
+ */
 #include "sgui.h"
 #include "sgui_d3d9.h"
 
@@ -33,7 +43,7 @@ int main( void )
 
     sgui_init( );
 
-    /* create a window */
+    /* create a window. See gl1.c for further explanation */
     desc.parent         = NULL;
     desc.share          = NULL;
     desc.width          = 300;
@@ -47,6 +57,7 @@ int main( void )
 
     wnd = sgui_window_create_desc( &desc );
 
+    /* make the window visible */
     sgui_window_set_title( wnd, "Direct3D 9 Sample" );
     sgui_window_move_center( wnd );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
@@ -68,7 +79,7 @@ int main( void )
     memcpy( pVoid, vertices, sizeof(vertices) );
     IDirect3DVertexBuffer9_Unlock( v_buffer );
 
-    /* main loop */
+    /* main loop. See gl1.c for further explanation */
     while( sgui_main_loop_step( ) )
     {
         /* background color animation */
@@ -99,6 +110,7 @@ int main( void )
 
         IDirect3DDevice9_EndScene( dev );
 
+        /* swap front and back buffer */
         sgui_window_swap_buffers( wnd );
     }
 
