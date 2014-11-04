@@ -36,14 +36,16 @@
 #include "sgui_context.h"
 #include "sgui_window.h"
 
-#define WIN32_LEAN_AND_MEAN
+#ifndef SGUI_DOXYGEN
+    #define WIN32_LEAN_AND_MEAN
 
-#ifndef COBJMACROS
-    #define COBJMACROS
-#endif
+    #ifndef COBJMACROS
+        #define COBJMACROS
+    #endif
 
-#ifdef WIDL_C_INLINE_WRAPPERS
-    #undef WIDL_C_INLINE_WRAPPERS
+    #ifdef WIDL_C_INLINE_WRAPPERS
+        #undef WIDL_C_INLINE_WRAPPERS
+    #endif
 #endif
 
 #include <windows.h>

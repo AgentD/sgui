@@ -33,6 +33,7 @@
 
 
 
+#ifndef SGUI_DOXYGEN
 #define SGUI_MOD_SHIFT     0x01 /**< Flag for any kind of SHIFT key */
 #define SGUI_MOD_CTRL      0x02 /**< Flag for any kind of CTRL key */
 #define SGUI_MOD_ALT       0x04 /**< Flag for any kind of ALT key */
@@ -181,6 +182,7 @@
 #define SGUI_KC_ZOOM       0xFB /**< Zoom key */
 #define SGUI_KC_PA1        0xFD /**< PA1 key */
 #define SGUI_KC_OEM_CLEAR  0xFE /**< Clear key */
+#endif
 
 
 

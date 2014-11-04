@@ -36,7 +36,9 @@
 #include "sgui_context.h"
 #include "sgui_window.h"
 
-#define WIN32_LEAN_AND_MEAN
+#ifndef SGUI_DOXYGEN
+    #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <d3d9.h>
 
