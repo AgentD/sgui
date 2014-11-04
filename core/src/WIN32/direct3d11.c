@@ -291,7 +291,7 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
                             DXGI_FORMAT_R8G8B8A8_UNORM;
     scd.SampleDesc.Count = desc->samples>0 ? desc->samples : 1;
     scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scd.BufferCount = desc->doublebuffer ? 2 : 1;
+    scd.BufferCount = (desc->flags & SGUI_DOUBLEBUFFERED) ? 2 : 1;
     scd.OutputWindow = TO_W32(wnd)->hWnd;
     scd.Windowed = TRUE;
     scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;

@@ -99,7 +99,8 @@ int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
     do
     {
         set_attributes( attr, desc->bits_per_pixel, desc->depth_bits,
-                        desc->stencil_bits, desc->doublebuffer, samples-- );
+                        desc->stencil_bits, desc->flags & SGUI_DOUBLEBUFFERED,
+                        samples-- );
 
         fbl = glXChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
     }

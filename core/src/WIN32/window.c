@@ -487,7 +487,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     DWORD style;
     RECT r;
 
-    if( !desc || !desc->width || !desc->height )
+    if( !desc || !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
         return NULL;
 
 #ifdef SGUI_NO_OPENGL
@@ -527,8 +527,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
     else
     {
-        style = desc->resizeable ? WS_OVERLAPPEDWINDOW :
-                                   (WS_CAPTION | WS_SYSMENU);
+        style = (desc->flags & SGUI_FIXED_SIZE) ? (WS_CAPTION | WS_SYSMENU) :
+                                                  WS_OVERLAPPEDWINDOW;
         AdjustWindowRect( &r, style, FALSE );
     }
 

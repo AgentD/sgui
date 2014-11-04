@@ -20,9 +20,8 @@ int main( void )
     desc.share          = NULL;
     desc.width          = 300;
     desc.height         = 300;
-    desc.resizeable     = SGUI_FIXED_SIZE;
+    desc.flags          = SGUI_FIXED_SIZE|SGUI_DOUBLEBUFFERED;
     desc.backend        = SGUI_OPENGL_COMPAT;
-    desc.doublebuffer   = SGUI_DOUBLEBUFFERED;
     desc.bits_per_pixel = 32;
     desc.depth_bits     = 16;
     desc.stencil_bits   = 0;

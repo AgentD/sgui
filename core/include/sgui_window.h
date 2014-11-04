@@ -199,13 +199,16 @@ struct sgui_window_description
     unsigned int height;
 
     /**
-     * \brief Non-zero if the window should be resizeable by the user,
-     *        zero if the should remain at a fixed size.
+     * \brief Misc. window flags
      *
-     * The symbolic constants SGUI_RESIZEABLE and SGUI_FIXED_SIZE can be used
-     * to generate more readable code.
+     * The flag SGUI_FIXED_SIZE is set, the window is forced to a fixed size
+     * that the user cannot change. If not set, the window can be resized.
+     *
+     * If the flag SGUI_DOUBLEBUFFERED is set, a window with a graphics
+     * rendering context (OpenGL or Direct3D) is created with a double
+     * buffered frame buffer.
      */
-    int resizeable;
+    int flags;
 
     /**
      * \brief What back end to use
@@ -221,14 +224,6 @@ struct sgui_window_description
      * nor a context object for custom applications.
      */
     int backend;
-
-    /**
-     * \brief Non-zero if the window should use double buffering
-     *
-     * The symbolic constants SGUI_SINGLEBUFFERED and SGUI_DOUBLEBUFFERED can
-     * be used to generate more readable code.
-     */
-    int doublebuffer;
 
     /**
      * \brief The desired number of bits per pixel
@@ -256,11 +251,8 @@ struct sgui_window_description
 
 
 
-#define SGUI_RESIZEABLE 1
-#define SGUI_FIXED_SIZE 0
-
-#define SGUI_DOUBLEBUFFERED 1
-#define SGUI_SINGLEBUFFERED 0
+#define SGUI_FIXED_SIZE 0x01
+#define SGUI_DOUBLEBUFFERED 0x02
 
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
@@ -293,23 +285,21 @@ extern "C" {
  * \note The window is created invisible and has to be made visible by calling
  *       sgui_window_set_visible( ).
  *
- * \param parent     A pointer to the parent window, or NULL for root window.
- *                   If a window has a parent, it is not decorted by the
- *                   systems window manager, positioned relative to its parent
- *                   and only visible within its parent.
- * \param width      The width of the window(without borders and decoration).
- * \param height     The height of the window(without borders and decoration)
- * \param resizeable Non-zero if the window should be resizeable by the user,
- *                   zero if the should remain at a fixed size. The symbolic
- *                   constants SGUI_RESIZEABLE and SGUI_FIXED_SIZE can be used
- *                   to generate more readable code.
+ * \param parent A pointer to the parent window, or NULL for root window.
+ *               If a window has a parent, it is not decorted by the systems
+ *               window manager, positioned relative to its parent and only
+ *               visible within its parent.
+ * \param width  The width of the window(without borders and decoration).
+ * \param height The height of the window(without borders and decoration)
+ * \param flags  Misc. window flas. If SGUI_FIXED_SIZE is set, the window
+ *               cannot be resized by the user.
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
 SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
                                           unsigned int width,
                                           unsigned int height,
-                                          int resizeable );
+                                          int flags );
 
 /**
  * \brief Create a window using a pointer to a description structure
@@ -328,9 +318,8 @@ SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
-SGUI_DLL sgui_window* sgui_window_create_desc(
-                                        const sgui_window_description* desc
-                                             );
+SGUI_DLL
+sgui_window* sgui_window_create_desc( const sgui_window_description* desc );
 
 /**
  * \brief Make the rendering context for a window current

@@ -82,7 +82,7 @@ static void xlib_window_set_size( sgui_window* this,
     sgui_internal_lock_mutex( );
 
     /* adjust the fixed size for nonresizeable windows */
-    if( !TO_X11(this)->resizeable )
+    if( TO_X11(this)->flags & SGUI_FIXED_SIZE )
     {
         hints.flags = PSize | PMinSize | PMaxSize;
         hints.min_width  = hints.base_width  = hints.max_width  = (int)width;
@@ -379,7 +379,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     unsigned char rgb[3];
     Window x_parent;
 
-    if( !desc || !desc->width || !desc->height )
+    if( !desc || !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
         return NULL;
 
 #ifdef SGUI_NO_OPENGL
@@ -442,7 +442,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         goto failure;
 
     /* make the window non resizeable if required */
-    if( !desc->resizeable )
+    if( desc->flags & SGUI_FIXED_SIZE )
     {
         hints.flags = PSize | PMinSize | PMaxSize;
         hints.min_width = hints.max_width =
@@ -523,7 +523,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     sgui_internal_window_post_init( super, attr.width, attr.height,
                                     desc->backend );
 
-    this->resizeable = desc->resizeable;
+    this->flags = desc->flags;
 
     /* store entry points */
     super->get_mouse_position = xlib_window_get_mouse_position;

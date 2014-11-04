@@ -29,6 +29,7 @@
 #include "sgui_window.h"
 
 #define TO_W32( window ) ((sgui_window_w32*)window)
+#define ALL_FLAGS (SGUI_FIXED_SIZE|SGUI_DOUBLEBUFFERED)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

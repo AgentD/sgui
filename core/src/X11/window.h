@@ -40,6 +40,7 @@
 
 
 #define TO_X11( window ) ((sgui_window_xlib*)window)
+#define ALL_FLAGS (SGUI_FIXED_SIZE|SGUI_DOUBLEBUFFERED)
 
 
 
@@ -51,7 +52,7 @@ typedef struct _sgui_window_xlib
     XIC ic;
 
     int is_child;             /* Non-zero for child windows */
-    int resizeable;           /* remembers whether the window is resizeable */
+    int flags;                /* remembers the initial window flags */
     unsigned int mouse_warped;/* mouse warp counter */
 
 #ifndef SGUI_NO_OPENGL

@@ -81,9 +81,8 @@ int main( void )
     desc.share          = NULL;
     desc.width          = 300;
     desc.height         = 300;
-    desc.resizeable     = SGUI_RESIZEABLE;
+    desc.flags          = SGUI_DOUBLEBUFFERED;
     desc.backend        = SGUI_DIRECT3D_11;
-    desc.doublebuffer   = SGUI_DOUBLEBUFFERED;
     desc.bits_per_pixel = 32;
     desc.depth_bits     = 16;
     desc.stencil_bits   = 0;

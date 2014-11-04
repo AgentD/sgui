@@ -29,7 +29,7 @@ int main( void )
     sgui_init( );
 
     /* create a window */
-    wnd = sgui_window_create( NULL, 320, 150, SGUI_RESIZEABLE );
+    wnd = sgui_window_create( NULL, 320, 150, 0 );
 
     sgui_window_set_title( wnd, "Clipboard" );
     sgui_window_move_center( wnd );

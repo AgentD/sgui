@@ -113,8 +113,7 @@ int main( int argc, char** argv )
 {
     sgui_widget* t;
     int x, y, nogl=0;
-    sgui_window_description desc = { NULL, NULL, 100, 100, 1, 0, 1,
-                                     32, 24, 8, 4 };
+    sgui_window_description desc = {NULL, NULL, 100, 100, 0, 0, 32, 24, 8, 4};
     thread_type thread = 0;
 
     for( x=1; x<argc; ++x )
@@ -127,7 +126,7 @@ int main( int argc, char** argv )
 
     b = sgui_window_create_desc( &desc );
 
-    desc.resizeable = SGUI_FIXED_SIZE;
+    desc.flags |= SGUI_FIXED_SIZE;
     a = sgui_window_create_desc( &desc );
 
     sgui_window_set_visible( a, SGUI_VISIBLE );

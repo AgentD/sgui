@@ -204,7 +204,7 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
     if( IDirect3D9_GetAdapterDisplayMode( d3d9, adapter, &d3ddm ) < 0 )
         goto fail;
 
-    this->present.BackBufferCount      = desc->doublebuffer ? 1 : 0;
+    this->present.BackBufferCount      =(desc->flags&SGUI_DOUBLEBUFFERED)?1:0;
     this->present.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
     this->present.BackBufferFormat     = d3ddm.Format;
     this->present.SwapEffect           = D3DSWAPEFFECT_DISCARD;

@@ -24,7 +24,7 @@ int main( )
     sgui_init( );
 
     /* create a window */
-    wnd = sgui_window_create( NULL, 400, 300, SGUI_RESIZEABLE );
+    wnd = sgui_window_create( NULL, 400, 300, 0 );
 
     sgui_window_set_title( wnd, "Simple Sample" );
     sgui_window_move_center( wnd );

@@ -167,8 +167,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
         desc.share          = NULL;
         desc.width          = width;
         desc.height         = height;
-        desc.resizeable     = SGUI_FIXED_SIZE;
-        desc.doublebuffer   = SGUI_SINGLEBUFFERED;
+        desc.flags          = SGUI_FIXED_SIZE;
         desc.bits_per_pixel = 32;
         desc.depth_bits     = 16;
         desc.stencil_bits   = 0;

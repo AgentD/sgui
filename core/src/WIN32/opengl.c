@@ -207,7 +207,8 @@ int set_pixel_format( sgui_window_w32* this,
     do
     {
         set_attributes( attribs, desc->bits_per_pixel, desc->depth_bits,
-                        desc->stencil_bits, desc->doublebuffer, samples-- );
+                        desc->stencil_bits,
+                        desc->flags & SGUI_DOUBLEBUFFERED, samples-- );
 
         format = determine_pixel_format( attribs, 1 );
     }

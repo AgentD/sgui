@@ -144,7 +144,7 @@ void sgui_internal_window_fire_event( sgui_window* this, const sgui_event* e )
 /****************************************************************************/
 
 sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
-                                 unsigned int height, int resizeable )
+                                 unsigned int height, int flags )
 {
     sgui_window_description desc;
 
@@ -152,9 +152,8 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
     desc.share          = NULL;
     desc.width          = width;
     desc.height         = height;
-    desc.resizeable     = resizeable;
+    desc.flags          = flags;
     desc.backend        = SGUI_NATIVE;
-    desc.doublebuffer   = SGUI_DOUBLEBUFFERED;
     desc.bits_per_pixel = 32;
     desc.depth_bits     = 24;
     desc.stencil_bits   = 8;
