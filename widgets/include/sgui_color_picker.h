@@ -37,6 +37,8 @@
  * \extends sgui_widget
  *
  * \brief A widget for selecting a color, designed for the sgui_color_dialog
+ *
+ * \image html colorpicker.png "A color picker widget used in a color dialog"
  */
 
 

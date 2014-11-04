@@ -19,7 +19,7 @@ three parameters:
 sgui_window* sgui_window_create( <font class="keyword">sgui_window*</font> parent,
                                  <font class="keyword">unsigned int</font> width,
                                  <font class="keyword">unsigned int</font> height,
-                                 <font class="keyword">int</font> resizeable );
+                                 <font class="keyword">int</font> flags );
 </p>
 
 <ul>
@@ -31,11 +31,10 @@ sgui_window* sgui_window_create( <font class="keyword">sgui_window*</font> paren
 <li>The next two parameters, <b>width</b> and <b>height</b>, specify the
     size of the windows drawing area in pixels (i.e. the area inside the
     window, not taking the window borders into account).
-<li>The next paramter, <b>resizeable</b> specifies whether the user should be
-    able to resize the window with the mouse or not.
-<li>The constants <b>SGUI_FIXED_SIZE</b> and <b>SGUI_RESIZEABLE</b> are
-    provided so you don't have to pass the magic values <b>0</b> and
-    <b>1 (nonzero)</b> to the function.
+<li>The next paramter, <b>flags</b> can be used to specify various window
+    flags.
+<li>If the flag <b>SGUI_FIXED_SIZE</b> is set, the user cannot change the
+    window size.
 </ul>
 
 The functions returns a <b>pointer to an sgui_window struct</b> on success, or
@@ -89,7 +88,7 @@ window functions:<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_init( );<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="keyword">NULL</font>, <font class="number">400</font>, <font class="number">300</font>, SGUI_RESIZEABLE );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;wnd = sgui_window_create( <font class="keyword">NULL</font>, <font class="number">400</font>, <font class="number">300</font>, 0 );<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;sgui_window_set_title( wnd, <font class="string">"Simple Sample"</font> );<br>
 <br>
@@ -117,11 +116,6 @@ The final result should look something like this:<br>
 The title bar of the window is set by calling <b>sgui_window_set_title</b> and
 the window is moved to the center of the screen by calling
 <b>sgui_window_move_center</b>.<br>
-<br>
-You will notice that you can maximze the window or randomly resize it (if your
-window manager allows that). This is because the window has been created with
-the <b>SGUI_RESIZEABLE</b> argument. If we had used <b>SGUI_FIXED_SIZE</b> you
-would not be able to resize or maximize the window.<br>
 <br>
 Also note, that the <b>destroy</b> is called after the main loop, but before
 the <b>deinit</b> function. It is <b>a requirement</b> that the

@@ -35,6 +35,8 @@
  * \struct sgui_color_dialog
  *
  * \brief A color selector dialog window
+ *
+ * \image html colorpicker.png "A color picker dialog"
  */
 
 
