@@ -224,7 +224,7 @@ static void message_box_button_pressed( sgui_message_box* this, int button )
     case 0:  ev.type = SGUI_MESSAGE_BOX_BUTTON1_EVENT; break;
     case 1:  ev.type = SGUI_MESSAGE_BOX_BUTTON2_EVENT; break;
     case 2:  ev.type = SGUI_MESSAGE_BOX_BUTTON3_EVENT; break;
-    default: ev.type = SGUI_MESSAGE_BOX_CLOSED_EVENT;  break;
+    default: ev.type = SGUI_DIALOG_REJECTED;           break;
     }
 
     sgui_window_set_visible( this->window, SGUI_INVISIBLE );

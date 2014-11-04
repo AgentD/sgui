@@ -99,7 +99,7 @@ SGUI_DLL void sgui_message_box_destroy( sgui_message_box* mb );
  * pointer to the message box set source pointer.
  *
  * If the user closes the window without pressing a button,
- * SGUI_MESSAGE_BOX_CLOSED_EVENT is generated.
+ * SGUI_DIALOG_REJECTED is generated.
  *
  * \param mb A pointer to a message box
  */
