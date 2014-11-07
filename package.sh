@@ -2,8 +2,8 @@
 
 clean_build( )
 {
-    rm -r -- bin CMakeFiles core extras dialogs lib widgets
-    rm -- CMakeCache.txt cmake_install.cmake Makefile
+    rm -r -- bin CMakeFiles core extras dialogs lib widgets tests
+    rm -- CMakeCache.txt cmake_install.cmake Makefile CTestTestfile.cmake
 }
 
 windows_pack( )
@@ -114,6 +114,13 @@ cp ../dialogs/include/*.h include
 cd ..
 doxygen Doxyfile
 cd build
+
+cd doxydoc/latex
+make
+mv refman.pdf ../
+cd ../
+rm -r -- latex/
+cd ../
 
 # build for unix system
 if [ "$build_all" = true ] || [ "$build_local" = true ]; then
