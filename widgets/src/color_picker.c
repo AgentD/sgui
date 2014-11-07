@@ -520,7 +520,7 @@ void sgui_color_picker_set_rgb( sgui_widget* super,
                                 const unsigned char* rgba )
 {
     unsigned char hsva[4], min, max;
-    int h;
+    int h = 0;
 
     if( !super || !rgba )
         return;
