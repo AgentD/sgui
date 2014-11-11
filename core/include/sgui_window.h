@@ -115,7 +115,7 @@ struct sgui_window
     void (* set_size )( sgui_window* wnd,
                         unsigned int width, unsigned int height );
 
-    /** \copydoc Called by sgui_window_move_center */
+    /** \copydoc sgui_window_move_center */
     void (* move_center )( sgui_window* wnd );
 
     /** \copydoc sgui_window_move */
@@ -132,7 +132,7 @@ struct sgui_window
     void (* destroy )( sgui_window* wnd );
 
     /**
-     * \brief Called by sgui_window_force_redraw
+     * \brief sgui_window_force_redraw
      *
      * \param wnd Pointer to the window itself
      * \param r   Pointer to a rect to redraw (clamped to window dimesions)
@@ -140,7 +140,7 @@ struct sgui_window
     void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
 
     /**
-     * \copydoc Called by sgui_window_set_vsync.
+     * \copydoc sgui_window_set_vsync.
      *
      * \note May be NULL if not implemented
      */
