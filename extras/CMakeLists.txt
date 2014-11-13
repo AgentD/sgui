@@ -26,10 +26,13 @@ if( WIN32 AND DIRECT3D9 )
   add_executable( d3d9_1 d3d9_1.c )
   add_executable( d3d9_2 d3d9_2.c )
   add_executable( d3d9_3 d3d9_3.c )
+  add_executable( texcanvas_d3d9 texcanvas_d3d9.c )
   target_link_libraries( d3d9_0 sgui )
   target_link_libraries( d3d9_1 sgui )
   target_link_libraries( d3d9_2 sgui )
   target_link_libraries( d3d9_3 sgui )
+
+  target_link_libraries( texcanvas_d3d9 sgui sguisubwm )
 endif( )
 
 if( WIN32 AND DIRECT3D11 )

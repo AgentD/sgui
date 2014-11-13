@@ -6,5 +6,6 @@
 
 set( SUBWM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/tex_canvas.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/gl_canvas.c
+               ${CMAKE_CURRENT_SOURCE_DIR}/src/d3d9_canvas.c
      PARENT_SCOPE )
 

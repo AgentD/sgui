@@ -115,6 +115,7 @@ sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
  * \param canvas A pointer to a canvas
  *
  * For an OpenGL canvas, this returns a pointer to a GLuint texture object.
+ * For a Direct3D canvas, this returns a pointer to an IDirect3DTexture9.
  *
  * \return A pointer to the texture object.
  */

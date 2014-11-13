@@ -1,5 +1,5 @@
 /*
- * tex_canvas.c
+ * d3d9_canvas.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,49 +22,47 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef D3D9_CANVAS_H
+#define D3D9_CANVAS_H
+
+
+
 #include "sgui_tex_canvas.h"
 #include "sgui_context.h"
-#include "sgui_window.h"
-
-#include "gl_canvas.h"
-#include "d3d9_canvas.h"
-
-#include <stddef.h>
+#include "sgui_canvas.h"
 
 
 
-sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
-                                     unsigned width, unsigned int height )
+#if !defined(SGUI_NO_D3D9) && defined(SGUI_WINDOWS)
+#include "sgui_d3d9.h"
+
+
+
+typedef struct
 {
-    if( !wnd || !width || !height )
-        return NULL;
+    sgui_tex_canvas super;
 
-    switch( wnd->backend )
-    {
-#ifndef SGUI_NO_OPENGL
-    case SGUI_OPENGL_CORE:
-    case SGUI_OPENGL_COMPAT:
-        (void)wnd; (void)ctx;
-        return sgui_gl_canvas_create( width, height );
-#endif
+    sgui_rect locked;
+    unsigned char* buffer;
 
-#if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
-    case SGUI_DIRECT3D_9:
-        (void)wnd;
-        return sgui_d3d9_canvas_create( ctx, width, height );
-#endif
-
-#if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D11)
-    case SGUI_DIRECT3D_11:
-        break;
-#endif
-    }
-
-    return NULL;
+    IDirect3DTexture9* tex;
 }
+sgui_d3d9_canvas;
 
-void* sgui_tex_canvas_get_texture( sgui_canvas* this )
-{
-    return this ? ((sgui_tex_canvas*)this)->get_texture( this ) : NULL;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+sgui_canvas* sgui_d3d9_canvas_create( sgui_context* ctx,
+                                      unsigned width, unsigned int height );
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* !SGUI_NO_D3D9 && SGUI_WINDOWS */
+
+#endif /* D3D9_CANVAS_H */
 
