@@ -33,7 +33,7 @@
 
 
 
-#include "sgui_predef.h"
+#include "sgui_subwm_predef.h"
 #include "sgui_canvas.h"
 
 
@@ -45,14 +45,13 @@
  *
  * \brief A memory canvas that synchronizes its contents with a texture object
  */
-typedef struct
+struct sgui_tex_canvas
 {
     sgui_mem_canvas super;
 
     /** \copydoc sgui_tex_canvas_get_texture */
     void* (* get_texture )( sgui_canvas* canvas );
-}
-sgui_tex_canvas;
+};
 
 
 /**
