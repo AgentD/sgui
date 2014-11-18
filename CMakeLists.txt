@@ -250,10 +250,8 @@ add_subdirectory( widgets )
 add_subdirectory( dialogs )
 
 add_library( sgui SHARED ${CORE_SRC} ${WIDGETS_SRC} ${DIALOGS_SRC} )
-add_library( sgui_static STATIC ${CORE_SRC} ${WIDGETS_SRC} ${DIALOGS_SRC} )
 
 target_link_libraries( sgui ${SGUI_DEP} )
-target_link_libraries( sgui_static ${SGUI_DEP} )
 
 add_subdirectory( extras )
 
@@ -262,6 +260,5 @@ add_subdirectory( tests )
 
 if( WIN32 )
   set_target_properties(sgui PROPERTIES PREFIX "")
-  set_target_properties(sgui_static PROPERTIES PREFIX "")
 endif( )
 
