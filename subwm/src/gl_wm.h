@@ -1,5 +1,5 @@
 /*
- * sgui_subwm_predef.h
+ * gl_wm.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,25 +22,54 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * \file sgui_subwm_predef.h
- *
- * \brief Forwad declarations for the sgui subwm library
- */
-#ifndef SGUI_SUBWM_PREDEF_H
-#define SGUI_SUBWM_PREDEF_H
+#ifndef GL_WM_H
+#define GL_WM_H
 
 
 
-#include "sgui_predef.h"
+#include "sgui_subwm_predef.h"
+#include "sgui_ctx_window.h"
+#include "sgui_internal.h"
+#include "sgui_ctx_wm.h"
+#include "sgui_event.h"
+#include "sgui_skin.h"
 
 
 
-typedef struct sgui_tex_canvas sgui_tex_canvas;
-typedef struct sgui_ctx_window sgui_ctx_window;
-typedef struct sgui_ctx_wm sgui_ctx_wm;
+#ifndef SGUI_NO_OPENGL
+#ifdef SGUI_WINDOWS
+    #include <windows.h>
+#endif
+
+#ifdef SGUI_OS_X
+    #include <OpenGL/gl.h>
+#else
+    #include <GL/gl.h>
+#endif
 
 
 
-#endif /* SGUI_SUBWM_PREDEF_H */
+typedef struct
+{
+    sgui_ctx_wm super;
+
+    GLuint wndtex;
+}
+sgui_gl_wm;
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+sgui_ctx_wm* gl_wm_create( sgui_window* wnd );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SGUI_NO_OPENGL */
+
+#endif /* GL_WM_H */
 

@@ -52,6 +52,7 @@ add_executable( simple simple.c )
 add_executable( clipboard clipboard.c )
 add_executable( widget widget.c )
 add_executable( dialogs dialogs.c )
+add_executable( ctx_wm ctx_wm.c )
 
 target_link_libraries( demo sgui )
 target_link_libraries( events sgui )
@@ -59,4 +60,5 @@ target_link_libraries( simple sgui )
 target_link_libraries( clipboard sgui )
 target_link_libraries( widget sgui )
 target_link_libraries( dialogs sgui )
+target_link_libraries( ctx_wm sgui sguisubwm )
 
