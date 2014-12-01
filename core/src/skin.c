@@ -41,6 +41,134 @@ static sgui_skin* skin;
 
 
 
+/*
+    text:   text string to process
+    canvas: canvas for drawing if "draw" is non-zero
+    x:      offset from the left if drawing text
+    y:      offset from the topy if drawing text
+    r:      if "draw" is zero, a pointer to a rect returning the outlines of
+            the text
+    draw:   non-zero to draw the text, zero to measure the outlines
+ */
+static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
+                          sgui_rect* r, int draw )
+{
+    unsigned int X = 0, longest = 0, lines = 1, font_stack_index = 0;
+    unsigned char col[3], font_stack[10], f = 0;
+    int i = 0;
+    long c;
+
+    /* sanity check */
+    if( !text || (draw && !canvas) || (!draw && !r) )
+        return;
+
+    memcpy( col, skin->font_color, 3 );
+
+    for( ; text && text[ i ]; ++i )
+    {
+        if( text[ i ] == '<' )  /* we found a tag */
+        {
+            /* process what we got so far with the current settings */
+            if( draw )
+            {
+                X += sgui_canvas_draw_text_plain( canvas, x+X, y,
+                                                  f&0x02, f&0x01,
+                                                  col, text, i );
+            }
+            else
+            {
+                X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
+            }
+
+            /* change fonts accordingly */
+            if( !strncmp( text+i+1, "color=\"", 7 ) )
+            {
+                if( !strncmp( text+i+8, "default", 7 ) )
+                {
+                    memcpy( col, skin->font_color, 3 );
+                }
+                else if( text[ i+8 ]=='#' )
+                {
+                    c = strtol( text+i+9, NULL, 16 );
+
+                    col[0] = (c>>16) & 0xFF;
+                    col[1] = (c>>8 ) & 0xFF;
+                    col[2] =  c      & 0xFF;
+                }
+            }
+            else if( text[ i+1 ] == 'b' )
+            {
+                font_stack[ font_stack_index++ ] = f;
+                f |= 0x02;
+            }
+            else if( text[ i+1 ] == 'i' )
+            {
+                font_stack[ font_stack_index++ ] = f;
+                f |= 0x01;
+            }
+            else if( text[ i+1 ] == '/' && font_stack_index )
+            {
+                f = font_stack[ --font_stack_index ];
+            }
+
+            if( (text = strchr( text+i, '>' )) )    /* skip to the end */
+                ++text;
+
+            i = -1;     /* reset to 0 in the next iteration */
+        }
+        else if( text[ i ] == '\n' )
+        {
+            if( draw )
+            {
+                sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
+                                             col, text, i );
+
+                y += skin->font_height;
+            }
+            else
+            {
+                X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
+
+                if( X > longest )   /* store the length of the longest line */
+                    longest = X;
+
+                ++lines;            /* increment line counter */
+            }
+
+            text += i + 1;  /* skip to next line */
+            i = -1;         /* reset i to 0 at next iteration */
+            X = 0;          /* move cursor back to the left */
+        }
+    }
+
+    if( draw )
+    {
+        /* draw what is still left */
+        sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
+                                     col, text, i );
+    }
+    else
+    {
+        /* get the extents of what we didn't get so far */
+        X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
+
+        if( X > longest )
+            longest = X;
+
+        /* Add font height/2 as fudge factor to the height, because our crude
+           computation here does not take into account that characters can
+           peek out below the line */
+        r->left   = 0;
+        r->top    = 0;
+        r->right  = longest - 1;
+        r->bottom = lines * skin->font_height + skin->font_height/2 - 1;
+    }
+}
+
+
+
+
+
 void sgui_skin_set( sgui_skin* ui_skin )
 {
     sgui_interal_skin_init_default( );
@@ -95,149 +223,12 @@ unsigned int sgui_skin_default_font_extents( const char* text,
 
 void sgui_skin_get_text_extents( const char* text, sgui_rect* r )
 {
-    unsigned int X = 0, longest = 0, lines = 1, i = 0, font_stack_index = 0;
-    char font_stack[10], f = 0;
-
-    /* sanity check */
-    if( !text || !r )
-        return;
-
-    for( ; text && text[ i ]; ++i )
-    {
-        if( text[ i ] == '<' )  /* we found a tag */
-        {
-            /* get extends for what we found so far */
-            X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
-
-            /* change fonts accordingly */
-            if( text[ i+1 ] == 'b' )
-            {
-                font_stack[ font_stack_index++ ] = f;
-                f |= 0x02;
-            }
-            else if( text[ i+1 ] == 'i' )
-            {
-                font_stack[ font_stack_index++ ] = f;
-                f |= 0x01;
-            }
-            else if( text[ i+1 ] == '/' && font_stack_index )
-            {
-                f = font_stack[ --font_stack_index ];
-            }
-
-            /* skip to tag end */
-            text = strchr( text+i, '>' );
-
-            if( text )
-                ++text;
-
-            /* reset i to -1, so it starts with 0 in the next iteration */
-            i = -1;
-        }
-        else if( text[ i ] == '\n' )
-        {
-            /* get extends for what we found so far */
-            X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
-
-            /* store the length of the longest line */
-            if( X > longest )
-                longest = X;
-
-            ++lines;        /* increment line counter */
-            text += i + 1;  /* skip to next line */
-            i = -1;         /* restart with 0 at next iteration */
-            X = 0;          /* move cursor back to the left */
-        }
-    }
-
-    /* get the extents of what we didn't get so far */
-    X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
-
-    if( X > longest )
-        longest = X;
-
-    /* Add font height/2 as fudge factor to the height, because our crude
-       computation here does not take into account that characters can peek
-       out below the line */
-    r->left   = 0;
-    r->top    = 0;
-    r->right  = longest - 1;
-    r->bottom = lines * skin->font_height + skin->font_height/2 - 1;
+    process_text( text, NULL, 0, 0, r, 0 );
 }
 
 void sgui_skin_draw_text( sgui_canvas* canvas, int x, int y,
                           const char* text )
 {
-    int i = 0, X = 0, font_stack_index = 0, font_height;
-    unsigned char col[3], font_stack[10], f = 0;
-    long c;
-
-    /* sanity check */
-    if( !canvas || !text )
-        return;
-
-    memcpy( col, skin->font_color, 3 );
-
-    font_height = skin->font_height;
-
-    for( ; text && text[ i ]; ++i )
-    {
-        if( text[ i ] == '<' )  /* we encountered a tag */
-        {
-            /* draw what we got so far with the current settings */
-            X += sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
-                                              col, text, i );
-
-            if( !strncmp( text+i+1, "color=", 6 ) ) /* it's a color tag */
-            {
-                if( !strncmp( text+i+9, "default", 7 ) )
-                {
-                    memcpy( col, skin->font_color, 3 );
-                }
-                else
-                {
-                    c = strtol( text+i+9, NULL, 16 );
-
-                    col[0] = (c>>16) & 0xFF;
-                    col[1] = (c>>8 ) & 0xFF;
-                    col[2] =  c      & 0xFF;
-                }
-            }
-            else if( text[ i+1 ] == 'b' )   /* it's a <b> tag */
-            {
-                font_stack[ font_stack_index++ ] = f;
-                f |= 0x02;
-            }
-            else if( text[ i+1 ] == 'i' )   /* it's an <i> tag */
-            {
-                font_stack[ font_stack_index++ ] = f;
-                f |= 0x01;
-            }
-            else if( text[ i+1 ] == '/' && font_stack_index )   /* end tag */
-            {
-                f = font_stack[ --font_stack_index ];   /* pop from stack */
-            }
-
-            /* skip to the end of the tag */
-            if( (text = strchr( text+i, '>' )) )
-                ++text;
-
-            i = -1; /* reset i to 0 at next iteration */
-        }
-        else if( text[ i ] == '\n' )
-        {
-            /* draw what we got so far */
-            sgui_canvas_draw_text_plain( canvas, x+X, y, f&0x02, f&0x01,
-                                         col, text, i );
-
-            text += i + 1;    /* skip to next line */
-            i = -1;           /* reset i to 0 at next iteration */
-            X = 0;            /* adjust move cursor */
-            y += font_height;
-        }
-    }
-
-    /* draw what is still left */
-    sgui_canvas_draw_text_plain(canvas, x+X, y, f&0x02, f&0x01, col, text, i);
+    process_text( text, canvas, x, y, NULL, 1 );
 }
 
