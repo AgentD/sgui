@@ -41,22 +41,25 @@ static sgui_skin* skin;
 
 
 
+#define ITALIC 0x01
+#define BOLD 0x02
+
+
+
 /*
     text:   text string to process
     canvas: canvas for drawing if "draw" is non-zero
     x:      offset from the left if drawing text
     y:      offset from the topy if drawing text
-    r:      if "draw" is zero, a pointer to a rect returning the outlines of
-            the text
+    r:      if "draw" is zero, a pointer to a rect returning the text outlines
     draw:   non-zero to draw the text, zero to measure the outlines
  */
 static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
                           sgui_rect* r, int draw )
 {
-    unsigned int i, X = 0, Y = 0, longest = 0, font_stack_index = 0;
+    unsigned int i, c, X = 0, Y = 0, longest = 0, font_stack_index = 0;
     unsigned char col[3], font_stack[10], f = 0;
     char* end;
-    long c;
 
     /* sanity check */
     if( !text || (draw && !canvas) || (!draw && !r) )
@@ -72,12 +75,13 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
         /* process what we got so far with the current settings */
         if( draw )
         {
-            X += sgui_canvas_draw_text_plain( canvas, x+X, y+Y, f&0x02, f&0x01,
+            X += sgui_canvas_draw_text_plain( canvas, x+X, y+Y,
+                                              f&BOLD, f&ITALIC,
                                               col, text, i );
         }
         else
         {
-            X += sgui_skin_default_font_extents( text, i, f&0x02, f&0x01 );
+            X += sgui_skin_default_font_extents( text, i, f&BOLD, f&ITALIC );
         }
 
         if( text[ i ] == '<' )
@@ -99,21 +103,21 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
             else if( !strncmp( text+i, "<b>", 3 ) )
             {
                 font_stack[ font_stack_index++ ] = f;
-                f |= 0x02;
+                f |= BOLD;
             }
             else if( !strncmp( text+i, "<i>", 3 ) )
             {
                 font_stack[ font_stack_index++ ] = f;
-                f |= 0x01;
+                f |= ITALIC;
             }
             else if( !strncmp( text+i, "</b>", 4 ) && font_stack_index )
             {
-                if( (f&0x02) && !(font_stack[font_stack_index-1]&0x02) )
+                if( (f&BOLD) && !(font_stack[font_stack_index-1]&BOLD) )
                     f = font_stack[ --font_stack_index ];
             }
             else if( !strncmp( text+i, "</i>", 4 ) && font_stack_index )
             {
-                if( (f&0x01) && !(font_stack[font_stack_index-1]&0x01) )
+                if( (f&ITALIC) && !(font_stack[font_stack_index-1]&ITALIC) )
                     f = font_stack[ --font_stack_index ];
             }
 
@@ -130,20 +134,15 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
         text += text[i] ? (i + 1) : i;
     }
 
-    if( r )
-    {
-        longest = X>longest ? X : longest;
-        Y += skin->font_height;
+    /* account for last line */
+    longest = X>longest ? X : longest;
+    Y += skin->font_height;
 
-        /* Add font height/2 as fudge factor because
-           characters can peek out below the line */
-        sgui_rect_set_size( r, x, y, longest, Y + skin->font_height/2 );
-    }
+    /* HACK: Add font height/2 because characters can peek below the line */
+    sgui_rect_set_size( r, x, y, longest, Y + skin->font_height/2 );
 }
 
-
-
-
+/****************************************************************************/
 
 void sgui_skin_set( sgui_skin* ui_skin )
 {
