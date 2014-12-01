@@ -55,6 +55,7 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
 {
     unsigned int i, X = 0, Y = 0, longest = 0, font_stack_index = 0;
     unsigned char col[3], font_stack[10], f = 0;
+    char* end;
     long c;
 
     /* sanity check */
@@ -81,34 +82,39 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
 
         if( text[ i ] == '<' )
         {
-            if( !strncmp( text+i+1, "color=\"", 7 ) )
+            if( !strncmp( text+i, "<color=\"default\">", 17 ) )
             {
-                if( !strncmp( text+i+8, "default", 7 ) )
+                memcpy( col, skin->font_color, 3 );
+            }
+            else if( !strncmp( text+i, "<color=\"#", 9 ) )
+            {
+                c = strtol( text+i+9, &end, 16 );
+                if( end && !strncmp( end, "\">", 2 ) && (end-(text+i+9))==6 )
                 {
-                    memcpy( col, skin->font_color, 3 );
-                }
-                else if( text[ i+8 ]=='#' )
-                {
-                    c = strtol( text+i+9, NULL, 16 );
-
                     col[0] = (c>>16) & 0xFF;
                     col[1] = (c>>8 ) & 0xFF;
                     col[2] =  c      & 0xFF;
                 }
             }
-            else if( text[ i+1 ] == 'b' )
+            else if( !strncmp( text+i, "<b>", 3 ) )
             {
                 font_stack[ font_stack_index++ ] = f;
                 f |= 0x02;
             }
-            else if( text[ i+1 ] == 'i' )
+            else if( !strncmp( text+i, "<i>", 3 ) )
             {
                 font_stack[ font_stack_index++ ] = f;
                 f |= 0x01;
             }
-            else if( text[ i+1 ] == '/' && font_stack_index )
+            else if( !strncmp( text+i, "</b>", 4 ) && font_stack_index )
             {
-                f = font_stack[ --font_stack_index ];
+                if( (f&0x02) && !(font_stack[font_stack_index-1]&0x02) )
+                    f = font_stack[ --font_stack_index ];
+            }
+            else if( !strncmp( text+i, "</i>", 4 ) && font_stack_index )
+            {
+                if( (f&0x01) && !(font_stack[font_stack_index-1]&0x01) )
+                    f = font_stack[ --font_stack_index ];
             }
 
             while( text[ i ] && text[ i ]!='>' )
