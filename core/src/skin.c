@@ -102,13 +102,19 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
             }
             else if( !strncmp( text+i, "<b>", 3 ) )
             {
-                font_stack[ font_stack_index++ ] = f;
-                f |= BOLD;
+                if( (font_stack_index+1)<sizeof(font_stack) )
+                {
+                    font_stack[ font_stack_index++ ] = f;
+                    f |= BOLD;
+                }
             }
             else if( !strncmp( text+i, "<i>", 3 ) )
             {
-                font_stack[ font_stack_index++ ] = f;
-                f |= ITALIC;
+                if( (font_stack_index+1)<sizeof(font_stack) )
+                {
+                    font_stack[ font_stack_index++ ] = f;
+                    f |= ITALIC;
+                }
             }
             else if( !strncmp( text+i, "</b>", 4 ) && font_stack_index )
             {
