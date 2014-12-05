@@ -39,6 +39,7 @@
 typedef struct sgui_tex_canvas sgui_tex_canvas;
 typedef struct sgui_ctx_window sgui_ctx_window;
 typedef struct sgui_ctx_wm sgui_ctx_wm;
+typedef struct sgui_subwm_skin sgui_subwm_skin;
 
 
 

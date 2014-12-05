@@ -24,9 +24,9 @@
  */
 #include "sgui_ctx_window.h"
 #include "sgui_tex_canvas.h"
+#include "sgui_subwm_skin.h"
 #include "sgui_ctx_wm.h"
 #include "sgui_event.h"
-#include "sgui_skin.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -55,19 +55,15 @@ static void set_visible( sgui_window* this, int visible )
 
 static void set_title( sgui_window* this, const char* title )
 {
-    unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
+    sgui_subwm_skin* skin;
     sgui_rect r;
 
-    sgui_rect_set_size( &r, 0, 0, this->w, 20 );
+    skin = sgui_subwm_skin_get( );
+
+    sgui_rect_set_size( &r, 0, 0, this->w, skin->get_titlebar_height(skin) );
 
     sgui_canvas_begin( this->ctx.canvas, &r );
-    sgui_canvas_clear( this->ctx.canvas, &r );
-    sgui_canvas_draw_text_plain( this->ctx.canvas, 15, 0, 1, 0,
-                                 sgui_skin_get( )->font_color,
-                                 title, -1 );
-
-    sgui_canvas_draw_line( this->ctx.canvas, 0, r.bottom, this->w, 1,
-                           color, SGUI_RGBA8 );
+    skin->draw_title_bar( skin, this->ctx.canvas, title );
     sgui_canvas_end( this->ctx.canvas );
 }
 

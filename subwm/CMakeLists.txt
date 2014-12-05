@@ -10,5 +10,6 @@ set( SUBWM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/tex_canvas.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/d3d9_canvas.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/ctx_window.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/ctx_wm.c
+               ${CMAKE_CURRENT_SOURCE_DIR}/src/skin.c
      PARENT_SCOPE )
 

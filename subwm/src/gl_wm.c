@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include "sgui_subwm_skin.h"
 #include "gl_wm.h"
 
 #include <stdlib.h>
@@ -29,6 +30,16 @@
 
 
 
+/*
+    0_1__________2_3
+    |_|__________|_|
+   4| |5        6| |7
+    | |          | |
+    | |          | |
+   8|_|9_______10|_|11
+    |_|__________|_|
+   12 13       14  15
+ */
 static unsigned short ibo[] =
 {
      0,  1,  4,  1,  5,  4, /* top left */
@@ -43,33 +54,101 @@ static unsigned short ibo[] =
 };
 
 static void window_vertices( unsigned int width, unsigned int height,
-                             float* vbo )
+                             float* vbo, sgui_subwm_skin* skin )
 {
-    /* top row vertices */
-    vbo[ 0] = 0.0f; vbo[ 1] = 0.0f; vbo[ 2] = 0.0f;    vbo[ 3] = 0.0f;
-    vbo[ 4] = 0.5f; vbo[ 5] = 0.0f; vbo[ 6] = 8.0f;    vbo[ 7] = 0.0f;
-    vbo[ 8] = 0.5f; vbo[ 9] = 0.0f; vbo[10] = width-8; vbo[11] = 0.0f;
-    vbo[12] = 1.0f; vbo[13] = 0.0f; vbo[14] = width;   vbo[15] = 0.0f;
+    int a, b, c, d, e, f, g, h;
+    sgui_rect tl, tr, bl, br;
+    unsigned int tw, th;
+    float sx, sy;
 
-    /* center upper vertices */
-    vbo[16] = 0.0f; vbo[17] = 0.5f; vbo[18] = 0.0f;    vbo[19] = 8.0f;
-    vbo[20] = 0.5f; vbo[21] = 0.5f; vbo[22] = 8.0f;    vbo[23] = 8.0f;
-    vbo[24] = 0.5f; vbo[25] = 0.5f; vbo[26] = width-8; vbo[27] = 8.0f;
-    vbo[28] = 1.0f; vbo[29] = 0.5f; vbo[30] = width;   vbo[31] = 8.0f;
+    skin->get_ctx_window_corner( skin, &tl, SGUI_WINDOW_TOP_LEFT );
+    skin->get_ctx_window_corner( skin, &tr, SGUI_WINDOW_TOP_RIGHT );
+    skin->get_ctx_window_corner( skin, &bl, SGUI_WINDOW_BOTTOM_LEFT );
+    skin->get_ctx_window_corner( skin, &br, SGUI_WINDOW_BOTTOM_RIGHT );
+    skin->get_ctx_skin_texture_size( skin, &tw, &th );
+    sx = 1.0f / (float)(tw-1);
+    sy = 1.0f / (float)(th-1);
 
-    /* center lower vertices */
-    vbo[32] = 0.0f; vbo[33] = 0.5f; vbo[34] = 0.0f;    vbo[35] = height-8;
-    vbo[36] = 0.5f; vbo[37] = 0.5f; vbo[38] = 8.0f;    vbo[39] = height-8;
-    vbo[40] = 0.5f; vbo[41] = 0.5f; vbo[42] = width-8; vbo[43] = height-8;
-    vbo[44] = 1.0f; vbo[45] = 0.5f; vbo[46] = width;   vbo[47] = height-8;
+    a = SGUI_RECT_WIDTH(tl);
+    b = SGUI_RECT_WIDTH(tr);
+    c = SGUI_RECT_HEIGHT(tl);
+    d = SGUI_RECT_HEIGHT(tr);
+    e = SGUI_RECT_WIDTH(bl);
+    f = SGUI_RECT_WIDTH(br);
+    g = SGUI_RECT_HEIGHT(bl);
+    h = SGUI_RECT_HEIGHT(br);
 
-    /* bottom row vertices */
-    vbo[48] = 0.0f; vbo[49] = 1.0f; vbo[50] = 0.0f;    vbo[51] = height;
-    vbo[52] = 0.5f; vbo[53] = 1.0f; vbo[54] = 8.0f;    vbo[55] = height;
-    vbo[56] = 0.5f; vbo[57] = 1.0f; vbo[58] = width-8; vbo[59] = height;
-    vbo[60] = 1.0f; vbo[61] = 1.0f; vbo[62] = width;   vbo[63] = height;
+    /* top row texture coordinates */
+    vbo[ 0]=vbo[16]=(float)tl.left*sx;
+    vbo[ 1]=vbo[ 5]=(float)tl.top*sy;
+    vbo[ 4]=vbo[20]=(float)tl.right*sx;
+    vbo[17]=vbo[21]=(float)tl.bottom*sy;
+
+    vbo[ 8]=vbo[24]=(float)tr.left*sx;
+    vbo[ 9]=vbo[13]=(float)tr.top*sy;
+    vbo[12]=vbo[28]=(float)tr.right*sx;
+    vbo[25]=vbo[29]=(float)tr.bottom*sy;
+
+    /* bottom row texture coordinates */
+    vbo[32]=vbo[48]=(float)bl.left*sx;
+    vbo[36]=vbo[52]=(float)bl.right*sx;
+    vbo[33]=vbo[37]=(float)bl.top*sy;
+    vbo[49]=vbo[53]=(float)bl.bottom*sy;
+
+    vbo[40]=vbo[56]=(float)br.left*sx;
+    vbo[44]=vbo[60]=(float)br.right*sx;
+    vbo[41]=vbo[45]=(float)br.top*sy;
+    vbo[57]=vbo[61]=(float)br.bottom*sy;
+
+    /* vertex positions */
+    vbo[2]=vbo[3]=vbo[7]=vbo[11]=vbo[15]=vbo[18]=vbo[34]=vbo[50]=0.0f;
+
+    vbo[ 6] = vbo[22] = a;
+    vbo[10] = vbo[26] = width-b;
+    vbo[19] = vbo[23] = c;
+    vbo[27] = vbo[31] = d;
+    vbo[38] = vbo[54] = e;
+    vbo[42] = vbo[58] = width-f;
+    vbo[35] = vbo[39] = height-g;
+    vbo[43] = vbo[47] = height-h;
+    vbo[14] = vbo[30] = vbo[46] = vbo[62] = width;
+    vbo[51] = vbo[55] = vbo[59] = vbo[63] = height;
 }
 
+static void set_gl_state( sgui_ctx_wm* super, GLint* view )
+{
+    GLfloat m[16], w, h;
+
+    w = (float)super->wnd->w;
+    h = (float)super->wnd->h;
+
+    m[0] = 2.0f/w; m[4] = 0.0f;   m[ 8] = 0.0f; m[12] =-1.0f;
+    m[1] = 0.0f;   m[5] =-2.0f/h; m[ 9] = 0.0f; m[13] = 1.0f;
+    m[2] = 0.0f;   m[6] = 0.0f;   m[10] = 1.0f; m[14] = 0.0f;
+    m[3] = 0.0f;   m[7] = 0.0f;   m[11] = 0.0f; m[15] = 1.0f;
+
+    /* save matrices, set to identity projection and model scaling */
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix( );
+    glLoadIdentity( );
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix( );
+    glLoadMatrixf( m );
+
+    /* save viewport, set viewport to window */
+    glGetIntegerv( GL_VIEWPORT, view );
+    glViewport( 0, 0, super->wnd->w, super->wnd->h );
+}
+
+static void restore_gl_state( GLint* view )
+{
+    glViewport( view[0], view[1], view[2], view[3] );
+
+    glMatrixMode( GL_MODELVIEW );
+    glPopMatrix( );
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix( );
+}
 
 
 
@@ -82,48 +161,37 @@ static void gl_wm_destroy( sgui_ctx_wm* this )
 static void gl_wm_draw_gui( sgui_ctx_wm* super )
 {
     sgui_gl_wm* this = (sgui_gl_wm*)super;
-    GLfloat m[16], vbo[16*4], w, h;
-    int alpha, view[4], wx, wy;
+    int alpha, wx, wy;
     unsigned int ww, wh, i;
-    unsigned char color[4];
+    GLfloat vbo[16*4];
     sgui_ctx_window* wnd;
+    sgui_subwm_skin* skin;
+    GLint view[4];
     GLuint* tex;
 
-    w = (float)super->wnd->w;
-    h = (float)super->wnd->h;
+    set_gl_state( super, view );
 
-    m[0] = 2.0f/w; m[4] = 0.0f;   m[ 8] = 0.0f; m[12] =-1.0f;
-    m[1] = 0.0f;   m[5] =-2.0f/h; m[ 9] = 0.0f; m[13] = 1.0f;
-    m[2] = 0.0f;   m[6] = 0.0f;   m[10] = 1.0f; m[14] = 0.0f;
-    m[3] = 0.0f;   m[7] = 0.0f;   m[11] = 0.0f; m[15] = 1.0f;
-
-    memcpy( color, sgui_skin_get( )->window_color, 4 );
-
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix( );
-    glLoadIdentity( );
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix( );
-    glLoadMatrixf( m );
-
-    glGetIntegerv( GL_VIEWPORT, view );
-    glViewport( 0, 0, super->wnd->w, super->wnd->h );
+    skin = sgui_subwm_skin_get( );
 
     for( wnd=super->list; wnd!=NULL; wnd=wnd->next )
     {
-        tex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
-        alpha = wnd->next ? 0x80 : (super->draging ? 0xC0 : 0xF0);
+        /* detemine window transparency */
+        alpha = wnd->next ? SGUI_WINDOW_BACKGROUND :
+                super->draging ? SGUI_WINDOW_DRAGING : SGUI_WINDOW_TOPMOST;
+        alpha = skin->get_window_transparency( skin, alpha );
 
+        /* get window texture and dimensions */
+        tex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
         sgui_window_get_position( (sgui_window*)wnd, &wx, &wy );
         sgui_window_get_size( (sgui_window*)wnd, &ww, &wh );
 
-        window_vertices( ww, wh, vbo );
+        window_vertices( ww, wh, vbo, skin );
 
+        /* draw window background */
         glTranslatef( (float)wx, (float)wy, 0.0f );
 
         glBindTexture( GL_TEXTURE_2D, this->wndtex );
 
-        /* draw window background */
         glBegin( GL_TRIANGLES );
         glColor4ub( 0xFF, 0xFF, 0xFF, alpha );
 
@@ -149,11 +217,7 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
         glTranslatef( -(float)wx, -(float)wy, 0.0f );
     }
 
-    glViewport( view[0], view[1], view[2], view[3] );
-
-    glPopMatrix( );
-    glMatrixMode( GL_PROJECTION );
-    glPopMatrix( );
+    restore_gl_state( view );
 }
 
 /****************************************************************************/
@@ -162,9 +226,9 @@ sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
 {
     sgui_gl_wm* this = malloc( sizeof(sgui_gl_wm) );
     sgui_ctx_wm* super = (sgui_ctx_wm*)this;
-    unsigned char data[ 16*16*4 ];
+    sgui_subwm_skin* skin;
+    unsigned int w, h;
     GLuint old;
-    int x, y;
 
     if( this )
     {
@@ -174,32 +238,19 @@ sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
         super->draw_gui = gl_wm_draw_gui;
 
         /* generate skin texture */
-        memset( data, 0, sizeof(data) );
-
-        for( y=0; y<16; ++y )
-        {
-            for( x=0; x<16; ++x )
-            {
-                if( ((x-8)*(x-8) + (y-8)*(y-8))<64 )
-                {
-                    data[ (y*16 + x)*4   ] = 0x64;
-                    data[ (y*16 + x)*4+1 ] = 0x64;
-                    data[ (y*16 + x)*4+2 ] = 0x64;
-                    data[ (y*16 + x)*4+3 ] = 0xFF;
-                }
-            }
-        }
+        skin = sgui_subwm_skin_get( );
+        skin->get_ctx_skin_texture_size( skin, &w, &h );
 
         /* create and upload skin texture */
         glGenTextures( 1, &this->wndtex );
 
         glGetIntegerv( GL_TEXTURE_BINDING_2D, (GLint*)&old );
         glBindTexture( GL_TEXTURE_2D, this->wndtex );
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 16, 16, 0, GL_RGBA,
-                      GL_UNSIGNED_BYTE, data );
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, skin->get_ctx_skin_texture(skin) );
 
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
 
