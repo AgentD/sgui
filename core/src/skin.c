@@ -46,6 +46,20 @@ static sgui_skin* skin;
 
 
 
+static struct
+{
+    const char* entity;
+    const char* subst;
+}
+entities[] =
+{
+    { "&lt;",  "<" },
+    { "&gt;",  ">" },
+    { "&amp;", "&" },
+};
+
+
+
 /*
     text:   text string to process
     canvas: canvas for drawing if "draw" is non-zero
@@ -59,6 +73,7 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
 {
     unsigned int i, c, X = 0, Y = 0, longest = 0, font_stack_index = 0;
     unsigned char col[3], font_stack[10], f = 0;
+    const char* subst;
     char* end;
 
     /* sanity check */
@@ -69,8 +84,10 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
 
     while( text && *text )
     {
-        /* count characters until tag, line break or terminator */
-        for( i=0; text[i] && text[i]!='<' && text[i]!='\n'; ++i ) { }
+        /* count characters until tag, entity, line break or terminator */
+        for( i=0; text[i]&&text[i]!='<'&&text[i]!='&'&&text[i]!='\n'; ++i )
+        {
+        }
 
         /* process what we got so far with the current settings */
         if( draw )
@@ -128,6 +145,32 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
             }
 
             while( text[ i ] && text[ i ]!='>' )
+                ++i;
+        }
+        else if( text[ i ]=='&' )
+        {
+            for(subst=NULL, c=0; c<sizeof(entities)/sizeof(entities[0]); ++c)
+            {
+                if( !strncmp( text+i, entities[c].entity,
+                              strlen(entities[c].entity) ) )
+                {
+                    subst = entities[c].subst;
+                    break;
+                }
+            }
+
+            if( draw )
+            {
+                X += sgui_canvas_draw_text_plain( canvas, x+X, y+Y, f&BOLD,
+                                                  f&ITALIC, col, subst, -1 );
+            }
+            else
+            {
+                X += sgui_skin_default_font_extents( subst, -1,
+                                                     f&BOLD, f&ITALIC );
+            }
+
+            while( text[ i ] && text[ i ]!=';' )
                 ++i;
         }
         else if( text[ i ]=='\n' )
