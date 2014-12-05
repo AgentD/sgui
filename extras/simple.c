@@ -52,12 +52,12 @@ int main( )
         We don't have a parent window, so we set this to NULL.
 
         The next two argument are the window width and height.
-        In this case 180x100.
+        In this case 400x300.
 
         The last argument is a field of various flags. We don't
         need any fancy stuff, so we set this to 0.
      */
-    wnd = sgui_window_create( NULL, 180, 100, 0 );
+    wnd = sgui_window_create( NULL, 400, 300, 0 );
 
     /*
         Set the window title bar text and move it to the center
@@ -112,6 +112,12 @@ int main( )
         "window_callback" before posting the event to the event system.
      */
     sgui_window_on_event( wnd, window_callback );
+
+    /*
+        Resize the window to the idal size that fits all widgets
+        in the window.
+     */
+    sgui_window_pack( wnd );
 
     /*
         Enter ther sgui main loop. This function waits for window events,

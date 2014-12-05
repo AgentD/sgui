@@ -640,6 +640,17 @@ SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
  */
 SGUI_DLL sgui_context* sgui_window_get_context( const sgui_window* wnd );
 
+/**
+ * \brief Adjust the size of a window to fit the widgets inside
+ *
+ * \memberof sgui_window
+ *
+ * If the window is too small for all widgets, the window size is increased so
+ * all widgets are visible. If it is larger than neccessary, the window is
+ * shrinked to fit around the widgets.
+ */
+SGUI_DLL void sgui_window_pack( sgui_window* wnd );
+
 #ifdef __cplusplus
 }
 #endif
