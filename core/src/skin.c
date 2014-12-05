@@ -73,8 +73,8 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
 {
     unsigned int i, c, X = 0, Y = 0, longest = 0, font_stack_index = 0;
     unsigned char col[3], font_stack[10], f = 0;
+    char *end, buffer[8];
     const char* subst;
-    char* end;
 
     /* sanity check */
     if( !text || (draw && !canvas) || (!draw && !r) )
@@ -157,6 +157,19 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
                     subst = entities[c].subst;
                     break;
                 }
+            }
+
+            if( !subst && !strncmp( text+i, "&#h", 3 ) )
+            {
+                memset( buffer, 0, sizeof(buffer) );
+                sgui_utf8_encode( strtol( text+i+3, NULL, 16 ), buffer );
+                subst = buffer;
+            }
+            else if( !subst && !strncmp( text+i, "&#", 2 ) )
+            {
+                memset( buffer, 0, sizeof(buffer) );
+                sgui_utf8_encode( strtol( text+i+2, NULL, 10 ), buffer );
+                subst = buffer;
             }
 
             if( draw )
