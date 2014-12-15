@@ -36,6 +36,8 @@
 sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
                                      unsigned width, unsigned int height )
 {
+    (void)ctx;
+
     if( !wnd || !width || !height )
         return NULL;
 

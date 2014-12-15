@@ -30,6 +30,7 @@
 
 
 
+#ifndef SGUI_NO_OPENGL
 /*
     0_1__________2_3
     |_|__________|_|
@@ -259,4 +260,6 @@ sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
 
     return (sgui_ctx_wm*)this;
 }
+
+#endif /* SGUI_NO_OPENGL */
 
