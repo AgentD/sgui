@@ -64,6 +64,47 @@
   look at https://github.com/AgentD/sgui/issues/milestones
 
 
+  Compiling sgui from source
+  **************************
+
+  The sgui library uses a CMake based build system. CMake is a cross platform
+  tool to generate platform dependend files for compiling source code (e.g. it
+  can generate a Makefile or an MSVC solution file).
+  For more information on CMake, see: http://www.cmake.org/
+
+  To compile sgui on a Unix(R) like OS (Unix(R), GNU/Linux, or similar),
+  execute the following commands in the directory that this file is in:
+  $ cd build
+  $ cmake ..
+  $ make
+
+  If you replace "cmake" in the above commands with "ccmake", you will get a
+  text based user interface. Pressing [c] will configure the build system and
+  give you a screen with lots of compilation options. Pressing [c] again and
+  then [g] generates the build system and you will return to the shell where
+  you can run make to compile sgui.
+
+
+  On Windows(R), start the CMake gui program. There should be a field labeled
+  "Where is the source code". Enter the path where this README file is
+  located.
+
+  In an other field, labeled "Where to build the binaries", enter the path to
+  the "build" directory within the directory where this README file is
+  located.
+
+  When clicking configure, a dialog should pop open where the target build
+  system can be selected (e.g. which version of MSVC to use) and the main
+  dialog should be filled with lots of configuration options. Pressing
+  "configure" again and then "generate" should generate the build system
+  (e.g. An MSVC Solution file) which can then be used to compile sgui.
+
+
+  For further information on the build system, the compilation options, or
+  cross compiling, please refere to the section "The SGUI build system" in
+  the documentation.
+
+
   License
   *******
 
