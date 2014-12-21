@@ -133,7 +133,8 @@ static void subview_destroy( sgui_widget* this )
 
 sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
                                   unsigned int width, unsigned int height,
-                                  int backend, sgui_window_description* cfg )
+                                  int backend,
+                                  const sgui_window_description* cfg )
 {
     sgui_window_description desc;
     sgui_subview* this;
@@ -161,25 +162,21 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     this->draw_fun               = NULL;
 
     /* initialise window configuration if not given*/
-    if( !cfg )
-    {
-        desc.parent         = parent;
-        desc.share          = NULL;
-        desc.width          = width;
-        desc.height         = height;
-        desc.flags          = SGUI_FIXED_SIZE;
-        desc.bits_per_pixel = 32;
-        desc.depth_bits     = 16;
-        desc.stencil_bits   = 0;
-        desc.samples        = 0;
+    desc.parent         = parent;
+    desc.share          = cfg ? cfg->share          : NULL;
+    desc.width          = cfg ? cfg->width          : width;
+    desc.height         = cfg ? cfg->height         : height;
+    desc.flags          = cfg ? cfg->flags          : 0;
+    desc.bits_per_pixel = cfg ? cfg->bits_per_pixel : 32;
+    desc.depth_bits     = cfg ? cfg->depth_bits     : 16;
+    desc.stencil_bits   = cfg ? cfg->stencil_bits   : 0;
+    desc.samples        = cfg ? cfg->samples        : 0;
+    desc.backend        = cfg ? cfg->backend        : backend;
 
-        cfg = &desc;
-    }
-
-    cfg->backend = backend;
+    desc.flags |= SGUI_FIXED_SIZE;
 
     /* create the subwindow */
-    this->subwnd = sgui_window_create_desc( cfg );
+    this->subwnd = sgui_window_create_desc( &desc );
 
     if( !this->subwnd )
     {

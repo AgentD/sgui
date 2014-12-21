@@ -208,8 +208,6 @@ typedef struct
 
     unsigned char* data;
     int bpp, swaprb;
-
-    sgui_rect locked;
 }
 sgui_mem_canvas;
 

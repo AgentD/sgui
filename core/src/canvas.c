@@ -483,12 +483,15 @@ void sgui_canvas_resize( sgui_canvas* this, unsigned int width,
         sgui_internal_lock_mutex( );
 
         if( this->resize )
+        {
             this->resize( this, width, height );
 
-        this->width = width;
-        this->height = height;
+            this->width = width;
+            this->height = height;
 
-        sgui_rect_set_size( &this->root.area, 0, 0, width, height );
+            sgui_rect_set_size( &this->root.area, 0, 0, width, height );
+        }
+
         sgui_internal_unlock_mutex( );
     }
 }

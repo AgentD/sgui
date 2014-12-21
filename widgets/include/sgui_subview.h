@@ -90,11 +90,11 @@ extern "C"
  * \param cfg     A frame buffer configuration for the window, or NULL to use
  *                a default RGBA32, depth16 singlebuffer configuration.
  */
-SGUI_DLL sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
-                                           unsigned int width,
-                                           unsigned int height,
-                                           int backend,
-                                           sgui_window_description* cfg );
+SGUI_DLL sgui_widget* sgui_subview_create(sgui_window* parent, int x, int y,
+                                          unsigned int width,
+                                          unsigned int height,
+                                          int backend,
+                                          const sgui_window_description* cfg);
 
 /**
  * \brief Get a direct pointer to the window managed by a subview widget

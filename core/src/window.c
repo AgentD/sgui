@@ -420,3 +420,42 @@ sgui_context* sgui_window_get_context( const sgui_window* this )
     return NULL;
 }
 
+void sgui_window_pack( sgui_window* this )
+{
+    unsigned int width, height;
+    sgui_rect r, acc;
+    sgui_widget* w;
+
+    sgui_internal_lock_mutex( );
+
+    if( this->backend != SGUI_NATIVE )
+        goto done;
+
+    if( !(w = this->ctx.canvas->root.children) )
+        goto done;
+
+    /* get bounding rectangle for all widgets */
+    sgui_widget_get_rect( w, &acc );
+
+    for( w=w->next; w!=NULL; w=w->next )
+    {
+        sgui_widget_get_rect( w, &r );
+        sgui_rect_join( &acc, &r, 0 );
+    }
+
+    /* compute window size */
+    width = SGUI_RECT_WIDTH( acc );
+    height = SGUI_RECT_HEIGHT( acc );
+
+    if( acc.left>0 )
+        width += 2*acc.left;
+
+    if( acc.top>0 )
+        height += 2*acc.top;
+
+    sgui_window_set_size( this, width, height );
+
+done:
+    sgui_internal_unlock_mutex( );
+}
+

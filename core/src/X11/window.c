@@ -387,7 +387,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         return NULL;
 #endif
 
-    if( desc->backend==SGUI_DIRECT3D_9 )
+    if( desc->backend==SGUI_DIRECT3D_9 || desc->backend==SGUI_DIRECT3D_11 )
         return NULL;
 
     /********* allocate space for the window structure *********/

@@ -689,9 +689,11 @@ void sgui_icon_view_sort( sgui_widget* super, sgui_item_compare_fun fun )
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
                                     unsigned int height, sgui_model* model,
-                                    int bg )
+                                    int bg, unsigned int icon_col,
+                                    unsigned int txt_col )
 {
     (void)x; (void)y; (void)width; (void)height; (void)model; (void)bg;
+    (void)icon_col; (void)txt_col;
     return NULL;
 }
 void sgui_icon_view_sort( sgui_widget* super, sgui_item_compare_fun fun )
