@@ -267,7 +267,8 @@ void sgui_window_make_current( sgui_window* this )
 {
     if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_make_current( this->ctx.ctx, this );
+        if( this->ctx.ctx->make_current )
+            this->ctx.ctx->make_current( this->ctx.ctx, this );
     }
 }
 
@@ -275,7 +276,8 @@ void sgui_window_release_current( sgui_window* this )
 {
     if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_release_current( this->ctx.ctx );
+        if( this->ctx.ctx->release_current )
+            this->ctx.ctx->release_current( this->ctx.ctx );
     }
 }
 
@@ -382,7 +384,7 @@ void sgui_window_get_size( const sgui_window* this, unsigned int* width,
 void sgui_window_add_widget( sgui_window* this, sgui_widget* widget )
 {
     if( this && this->backend==SGUI_NATIVE )
-        sgui_widget_add_child(sgui_canvas_get_root(this->ctx.canvas), widget);
+        sgui_widget_add_child( &this->ctx.canvas->root, widget );
 }
 
 void sgui_window_on_event( sgui_window* this, sgui_window_callback fun )
@@ -435,11 +437,11 @@ void sgui_window_pack( sgui_window* this )
         goto done;
 
     /* get bounding rectangle for all widgets */
-    sgui_widget_get_rect( w, &acc );
+    acc = w->area;
 
     for( w=w->next; w!=NULL; w=w->next )
     {
-        sgui_widget_get_rect( w, &r );
+        r = w->area;
         sgui_rect_join( &acc, &r, 0 );
     }
 

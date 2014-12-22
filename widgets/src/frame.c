@@ -360,9 +360,9 @@ sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
     sgui_widget_add_child( super, this->h_bar );
 
     /* finish initialisation */
-    super->window_event_callback = frame_on_event;
-    super->draw_callback         = frame_draw;
-    super->state_change_callback = frame_on_state_change;
+    super->window_event          = frame_on_event;
+    super->draw                  = frame_draw;
+    super->state_change_event    = frame_on_state_change;
     super->destroy               = frame_destroy;
     this->override_scrollbars    = 0;
     super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|

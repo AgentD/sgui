@@ -290,11 +290,6 @@ static void scroll_bar_draw( sgui_widget* super )
                                 this->dec_button_state );
 }
 
-static void scroll_bar_destroy( sgui_widget* this )
-{
-    free( this );
-}
-
 
 
 sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
@@ -330,11 +325,11 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 
     sgui_widget_init( super, x, y, w, h );
 
-    this->super.window_event_callback = horizontal ? scroll_bar_on_event_h :
-                                                     scroll_bar_on_event_v;
+    this->super.window_event = horizontal ? scroll_bar_on_event_h :
+                                            scroll_bar_on_event_v;
 
-    super->draw_callback  = scroll_bar_draw;
-    super->destroy        = scroll_bar_destroy;
+    super->draw           = scroll_bar_draw;
+    super->destroy        = (void(*)(sgui_widget*))free;
     super->focus_policy   = 0;
     this->horizontal      = horizontal;
     this->length          = length;

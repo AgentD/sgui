@@ -82,8 +82,16 @@ struct sgui_widget
     /** \copydoc sgui_widget_destroy */
     void (* destroy )( sgui_widget* widget );
 
-    /** \copydoc sgui_widget_draw */
-    void (* draw_callback )( sgui_widget* widget );
+    /**
+     * \brief Draw a widget
+     *
+     * This is called to draw a widget onto a canvas.
+     *
+     * \note This may be NULL if not implemented.
+     *
+     * \param widget The widget to update.
+     */
+    void (* draw )( sgui_widget* widget );
 
     /**
      * \brief Callback that is called to inject window events
@@ -91,8 +99,7 @@ struct sgui_widget
      * \param widget A pointer to the widget to update.
      * \param event  The window event that occoured.
      */
-    void (* window_event_callback )( sgui_widget* widget,
-                                     const sgui_event* event );
+    void (* window_event )( sgui_widget* widget, const sgui_event* event );
 
     /**
      * \brief Callback that is called when the internal state of a widget
@@ -102,7 +109,7 @@ struct sgui_widget
      * \param change A combination of WIDGET_*_CHANGED flags that indicate
      *               what changed
      */
-    void (* state_change_callback )( sgui_widget* widget, int change );
+    void (* state_change_event )( sgui_widget* widget, int change );
 };
 
 
@@ -202,13 +209,6 @@ SGUI_DLL void sgui_widget_get_size( const sgui_widget* w,
                                     unsigned int* height );
 
 /**
- * \brief Returns non-zero if the given widget is configured to be rendered
- *
- * \memberof sgui_widget
- */
-SGUI_DLL int sgui_widget_is_visible( const sgui_widget* w );
-
-/**
  * \brief Returns non-zero if the given widget is visible and all its parents
  *        are visible too
  *
@@ -225,16 +225,6 @@ SGUI_DLL int sgui_widget_is_absolute_visible( const sgui_widget* w );
  * \param visible Non-zero to allow rendering of the widget, zero to prohibit.
  */
 SGUI_DLL void sgui_widget_set_visible( sgui_widget* w, int visible );
-
-/**
- * \brief Get the bounding rectangle of a widget
- *
- * \memberof sgui_widget
- *
- * \param w The widget
- * \param r Returns the rectangle
- */
-SGUI_DLL void sgui_widget_get_rect( const sgui_widget* w, sgui_rect* r );
 
 /**
  * \brief Get the bounding box of a widget in absolute coordinates (i.e. not
@@ -265,17 +255,6 @@ SGUI_DLL void sgui_widget_get_absolute_rect( const sgui_widget* w,
 SGUI_DLL void sgui_widget_send_event( sgui_widget* widget,
                                       const sgui_event* event,
                                       int propagate );
-
-/**
- * \brief Draw a widget
- *
- * \memberof sgui_widget
- *
- * This is called to draw a widget onto a canvas.
- *
- * \param widget The widget to update.
- */
-SGUI_DLL void sgui_widget_draw( sgui_widget* widget );
 
 /**
  * \brief Add a widget as child widget to an other widget

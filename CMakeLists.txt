@@ -22,6 +22,9 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/lib" )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin" )
 
+set( PROJECT_BRIEF "A small, simple gui library implemented in plain C89" )
+set( PROJECT_VERSION "alpha" )
+
 #----------------------------------------------------------------------
 # Compile configuration
 #----------------------------------------------------------------------
@@ -264,5 +267,69 @@ add_subdirectory( tests )
 
 if( WIN32 )
   set_target_properties(sgui PROPERTIES PREFIX "")
+endif( )
+
+#----------------------------------------------------------------------
+# generate Doxygen API reference
+#----------------------------------------------------------------------
+find_package( Doxygen )
+
+if( DOXYGEN_FOUND )
+  configure_file( ${CMAKE_SOURCE_DIR}/Doxyfile.in
+                  ${CMAKE_BINARY_DIR}/Doxyfile @ONLY )
+
+  add_custom_target( doxydoc
+                     ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
+                     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                     COMMENT "Generating API documentation with Doxygen"
+                     VERBATIM
+                   )
+endif( )
+
+#----------------------------------------------------------------------
+# Configure packaging
+#----------------------------------------------------------------------
+if( WIN32 )
+  if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    set( W32_ARCH "x64" )
+  else( )
+    set( W32_ARCH "x86" )
+  endif( )
+
+  add_custom_target( pack 
+                     COMMAND mkdir -p ./include
+                     COMMAND mkdir -p ./doc
+                     COMMAND cp -r ${CMAKE_SOURCE_DIR}/extras .
+                     COMMAND cp -r ${CMAKE_SOURCE_DIR}/doc .
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/README .
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/LICENSE .
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/core/include/*.h ./include
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/widgets/include/*.h ./include
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/dialogs/include/*.h ./include
+                     COMMAND cp ./win_dep/${W32_ARCH}/libfreetype.{a,la} ./lib/
+                     COMMAND cp ./lib/libfreetype.a ./lib/libfreetype.lib
+                     COMMAND cp ./lib/libsgui.dll.a ./lib/libsgui.dll.lib
+                     COMMAND ${CMAKE_STRIP} --strip-all ./bin/*
+                     COMMAND ${CMAKE_STRIP} --strip-all ./lib/*.lib
+                     COMMAND ${CMAKE_STRIP} --strip-all ./lib/*.a
+                     COMMAND cp ./win_dep/FTL.TXT ./lib
+                     COMMAND cp ./win_dep/FTL.TXT ./bin
+                     COMMAND zip sgui.zip -r -- ./bin ./font ./lib ./include ./doxydoc
+                     COMMAND zip ./sgui.zip -r -- ./LICENSE ./README ./doc
+                     COMMAND find extras -name "*.c" -print | zip ./sgui.zip -@
+                     COMMAND mv sgui.zip ${CMAKE_SOURCE_DIR}/sgui_win32_${W32_ARCH}.zip
+                     DEPENDS doxydoc
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+endif( )
+
+if( UNIX )
+  install( DIRECTORY core/include DESTINATION include )
+  install( DIRECTORY widgets/include DESTINATION include )
+  install( DIRECTORY dialogs/include DESTINATION include )
+
+  install( TARGETS sgui
+           RUNTIME DESTINATION bin
+           LIBRARY DESTINATION lib
+           ARCHIVE DESTINATION lib )
 endif( )
 

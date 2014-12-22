@@ -265,7 +265,7 @@ static int numeric_edit_init( sgui_numeric_edit* this,
     super->text_changed = numeric_edit_text_changed;
     super->offset_from_position = offset_from_position;
 
-    ((sgui_widget*)this)->draw_callback = numeric_edit_draw;
+    ((sgui_widget*)this)->draw = numeric_edit_draw;
 
     sprintf( super->buffer, "%d", current );
     super->end = super->num_entered = strlen( super->buffer );
@@ -311,16 +311,16 @@ sgui_widget* sgui_spin_box_create( int x, int y, unsigned int width,
             return NULL;
         }
 
-        ((sgui_widget*)this)->draw_callback = spin_box_draw;
+        ((sgui_widget*)this)->draw = spin_box_draw;
 
         skin = sgui_skin_get( );
         skin->get_spin_buttons( skin, &this->up, &this->down );
         this->step     = stepsize>0 ? stepsize : 1;
 
         if( editable )
-            this->on_event = ((sgui_widget*)this)->window_event_callback;
+            this->on_event = ((sgui_widget*)this)->window_event;
 
-        ((sgui_widget*)this)->window_event_callback = spin_box_on_event;
+        ((sgui_widget*)this)->window_event = spin_box_on_event;
     }
     return (sgui_widget*)this;
 }

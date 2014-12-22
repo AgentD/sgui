@@ -223,12 +223,12 @@ sgui_widget* sgui_tab_group_create( int x, int y,
     sgui_widget_init( (sgui_widget*)this, x, y, width, height );
     skin->get_tap_caption_extents( skin, &r );
 
-    this->super.state_change_callback = tab_group_on_state_change;
-    this->super.draw_callback         = tab_group_draw;
-    this->super.window_event_callback = tab_group_on_event;
-    this->super.destroy               = (void(*)(sgui_widget*))free;
-    this->tab_cap_height              = SGUI_RECT_HEIGHT( r );
-    this->tab_cap_width               = SGUI_RECT_WIDTH( r );
+    this->super.state_change_event = tab_group_on_state_change;
+    this->super.draw               = tab_group_draw;
+    this->super.window_event       = tab_group_on_event;
+    this->super.destroy            = (void(*)(sgui_widget*))free;
+    this->tab_cap_height           = SGUI_RECT_HEIGHT( r );
+    this->tab_cap_width            = SGUI_RECT_WIDTH( r );
 
     return (sgui_widget*)this;
 }
@@ -260,11 +260,11 @@ sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
 
     this->caption_width = g->tab_cap_width +
                           sgui_skin_default_font_extents( caption, -1, 0, 0 );
-    super->focus_policy          = 0;
-    super->visible               = 0;
-    super->state_change_callback = tab_on_state_change;
-    super->draw_callback         = tab_on_draw;
-    super->destroy               = tab_destroy;
+    super->focus_policy       = 0;
+    super->visible            = 0;
+    super->state_change_event = tab_on_state_change;
+    super->draw               = tab_on_draw;
+    super->destroy            = tab_destroy;
 
     return super;
 }

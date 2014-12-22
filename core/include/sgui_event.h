@@ -323,6 +323,24 @@ SGUI_DLL void sgui_event_disconnect( void* sender, int eventtype,
  */
 SGUI_DLL void sgui_event_post( const sgui_event* event );
 
+/** \brief Get the number of events still waiting for processing */
+SGUI_DLL unsigned int sgui_event_queued( void );
+
+/**
+ * \brief Called from the sgui_init/sgui_deinit implementation
+ *        to reset event connections
+ *
+ * Frees the internal event queue and all listener connections, i.e. reset the
+ * entire event subsystem.
+ */
+SGUI_DLL void sgui_event_reset( void );
+
+/**
+ * \brief Called from sgui_main_loop and sgui_main_loop_step to process the
+ *        event queue and event connections
+ */
+SGUI_DLL void sgui_event_process( void );
+
 #ifdef __cplusplus
 }
 #endif

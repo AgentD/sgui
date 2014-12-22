@@ -73,7 +73,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
     for( i=widget->children; i!=NULL; i=i->next )
     {
-        if( !sgui_widget_is_visible( i ) )
+        if( !i->visible )
             continue;
 
         sgui_widget_get_absolute_rect( i, &wr );
@@ -94,7 +94,8 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
             continue;
         }
 
-        sgui_widget_draw( i );
+        if( i->draw )
+            i->draw( i );
         draw_children( this, i, r ? &wr : NULL );
 
         /* draw focus box */
@@ -134,11 +135,6 @@ void sgui_canvas_init( sgui_canvas* this, unsigned int width,
     sgui_rect_set_size( &this->root.area, 0, 0, width, height );
     this->root.visible = 1;
     this->root.canvas = this;
-}
-
-sgui_widget* sgui_canvas_get_root( const sgui_canvas* this )
-{
-    return this ? (sgui_widget*)&(this->root) : NULL;
 }
 
 void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
@@ -494,13 +490,6 @@ void sgui_canvas_resize( sgui_canvas* this, unsigned int width,
 
         sgui_internal_unlock_mutex( );
     }
-}
-
-void sgui_canvas_get_size( const sgui_canvas* this, unsigned int* width,
-                           unsigned int* height )
-{
-    if( width  ) *width  = this ? this->width  : 0;
-    if( height ) *height = this ? this->height : 0;
 }
 
 sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* this,

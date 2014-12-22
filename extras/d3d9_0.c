@@ -94,7 +94,7 @@ int main( void )
 
     /* create a vertex buffer */
     ctx = sgui_window_get_context( wnd );
-    dev = sgui_context_get_internal( ctx );
+    dev = ctx->get_internal( ctx );
 
     IDirect3DDevice9_CreateVertexBuffer( dev, 3*sizeof(CUSTOMVERTEX), 0,
                                          CUSTOMFVF, D3DPOOL_MANAGED,

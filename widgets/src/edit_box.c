@@ -449,9 +449,9 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
     skin = sgui_skin_get( );
     sgui_widget_init( super, x, y, width, skin->get_edit_box_height( skin ) );
 
-    super->window_event_callback = edit_box_on_event;
+    super->window_event          = edit_box_on_event;
     super->destroy               = edit_box_destroy;
-    super->draw_callback         = edit_box_draw;
+    super->draw                  = edit_box_draw;
     this->max_chars              = max_chars;
     this->buffer[0]              = '\0';
     this->insert                 = insert;

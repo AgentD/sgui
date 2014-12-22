@@ -50,11 +50,24 @@
  */
 struct sgui_canvas
 {
-    int ox, oy;                     /**< \brief current offset */
-    unsigned int width, height;     /**< \brief Size of the canvas */
+    int ox;                     /**< \brief Drawing offset from the left */
+    int oy;                     /**< \brief Drawing offset from the top */
+
+    /** \brief The width of the canvas in pixels */
+    unsigned int width;
+    
+    /** \brief The height of the canvas in pixels */
+    unsigned int height;
+
     sgui_rect sc;                   /**< \brief current scissor rect */
     int began;
-    sgui_widget root;               /**< \brief The dummy root widget */
+
+    /**
+     * \brief A dummy widget that covers the entire canvas area and has all
+     *        canvas widgets attached as children
+     */
+    sgui_widget root;
+
     sgui_widget* mouse_over;        /**< \brief The widget under the mouse
                                                 cursor */
     sgui_widget* focus;             /**< \brief The widget with keyboad
@@ -244,17 +257,6 @@ SGUI_DLL void sgui_canvas_init( sgui_canvas* cv, unsigned int width,
 SGUI_DLL void sgui_canvas_destroy( sgui_canvas* canvas );
 
 /**
- * \brief Get the root node of a canvas
- *
- * \memberof sgui_canvas
- *
- * \param canvas A pointer to the canvas
- *
- * \return A pointer to the root widget
- */
-SGUI_DLL sgui_widget* sgui_canvas_get_root( const sgui_canvas* canvas );
-
-/**
  * \brief Override the widget that currently has keyboard focus
  *
  * \memberof sgui_canvas
@@ -361,19 +363,6 @@ SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
  */
 SGUI_DLL void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
                                   unsigned int height );
-
-/**
- * \brief Get the size of a canvas
- *
- * \memberof sgui_canvas
- *
- * \param canvas The canvas to report the size of
- * \param width  Returns the width of the canvas
- * \param height Returns the height of the canvas
- */
-SGUI_DLL void sgui_canvas_get_size( const sgui_canvas* canvas,
-                                    unsigned int* width,
-                                    unsigned int* height );
 
 /**
  * \brief Create a pixmap

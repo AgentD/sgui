@@ -124,10 +124,10 @@ sgui_widget* sgui_image_create( int x, int y,
         this->data = (unsigned char*)data;
     }
 
-    super->draw_callback         = image_draw;
-    super->state_change_callback = image_on_state_change;
-    super->destroy               = image_destroy;
-    super->focus_policy          = 0;
+    super->draw               = image_draw;
+    super->state_change_event = image_on_state_change;
+    super->destroy            = image_destroy;
+    super->focus_policy       = 0;
     this->pixmap  = NULL;
     this->format  = format;
     this->blend   = blend;

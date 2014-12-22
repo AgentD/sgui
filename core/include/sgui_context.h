@@ -39,7 +39,7 @@
 
 
 /**
- * \struct sgui_context
+ * \interface sgui_context
  *
  * \brief An abstract hardware accelerated rendering context
  *
@@ -47,127 +47,78 @@
  */
 struct sgui_context
 {
-    /** \copydoc sgui_context_destroy */
+    /**
+     * \brief Destroy a rendering context
+     *
+     * \param ctx A pointer to a context object
+     */
     void (* destroy )( sgui_context* ctx );
 
-    /** \copydoc sgui_context_create_share */
+    /**
+     * \brief Create a rendering context that shares resources with an
+     *        existing context
+     *
+     * \param ctx A pointer to a context for which to create an offscreen,
+     *            resource sharing context
+     *
+     * \return A pointer to a rendering context object
+     */
     sgui_context* (* create_share )( sgui_context* ctx );
 
     /**
-     * \copydoc sgui_context_make_current
+     * \brief Make a rendering context current
      *
      * \note Can be NULL if not implemented
+     *
+     * Some rendering systems have the concept of a "context", that has to be
+     * made current in order to be used (e.g. OpenGL). A context can only be
+     * current in exactely one thread at any time and one thread may only have
+     * exactely one context made current at any time.
+     *
+     * If the underlying rendering system has the concept of making contexts
+     * current, this function binds the context to the calling thread and the
+     * given window.
+     *
+     * \param ctx A pointer to a context object
+     * \param wnd A pointer to a rendering window to bind the context to
      */
     void (* make_current )( sgui_context* ctx, sgui_window* wnd );
 
     /**
-     * \copydoc sgui_context_release_current
+     * \brief Release a context, assuming it is current in the calling thread
      *
-     * \note Can be NULL if not implemented
+     * \node Can be NULL if not implemented
+     *
+     * \param ctx A pointer to a context previously made current in
+     *            the calling thread
      */
     void (* release_current )( sgui_context* ctx );
 
     /**
-     * \copydoc sgui_context_load
+     * \brief Load an extension function pointer from a rendering context
      *
      * \note Can be NULL if not implemented
+     *
+     * \param ctx  A pointer to a context object
+     * \param name The name of the function
+     *
+     * \return Either a pointer to the function or NULL on failure
      */
     sgui_funptr (* load )( sgui_context* ctx, const char* name );
 
-    /** \copydoc sgui_context_get_internal */
+    /**
+     * \brief Get a pointer to the internally used data structure
+     *
+     * For OpenGL contexts, this returns a pointer to the platform dependend
+     * context handle. For Direct3D contexts, this returns a pointer to the
+     * underlying device object.
+     *
+     * \param ctx A pointer to a context object
+     *
+     * \return A pointer to an internal object or NULL if the context is NULL
+     */
     void* (* get_internal )( sgui_context* ctx );
 };
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * \brief Create a rendering context that shares resources with an
- *        existing context
- *
- * \memberof sgui_context
- *
- * \param ctx A pointer to a context for which to create an offscreen,
- *            resource sharing context
- *
- * \return A pointer to a rendering context object
- */
-SGUI_DLL sgui_context* sgui_context_create_share( sgui_context* ctx );
-
-/**
- * \brief Destroy a rendering context
- *
- * \memberof sgui_context
- *
- * \param ctx A pointer to a context object
- */
-SGUI_DLL void sgui_context_destroy( sgui_context* ctx );
-
-/**
- * \brief Make a rendering context current
- *
- * \memberof sgui_context
- *
- * Some rendering systems have the concept of a "context", that has to be made
- * current in order to be used (e.g. OpenGL). A context can only be current in
- * exactely one thread at any time and one thread may only have exactely one
- * context made current at any time.
- *
- * If the underlying rendering system has the concept of making contexts
- * current, this function binds the context to the calling thread and the
- * given window.
- *
- * \param ctx A pointer to a context object or NULL to release the current
- * \param wnd A pointer to a rendering window to bind the context to
- */
-SGUI_DLL void sgui_context_make_current( sgui_context* ctx,
-                                         sgui_window* wnd );
-
-/**
- * \brief Release a context, assuming it is current in the calling thread
- *
- * \memberof sgui_context
- *
- * \see sgui_context_make_current
- *
- * \param ctx A pointer to a context previously made current in
- *            the calling thread
- */
-SGUI_DLL void sgui_context_release_current( sgui_context* ctx );
-
-/**
- * \brief Load an extension function pointer from a rendering context
- *
- * \memberof sgui_context
- *
- * \param ctx  A pointer to a context object
- * \param name The name of the function
- *
- * \return Either a pointer to the function or NULL on failure
- */
-SGUI_DLL sgui_funptr sgui_context_load( sgui_context* ctx, const char* name );
-
-/**
- * \brief Get a pointer to the internally used data structure
- *
- * \memberof sgui_context
- *
- * For OpenGL contexts, this returns a pointer to the platform dependend
- * context handle. For Direct3D contexts, this returns a pointer to the
- * underlying device object.
- *
- * \param ctx A pointer to a context object
- *
- * \return A pointer to an internal object or NULL if the context is NULL
- */
-SGUI_DLL void* sgui_context_get_internal( sgui_context* ctx );
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* SGUI_CONTEXT_H */
 

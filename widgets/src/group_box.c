@@ -86,7 +86,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
     /* initialize widget base struct */
     sgui_widget_init( super, x, y, width, height );
 
-    super->draw_callback = group_box_draw;
+    super->draw = group_box_draw;
     super->destroy = group_box_destroy;
     super->focus_policy = 0;
 

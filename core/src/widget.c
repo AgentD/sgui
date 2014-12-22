@@ -44,8 +44,8 @@ static void propagat_state_change( sgui_widget* i, int change )
 {
     for( ; i!=NULL; i=i->next )
     {
-        if( i->state_change_callback )
-            i->state_change_callback( i, change );
+        if( i->state_change_event )
+            i->state_change_event( i, change );
 
         propagat_state_change( i->children, change );
     }
@@ -80,16 +80,16 @@ void sgui_widget_init( sgui_widget* this, int x, int y,
 
     sgui_rect_set_size( &this->area, x, y, width, height );
 
-    this->visible               = 1;
-    this->next                  = NULL;
-    this->children              = NULL;
-    this->parent                = NULL;
-    this->canvas                = NULL;
-    this->draw_callback         = NULL;
-    this->window_event_callback = NULL;
-    this->state_change_callback = NULL;
-    this->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
-                                  SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB;
+    this->visible            = 1;
+    this->next               = NULL;
+    this->children           = NULL;
+    this->parent             = NULL;
+    this->canvas             = NULL;
+    this->draw               = NULL;
+    this->window_event       = NULL;
+    this->state_change_event = NULL;
+    this->focus_policy       = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
+                               SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB;
 }
 
 void sgui_widget_destroy( sgui_widget* this )
@@ -164,8 +164,8 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
         }
 
         /* call the state change callback if there is one */
-        if( this->state_change_callback )
-            this->state_change_callback( this, SGUI_WIDGET_POSITION_CHANGED );
+        if( this->state_change_event )
+            this->state_change_event( this, SGUI_WIDGET_POSITION_CHANGED );
 
         sgui_internal_unlock_mutex( );
     }
@@ -220,11 +220,6 @@ void sgui_widget_get_size( const sgui_widget* this,
     }
 }
 
-int sgui_widget_is_visible( const sgui_widget* this )
-{
-    return this ? this->visible : 0;
-}
-
 int sgui_widget_is_absolute_visible( const sgui_widget* this )
 {
     sgui_internal_lock_mutex( );
@@ -252,8 +247,8 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
 
         this->visible = visible;
 
-        if( this->state_change_callback )
-            this->state_change_callback(this,SGUI_WIDGET_VISIBILLITY_CHANGED);
+        if( this->state_change_event )
+            this->state_change_event(this,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
         propagat_state_change(this->children,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
@@ -263,12 +258,6 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
 
         sgui_internal_unlock_mutex( );
     }
-}
-
-void sgui_widget_get_rect( const sgui_widget* this, sgui_rect*r )
-{
-    if( this && r )
-        sgui_rect_copy( r, &this->area );
 }
 
 void sgui_widget_get_absolute_rect( const sgui_widget* this, sgui_rect* r )
@@ -338,8 +327,8 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
             }
         }
 
-        if( this->window_event_callback )
-            this->window_event_callback( this, event );
+        if( this->window_event )
+            this->window_event( this, event );
 
         if( propagate )
         {
@@ -353,12 +342,6 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
             sgui_internal_unlock_mutex( );
         }
     }
-}
-
-void sgui_widget_draw( sgui_widget* this )
-{
-    if( this && this->draw_callback )
-        this->draw_callback( this );
 }
 
 void sgui_widget_remove_from_parent( sgui_widget* this )
@@ -396,11 +379,11 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
         propagate_canvas( this->children );
 
         /* call state change callbacks */
-        if( i && i->state_change_callback )
-            i->state_change_callback( i, SGUI_WIDGET_CHILD_REMOVED );
+        if( i && i->state_change_event )
+            i->state_change_event( i, SGUI_WIDGET_CHILD_REMOVED );
 
-        if( this->state_change_callback )
-            this->state_change_callback( this, change );
+        if( this->state_change_event )
+            this->state_change_event( this, change );
 
         if( change & SGUI_WIDGET_CANVAS_CHANGED )
             propagat_state_change(this->children, SGUI_WIDGET_CANVAS_CHANGED);
@@ -449,11 +432,11 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
     }
 
     /* call state change callbacks */
-    if( this->state_change_callback )
-        this->state_change_callback( this, SGUI_WIDGET_CHILD_ADDED );
+    if( this->state_change_event )
+        this->state_change_event( this, SGUI_WIDGET_CHILD_ADDED );
 
-    if( child->state_change_callback )
-        child->state_change_callback( child, change );
+    if( child->state_change_event )
+        child->state_change_event( child, change );
 
     if( change & SGUI_WIDGET_CANVAS_CHANGED )
         propagat_state_change( child->children, SGUI_WIDGET_CANVAS_CHANGED );

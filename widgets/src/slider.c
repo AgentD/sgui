@@ -170,11 +170,6 @@ static void slider_draw( sgui_widget* super )
                        this->value, this->steps );
 }
 
-static void slider_destroy( sgui_widget* this )
-{
-    free( this );
-}
-
 /****************************************************************************/
 
 sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
@@ -223,9 +218,9 @@ sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
     this->border   = vertical ? SGUI_RECT_HEIGHT(r) : SGUI_RECT_WIDTH(r);
     this->draglen  = length - this->border;
 
-    super->window_event_callback = slider_on_event;
-    super->draw_callback         = slider_draw;
-    super->destroy               = slider_destroy;
+    super->window_event = slider_on_event;
+    super->draw         = slider_draw;
+    super->destroy      = (void(*)(sgui_widget*))free;
 
     return super;
 }

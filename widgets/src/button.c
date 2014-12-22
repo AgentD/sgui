@@ -381,11 +381,11 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     this->flags = flags;
 
     if( (flags & 0x03)==BUTTON )
-        this->super.window_event_callback = button_on_event;
+        this->super.window_event = button_on_event;
     else
-        this->super.window_event_callback = toggle_button_on_event;
+        this->super.window_event = toggle_button_on_event;
 
-    super->draw_callback = button_draw;
+    super->draw = button_draw;
     super->destroy = button_destroy;
 
     return (sgui_widget*)this;
