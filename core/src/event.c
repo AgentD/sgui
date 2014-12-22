@@ -41,17 +41,12 @@ typedef struct listener
     void* receiver;             /* receiver */
     sgui_function callback;
 
-    int datatype;               /* datatype of function argument */
-    int fromevent;              /* non zero if argument from event struct */
+    int type;                   /* type of function argument */
 
     union
     {
-        int what;               /* what event structure field? */
-
         char c; 
         short s;
-        int i;
-        int i2[2];
         int i3[3];
         long l;
         void* p;
@@ -78,59 +73,46 @@ static listener* listeners = NULL;
 
 void sgui_event_connect( void* sender, int eventtype, ... )
 {
+    sgui_function callback;
     listener* l;
     va_list va;
-    int token;
-
-    l = malloc( sizeof(listener) );
-
-    if( !l )
-        return;
-
-    l->event  = eventtype;
-    l->sender = sender;
 
     va_start( va, eventtype );
-    l->callback = va_arg( va, sgui_function );
+    callback = va_arg( va, sgui_function );
+
+    if( !callback || !(l = malloc( sizeof(listener) )) )
+        goto done;
+
+    l->event    = eventtype;
+    l->sender   = sender;
+    l->callback = callback;
     l->receiver = va_arg( va, void* );
-    token = va_arg( va, int );
+    l->type     = va_arg( va, int );
 
-    if( token==SGUI_FROM_EVENT )
+    switch( l->type )
     {
-        l->fromevent  = 1;
-        l->value.what = va_arg( va, int );
-    }
-    else
-    {
-        l->fromevent = 0;
-        l->datatype  = token;
-
-        /* fetch argument */
-        switch( token )
-        {
-        case SGUI_VOID:                                             break;
-        case SGUI_CHAR:          l->value.c = va_arg( va, int    ); break;
-        case SGUI_SHORT:         l->value.s = va_arg( va, int    ); break;
-        case SGUI_INT:           l->value.i = va_arg( va, int    ); break;
-        case SGUI_LONG:          l->value.l = va_arg( va, long   ); break;
-        case SGUI_POINTER:       l->value.p = va_arg( va, void*  ); break;
+    case SGUI_CHAR:          l->value.c = va_arg( va, int    ); break;
+    case SGUI_SHORT:         l->value.s = va_arg( va, int    ); break;
+    case SGUI_LONG:          l->value.l = va_arg( va, long   ); break;
+    case SGUI_POINTER:       l->value.p = va_arg( va, void*  ); break;
 #ifndef SGUI_NO_FLOAT
-        case SGUI_FLOAT:         l->value.f = va_arg( va, double ); break;
-        case SGUI_DOUBLE:        l->value.d = va_arg( va, double ); break;
+    case SGUI_FLOAT:         l->value.f = va_arg( va, double ); break;
+    case SGUI_DOUBLE:        l->value.d = va_arg( va, double ); break;
 #endif
-        case SGUI_INT2:          l->value.i2[0] = va_arg( va, int );
-                                 l->value.i2[1] = va_arg( va, int ); break;
-        case SGUI_INT3:          l->value.i3[0] = va_arg( va, int );
-                                 l->value.i3[1] = va_arg( va, int );
-                                 l->value.i3[2] = va_arg( va, int ); break;
-        }
+    case SGUI_FROM_EVENT:
+    case SGUI_INT:           l->value.i3[0] = va_arg( va, int ); break;
+    case SGUI_INT2:          l->value.i3[0] = va_arg( va, int );
+                             l->value.i3[1] = va_arg( va, int ); break;
+    case SGUI_INT3:          l->value.i3[0] = va_arg( va, int );
+                             l->value.i3[1] = va_arg( va, int );
+                             l->value.i3[2] = va_arg( va, int ); break;
     }
-
-    va_end( va );
 
     sgui_internal_lock_mutex( );
     SGUI_ADD_TO_LIST( listeners, l );
     sgui_internal_unlock_mutex( );
+done:
+    va_end( va );
 }
 
 void sgui_event_disconnect( void* sender, int eventtype,
@@ -146,26 +128,23 @@ void sgui_event_disconnect( void* sender, int eventtype,
         if( l->event==eventtype && l->callback==callback &&
             l->sender==sender && l->receiver==receiver )
         {
-            /* check if ther is a pointer to a previous node */
             if( old )
             {
-                /* advance previous next pointer */
-                old->next = old->next->next;
-
-                free( l );          /* free memory */
-                l = old->next;      /* iterator = previous next pointer */
+                old->next = l->next;
+                free( l );
+                l = old->next;
             }
             else
             {
-                listeners = listeners->next;  /* advance head */
-                free( l );                    /* free memory */
-                l = listeners;                /* iterator = head */
+                listeners = listeners->next;
+                free( l );
+                l = listeners;
             }
         }
         else
         {
-            old = l;                        /* old = iterator */
-            l = l->next;                    /* advance iterator */
+            old = l;
+            l = l->next;
         }
     }
 
@@ -174,20 +153,27 @@ void sgui_event_disconnect( void* sender, int eventtype,
 
 void sgui_event_post( const sgui_event* event )
 {
+    sgui_event* new_queue;
+    int new_size;
+
     if( event )
     {
         sgui_internal_lock_mutex( );
 
-        /* resize queue if neccessary */
         if( queue_top == queue_size )
         {
-            queue_size = queue_size<10 ? 10 : queue_size*2;
-            queue = realloc( queue, sizeof(sgui_event)*queue_size );
-            assert( queue );
+            new_size = queue_size<10 ? 10 : queue_size*2;
+            new_queue = realloc( queue, sizeof(sgui_event)*new_size );
+
+            if( new_queue )
+            {
+                queue_size = new_size;
+                queue = new_queue;
+            }
         }
 
-        /* add event to queue */
-        queue[ queue_top++ ] = (*event);
+        if( queue_top < queue_size )
+            queue[ queue_top++ ] = (*event);
 
         sgui_internal_unlock_mutex( );
     }
@@ -215,28 +201,17 @@ void sgui_event_process( void )
     queue_size = 0;
     queue = NULL;
 
-    /* for each event in the queue */
-    for( e=local, i=0; i<count; ++i, ++e )
+    for( e=local, i=0; i<count; ++i, ++e )  /* for each event in the queue */
     {
-        /* for each listener */
-        for( l=listeners; l; l=l->next )
+        for( l=listeners; l; l=l->next )        /* for each listener */
         {
-            if( !l->callback )
+            if( (l->event!=e->type)||(l->sender && l->sender!=e->src.other) )
                 continue;
 
-            /* skip if wrong event type */
-            if( l->event != e->type )
-                continue;
-
-            /* skip if wrong sender */
-            if( l->sender && l->sender!=e->src.other )
-                continue;
-
-            /* call callback with configured arguments */
-            if( l->fromevent )
+            switch( l->type )
             {
-                /* argument is event argument */
-                switch( l->value.what )
+            case SGUI_FROM_EVENT:
+                switch( l->value.i3[0] )
                 {
                 case SGUI_EVENT: l->callback(l->receiver,e            );break;
                 case SGUI_WIDGET:l->callback(l->receiver,e->src.widget);break;
@@ -298,30 +273,24 @@ void sgui_event_process( void )
                                  e->arg.i3.z, e->arg.i3.y, e->arg.i3.x );
                     break;
                 }
-            }
-            else
-            {
-                /* argument is supplied constant */
-                switch( l->datatype )
-                {
-                case SGUI_VOID:   l->callback(l->receiver);             break;
-                case SGUI_CHAR:   l->callback(l->receiver, l->value.c); break;
-                case SGUI_SHORT:  l->callback(l->receiver, l->value.s); break;
-                case SGUI_INT:    l->callback(l->receiver, l->value.i); break;
-                case SGUI_LONG:   l->callback(l->receiver, l->value.l); break;
-                case SGUI_POINTER:l->callback(l->receiver, l->value.p); break;
+                break;
+            case SGUI_VOID:   l->callback(l->receiver);             break;
+            case SGUI_CHAR:   l->callback(l->receiver, l->value.c); break;
+            case SGUI_SHORT:  l->callback(l->receiver, l->value.s); break;
+            case SGUI_INT:    l->callback(l->receiver, l->value.i3[0]); break;
+            case SGUI_LONG:   l->callback(l->receiver, l->value.l); break;
+            case SGUI_POINTER:l->callback(l->receiver, l->value.p); break;
 #ifndef SGUI_NO_FLOAT
-                case SGUI_FLOAT:  l->callback(l->receiver, l->value.f); break;
-                case SGUI_DOUBLE: l->callback(l->receiver, l->value.d); break;
+            case SGUI_FLOAT:  l->callback(l->receiver, l->value.f); break;
+            case SGUI_DOUBLE: l->callback(l->receiver, l->value.d); break;
 #endif
-                case SGUI_INT2:
-                    l->callback(l->receiver, l->value.i2[0], l->value.i2[1]);
-                    break;
-                case SGUI_INT3:
-                    l->callback( l->receiver, l->value.l, l->value.i3[0],
-                                 l->value.i3[1], l->value.i2[2] );
-                    break;
-                }
+            case SGUI_INT2:
+                l->callback(l->receiver, l->value.i3[0], l->value.i3[1]);
+                break;
+            case SGUI_INT3:
+                l->callback( l->receiver, l->value.i3[0], l->value.i3[1],
+                             l->value.i3[2] );
+                break;
             }
         }
     }
