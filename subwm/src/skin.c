@@ -89,17 +89,15 @@ static void default_draw_title_bar( sgui_subwm_skin* skin, sgui_canvas* cv,
                                     const char* title )
 {
     const unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
-    unsigned int w, h;
     sgui_rect r;
     (void)skin;
 
-    sgui_canvas_get_size( cv, &w, &h );
-    sgui_rect_set_size( &r, 0, 0, w, 20 );
+    sgui_rect_set_size( &r, 0, 0, cv->width, 20 );
     sgui_canvas_clear( cv, &r );
     sgui_canvas_draw_text_plain( cv, 15, 0, 1, 0,
                                  sgui_skin_get( )->font_color, title, -1 );
 
-    sgui_canvas_draw_line( cv, 0, 19, w, 1, color, SGUI_RGBA8 );
+    sgui_canvas_draw_line( cv, 0, 19, cv->width, 1, color, SGUI_RGBA8 );
 }
 
 static unsigned int default_get_titlebar_height( sgui_subwm_skin* skin )
