@@ -282,3 +282,39 @@ if( DOXYGEN_FOUND )
                    )
 endif( )
 
+#----------------------------------------------------------------------
+# Configure packaging
+#----------------------------------------------------------------------
+if( WIN32 )
+  if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    set( W32_ARCH "x64" )
+  else( )
+    set( W32_ARCH "x86" )
+  endif( )
+
+  add_custom_target( pack 
+                     COMMAND mkdir -p ./include
+                     COMMAND mkdir -p ./doc
+                     COMMAND cp -r ${CMAKE_SOURCE_DIR}/extras .
+                     COMMAND cp -r ${CMAKE_SOURCE_DIR}/doc .
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/README .
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/LICENSE .
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/core/include/*.h ./include
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/widgets/include/*.h ./include
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/dialogs/include/*.h ./include
+                     COMMAND cp ./win_dep/${W32_ARCH}/libfreetype.{a,la} ./lib/
+                     COMMAND cp ./lib/libfreetype.a ./lib/libfreetype.lib
+                     COMMAND cp ./lib/libsgui.dll.a ./lib/libsgui.dll.lib
+                     COMMAND ${CMAKE_STRIP} --strip-all ./bin/*
+                     COMMAND ${CMAKE_STRIP} --strip-all ./lib/*.lib
+                     COMMAND ${CMAKE_STRIP} --strip-all ./lib/*.a
+                     COMMAND cp ./win_dep/FTL.TXT ./lib
+                     COMMAND cp ./win_dep/FTL.TXT ./bin
+                     COMMAND zip sgui.zip -r -- ./bin ./font ./lib ./include ./doxydoc
+                     COMMAND zip ./sgui.zip -r -- ./LICENSE ./README ./doc
+                     COMMAND find extras -name "*.c" -print | zip ./sgui.zip -@
+                     COMMAND mv sgui.zip ${CMAKE_SOURCE_DIR}/sgui_win32_${W32_ARCH}.zip
+                     DEPENDS doxydoc
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
+endif( )
+
