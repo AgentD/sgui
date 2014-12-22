@@ -270,7 +270,7 @@ int sgui_main_loop_step( void )
 
     sgui_internal_process_events( );
 
-    return is_window_active( );
+    return is_window_active( ) || sgui_event_queued( );
 }
 
 void sgui_main_loop( void )
@@ -285,5 +285,8 @@ void sgui_main_loop( void )
         DispatchMessageA( &msg );
         sgui_internal_process_events( );
     }
+
+    while( sgui_event_queued( ) )
+        sgui_internal_process_events( );
 }
 

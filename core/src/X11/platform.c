@@ -445,7 +445,7 @@ int sgui_main_loop_step( void )
 
     sgui_internal_process_events( );
 
-    return have_active_windows( );
+    return have_active_windows( ) || sgui_event_queued( );
 }
 
 void sgui_main_loop( void )
@@ -474,5 +474,8 @@ void sgui_main_loop( void )
         tv.tv_sec = 1;
         select( x11_fd+1, &in_fds, 0, 0, &tv );
     }
+
+    while( sgui_event_queued( ) )
+        sgui_internal_process_events( );
 }
 

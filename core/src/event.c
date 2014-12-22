@@ -352,3 +352,14 @@ void sgui_internal_reset_events( void )
     sgui_internal_unlock_mutex( );
 }
 
+unsigned int sgui_event_queued( void )
+{
+    unsigned int count;
+
+    sgui_internal_lock_mutex( );
+    count = queue_top;
+    sgui_internal_unlock_mutex( );
+
+    return count;
+}
+

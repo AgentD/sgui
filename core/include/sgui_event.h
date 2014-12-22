@@ -323,6 +323,9 @@ SGUI_DLL void sgui_event_disconnect( void* sender, int eventtype,
  */
 SGUI_DLL void sgui_event_post( const sgui_event* event );
 
+/** \brief Get the number of events still waiting for processing */
+SGUI_DLL unsigned int sgui_event_queued( void );
+
 #ifdef __cplusplus
 }
 #endif
