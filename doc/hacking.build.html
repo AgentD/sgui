@@ -55,27 +55,6 @@ Alternatively, use "mingw64.cmake" for a 64 bit Windows&reg; build.<br>
    CMake toolchain files, if not even porting of SGUI itself. <i>If something
    breaks that should not break, please let me know.</i></pre>
 <br>
-To generate binary packages for all platforms or source packages, run the
-command <b>./package.sh</b> from the source directory. It takes care of all
-of that automatically.<br>
-<br>
-The <b>package.sh</b> script can take the following arguments;
-<ul>
-<li><b>--all</b> compile all targets
-<li><b>--src</b> compile a source package containing the original source tree.
-    The files <b>sgui_src.tar.gz</b> and <b>sgui_src.zip</b> are generated.
-<li><b>--local</b> generate a binary package for the local, Unix&reg; like
-    operating system. The file <b>sgui_unix_&lt;architecture&gt;.tar.gz</b>
-    is generated, containing binaries, documentation, sample source code,
-    headers, LICENSE and README file.
-<li><b>--win32</b> generate a cross compiled binary package for
-    32 bit Windows&reg;. A file called <b>sgui_win32.zip</b> is generated
-    containing binaries, documentation, sample source code, headers, LICENSE
-    and README files.
-<li><b>--win64</b> the same as above except the binaries are generated for
-    64 bit Windows&reg;. The output file is called <b>sgui_win64.zip</b>.
-</ul>
-<br>
 <h4>Compiling on Windows&reg;</h4>
 <img src="images/cmake.png"><br>
 <br>
@@ -164,6 +143,35 @@ via the preprocessor:
 <li>SGUI_WINDOWS
 <li>SGUI_UNIX
 </ul>
+
+<h3>Generating Doxygen reference</h3>
+
+If Doxygen is available on a system, running the target <b>doxydoc</b>
+processes the <i>Doxyfile.in</i> file to generate a propper Doxygen input file
+and runs Doxygen on the input file.<br>
+<br>
+The Doxygen output is written to the directory <i>doxydoc</i> in the output
+directory tree.
+
+<h3>Installing &amp; generating binary packages</h3>
+
+On Unix&reg; like systems, <b>make install</b> can be used to install the SGUI
+library. By default, headers are installed to <i>/usr/local/include</i> and
+the compiled, stripped library to <i>/usr/local/lib</i>.<br>
+<br>
+To change the prefix from <i>/usr/local</i> to something differnt, the
+variable CMAKE_INSTALL_PREFIX has to be altered.<br>
+<br>
+To install to a different root directory,
+<b>make DESTDIR=&lt;root&gt;install</b> can be used to install to
+<i>&lt;root&gt;/&lt;prefix&gt;/lib</i> and
+<i>&lt;root&gt;/&lt;prefix&gt;/include</i> instead.<br>
+<br>
+<br>
+When cross compiling for Windows&reg;, the target <b>pack</b>
+(i.e. <b>make pack</b>) can be used to generate a zip archive with
+Windows&reg; binaries, example programs, documentation, etc... like the one
+that can be downloaded from the SGUI website.
 
 <h3>The source directory tree</h3>
 
