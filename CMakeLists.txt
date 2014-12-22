@@ -22,6 +22,9 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/lib" )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin" )
 
+set( PROJECT_BRIEF "A collection of tools and utillities for C programs" )
+set( PROJECT_VERSION "alpha" )
+
 #----------------------------------------------------------------------
 # Compile configuration
 #----------------------------------------------------------------------
@@ -260,5 +263,22 @@ add_subdirectory( tests )
 
 if( WIN32 )
   set_target_properties(sgui PROPERTIES PREFIX "")
+endif( )
+
+#----------------------------------------------------------------------
+# generate Doxygen API reference
+#----------------------------------------------------------------------
+find_package( Doxygen )
+
+if( DOXYGEN_FOUND )
+  configure_file( ${CMAKE_SOURCE_DIR}/Doxyfile.in
+                  ${CMAKE_BINARY_DIR}/Doxyfile @ONLY )
+
+  add_custom_target( doxydoc
+                     ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
+                     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                     COMMENT "Generating API documentation with Doxygen"
+                     VERBATIM
+                   )
 endif( )
 
