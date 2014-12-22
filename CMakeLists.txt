@@ -318,3 +318,14 @@ if( WIN32 )
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR} )
 endif( )
 
+if( UNIX )
+  install( DIRECTORY core/include DESTINATION include )
+  install( DIRECTORY widgets/include DESTINATION include )
+  install( DIRECTORY dialogs/include DESTINATION include )
+
+  install( TARGETS sgui
+           RUNTIME DESTINATION bin
+           LIBRARY DESTINATION lib
+           ARCHIVE DESTINATION lib )
+endif( )
+
