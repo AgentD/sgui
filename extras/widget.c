@@ -161,8 +161,8 @@ sgui_widget* clock_widget_create( int x, int y, int hour, int minute,
     /*
         Set the internal callbacks for widget redrawing and widget cleanup
      */
-    super->draw_callback = clock_widget_draw;
-    super->destroy       = clock_widget_destroy;
+    super->draw    = clock_widget_draw;
+    super->destroy = clock_widget_destroy;
 
     /*
         Clear the focus policy flags, so our widget cannot get keyboard focus

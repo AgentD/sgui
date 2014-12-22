@@ -566,11 +566,11 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     this->icon_col = icon_col;
     this->txt_col  = txt_col;
 
-    super->window_event_callback = icon_view_on_event;
-    super->draw_callback         = icon_view_draw;
-    super->destroy               = icon_view_destroy;
-    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                                   SGUI_FOCUS_DROP_TAB;
+    super->window_event = icon_view_on_event;
+    super->draw         = icon_view_draw;
+    super->destroy      = icon_view_destroy;
+    super->focus_policy = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                          SGUI_FOCUS_DROP_TAB;
     return super;
 }
 

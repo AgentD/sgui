@@ -83,7 +83,7 @@ struct sgui_widget
     void (* destroy )( sgui_widget* widget );
 
     /** \copydoc sgui_widget_draw */
-    void (* draw_callback )( sgui_widget* widget );
+    void (* draw )( sgui_widget* widget );
 
     /**
      * \brief Callback that is called to inject window events
@@ -91,8 +91,7 @@ struct sgui_widget
      * \param widget A pointer to the widget to update.
      * \param event  The window event that occoured.
      */
-    void (* window_event_callback )( sgui_widget* widget,
-                                     const sgui_event* event );
+    void (* window_event )( sgui_widget* widget, const sgui_event* event );
 
     /**
      * \brief Callback that is called when the internal state of a widget
@@ -102,7 +101,7 @@ struct sgui_widget
      * \param change A combination of WIDGET_*_CHANGED flags that indicate
      *               what changed
      */
-    void (* state_change_callback )( sgui_widget* widget, int change );
+    void (* state_change_event )( sgui_widget* widget, int change );
 };
 
 
