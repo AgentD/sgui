@@ -764,8 +764,8 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @CMAKE_SOURCE_DIR@/core/include
-                         @CMAKE_SOURCE_DIR@/widgets/include
+INPUT                  = @CMAKE_SOURCE_DIR@/core/include \
+                         @CMAKE_SOURCE_DIR@/widgets/include \
                          @CMAKE_SOURCE_DIR@/dialogs/include
 
 # This tag can be used to specify the character encoding of the source files
