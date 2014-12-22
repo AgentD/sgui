@@ -150,7 +150,7 @@ static void xlib_window_destroy( sgui_window* this )
     if( this->backend==SGUI_NATIVE )
         sgui_canvas_destroy( this->ctx.canvas );
     else
-        sgui_context_destroy( this->ctx.ctx );
+        this->ctx.ctx->destroy( this->ctx.ctx );
 
     if( TO_X11(this)->wnd )
         XDestroyWindow( dpy, TO_X11(this)->wnd );

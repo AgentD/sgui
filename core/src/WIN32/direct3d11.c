@@ -123,31 +123,34 @@ static void context_d3d11_destroy( sgui_context* super )
 {
     sgui_d3d11_context* this = (sgui_d3d11_context*)super;
 
-    if( this->dsv )
-        ID3D11DepthStencilView_Release( this->dsv );
+    if( this )
+    {
+        if( this->dsv )
+            ID3D11DepthStencilView_Release( this->dsv );
 
-    if( this->ds_texture )
-        ID3D11Texture2D_Release( this->ds_texture );
+        if( this->ds_texture )
+            ID3D11Texture2D_Release( this->ds_texture );
 
-    if( this->backbuffer )
-        ID3D11RenderTargetView_Release( this->backbuffer );
+        if( this->backbuffer )
+            ID3D11RenderTargetView_Release( this->backbuffer );
 
-    if( this->ctx )
-        ID3D11DeviceContext_Release( this->ctx );
+        if( this->ctx )
+            ID3D11DeviceContext_Release( this->ctx );
 
-    if( this->dev )
-        ID3D11Device_Release( this->dev );
+        if( this->dev )
+            ID3D11Device_Release( this->dev );
 
-    if( this->swapchain )
-        IDXGISwapChain_Release( this->swapchain );
+        if( this->swapchain )
+            IDXGISwapChain_Release( this->swapchain );
 
-    free( this );
-    release_d3d11( );
+        free( this );
+        release_d3d11( );
+    }
 }
 
 static void* context_d3d11_get_internal( sgui_context* this )
 {
-    return ((sgui_d3d11_context*)this)->dev;
+    return this ? ((sgui_d3d11_context*)this)->dev : NULL;
 }
 
 void d3d11_swap_buffers( sgui_window* wnd )

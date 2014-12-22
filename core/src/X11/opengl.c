@@ -136,45 +136,52 @@ static sgui_context* gl_context_create_share( sgui_context* super )
 {
     sgui_context_gl* this = (sgui_context_gl*)super;
 
-    return gl_context_create( this->wnd,
-                              this->wnd->backend==SGUI_OPENGL_CORE,
-                              this );
+    return this ? gl_context_create( this->wnd,
+                                     this->wnd->backend==SGUI_OPENGL_CORE,
+                                     this ) : NULL;
 }
 
 static void gl_context_destroy( sgui_context* this )
 {
-    sgui_internal_lock_mutex( );
-    glXDestroyContext( dpy, ((sgui_context_gl*)this)->gl );
-    sgui_internal_unlock_mutex( );
+    if( this )
+    {
+        sgui_internal_lock_mutex( );
+        glXDestroyContext( dpy, ((sgui_context_gl*)this)->gl );
+        sgui_internal_unlock_mutex( );
 
-    free( this );
+        free( this );
+    }
 }
 
 static void gl_context_make_current( sgui_context* this, sgui_window* wnd )
 {
-    sgui_internal_lock_mutex( );
-    glXMakeContextCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
-                           ((sgui_context_gl*)this)->gl );
-    sgui_internal_unlock_mutex( );
+    if( this && wnd )
+    {
+        sgui_internal_lock_mutex( );
+        glXMakeContextCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
+                               ((sgui_context_gl*)this)->gl );
+        sgui_internal_unlock_mutex( );
+    }
 }
 
 static void* gl_context_get_internal( sgui_context* this )
 {
-    return &(((sgui_context_gl*)this)->gl);
+    return this ? &(((sgui_context_gl*)this)->gl) : NULL;
 }
 
 static void gl_context_release_current( sgui_context* this )
 {
-    (void)this;
-    sgui_internal_lock_mutex( );
-    glXMakeContextCurrent( dpy, 0, 0, 0 );
-    sgui_internal_unlock_mutex( );
+    if( this )
+    {
+        sgui_internal_lock_mutex( );
+        glXMakeContextCurrent( dpy, 0, 0, 0 );
+        sgui_internal_unlock_mutex( );
+    }
 }
 
 static sgui_funptr gl_context_load( sgui_context* this, const char* name )
 {
-    (void)this;
-    return LOAD_GLFUN( name );
+    return (this && name) ? LOAD_GLFUN( name ) : NULL;
 }
 
 

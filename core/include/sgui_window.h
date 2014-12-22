@@ -330,7 +330,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc );
  * (see sgui_window_create), this function makes the context current for the
  * calling thread.
  *
- * \see sgui_context_make_current
+ * \see sgui_context
  */
 SGUI_DLL void sgui_window_make_current( sgui_window* window );
 
@@ -341,10 +341,8 @@ SGUI_DLL void sgui_window_make_current( sgui_window* window );
  *
  * If the window was created with, for instance, an OpenGL rendering context
  * (see sgui_window_create), and has been made current via
- * sgui_window_make_current( ) or sgui_context_make_current( ), this function
- * releases the context from the calling thread.
- *
- * \see sgui_context_release_current
+ * sgui_window_make_current( ), this function releases the context from the
+ * calling thread.
  */
 SGUI_DLL void sgui_window_release_current( sgui_window* window );
 

@@ -230,44 +230,54 @@ static sgui_context* context_gl_create_share( sgui_context* super )
 {
     sgui_gl_context* this = (sgui_gl_context*)super;
 
+    if( !this )
+        return NULL;
+
     return gl_context_create( this->wnd, this->wnd->backend==SGUI_OPENGL_CORE,
                               (sgui_gl_context*)this->wnd->ctx.ctx );
 }
 
 static void context_gl_destroy( sgui_context* this )
 {
-    sgui_internal_lock_mutex( );
-    if( wglGetCurrentContext( )==((sgui_gl_context*)this)->hRC )
-        wglMakeCurrent( NULL, NULL );
+    if( this )
+    {
+        sgui_internal_lock_mutex( );
+        if( wglGetCurrentContext( )==((sgui_gl_context*)this)->hRC )
+            wglMakeCurrent( NULL, NULL );
 
-    wglDeleteContext( ((sgui_gl_context*)this)->hRC );
-    sgui_internal_unlock_mutex( );
+        wglDeleteContext( ((sgui_gl_context*)this)->hRC );
+        sgui_internal_unlock_mutex( );
+    }
 }
 
 static void context_gl_make_current( sgui_context* this, sgui_window* wnd )
 {
-    sgui_internal_lock_mutex( );
-    wglMakeCurrent( TO_W32(wnd)->hDC, ((sgui_gl_context*)this)->hRC );
-    sgui_internal_unlock_mutex( );
+    if( this && wnd )
+    {
+        sgui_internal_lock_mutex( );
+        wglMakeCurrent( TO_W32(wnd)->hDC, ((sgui_gl_context*)this)->hRC );
+        sgui_internal_unlock_mutex( );
+    }
 }
 
 static void context_gl_release_current( sgui_context* this )
 {
-    (void)this;
-    sgui_internal_lock_mutex( );
-    wglMakeCurrent( NULL, NULL );
-    sgui_internal_unlock_mutex( );
+    if( this )
+    {
+        sgui_internal_lock_mutex( );
+        wglMakeCurrent( NULL, NULL );
+        sgui_internal_unlock_mutex( );
+    }
 }
 
 static sgui_funptr context_gl_load( sgui_context* this, const char* name )
 {
-    (void)this;
-    return (sgui_funptr)wglGetProcAddress( name );
+    return (this && name) ? (sgui_funptr)wglGetProcAddress( name ) : NULL;
 }
 
 static void* context_gl_get_internal( sgui_context* this )
 {
-    return &(((sgui_gl_context*)this)->hRC);
+    return this ? &(((sgui_gl_context*)this)->hRC) : NULL;
 }
 
 sgui_context* gl_context_create( sgui_window* wnd, int core,

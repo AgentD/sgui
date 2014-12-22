@@ -39,7 +39,7 @@ void d3dview_on_draw( sgui_widget* subview )
 {
     sgui_window* window = sgui_subview_get_window( subview );
     sgui_context* ctx = sgui_window_get_context( window );
-    IDirect3DDevice9* dev = sgui_context_get_internal( ctx );
+    IDirect3DDevice9* dev = ctx->get_internal( ctx );
     int r = rand( ) % 256, g = rand( ) % 256, b = rand( ) % 256;
 
     IDirect3DDevice9_Clear( dev, 0, NULL, D3DCLEAR_TARGET,
@@ -89,7 +89,7 @@ int main( void )
     /* create a vertex buffer */
     subwindow = sgui_subview_get_window( subview );
     ctx = sgui_window_get_context( subwindow );
-    dev = sgui_context_get_internal( ctx );
+    dev = ctx->get_internal( ctx );
 
     IDirect3DDevice9_CreateVertexBuffer( dev, 3*sizeof(CUSTOMVERTEX), 0,
                                          CUSTOMFVF, D3DPOOL_MANAGED,

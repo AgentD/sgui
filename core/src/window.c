@@ -267,7 +267,8 @@ void sgui_window_make_current( sgui_window* this )
 {
     if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_make_current( this->ctx.ctx, this );
+        if( this->ctx.ctx->make_current )
+            this->ctx.ctx->make_current( this->ctx.ctx, this );
     }
 }
 
@@ -275,7 +276,8 @@ void sgui_window_release_current( sgui_window* this )
 {
     if( this && this->backend!=SGUI_NATIVE )
     {
-        sgui_context_release_current( this->ctx.ctx );
+        if( this->ctx.ctx->release_current )
+            this->ctx.ctx->release_current( this->ctx.ctx );
     }
 }
 

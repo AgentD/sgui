@@ -234,7 +234,7 @@ static void w32_window_destroy( sgui_window* this )
     }
     else
     {
-        sgui_context_destroy( this->ctx.ctx );
+        this->ctx.ctx->destroy( this->ctx.ctx );
     }
 
     if( TO_W32(this)->hDC )

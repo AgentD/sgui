@@ -172,9 +172,8 @@ An example application that does this can be found in <b>extras/gl3.c</b>.
 
 Using the function <b>sgui_window_get_context</b> it is possible to get a
 pointer to an OpenGL&reg; context object from a window. This pointer can be
-used for loading pointers to extension functions via the
-<b>sgui_context_load</b> function that takes as arguments a pointer to a
-context object and a name string.
+used for loading pointers to extension functions via the <b>load</b> method
+that takes as arguments a pointer to a context object and a name string.
 
 <h4>Creating a dedicated resource loading context</h4>
 
@@ -183,14 +182,15 @@ loading. That context shares resources with the context used for rendering and
 is bound to a different thread, dedicated to loading resources.<br>
 <br>
 After getting the context object from a window using
-<b>sgui_window_get_context</b>, the function <b>sgui_context_create_share</b>
-can be used to create a new context that shares resources with the existing
-context. The function <b>sgui_context_destroy</b> can be used to destroy that
-context when no longer needed.<br>
+<b>sgui_window_get_context</b>, the function <b>create_share</b> callback in
+the context structure can be used to create a new context that shares
+resources with the existing context. The function <b>destroy</b> in the
+context structure can be used to destroy that context when no longer
+needed.<br>
 <br>
 All that is left to do in the loading thread is to make the new context
-current with <b>sgui_context_make_current</b>, and later releasing it using
-<b>sgui_context_release_current</b>.
+current with a call to the <b>make_current</b> callback, and later releasing
+it using <b>release_current</b>.
 
 <hr>
 <a href="dialogs.html">Previous</a>

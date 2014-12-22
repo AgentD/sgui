@@ -143,14 +143,17 @@ static const int d_formats[] =
 
 static void context_d3d9_destroy( sgui_context* this )
 {
-    IDirect3DDevice9_Release( ((sgui_d3d9_context*)this)->device );
-    free( this );
-    release_d3d9( );
+    if( this )
+    {
+        IDirect3DDevice9_Release( ((sgui_d3d9_context*)this)->device );
+        free( this );
+        release_d3d9( );
+    }
 }
 
 static void* context_d3d9_get_internal( sgui_context* this )
 {
-    return ((sgui_d3d9_context*)this)->device;
+    return this ? ((sgui_d3d9_context*)this)->device : NULL;
 }
 
 void d3d9_swap_buffers( sgui_window* this )

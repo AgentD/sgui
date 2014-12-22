@@ -46,7 +46,7 @@ DWORD __stdcall d3d9_drawing_thread( LPVOID arg )
     /* grab context and internal data from sub-window */
     sgui_window* window = sgui_subview_get_window( subview );
     sgui_context* ctx = sgui_window_get_context( window );
-    IDirect3DDevice9* dev = sgui_context_get_internal( ctx );
+    IDirect3DDevice9* dev = ctx->get_internal( ctx );
     LPDIRECT3DVERTEXBUFFER9 v_buffer;
     VOID* pVoid;
     (void)arg;
