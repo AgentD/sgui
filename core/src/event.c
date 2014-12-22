@@ -33,10 +33,6 @@
 
 
 
-#define QUEUE_SHRINK_COUNTDOWN 16
-
-
-
 typedef struct listener
 {
     int event;                  /* event to listen for */
@@ -76,7 +72,6 @@ listener;
 static sgui_event* queue = NULL;
 static int queue_top = 0;
 static int queue_size = 0;
-static int queue_shrink = QUEUE_SHRINK_COUNTDOWN;
 static listener* listeners = NULL;
 
 
@@ -189,7 +184,6 @@ void sgui_event_post( const sgui_event* event )
             queue_size = queue_size<10 ? 10 : queue_size*2;
             queue = realloc( queue, sizeof(sgui_event)*queue_size );
             assert( queue );
-            queue_shrink = QUEUE_SHRINK_COUNTDOWN;
         }
 
         /* add event to queue */
@@ -203,14 +197,26 @@ void sgui_event_post( const sgui_event* event )
 
 void sgui_internal_process_events( void )
 {
+    sgui_event* local;
     sgui_event* e;
+    int i, count;
     listener* l;
-    int i;
 
     sgui_internal_lock_mutex( );
 
+    /*
+        snatch the queue, so modification while processing
+        doesn't confuse us
+     */
+    local = queue;
+    count = queue_top;
+
+    queue_top = 0;
+    queue_size = 0;
+    queue = NULL;
+
     /* for each event in the queue */
-    for( e=queue, i=0; i<queue_top; ++i, ++e )
+    for( e=local, i=0; i<count; ++i, ++e )
     {
         /* for each listener */
         for( l=listeners; l; l=l->next )
@@ -320,26 +326,9 @@ void sgui_internal_process_events( void )
         }
     }
 
-    /* shrink queue by a quarter if less than half filled for some time */
-    if( queue_top > queue_size/2 )
-    {
-        queue_shrink = QUEUE_SHRINK_COUNTDOWN;
-    }
-    else
-    {
-        --queue_shrink;
-
-        if( !queue_shrink )
-        {
-            queue_shrink = QUEUE_SHRINK_COUNTDOWN;
-            queue_size -= queue_size/4;
-            queue = realloc( queue, sizeof(sgui_event)*queue_size );
-            assert( queue );
-        }
-    }
-
-    queue_top = 0;
     sgui_internal_unlock_mutex( );
+
+    free( local );
 }
 
 void sgui_internal_reset_events( void )
@@ -357,7 +346,6 @@ void sgui_internal_reset_events( void )
 
     free( queue );
 
-    queue_shrink = QUEUE_SHRINK_COUNTDOWN;
     queue = NULL;
     queue_size = 0;
     queue_top = 0;
