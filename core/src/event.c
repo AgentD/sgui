@@ -195,7 +195,7 @@ void sgui_event_post( const sgui_event* event )
 
 /****************************************************************************/
 
-void sgui_internal_process_events( void )
+void sgui_event_process( void )
 {
     sgui_event* local;
     sgui_event* e;
@@ -331,7 +331,7 @@ void sgui_internal_process_events( void )
     free( local );
 }
 
-void sgui_internal_reset_events( void )
+void sgui_event_reset( void )
 {
     listener* l;
 

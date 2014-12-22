@@ -403,7 +403,7 @@ int sgui_init( void )
     /* initialise default GUI skin */
     sgui_skin_set( NULL );
 
-    sgui_internal_reset_events( );
+    sgui_event_reset( );
     return 1;
 failure:
     sgui_deinit( );
@@ -412,7 +412,7 @@ failure:
 
 void sgui_deinit( void )
 {
-    sgui_internal_reset_events( );
+    sgui_event_reset( );
 
     sgui_interal_skin_deinit_default( );
 
@@ -443,7 +443,7 @@ int sgui_main_loop_step( void )
     XFlush( dpy );
     sgui_internal_unlock_mutex( );
 
-    sgui_internal_process_events( );
+    sgui_event_process( );
 
     return have_active_windows( ) || sgui_event_queued( );
 }
@@ -464,7 +464,7 @@ void sgui_main_loop( void )
         XFlush( dpy );
         sgui_internal_unlock_mutex( );
 
-        sgui_internal_process_events( );
+        sgui_event_process( );
 
         /* wait for X11 events, one second time out */
         FD_ZERO( &in_fds );
@@ -476,6 +476,6 @@ void sgui_main_loop( void )
     }
 
     while( sgui_event_queued( ) )
-        sgui_internal_process_events( );
+        sgui_event_process( );
 }
 

@@ -93,15 +93,6 @@ SGUI_DLL void sgui_internal_lock_mutex( void );
  */
 SGUI_DLL void sgui_internal_unlock_mutex( void );
 
-/** \brief Call this in sgui_init/sgui_deinit to reset event connections */
-SGUI_DLL void sgui_internal_reset_events( void );
-
-/**
- * \brief Call this in sgui_main_loop/sgui_main_loop_step to process the
- *        event queue and event connections
- */
-SGUI_DLL void sgui_internal_process_events( void );
-
 /**
  * \brief Perform common operations at the end of sgui_window_create
  *
