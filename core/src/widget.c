@@ -220,11 +220,6 @@ void sgui_widget_get_size( const sgui_widget* this,
     }
 }
 
-int sgui_widget_is_visible( const sgui_widget* this )
-{
-    return this ? this->visible : 0;
-}
-
 int sgui_widget_is_absolute_visible( const sgui_widget* this )
 {
     sgui_internal_lock_mutex( );
@@ -263,12 +258,6 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
 
         sgui_internal_unlock_mutex( );
     }
-}
-
-void sgui_widget_get_rect( const sgui_widget* this, sgui_rect*r )
-{
-    if( this && r )
-        sgui_rect_copy( r, &this->area );
 }
 
 void sgui_widget_get_absolute_rect( const sgui_widget* this, sgui_rect* r )
@@ -353,12 +342,6 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
             sgui_internal_unlock_mutex( );
         }
     }
-}
-
-void sgui_widget_draw( sgui_widget* this )
-{
-    if( this && this->draw )
-        this->draw( this );
 }
 
 void sgui_widget_remove_from_parent( sgui_widget* this )

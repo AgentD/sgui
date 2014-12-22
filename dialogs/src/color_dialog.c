@@ -193,19 +193,19 @@ sgui_color_dialog* sgui_color_dialog_create( const char* caption,
     /* calculate window size */
     sgui_rect_set_size( &r, 0, 0, 0, 0 );
 
-    sgui_widget_get_rect( this->picker, &wr );
+    wr = this->picker->area;
     sgui_rect_join( &r, &wr, 0 );
-    sgui_widget_get_rect( this->spin_v, &wr );
+    wr = this->spin_v->area;
     sgui_rect_join( &r, &wr, 0 );
-    sgui_widget_get_rect( this->label_v, &wr );
+    wr = this->label_v->area;
     sgui_rect_join( &r, &wr, 0 );
-    sgui_widget_get_rect( this->spin_b, &wr );
+    wr = this->spin_b->area;
     sgui_rect_join( &r, &wr, 0 );
-    sgui_widget_get_rect( this->label_b, &wr );
+    wr = this->label_b->area;
     sgui_rect_join( &r, &wr, 0 );
-    sgui_widget_get_rect( this->spin_a, &wr );
+    wr = this->spin_a->area;
     sgui_rect_join( &r, &wr, 0 );
-    sgui_widget_get_rect( this->label_a, &wr );
+    wr = this->label_a->area;
     sgui_rect_join( &r, &wr, 0 );
 
     w = SGUI_RECT_WIDTH(r)+10;

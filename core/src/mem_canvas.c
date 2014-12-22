@@ -36,11 +36,6 @@
 
 
 #ifndef SGUI_NO_MEM_CANVAS
-static void canvas_mem_destroy( sgui_canvas* this )
-{
-    free( this );
-}
-
 static void canvas_mem_resize( sgui_canvas* super, unsigned int width,
                                unsigned int height )
 {
@@ -514,7 +509,7 @@ int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
         this->blend_stencil = canvas_mem_blend_stencil_rgb;
     }
 
-    super->destroy = canvas_mem_destroy;
+    super->destroy = (void(*)(sgui_canvas*))free;
     super->resize = canvas_mem_resize;
     super->clear = canvas_mem_clear;
     super->draw_string = canvas_mem_draw_string;

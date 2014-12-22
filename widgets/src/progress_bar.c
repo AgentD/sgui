@@ -65,11 +65,6 @@ static void progress_draw( sgui_widget* super )
     }
 }
 
-static void progress_bar_destroy( sgui_widget* this )
-{
-    free( this );
-}
-
 
 
 sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
@@ -97,7 +92,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
 
     super->draw          = progress_draw;
     super->focus_policy  = 0;
-    super->destroy       = progress_bar_destroy;
+    super->destroy       = (void(*)(sgui_widget*))free;
     this->progress       = progress;
     this->stippled       = style==SGUI_PROGRESS_BAR_STIPPLED;
     this->vertical       = vertical;
