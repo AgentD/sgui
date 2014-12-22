@@ -13,6 +13,7 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifdef SGUI_WINDOWS
     #include <windows.h>
@@ -29,6 +30,26 @@ int main( void )
     sgui_window* subwnd2;
     sgui_window* wnd;
     sgui_ctx_wm* wm;
+    int selection;
+
+    puts( "Select rendering backend: " );
+    puts( " 1) OpenGL(R) old" );
+    puts( " 2) OpenGL(R) 3.0+ core" );
+    puts( " 3) Direct3D(R) 9" );
+    puts( " 4) Direct3D(R) 11" );
+    puts( "\n 0) quit\n" );
+    selection = 0;
+    scanf( "%d", &selection );
+
+    switch( selection )
+    {
+    case 1: selection = SGUI_OPENGL_COMPAT; break;
+    case 2: selection = SGUI_OPENGL_CORE;   break;
+    case 3: selection = SGUI_DIRECT3D_9;    break;
+    case 4: selection = SGUI_DIRECT3D_11;   break;
+    default:
+        return 0;
+    }
 
     sgui_init( );
 
@@ -38,7 +59,7 @@ int main( void )
     desc.width          = 800;
     desc.height         = 600;
     desc.flags          = SGUI_FIXED_SIZE|SGUI_DOUBLEBUFFERED;
-    desc.backend        = SGUI_OPENGL_COMPAT;
+    desc.backend        = selection;
     desc.bits_per_pixel = 32;
 
     wnd = sgui_window_create_desc( &desc );
