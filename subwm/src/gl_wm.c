@@ -23,14 +23,60 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "sgui_subwm_skin.h"
+#include "sgui_context.h"
 #include "gl_wm.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 
 #ifndef SGUI_NO_OPENGL
+static const char* window_vsh =
+"#version 130\n"
+
+"in vec2 v_pos;\n"      /* 2D vertex position in screen space */
+"in vec2 v_tc0;\n"      /* window content texture coordinate */
+"in vec2 v_tc1;\n"      /* skin texture coordinate */
+
+"out vec2 tc0;\n"       /* output window content texture coordinate */
+"out vec2 tc1;\n"       /* output skin texture coordinate */
+
+"uniform mat4 mvp;\n"   /* screen space scaling matrix */
+
+"void main( )\n"
+"{\n"
+"    tc0 = v_tc0;\n"
+"    tc1 = v_tc1;\n"
+"    gl_Position = mvp * vec4( v_pos, 0.0, 1.0 );\n"
+"}";
+
+static const char* window_fsh =
+"#version 130\n"
+
+"in vec2 tc0;\n"        /* interpolated window content texture coordinate */
+"in vec2 tc1;\n"        /* interpolated skin texture coordinate */
+
+"out vec4 color;\n"     /* output fragment color */
+
+"uniform sampler2D tex0;\n"         /* window content texture */
+"uniform sampler2D tex1;\n"         /* skin texture */
+"uniform float transparency;\n"     /* window alpha value */
+
+"void main( )\n"
+"{\n"
+
+     /* fetch window content texel and window background texel */
+"    vec4 a = texture( tex0, tc0 );\n"
+"    vec4 b = texture( tex1, tc1 );\n"
+
+     /* blend window content onto background color */
+"    color = vec4( mix( a.rgb, b.rgb, b.a ), transparency );\n"
+"}";
+
+/****************************************************************************/
+
 /*
     0_1__________2_3
     |_|__________|_|
@@ -151,7 +197,7 @@ static void restore_gl_state( GLint* view )
     glPopMatrix( );
 }
 
-
+/****************************************************************************/
 
 static void gl_wm_destroy( sgui_ctx_wm* this )
 {
@@ -223,6 +269,70 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
 
 /****************************************************************************/
 
+static void gl_wm_core_destroy( sgui_ctx_wm* this )
+{
+    glDeleteTextures( 1, &(((sgui_gl_wm*)this)->wndtex) );
+    free( this );
+}
+
+static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
+{
+    sgui_gl_wm* this = (sgui_gl_wm*)super;
+    (void)this;
+}
+
+/****************************************************************************/
+
+static void sgui_gl_functions_load( sgui_gl_functions* this,
+                                    sgui_context* ctx )
+{
+    this->CompileShader = (GLCOMPILESHADERPROC)
+    ctx->load( ctx, "glCompileShader" );
+
+    this->CreateShader = (GLCREATESHADERPROC)
+    ctx->load( ctx, "glCreateShader" );
+
+    this->CreateProgram = (GLCREATEPROGRAMPROC)
+    ctx->load( ctx, "glCreateProgram" );
+
+    this->GenVertexArrays = (GLGENVERTEXARRAYSPROC)
+    ctx->load( ctx, "glGenVertexArrays" );
+
+    this->GenBuffers = (GLGENBUFFERSPROC)
+    ctx->load( ctx, "glGenBuffers" );
+
+    this->LinkProgram = (GLLINKPROGRAMPROC)
+    ctx->load( ctx, "glLinkProgram" );
+
+    this->ShaderSource = (GLSHADERSOURCEPROC)
+    ctx->load( ctx, "glShaderSource" );
+
+    this->GetProgramInfoLog = (GLGETPROGRAMINFOLOGPROC)
+    ctx->load( ctx, "glGetProgramInfoLog" );
+
+    this->GetShaderInfoLog = (GLGETSHADERINFOLOGPROC)
+    ctx->load( ctx, "glGetShaderInfoLog" );
+
+    this->AttachShader = (GLATTACHSHADERPROC)
+    ctx->load( ctx, "glAttachShader" );
+
+    this->GetUniformLocation = (GLGETUNIFORMLOCATIONPROC)
+    ctx->load( ctx, "glGetUniformLocation" );
+
+    this->Uniform1f = (GLUNIFORM1FPROC)ctx->load( ctx, "glUniform1f" );
+    this->Uniform1i = (GLUNIFORM1IPROC)ctx->load( ctx, "glUniform1i" );
+    this->UniformMatrix4fv = (GLUNIFORMMATRIX4FVPROC)
+    ctx->load( ctx, "glUniformMatrix4fv" );
+
+    this->BindFragDataLocation = (GLBINDFRAGDATALOCATIONPROC)
+    ctx->load( ctx, "glBindFragDataLocation" );
+
+    this->BindAttribLocation = (GLBINDATTRIBLOCATIONPROC)
+    ctx->load( ctx, "glBindAttribLocation" );
+}
+
+/****************************************************************************/
+
 sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
 {
     sgui_gl_wm* this = malloc( sizeof(sgui_gl_wm) );
@@ -247,6 +357,100 @@ sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
 
         glGetIntegerv( GL_TEXTURE_BINDING_2D, (GLint*)&old );
         glBindTexture( GL_TEXTURE_2D, this->wndtex );
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, skin->get_ctx_skin_texture(skin) );
+
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
+
+        glBindTexture( GL_TEXTURE_2D, old );
+    }
+
+    return (sgui_ctx_wm*)this;
+}
+
+sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
+{
+    sgui_gl_core_wm* this = malloc( sizeof(sgui_gl_core_wm) );
+    sgui_gl_wm* super = (sgui_gl_wm*)this;
+    sgui_subwm_skin* skin;
+    sgui_gl_functions* gl;
+    char buffer[ 128 ];
+    unsigned int w, h;
+    GLsizei length;
+    GLuint old;
+
+    if( this )
+    {
+        memset( this, 0, sizeof(sgui_gl_core_wm) );
+        super->super.wnd = wnd;
+
+        gl = &(this->gl);
+        sgui_gl_functions_load( gl, wnd->ctx.ctx );
+
+        /* create buffer objects */
+        gl->GenVertexArrays( 1, &(this->vao) );
+        gl->GenBuffers( 1, &(this->vbo) );
+        gl->GenBuffers( 1, &(this->ibo) );
+
+        /* create shader program objects */
+        this->fsh = gl->CreateShader( GL_FRAGMENT_SHADER );
+        this->vsh = gl->CreateShader( GL_VERTEX_SHADER );
+        this->prog = gl->CreateProgram( );
+
+        /* compile shaders */
+        gl->ShaderSource( this->vsh, 1, &window_vsh, NULL );
+        gl->ShaderSource( this->fsh, 1, &window_fsh, NULL );
+
+        gl->CompileShader( this->vsh );
+        gl->CompileShader( this->fsh );
+
+        /* link shader program */
+        gl->AttachShader( this->prog, this->vsh );
+        gl->AttachShader( this->prog, this->fsh );
+
+        gl->BindFragDataLocation( this->prog, 0, "color" );
+        gl->BindAttribLocation( this->prog, 0, "v_pos" );
+        gl->BindAttribLocation( this->prog, 1, "v_tc0" );
+        gl->BindAttribLocation( this->prog, 2, "v_tc1" );
+        gl->LinkProgram( this->prog );
+
+        /* get shader unfiroms */
+        this->u_mvp   = gl->GetUniformLocation( this->prog, "mvp" );
+        this->u_tex0  = gl->GetUniformLocation( this->prog, "tex0" );
+        this->u_tex1  = gl->GetUniformLocation( this->prog, "tex1" );
+        this->u_alpha = gl->GetUniformLocation( this->prog, "transparency" );
+
+        /* print compile and link logs */
+        gl->GetShaderInfoLog( this->vsh, sizeof(buffer), &length, buffer );
+        if( length > 3 )
+            fprintf( stderr, "SGUI VERTEX SHADER COMPILE FAILED!!\n\n%s\n\n",
+                     buffer );
+
+        gl->GetShaderInfoLog( this->fsh, sizeof(buffer), &length, buffer );
+        if( length > 3 )
+            fprintf(stderr,"SGUI FRAGMENT SHADER COMPILE FAILED!!\n\n%s\n\n",
+                    buffer);
+
+        gl->GetProgramInfoLog( this->prog, sizeof(buffer), &length, buffer );
+        if( length > 3 )
+            fprintf( stderr, "SGUI SHADER LINK FAILED!!\n\n%s\n\n", buffer );
+
+        /* hook callbacks */
+        super->super.destroy = gl_wm_core_destroy;
+        super->super.draw_gui = gl_wm_core_draw_gui;
+
+        /* generate skin texture */
+        skin = sgui_subwm_skin_get( );
+        skin->get_ctx_skin_texture_size( skin, &w, &h );
+
+        /* create and upload skin texture */
+        glGenTextures( 1, &super->wndtex );
+
+        glGetIntegerv( GL_TEXTURE_BINDING_2D, (GLint*)&old );
+        glBindTexture( GL_TEXTURE_2D, super->wndtex );
         glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
                       GL_UNSIGNED_BYTE, skin->get_ctx_skin_texture(skin) );
 

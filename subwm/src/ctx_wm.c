@@ -82,7 +82,7 @@ sgui_ctx_wm* sgui_ctx_wm_create( sgui_window* wnd )
     {
 #ifndef SGUI_NO_OPENGL
     case SGUI_OPENGL_CORE:
-        break;
+        return gl_wm_create_core( wnd );
     case SGUI_OPENGL_COMPAT:
         return gl_wm_create( wnd );
 #endif
