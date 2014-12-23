@@ -28,6 +28,7 @@
 #include "sgui_skin.h"
 #include "sgui_font.h"
 #include "sgui_internal.h"
+#include "sgui_utf8.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -70,13 +71,7 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
     this = malloc( sizeof(sgui_label) );
     super = (sgui_widget*)this;
 
-    if( !this )
-        return NULL;
-
-    /* allocate space for the text */
-    this->text = malloc( strlen(text)+1 );
-
-    if( !this->text )
+    if( !this || !(this->text = sgui_strdup( text )) )
     {
         free( this );
         return NULL;

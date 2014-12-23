@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_tab.h"
 #include "sgui_skin.h"
+#include "sgui_utf8.h"
 #include "sgui_event.h"
 #include "sgui_canvas.h"
 #include "sgui_widget.h"
@@ -244,13 +245,11 @@ sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
 
     memset( this, 0, sizeof(sgui_tab) );
 
-    if( !(this->caption = malloc( strlen(caption) + 1 )) )
+    if( !(this->caption = sgui_strdup( caption )) )
     {
         free( this );
         return NULL;
     }
-
-    strcpy( this->caption, caption );
 
     sgui_internal_lock_mutex( );
     sgui_widget_init( super, 0, g->tab_cap_height,

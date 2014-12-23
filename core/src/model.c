@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_internal.h"
 #include "sgui_model.h"
+#include "sgui_utf8.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -307,10 +308,7 @@ void sgui_simple_item_set_text( sgui_model* this, sgui_item* item,
         free( *((char**)ptr) );
 
         if( text )
-        {
-            *((char**)ptr) = malloc( strlen( text )+1 );
-            strcpy( *((char**)ptr), text );
-        }
+            *((char**)ptr) = sgui_strdup( text );
 
         sgui_internal_unlock_mutex( );
     }

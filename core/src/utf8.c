@@ -24,6 +24,8 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui_utf8.h"
+#include <stdlib.h>
+#include <string.h>
 
 
 
@@ -141,5 +143,19 @@ void sgui_utf8_from_latin1( char* out, const char* in )
     }
 
     *out = '\0';
+}
+
+char* sgui_strdup( const char* string )
+{
+    char* out = NULL;
+
+    if( string )
+    {
+        out = malloc( strlen(string) + 1 );
+        if( out )
+            strcpy( out, string );
+    }
+
+    return out;
 }
 

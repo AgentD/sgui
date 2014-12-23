@@ -102,6 +102,17 @@ SGUI_DLL unsigned int sgui_utf8_from_latin1_length( const char* in );
  */
 SGUI_DLL void sgui_utf8_from_latin1( char* out, const char* in );
 
+/**
+ * \brief Copy a null-terimated string
+ *
+ * \note We use this because strdup( ) is not available on all platforms
+ *
+ * \param string A pointer to a string
+ *
+ * \return A copy of the string that can be free'd using free( )
+ */
+SGUI_DLL char* sgui_strdup( const char* string );
+
 #ifdef __cplusplus
 }
 #endif

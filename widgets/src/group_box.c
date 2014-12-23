@@ -28,6 +28,7 @@
 #include "sgui_canvas.h"
 #include "sgui_internal.h"
 #include "sgui_widget.h"
+#include "sgui_utf8.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -73,15 +74,11 @@ sgui_widget* sgui_group_box_create( int x, int y,
         return NULL;
 
     /* try to store the caption string */
-    this->caption = malloc( strlen( caption ) + 1 );
-
-    if( !this->caption )
+    if( !(this->caption = sgui_strdup( caption )) )
     {
         free( this );
         return NULL;
     }
-
-    strcpy( this->caption, caption );
 
     /* initialize widget base struct */
     sgui_widget_init( super, x, y, width, height );
