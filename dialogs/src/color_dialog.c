@@ -27,6 +27,7 @@
 #include "sgui_color_picker.h"
 #include "sgui_numeric_edit.h"
 #include "sgui_window.h"
+#include "sgui_dialog.h"
 #include "sgui_button.h"
 #include "sgui_label.h"
 #include "sgui_event.h"
@@ -38,9 +39,9 @@
 
 
 #ifndef SGUI_NO_COLOR_DIALOG
-struct sgui_color_dialog
+typedef struct
 {
-    sgui_window* window;
+    sgui_dialog super;
 
     sgui_widget* picker;
 
@@ -53,7 +54,8 @@ struct sgui_color_dialog
     sgui_widget *spin_a, *label_a;
 
     sgui_widget *button_accept, *button_reject;
-};
+}
+sgui_color_dialog;
 
 
 
@@ -65,7 +67,7 @@ static void update_hsv_from_spinbox( sgui_color_dialog* this )
     hsva[1] = sgui_numeric_edit_get_value( this->spin_s );
     hsva[2] = sgui_numeric_edit_get_value( this->spin_v );
     hsva[3] = sgui_numeric_edit_get_value( this->spin_a );
-    sgui_color_dialog_set_hsva( this, hsva );
+    sgui_color_dialog_set_hsva( (sgui_dialog*)this, hsva );
 }
 
 static void update_rgb_from_spinbox( sgui_color_dialog* this )
@@ -76,11 +78,12 @@ static void update_rgb_from_spinbox( sgui_color_dialog* this )
     rgba[1] = sgui_numeric_edit_get_value( this->spin_g );
     rgba[2] = sgui_numeric_edit_get_value( this->spin_b );
     rgba[3] = sgui_numeric_edit_get_value( this->spin_a );
-    sgui_color_dialog_set_rgba( this, rgba );
+    sgui_color_dialog_set_rgba( (sgui_dialog*)this, rgba );
 }
 
 static void on_accept( sgui_color_dialog* this )
 {
+    sgui_dialog* super = (sgui_dialog*)this;
     sgui_event ev;
 
     ev.src.other = this;
@@ -93,18 +96,19 @@ static void on_accept( sgui_color_dialog* this )
     sgui_color_picker_get_hsv( this->picker, ev.arg.color );
     sgui_event_post( &ev );
 
-    sgui_window_set_visible( this->window, SGUI_INVISIBLE );
+    sgui_window_set_visible( super->window, SGUI_INVISIBLE );
 }
 
 static void on_reject( sgui_color_dialog* this )
 {
+    sgui_dialog* super = (sgui_dialog*)this;
     sgui_event ev;
 
     ev.src.other = this;
     ev.type = SGUI_DIALOG_REJECTED;
     sgui_event_post( &ev );
 
-    sgui_window_set_visible( this->window, SGUI_INVISIBLE );
+    sgui_window_set_visible( super->window, SGUI_INVISIBLE );
 }
 
 /****************************************************************************/
@@ -139,13 +143,67 @@ static int add_spinbox( sgui_widget** box, sgui_widget** label,
     return (*label != NULL);
 }
 
+static void sgui_color_dialog_destroy( sgui_dialog* super )
+{
+    sgui_color_dialog* this = (sgui_color_dialog*)super;
+
+    if( this )
+    {
+        sgui_event_disconnect(this->picker, SGUI_HSVA_CHANGED_EVENT,
+                              (sgui_function)sgui_color_dialog_set_hsva,this);
+        sgui_event_disconnect(this->picker, SGUI_RGBA_CHANGED_EVENT,
+                              (sgui_function)sgui_color_dialog_set_rgba,this);
+        sgui_event_disconnect(this->spin_h, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_hsv_from_spinbox,this);
+        sgui_event_disconnect(this->spin_s, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_hsv_from_spinbox,this);
+        sgui_event_disconnect(this->spin_v, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_hsv_from_spinbox,this);
+        sgui_event_disconnect(this->spin_a, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_hsv_from_spinbox,this);
+        sgui_event_disconnect(this->spin_r, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_rgb_from_spinbox,this);
+        sgui_event_disconnect(this->spin_g, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_rgb_from_spinbox,this);
+        sgui_event_disconnect(this->spin_b, SGUI_EDIT_VALUE_CHANGED,
+                              (sgui_function)update_rgb_from_spinbox,this);
+        sgui_event_disconnect( this->button_accept, SGUI_BUTTON_OUT_EVENT,
+                               (sgui_function)on_accept, this );
+        sgui_event_disconnect( this->button_reject, SGUI_BUTTON_OUT_EVENT,
+                               (sgui_function)on_reject, this );
+
+        sgui_window_destroy( super->window );
+
+        sgui_widget_destroy( this->picker );
+        sgui_widget_destroy( this->spin_h );
+        sgui_widget_destroy( this->spin_s );
+        sgui_widget_destroy( this->spin_v );
+        sgui_widget_destroy( this->spin_r );
+        sgui_widget_destroy( this->spin_g );
+        sgui_widget_destroy( this->spin_b );
+        sgui_widget_destroy( this->label_h );
+        sgui_widget_destroy( this->label_s );
+        sgui_widget_destroy( this->label_v );
+        sgui_widget_destroy( this->label_r );
+        sgui_widget_destroy( this->label_g );
+        sgui_widget_destroy( this->label_b );
+        sgui_widget_destroy( this->spin_a );
+        sgui_widget_destroy( this->label_a );
+        sgui_widget_destroy( this->button_accept );
+        sgui_widget_destroy( this->button_reject );
+
+        free( this );
+    }
+}
+
 /****************************************************************************/
 
-sgui_color_dialog* sgui_color_dialog_create( const char* caption,
-                                             const char* accept,
-                                             const char* reject )
+sgui_dialog* sgui_color_dialog_create( const char* caption,
+                                       const char* accept,
+                                       const char* reject )
 {
     sgui_color_dialog* this = malloc( sizeof(sgui_color_dialog) );
+    sgui_dialog* super = (sgui_dialog*)this;
     unsigned int x, y, w, h, ws;
     unsigned char color[4];
     sgui_rect r, wr;
@@ -156,15 +214,15 @@ sgui_color_dialog* sgui_color_dialog_create( const char* caption,
     memset( this, 0, sizeof(sgui_color_dialog) );
 
     /* dialog window */
-    this->window = sgui_window_create( NULL, 640, 480, SGUI_FIXED_SIZE );
+    super->window = sgui_window_create( NULL, 640, 480, SGUI_FIXED_SIZE );
 
-    if( !this->window )
+    if( !super->window )
     {
         free( this );
         return NULL;
     }
 
-    sgui_window_set_title( this->window, caption );
+    sgui_window_set_title( super->window, caption );
 
     /* color picker */
     if( !(this->picker = sgui_color_picker_create( 10, 10 )) )
@@ -229,26 +287,26 @@ sgui_color_dialog* sgui_color_dialog_create( const char* caption,
     h += 40;
 
     /* add widgets */
-    sgui_window_add_widget( this->window, this->picker );
-    sgui_window_add_widget( this->window, this->spin_h );
-    sgui_window_add_widget( this->window, this->spin_s );
-    sgui_window_add_widget( this->window, this->spin_v );
-    sgui_window_add_widget( this->window, this->spin_r );
-    sgui_window_add_widget( this->window, this->spin_g );
-    sgui_window_add_widget( this->window, this->spin_b );
-    sgui_window_add_widget( this->window, this->label_h );
-    sgui_window_add_widget( this->window, this->label_s );
-    sgui_window_add_widget( this->window, this->label_v );
-    sgui_window_add_widget( this->window, this->label_r );
-    sgui_window_add_widget( this->window, this->label_g );
-    sgui_window_add_widget( this->window, this->label_b );
-    sgui_window_add_widget( this->window, this->spin_a );
-    sgui_window_add_widget( this->window, this->label_a );
-    sgui_window_add_widget( this->window, this->button_accept );
-    sgui_window_add_widget( this->window, this->button_reject );
+    sgui_window_add_widget( super->window, this->picker );
+    sgui_window_add_widget( super->window, this->spin_h );
+    sgui_window_add_widget( super->window, this->spin_s );
+    sgui_window_add_widget( super->window, this->spin_v );
+    sgui_window_add_widget( super->window, this->spin_r );
+    sgui_window_add_widget( super->window, this->spin_g );
+    sgui_window_add_widget( super->window, this->spin_b );
+    sgui_window_add_widget( super->window, this->label_h );
+    sgui_window_add_widget( super->window, this->label_s );
+    sgui_window_add_widget( super->window, this->label_v );
+    sgui_window_add_widget( super->window, this->label_r );
+    sgui_window_add_widget( super->window, this->label_g );
+    sgui_window_add_widget( super->window, this->label_b );
+    sgui_window_add_widget( super->window, this->spin_a );
+    sgui_window_add_widget( super->window, this->label_a );
+    sgui_window_add_widget( super->window, this->button_accept );
+    sgui_window_add_widget( super->window, this->button_reject );
 
     /* reshape window */
-    sgui_window_set_size( this->window, w, h );
+    sgui_window_set_size( super->window, w, h );
 
     /* events */
     sgui_event_connect( this->picker, SGUI_HSVA_CHANGED_EVENT,
@@ -278,77 +336,19 @@ sgui_color_dialog* sgui_color_dialog_create( const char* caption,
 
     /* init */
     sgui_color_picker_get_hsv( this->picker, color );
-    sgui_color_dialog_set_hsva( this, color );
+    sgui_color_dialog_set_hsva( (sgui_dialog*)this, color );
 
-    return this;
+    super->destroy = sgui_color_dialog_destroy;
+    return (sgui_dialog*)this;
 fail:
-    sgui_color_dialog_destroy( this );
+    sgui_color_dialog_destroy( super );
     return NULL;
 }
 
-void sgui_color_dialog_destroy( sgui_color_dialog* this )
-{
-    if( this )
-    {
-        sgui_event_disconnect(this->picker, SGUI_HSVA_CHANGED_EVENT,
-                              (sgui_function)sgui_color_dialog_set_hsva,this);
-        sgui_event_disconnect(this->picker, SGUI_RGBA_CHANGED_EVENT,
-                              (sgui_function)sgui_color_dialog_set_rgba,this);
-        sgui_event_disconnect(this->spin_h, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_hsv_from_spinbox,this);
-        sgui_event_disconnect(this->spin_s, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_hsv_from_spinbox,this);
-        sgui_event_disconnect(this->spin_v, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_hsv_from_spinbox,this);
-        sgui_event_disconnect(this->spin_a, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_hsv_from_spinbox,this);
-        sgui_event_disconnect(this->spin_r, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_rgb_from_spinbox,this);
-        sgui_event_disconnect(this->spin_g, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_rgb_from_spinbox,this);
-        sgui_event_disconnect(this->spin_b, SGUI_EDIT_VALUE_CHANGED,
-                              (sgui_function)update_rgb_from_spinbox,this);
-        sgui_event_disconnect( this->button_accept, SGUI_BUTTON_OUT_EVENT,
-                               (sgui_function)on_accept, this );
-        sgui_event_disconnect( this->button_reject, SGUI_BUTTON_OUT_EVENT,
-                               (sgui_function)on_reject, this );
-
-        sgui_window_destroy( this->window );
-
-        sgui_widget_destroy( this->picker );
-        sgui_widget_destroy( this->spin_h );
-        sgui_widget_destroy( this->spin_s );
-        sgui_widget_destroy( this->spin_v );
-        sgui_widget_destroy( this->spin_r );
-        sgui_widget_destroy( this->spin_g );
-        sgui_widget_destroy( this->spin_b );
-        sgui_widget_destroy( this->label_h );
-        sgui_widget_destroy( this->label_s );
-        sgui_widget_destroy( this->label_v );
-        sgui_widget_destroy( this->label_r );
-        sgui_widget_destroy( this->label_g );
-        sgui_widget_destroy( this->label_b );
-        sgui_widget_destroy( this->spin_a );
-        sgui_widget_destroy( this->label_a );
-        sgui_widget_destroy( this->button_accept );
-        sgui_widget_destroy( this->button_reject );
-
-        free( this );
-    }
-}
-
-void sgui_color_dialog_display( sgui_color_dialog* this )
-{
-    if( this )
-    {
-        sgui_window_set_visible( this->window, SGUI_VISIBLE );
-        sgui_window_move_center( this->window );
-    }
-}
-
-void sgui_color_dialog_set_rgba( sgui_color_dialog* this,
+void sgui_color_dialog_set_rgba( sgui_dialog* super,
                                  const unsigned char* rgba )
 {
+    sgui_color_dialog* this = (sgui_color_dialog*)super;
     unsigned char hsva[4];
 
     if( !this || !rgba )
@@ -367,9 +367,10 @@ void sgui_color_dialog_set_rgba( sgui_color_dialog* this,
     sgui_numeric_edit_set_value( this->spin_v, hsva[2] );
 }
 
-void sgui_color_dialog_set_hsva( sgui_color_dialog* this,
+void sgui_color_dialog_set_hsva( sgui_dialog* super,
                                  const unsigned char* hsva )
 {
+    sgui_color_dialog* this = (sgui_color_dialog*)super;
     unsigned char rgba[4];
 
     if( !this || !hsva )
@@ -388,28 +389,17 @@ void sgui_color_dialog_set_hsva( sgui_color_dialog* this,
     sgui_numeric_edit_set_value( this->spin_b, rgba[2] );
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-sgui_color_dialog* sgui_color_dialog_create( const char* caption,
-                                             const char* accept,
-                                             const char* reject )
+sgui_dialog* sgui_color_dialog_create(const char* caption, const char* accept,
+                                      const char* reject)
 {
     (void)caption; (void)accept; (void)reject;
     return NULL;
 }
-void sgui_color_dialog_destroy( sgui_color_dialog* this )
-{
-    (void)this;
-}
-void sgui_color_dialog_display( sgui_color_dialog* this )
-{
-    (void)this;
-}
-void sgui_color_dialog_set_rgba( sgui_color_dialog* this,
-                                 const unsigned char* rgba )
+void sgui_color_dialog_set_rgba(sgui_dialog* this, const unsigned char* rgba)
 {
     (void)this; (void)rgba;
 }
-void sgui_color_dialog_set_hsva( sgui_color_dialog* this,
-                                 const unsigned char* hsva )
+void sgui_color_dialog_set_hsva(sgui_dialog* this, const unsigned char* hsva)
 {
     (void)this; (void)hsva;
 }

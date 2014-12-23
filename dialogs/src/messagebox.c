@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_messagebox.h"
 #include "sgui_internal.h"
+#include "sgui_dialog.h"
 #include "sgui_button.h"
 #include "sgui_widget.h"
 #include "sgui_image.h"
@@ -201,20 +202,23 @@ static const unsigned char question[ (ICON_WIDTH/2)*ICON_HEIGHT ] =
 
 
 
-struct sgui_message_box
+typedef struct
 {
-    sgui_window* window;
+    sgui_dialog super;
+
     sgui_widget* button1;
     sgui_widget* button2;
     sgui_widget* button3;
     sgui_widget* text;
     sgui_widget* icon;
-};
+}
+sgui_message_box;
 
 
 
 static void message_box_button_pressed( sgui_message_box* this, int button )
 {
+    sgui_dialog* super = (sgui_dialog*)this;
     struct sgui_event ev;
 
     ev.src.other = this;
@@ -227,26 +231,74 @@ static void message_box_button_pressed( sgui_message_box* this, int button )
     default: ev.type = SGUI_DIALOG_REJECTED;           break;
     }
 
-    sgui_window_set_visible( this->window, SGUI_INVISIBLE );
+    sgui_window_set_visible( super->window, SGUI_INVISIBLE );
     sgui_event_post( &ev );
+}
+
+static void sgui_message_box_destroy( sgui_dialog* super )
+{
+    sgui_message_box* this = (sgui_message_box*)super;
+
+    if( this )
+    {
+        if( super->window && this->button1 )
+        {
+            sgui_event_disconnect( this->button1, SGUI_BUTTON_OUT_EVENT,
+                                   (sgui_function)message_box_button_pressed,
+                                   this );
+        }
+
+        if( super->window && this->button2 )
+        {
+            sgui_event_disconnect( this->button2, SGUI_BUTTON_OUT_EVENT,
+                                   (sgui_function)message_box_button_pressed,
+                                   this );
+        }
+
+        if( super->window && this->button3 )
+        {
+            sgui_event_disconnect( this->button3, SGUI_BUTTON_OUT_EVENT,
+                                   (sgui_function)message_box_button_pressed,
+                                   this );
+        }
+
+        if( super->window )
+        {
+            sgui_event_disconnect( super->window, SGUI_USER_CLOSED_EVENT,
+                                   (sgui_function)message_box_button_pressed,
+                                   this );
+
+            sgui_window_destroy( super->window );
+        }
+
+        if( this->button1 ) sgui_widget_destroy( this->button1 );
+        if( this->button2 ) sgui_widget_destroy( this->button2 );
+        if( this->button3 ) sgui_widget_destroy( this->button3 );
+        if( this->text    ) sgui_widget_destroy( this->text    );
+        if( this->icon    ) sgui_widget_destroy( this->icon    );
+
+        free( this );
+    }
 }
 
 
 
-sgui_message_box* sgui_message_box_create( int icon, const char* caption,
-                                           const char* text,
-                                           const char* button1,
-                                           const char* button2,
-                                           const char* button3 )
+sgui_dialog* sgui_message_box_create( int icon, const char* caption,
+                                      const char* text,
+                                      const char* button1,
+                                      const char* button2,
+                                      const char* button3 )
 {
     unsigned int text_w, text_h, w, h, x, y, b_h=0, b1_w=0, b2_w=0, b3_w=0;
     unsigned char icon_image[ICON_WIDTH*ICON_HEIGHT*4], c;
     const unsigned char* iptr;
     sgui_message_box* this;
     unsigned char* dptr;
+    sgui_dialog* super;
     sgui_rect r;
 
     this = malloc( sizeof(sgui_message_box) );
+    super = (sgui_dialog*)this;
 
     if( !this )
         return NULL;
@@ -287,12 +339,12 @@ sgui_message_box* sgui_message_box_create( int icon, const char* caption,
     h = 10+MAX(text_h,ICON_HEIGHT)+10+b_h+10;
 
     /* create the message box window */
-    this->window = sgui_window_create( NULL, w, h, SGUI_FIXED_SIZE );
+    super->window = sgui_window_create( NULL, w, h, SGUI_FIXED_SIZE );
 
-    if( !this->window )
+    if( !super->window )
         goto fail;
 
-    sgui_window_set_title( this->window, caption );
+    sgui_window_set_title( super->window, caption );
 
     /* decode the icon image */
          if( icon==SGUI_MB_WARNING  ) iptr = warning;
@@ -358,11 +410,11 @@ sgui_message_box* sgui_message_box_create( int icon, const char* caption,
     }
 
     /* add widgets to the window */
-    sgui_window_add_widget( this->window, this->text    );
-    sgui_window_add_widget( this->window, this->button1 );
-    sgui_window_add_widget( this->window, this->button2 );
-    sgui_window_add_widget( this->window, this->button3 );
-    sgui_window_add_widget( this->window, this->icon    );
+    sgui_window_add_widget( super->window, this->text    );
+    sgui_window_add_widget( super->window, this->button1 );
+    sgui_window_add_widget( super->window, this->button2 );
+    sgui_window_add_widget( super->window, this->button3 );
+    sgui_window_add_widget( super->window, this->icon    );
 
     /* connect widgets */
     if( this->button1 )
@@ -385,73 +437,20 @@ sgui_message_box* sgui_message_box_create( int icon, const char* caption,
                             SGUI_INT, 2 );
     }
 
-    sgui_event_connect( this->window, SGUI_USER_CLOSED_EVENT,
+    sgui_event_connect( super->window, SGUI_USER_CLOSED_EVENT,
                         message_box_button_pressed, this, SGUI_INT, -1 );
 
-    return this;
+    super->destroy = sgui_message_box_destroy;
+    return (sgui_dialog*)this;
 fail:
-    sgui_message_box_destroy( this );
+    sgui_message_box_destroy( super );
     return NULL;
 }
-
-void sgui_message_box_destroy( sgui_message_box* this )
-{
-    if( this )
-    {
-        if( this->window && this->button1 )
-        {
-            sgui_event_disconnect( this->button1, SGUI_BUTTON_OUT_EVENT,
-                                   (sgui_function)message_box_button_pressed,
-                                   this );
-        }
-
-        if( this->window && this->button2 )
-        {
-            sgui_event_disconnect( this->button2, SGUI_BUTTON_OUT_EVENT,
-                                   (sgui_function)message_box_button_pressed,
-                                   this );
-        }
-
-        if( this->window && this->button3 )
-        {
-            sgui_event_disconnect( this->button3, SGUI_BUTTON_OUT_EVENT,
-                                   (sgui_function)message_box_button_pressed,
-                                   this );
-        }
-
-        if( this->window )
-        {
-            sgui_event_disconnect( this->window, SGUI_USER_CLOSED_EVENT,
-                                   (sgui_function)message_box_button_pressed,
-                                   this );
-
-            sgui_window_destroy( this->window );
-        }
-
-        if( this->button1 ) sgui_widget_destroy( this->button1 );
-        if( this->button2 ) sgui_widget_destroy( this->button2 );
-        if( this->button3 ) sgui_widget_destroy( this->button3 );
-        if( this->text    ) sgui_widget_destroy( this->text    );
-        if( this->icon    ) sgui_widget_destroy( this->icon    );
-
-        free( this );
-    }
-}
-
-void sgui_message_box_display( sgui_message_box* this )
-{
-    if( this )
-    {
-        sgui_window_set_visible( this->window, SGUI_VISIBLE );
-        sgui_window_move_center( this->window );
-    }
-}
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-sgui_message_box* sgui_message_box_create( int icon, const char* caption,
-                                           const char* text,
-                                           const char* button1,
-                                           const char* button2,
-                                           const char* button3 )
+sgui_dialog* sgui_message_box_create( int icon, const char* caption,
+                                      const char* text, const char* button1,
+                                      const char* button2,
+                                      const char* button3 )
 {
     (void)icon;
     (void)caption;
@@ -460,14 +459,6 @@ sgui_message_box* sgui_message_box_create( int icon, const char* caption,
     (void)button2;
     (void)button3;
     return NULL;
-}
-void sgui_message_box_destroy( sgui_message_box* this )
-{
-    (void)this;
-}
-void sgui_message_box_display( sgui_message_box* this )
-{
-    (void)this;
 }
 #endif /* !SGUI_NO_MESSAGEBOX */
 

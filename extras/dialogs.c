@@ -29,8 +29,8 @@ static void print_color( const char* space, unsigned char* c )
 
 int main( void )
 {
-    sgui_color_dialog* cp;
-    sgui_message_box* mb;
+    sgui_dialog* cp;
+    sgui_dialog* mb;
 
     sgui_init( );
 
@@ -96,13 +96,13 @@ int main( void )
                         print_color, "HSVA", SGUI_FROM_EVENT, SGUI_COLOR );
 
     /* display dialogs and enter main loop */
-    sgui_message_box_display( mb );
-    sgui_color_dialog_display( cp );
+    sgui_dialog_display( mb );
+    sgui_dialog_display( cp );
     sgui_main_loop( );
 
     /* cleanup */
-    sgui_color_dialog_destroy( cp );
-    sgui_message_box_destroy( mb );
+    sgui_dialog_destroy( cp );
+    sgui_dialog_destroy( mb );
     sgui_deinit( );
 
     /*

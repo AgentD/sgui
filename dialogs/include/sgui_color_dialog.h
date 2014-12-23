@@ -34,6 +34,8 @@
 /**
  * \struct sgui_color_dialog
  *
+ * \extends sgui_dialog
+ *
  * \brief A color selector dialog window
  *
  * \image html colorpicker.png "A color picker dialog"
@@ -56,27 +58,9 @@ extern "C" {
  *
  * \return A pointer to a new color dialog on success, NULL on failure
  */
-SGUI_DLL sgui_color_dialog* sgui_color_dialog_create( const char* caption,
-                                                      const char* accept,
-                                                      const char* reject );
-
-/**
- * \brief Destroy a color dialog and free all its resources
- *
- * \memberof sgui_color_dialog
- *
- * \param dialog A pointer to a color dialog
- */
-SGUI_DLL void sgui_color_dialog_destroy( sgui_color_dialog* dialog );
-
-/**
- * \brief Display a color dialog
- *
- * \memberof sgui_color_dialog
- *
- * \param dialog A pointer to a color dialog
- */
-SGUI_DLL void sgui_color_dialog_display( sgui_color_dialog* dialog );
+SGUI_DLL sgui_dialog* sgui_color_dialog_create( const char* caption,
+                                                const char* accept,
+                                                const char* reject );
 
 /**
  * \brief Change the currently selected color of a color dialog
@@ -86,7 +70,7 @@ SGUI_DLL void sgui_color_dialog_display( sgui_color_dialog* dialog );
  * \param dialog A pointer to a color dialog
  * \param rgba   A pointer to a 4 component RGBA color vector
  */
-SGUI_DLL void sgui_color_dialog_set_rgba( sgui_color_dialog* dialog,
+SGUI_DLL void sgui_color_dialog_set_rgba( sgui_dialog* dialog,
                                           const unsigned char* rgba );
 
 /**
@@ -97,7 +81,7 @@ SGUI_DLL void sgui_color_dialog_set_rgba( sgui_color_dialog* dialog,
  * \param dialog A pointer to a color dialog
  * \param hsva   A pointer to a 4 component HSVA color vector
  */
-SGUI_DLL void sgui_color_dialog_set_hsva( sgui_color_dialog* dialog,
+SGUI_DLL void sgui_color_dialog_set_hsva( sgui_dialog* dialog,
                                           const unsigned char* hsva );
 
 #ifdef __cplusplus

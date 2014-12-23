@@ -1,5 +1,5 @@
 /*
- * sgui_predef.h
+ * sgui_dialog.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,64 +22,61 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+/**
+ * \file sgui_dialog.h
+ *
+ * \brief Contains the sgui_dialog base dialog window structure
+ */
+#ifndef SGUI_DIALOG_H
+#define SGUI_DIALOG_H
+
+
+
+#include "sgui_predef.h"
+
+
 
 /**
- * \file sgui_predef.h
+ * \struct sgui_dialog
  *
- * This file contains forward declarations of all datatypes.
+ * \brief A base structure for all dialog windows
  */
-#ifndef SGUI_PREDEF_H
-#define SGUI_PREDEF_H
+struct sgui_dialog
+{
+    /** \brief A pointer to the dialog window */
+    sgui_window* window;
+
+    /** \copydoc sgui_dialog_destroy */
+    void(* destroy )( sgui_dialog* dialog );
+};
 
 
 
-#ifdef SGUI_WINDOWS
-    #ifdef SGUI_BUILDING_DLL
-        #define SGUI_DLL __declspec(dllexport)
-    #else
-        #define SGUI_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SGUI_DLL
+#ifdef __cplusplus
+extern "C" {
 #endif
 
+/**
+ * \brief Destroy a dialog and free all its resources
+ *
+ * \memberof sgui_dialog
+ *
+ * \param dialog A pointer to a dialog object
+ */
+SGUI_DLL void sgui_dialog_destroy( sgui_dialog* dialog );
 
+/**
+ * \brief Display a dialog window
+ *
+ * \memberof sgui_dialog
+ *
+ * \param dialog A pointer to a dialog object
+ */
+SGUI_DLL void sgui_dialog_display( sgui_dialog* dialog );
 
-typedef struct sgui_icon sgui_icon;
+#ifdef __cplusplus
+}
+#endif
 
-typedef struct sgui_icon_cache sgui_icon_cache;
-
-typedef struct sgui_font sgui_font;
-
-typedef struct sgui_rect sgui_rect;
-
-typedef struct sgui_canvas sgui_canvas;
-
-typedef struct sgui_widget sgui_widget;
-
-typedef struct sgui_window sgui_window;
-
-typedef struct sgui_pixmap sgui_pixmap;
-
-typedef struct sgui_skin sgui_skin;
-
-typedef struct sgui_filesystem sgui_filesystem;
-
-typedef struct sgui_context sgui_context;
-
-typedef struct sgui_event sgui_event;
-
-typedef struct sgui_window_description sgui_window_description;
-
-typedef struct sgui_model sgui_model;
-
-typedef struct sgui_item sgui_item;
-
-typedef struct sgui_dialog sgui_dialog;
-
-typedef void(* sgui_funptr )( );
-
-
-
-#endif /* SGUI_PREDEF_H */
+#endif /* SGUI_DIALOG_H */
 

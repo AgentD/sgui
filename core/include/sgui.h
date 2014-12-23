@@ -174,8 +174,10 @@
 #include "sgui_subview.h"
 #include "sgui_tab.h"
 
-#include "sgui_messagebox.h"
+#include "sgui_dialog.h"
 #include "sgui_color_dialog.h"
+#include "sgui_messagebox.h"
+
 
 
 #ifdef __cplusplus
