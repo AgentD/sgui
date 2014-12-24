@@ -51,3 +51,5 @@ target_link_libraries( clipboard sgui )
 target_link_libraries( widget sgui )
 target_link_libraries( dialogs sgui )
 
+add_executable( sguiicon sguiicon.c )
+
