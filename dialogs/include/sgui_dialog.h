@@ -43,12 +43,35 @@
  */
 struct sgui_dialog
 {
-    /** \brief A pointer to the dialog window */
-    sgui_window* window;
+    sgui_window* window;    /**< \brief A pointer to the dialog window */
+    sgui_widget* b0;        /**< \brief First dialog button */
+    sgui_widget* b1;        /**< \brief Second dialog button */
+    sgui_widget* b2;        /**< \brief Third dialog button */
 
-    /** \copydoc sgui_dialog_destroy */
+    /**
+     * \copydoc sgui_dialog_destroy
+     *
+     * Before this function is called, the buttons and the window are
+     * disconnected an destroyed.
+     */
     void(* destroy )( sgui_dialog* dialog );
+
+    /**
+     * \brief Gets conntected by sgui_dialog_init to the button row events
+     *
+     * \param dialog A pointer to a dialog object
+     * \param index  0 for the first button, 1 for the second button,
+     *               2 for the third button, or a negative index if the
+     *               window got closed.
+     */
+    void(* handle_button )( sgui_dialog* dialog, int index );
 };
+
+
+
+#define SGUI_LEFT 0
+#define SGUI_CENTER 1
+#define SGUI_RIGHT 2
 
 
 
@@ -73,6 +96,30 @@ SGUI_DLL void sgui_dialog_destroy( sgui_dialog* dialog );
  * \param dialog A pointer to a dialog object
  */
 SGUI_DLL void sgui_dialog_display( sgui_dialog* dialog );
+
+/**
+ * \brief Initialize dialog connections and button row
+ *
+ * \memberof sgui_dialog
+ * \protected
+ *
+ * This function is used internally by sgui_dialog implementations to add the
+ * default button row to the bottom of the dialog and make the default
+ * connections.
+ *
+ * \param dialog     A pointer to a dialog object
+ * \param button0    The text on the first button, or NULL if not used
+ * \param button1    The text on the first button, or NULL if not used
+ * \param button2    The text on the first button, or NULL if not used
+ * \param allignment SGUI_LEFT for left adjusted buttons, SGUI_CENTER for
+ *                   button row in the middle, SGUI_RIGHT for right adjusted
+ *                   buttons
+ *
+ * \return Non-zero on success, zero on failure
+ */
+SGUI_DLL int sgui_dialog_init( sgui_dialog* dialog,
+                               const char* button0, const char* button1,
+                               const char* button2, int allignment );
 
 #ifdef __cplusplus
 }

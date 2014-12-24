@@ -52,8 +52,6 @@ typedef struct
     sgui_widget *label_r, *label_g, *label_b;
 
     sgui_widget *spin_a, *label_a;
-
-    sgui_widget *button_accept, *button_reject;
 }
 sgui_color_dialog;
 
@@ -80,38 +78,6 @@ static void update_rgb_from_spinbox( sgui_color_dialog* this )
     rgba[3] = sgui_numeric_edit_get_value( this->spin_a );
     sgui_color_dialog_set_rgba( (sgui_dialog*)this, rgba );
 }
-
-static void on_accept( sgui_color_dialog* this )
-{
-    sgui_dialog* super = (sgui_dialog*)this;
-    sgui_event ev;
-
-    ev.src.other = this;
-    ev.type = SGUI_COLOR_SELECTED_RGBA_EVENT;
-    sgui_color_picker_get_rgb( this->picker, ev.arg.color );
-    sgui_event_post( &ev );
-
-    ev.src.other = this;
-    ev.type = SGUI_COLOR_SELECTED_HSVA_EVENT;
-    sgui_color_picker_get_hsv( this->picker, ev.arg.color );
-    sgui_event_post( &ev );
-
-    sgui_window_set_visible( super->window, SGUI_INVISIBLE );
-}
-
-static void on_reject( sgui_color_dialog* this )
-{
-    sgui_dialog* super = (sgui_dialog*)this;
-    sgui_event ev;
-
-    ev.src.other = this;
-    ev.type = SGUI_DIALOG_REJECTED;
-    sgui_event_post( &ev );
-
-    sgui_window_set_visible( super->window, SGUI_INVISIBLE );
-}
-
-/****************************************************************************/
 
 static int add_spinbox( sgui_widget** box, sgui_widget** label,
                         unsigned int width, unsigned int* height,
@@ -143,6 +109,35 @@ static int add_spinbox( sgui_widget** box, sgui_widget** label,
     return (*label != NULL);
 }
 
+/****************************************************************************/
+
+static void color_dialog_handle_button( sgui_dialog* super, int index )
+{
+    sgui_color_dialog* this = (sgui_color_dialog*)super;
+    sgui_event ev;
+
+    ev.src.other = this;
+
+    switch( index )
+    {
+    case 0:
+        ev.type = SGUI_COLOR_SELECTED_RGBA_EVENT;
+        sgui_color_picker_get_rgb( this->picker, ev.arg.color );
+        sgui_event_post( &ev );
+
+        ev.type = SGUI_COLOR_SELECTED_HSVA_EVENT;
+        sgui_color_picker_get_hsv( this->picker, ev.arg.color );
+        sgui_event_post( &ev );
+        break;
+    default:
+        ev.type = SGUI_DIALOG_REJECTED;
+        sgui_event_post( &ev );
+        break;
+    }
+
+    sgui_window_set_visible( super->window, SGUI_INVISIBLE );
+}
+
 static void sgui_color_dialog_destroy( sgui_dialog* super )
 {
     sgui_color_dialog* this = (sgui_color_dialog*)super;
@@ -167,12 +162,6 @@ static void sgui_color_dialog_destroy( sgui_dialog* super )
                               (sgui_function)update_rgb_from_spinbox,this);
         sgui_event_disconnect(this->spin_b, SGUI_EDIT_VALUE_CHANGED,
                               (sgui_function)update_rgb_from_spinbox,this);
-        sgui_event_disconnect( this->button_accept, SGUI_BUTTON_OUT_EVENT,
-                               (sgui_function)on_accept, this );
-        sgui_event_disconnect( this->button_reject, SGUI_BUTTON_OUT_EVENT,
-                               (sgui_function)on_reject, this );
-
-        sgui_window_destroy( super->window );
 
         sgui_widget_destroy( this->picker );
         sgui_widget_destroy( this->spin_h );
@@ -189,9 +178,6 @@ static void sgui_color_dialog_destroy( sgui_dialog* super )
         sgui_widget_destroy( this->label_b );
         sgui_widget_destroy( this->spin_a );
         sgui_widget_destroy( this->label_a );
-        sgui_widget_destroy( this->button_accept );
-        sgui_widget_destroy( this->button_reject );
-
         free( this );
     }
 }
@@ -206,23 +192,14 @@ sgui_dialog* sgui_color_dialog_create( const char* caption,
     sgui_dialog* super = (sgui_dialog*)this;
     unsigned int x, y, w, h, ws;
     unsigned char color[4];
-    sgui_rect r, wr;
+    sgui_rect r;
 
     if( !this )
         return NULL;
 
     memset( this, 0, sizeof(sgui_color_dialog) );
-
-    /* dialog window */
-    super->window = sgui_window_create( NULL, 640, 480, SGUI_FIXED_SIZE );
-
-    if( !super->window )
-    {
-        free( this );
-        return NULL;
-    }
-
-    sgui_window_set_title( super->window, caption );
+    super->destroy = sgui_color_dialog_destroy;
+    super->handle_button = color_dialog_handle_button;
 
     /* color picker */
     if( !(this->picker = sgui_color_picker_create( 10, 10 )) )
@@ -250,43 +227,27 @@ sgui_dialog* sgui_color_dialog_create( const char* caption,
 
     /* calculate window size */
     sgui_rect_set_size( &r, 0, 0, 0, 0 );
-
-    wr = this->picker->area;
-    sgui_rect_join( &r, &wr, 0 );
-    wr = this->spin_v->area;
-    sgui_rect_join( &r, &wr, 0 );
-    wr = this->label_v->area;
-    sgui_rect_join( &r, &wr, 0 );
-    wr = this->spin_b->area;
-    sgui_rect_join( &r, &wr, 0 );
-    wr = this->label_b->area;
-    sgui_rect_join( &r, &wr, 0 );
-    wr = this->spin_a->area;
-    sgui_rect_join( &r, &wr, 0 );
-    wr = this->label_a->area;
-    sgui_rect_join( &r, &wr, 0 );
+    sgui_rect_join( &r, &this->picker->area,  0 );
+    sgui_rect_join( &r, &this->spin_v->area,  0 );
+    sgui_rect_join( &r, &this->label_v->area, 0 );
+    sgui_rect_join( &r, &this->spin_b->area,  0 );
+    sgui_rect_join( &r, &this->label_b->area, 0 );
+    sgui_rect_join( &r, &this->spin_a->area,  0 );
+    sgui_rect_join( &r, &this->label_a->area, 0 );
 
     w = SGUI_RECT_WIDTH(r)+10;
     h = SGUI_RECT_HEIGHT(r)+10;
+    super->window = sgui_window_create( NULL, w, h, SGUI_FIXED_SIZE );
 
-    /* buttons */
-    ws = sgui_skin_default_font_extents( reject, -1, 0, 0 );
-
-    x = r.right-ws-10;
-    y = r.bottom+10;
-    this->button_reject = sgui_button_create( x, y, ws+10, 30, reject, 0 );
-    if( !this->button_reject )
+    if( !super->window )
         goto fail;
 
-    ws = sgui_skin_default_font_extents( accept, -1, 0, 0 );
-    x -= ws+15;
-    this->button_accept = sgui_button_create( x, y, ws+10, 30, accept, 0 );
-    if( !this->button_accept )
-        goto fail;
-
-    h += 40;
+    sgui_window_set_title( super->window, caption );
 
     /* add widgets */
+    if( !sgui_dialog_init( super, accept, reject, NULL, SGUI_RIGHT ) )
+        goto fail;
+
     sgui_window_add_widget( super->window, this->picker );
     sgui_window_add_widget( super->window, this->spin_h );
     sgui_window_add_widget( super->window, this->spin_s );
@@ -302,11 +263,6 @@ sgui_dialog* sgui_color_dialog_create( const char* caption,
     sgui_window_add_widget( super->window, this->label_b );
     sgui_window_add_widget( super->window, this->spin_a );
     sgui_window_add_widget( super->window, this->label_a );
-    sgui_window_add_widget( super->window, this->button_accept );
-    sgui_window_add_widget( super->window, this->button_reject );
-
-    /* reshape window */
-    sgui_window_set_size( super->window, w, h );
 
     /* events */
     sgui_event_connect( this->picker, SGUI_HSVA_CHANGED_EVENT,
@@ -329,19 +285,13 @@ sgui_dialog* sgui_color_dialog_create( const char* caption,
                         update_rgb_from_spinbox, this, SGUI_VOID );
     sgui_event_connect( this->spin_b, SGUI_EDIT_VALUE_CHANGED,
                         update_rgb_from_spinbox, this, SGUI_VOID );
-    sgui_event_connect( this->button_accept, SGUI_BUTTON_OUT_EVENT,
-                        on_accept, this, SGUI_VOID );
-    sgui_event_connect( this->button_reject, SGUI_BUTTON_OUT_EVENT,
-                        on_reject, this, SGUI_VOID );
 
     /* init */
     sgui_color_picker_get_hsv( this->picker, color );
     sgui_color_dialog_set_hsva( (sgui_dialog*)this, color );
-
-    super->destroy = sgui_color_dialog_destroy;
     return (sgui_dialog*)this;
 fail:
-    sgui_color_dialog_destroy( super );
+    sgui_dialog_destroy( super );
     return NULL;
 }
 
