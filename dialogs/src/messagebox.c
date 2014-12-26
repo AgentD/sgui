@@ -190,6 +190,20 @@ sgui_dialog* sgui_message_box_create( int icon, const char* caption,
     sgui_dialog* super;
     sgui_rect r;
 
+    /* input decoding & sanity check */
+    switch( icon )
+    {
+    case SGUI_MB_WARNING:  iptr = warning;  break;
+    case SGUI_MB_CRITICAL: iptr = critical; break;
+    case SGUI_MB_QUESTION: iptr = question; break;
+    case SGUI_MB_INFO:     iptr = info;     break;
+    default:               return NULL;
+    }
+
+    if( (!button1 && !button2 && !button3) || !text || !caption )
+        return NULL;
+
+    /* create dialog structure */
     this = malloc( sizeof(sgui_message_box) );
     super = (sgui_dialog*)this;
 
@@ -197,6 +211,8 @@ sgui_dialog* sgui_message_box_create( int icon, const char* caption,
         return NULL;
 
     memset( this, 0, sizeof(sgui_message_box) );
+    super->destroy = sgui_message_box_destroy;
+    super->handle_button = message_box_button_pressed;
 
     /* determine element sizes */
     sgui_skin_get_text_extents( text, &r );
@@ -214,15 +230,7 @@ sgui_dialog* sgui_message_box_create( int icon, const char* caption,
 
     sgui_window_set_title( super->window, caption );
 
-    super->destroy = sgui_message_box_destroy;
-    super->handle_button = message_box_button_pressed;
-
     /* decode the icon image */
-         if( icon==SGUI_MB_WARNING  ) iptr = warning;
-    else if( icon==SGUI_MB_CRITICAL ) iptr = critical;
-    else if( icon==SGUI_MB_QUESTION ) iptr = question;
-    else                              iptr = info;
-
     for( dptr=icon_image, y=0; y<ICON_HEIGHT; ++y )
     {
         for( x=0; x<ICON_WIDTH; x+=2 )

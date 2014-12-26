@@ -128,6 +128,17 @@ int sgui_dialog_init( sgui_dialog* this,
     sgui_window_get_size( this->window, &w, &h );
     sgui_window_set_size( this->window, w, h+total_height+15 );
 
+    /* compute starting positions */
+    y = h + 5;
+
+    switch( allignment )
+    {
+    case SGUI_LEFT:   x = 5;                   break;
+    case SGUI_CENTER: x = (w - total_width)/2; break;
+    case SGUI_RIGHT:  x = w - 5 - total_width; break;
+    default:                                   return 0;
+    }
+
     /* create buttons */
     if( button0 )
     {
@@ -161,16 +172,6 @@ int sgui_dialog_init( sgui_dialog* this,
             sgui_widget_destroy( this->b1 );
             return 0;
         }
-    }
-
-    /* compute starting positions */
-    y = h + 5;
-
-    switch( allignment )
-    {
-    case SGUI_LEFT:   x = 5;                   break;
-    case SGUI_CENTER: x = (w - total_width)/2; break;
-    case SGUI_RIGHT:  x = w - 5 - total_width; break;
     }
 
     /* add and connect the buttons */
