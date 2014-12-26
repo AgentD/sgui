@@ -283,6 +283,7 @@ void update_window( sgui_window_w32* this )
 
     if( super->backend == SGUI_DIRECT3D_9 )
     {
+#ifndef SGUI_NO_D3D9
         IDirect3DDevice9* dev = ((sgui_d3d9_context*)super->ctx.ctx)->device;
         sgui_event e;
 
@@ -292,6 +293,7 @@ void update_window( sgui_window_w32* this )
             e.src.window = (sgui_window*)this;
             sgui_internal_window_fire_event( super, &e );
         }
+#endif
     }
 }
 

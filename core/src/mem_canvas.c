@@ -539,9 +539,14 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     return NULL;
 }
 
-void sgui_memory_canvas_init( sgui_canvas* super )
+int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
+                             unsigned int width,
+                             unsigned int height,
+                             int format, int swaprb )
 {
-    (void)super;
+    (void)super; (void)buffer; (void)width; (void)height;
+    (void)format; (void)swaprb;
+    return 0;
 }
 
 void sgui_memory_canvas_set_buffer( sgui_canvas* canvas,

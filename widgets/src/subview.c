@@ -230,7 +230,8 @@ void sgui_subview_refresh( sgui_widget* this )
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
                                   unsigned int width, unsigned int height,
-                                  int backend, sgui_window_description* cfg )
+                                  int backend,
+                                  const sgui_window_description* cfg )
 {
     (void)parent; (void)x; (void)y; (void)width; (void)height;
     (void)backend; (void)cfg;
