@@ -63,6 +63,32 @@
     #define GL_VERTEX_SHADER 0x8B31
 #endif
 
+#ifndef GL_ARRAY_BUFFER
+    #define GL_ARRAY_BUFFER 0x8892
+#endif
+
+#ifndef GL_ELEMENT_ARRAY_BUFFER
+    #define GL_ELEMENT_ARRAY_BUFFER 0x8893
+#endif
+
+#ifndef GL_STATIC_DRAW
+    #define GL_STATIC_DRAW 0x88E4
+#endif
+
+#ifndef GL_STREAM_DRAW
+    #define GL_STREAM_DRAW 0x88E0
+#endif
+
+#ifndef GL_TEXTURE0
+    #define GL_TEXTURE0 0x84C0
+#endif
+
+
+
+#define GLWM_CORE_MAX_WINDOWS 10
+
+
+
 typedef GLuint (GLAPIENTRY * GLCREATESHADERPROC) (GLenum type);
 typedef void (GLAPIENTRY * GLLINKPROGRAMPROC) (GLuint program);
 typedef GLuint (GLAPIENTRY * GLCREATEPROGRAMPROC) (void);
@@ -85,17 +111,39 @@ typedef void (GLAPIENTRY * GLGETSHADERINFOLOGPROC) (GLuint shader,
                                                     GLsizei* length,
                                                     GLchar* infoLog);
 
+typedef void (GLAPIENTRY * GLBINDVERTEXARRAYPROC) (GLuint array);
+typedef void (GLAPIENTRY * GLBINDBUFFERPROC) (GLenum target, GLuint buffer);
+
 typedef void (GLAPIENTRY * GLBINDFRAGDATALOCATIONPROC) (GLuint program,
                                                         GLuint colorNumber,
                                                         const GLchar* name);
 typedef void (GLAPIENTRY * GLBINDATTRIBLOCATIONPROC) (GLuint program,
                                                       GLuint index,
                                                       const GLchar* name);
-
+typedef void (GLAPIENTRY * GLENABLEVERTEXATTRIBARRAYPROC) (GLuint index);
+typedef void (GLAPIENTRY * GLVERTEXATTRIBPOINTERPROC) (GLuint index,
+                                                       GLint size,
+                                                       GLenum type,
+                                                       GLboolean normalized,
+                                                       GLsizei stride,
+                                                       const void* pointer);
 typedef GLint (GLAPIENTRY * GLGETUNIFORMLOCATIONPROC) (GLuint program,
                                                        const GLchar* name);
+typedef void (GLAPIENTRY * GLBUFFERDATAPROC) (GLenum target, GLsizeiptr size,
+                                              const void* data, GLenum usage);
 typedef void (GLAPIENTRY * GLUNIFORM1FPROC) (GLint location, GLfloat v0);
 typedef void (GLAPIENTRY * GLUNIFORM1IPROC) (GLint location, GLint v0);
+typedef void (GLAPIENTRY * GLDRAWELEMENTSBASEVERTEXPROC) (GLenum mode,
+                                                          GLsizei count,
+                                                          GLenum type,
+                                                          const void *indices,
+                                                          GLint basevertex);
+typedef void (GLAPIENTRY * GLBUFFERSUBDATAPROC) (GLenum target,
+                                                 GLintptr offset,
+                                                 GLsizeiptr size,
+                                                 const void* data);
+typedef void (GLAPIENTRY * GLUSEPROGRAMPROC) (GLuint program);
+typedef void (GLAPIENTRY * GLACTIVETEXTUREPROC) (GLenum texture);
 typedef void (GLAPIENTRY * GLUNIFORMMATRIX4FVPROC) (GLint location,
                                                     GLsizei count,
                                                     GLboolean transpose,
@@ -122,6 +170,15 @@ typedef struct
     GLUNIFORMMATRIX4FVPROC UniformMatrix4fv;
     GLBINDFRAGDATALOCATIONPROC BindFragDataLocation;
     GLBINDATTRIBLOCATIONPROC BindAttribLocation;
+    GLVERTEXATTRIBPOINTERPROC VertexAttribPointer;
+    GLENABLEVERTEXATTRIBARRAYPROC EnableVertexAttribArray;
+    GLBINDVERTEXARRAYPROC BindVertexArray;
+    GLBINDBUFFERPROC BindBuffer;
+    GLBUFFERDATAPROC BufferData;
+    GLBUFFERSUBDATAPROC BufferSubData;
+    GLDRAWELEMENTSBASEVERTEXPROC DrawElementsBaseVertex;
+    GLUSEPROGRAMPROC UseProgram;
+    GLACTIVETEXTUREPROC ActiveTexture;
 }
 sgui_gl_functions;
 
@@ -137,14 +194,11 @@ typedef struct
 {
     sgui_gl_wm super;
 
-    GLint u_tex0;
-    GLint u_tex1;
-    GLint u_alpha;
-    GLint u_mvp;
+    GLint u_alpha;      /**< \brief Window transparency uniform location */
+    GLint u_mvp;        /**< \brief Scaling matrix uniform location */
 
     GLuint vao;         /**< \brief VAO with window VBO and IBO bound */
-    GLuint vbo;         /**< \brief VBO with window vertices */
-    GLuint ibo;         /**< \brief IBO with window indices */
+    GLuint buffers[2];  /**< \brief Buffer objects */
 
     GLuint vsh;         /**< \brief vertex shader for drawing windows */
     GLuint fsh;         /**< \brief fragment shader for drawing windows */
