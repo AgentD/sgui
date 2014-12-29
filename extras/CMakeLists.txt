@@ -62,3 +62,7 @@ target_link_libraries( widget sgui )
 target_link_libraries( dialogs sgui )
 target_link_libraries( ctx_wm sgui sguisubwm )
 
+if( UNIX )
+  target_link_libraries( ctx_wm m )
+endif( )
+
