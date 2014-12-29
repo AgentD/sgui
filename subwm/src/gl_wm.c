@@ -175,13 +175,18 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
     glGetIntegerv( GL_BLEND_DST, &state->blend_dst );
     glGetIntegerv( GL_DEPTH_TEST, &state->depth_test );
     glGetIntegerv( GL_DEPTH_WRITEMASK, &state->depth_write );
+    glGetIntegerv( GL_CULL_FACE, &state->cull );
+    glGetIntegerv( GL_POLYGON_MODE, state->modes );
 
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
+    glDisable( GL_LIGHTING );
     glDisable( GL_DEPTH_TEST );
+    glDisable( GL_CULL_FACE );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glViewport( 0, 0, super->wnd->w, super->wnd->h );
     glDepthMask( GL_FALSE );
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
     if( core )
     {
@@ -201,6 +206,8 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
     }
     else
     {
+        glGetIntegerv( GL_LIGHTING, &state->lighting );
+        glGetIntegerv( GL_MATRIX_MODE, &state->matrixmode );
         glMatrixMode( GL_PROJECTION );
         glPushMatrix( );
         glLoadIdentity( );
@@ -223,7 +230,12 @@ static void restore_gl_state(sgui_gl_functions* gl, gl_state* state, int core)
     if( state->depth_test )
         glEnable( GL_DEPTH_TEST );
 
+    if( state->cull )
+        glEnable( GL_CULL_FACE );
+
     glDepthMask( state->depth_write );
+    glPolygonMode( GL_FRONT, state->modes[0] );
+    glPolygonMode( GL_BACK, state->modes[1] );
 
     if( core )
     {
@@ -242,7 +254,11 @@ static void restore_gl_state(sgui_gl_functions* gl, gl_state* state, int core)
         glMatrixMode( GL_PROJECTION );
         glPopMatrix( );
 
+        glMatrixMode( state->matrixmode );
         glBindTexture( GL_TEXTURE_2D, state->tex[0] );
+
+        if( state->lighting )
+            glEnable( GL_LIGHTING );
     }
 }
 

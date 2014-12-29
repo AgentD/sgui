@@ -198,11 +198,15 @@ typedef struct
     GLint tex[2];       /**< \brief Texture bindings */
     GLint activetex;    /**< \brief The active texture unit */
     GLint program;      /**< \brief Active shader program */
+    GLint blend_src;    /**< \brief Source blend factor */
+    GLint blend_dst;    /**< \brief Destination blend factor */
     GLint blending;     /**< \brief Is blending enabled? */
     GLint depth_test;   /**< \brief Is depth test enabled? */
     GLint depth_write;  /**< \brief Is depth write enabled? */
-    GLint blend_src;    /**< \brief Source blend factor */
-    GLint blend_dst;    /**< \brief Destination blend factor */
+    GLint cull;         /**< \brief Is culling enabled? */
+    GLint modes[2];     /**< \brief Front and back polygon modes */
+    GLint lighting;     /**< \brief Is fixed function lighting enabled? */
+    GLint matrixmode;   /**< \brief Fixed function matrix mode */
 }
 gl_state;
 

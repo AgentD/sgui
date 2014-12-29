@@ -229,6 +229,7 @@ static void gl_old_draw( void )
     m[0]=m[10]=cos(t); m[2]=sin(t); m[8]=-m[2]; m[1]=m[4]=m[6]=m[9]=0; m[5]=1;
     glViewport( 0, HEIGHT/2, WIDTH/2, HEIGHT/2 );
     glLoadMatrixf( m );
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     gl_old_draw_cube( );
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
@@ -244,7 +245,6 @@ static void gl_old_draw( void )
     glLoadMatrixf( m );
     gl_old_draw_cube( );
 
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     t += 0.01f;
 }
 
@@ -465,6 +465,7 @@ static void gl_core_draw( void )
     m[0]=m[10]=cos(t); m[2]=sin(t); m[8]=-m[2]; m[1]=m[4]=m[6]=m[9]=0; m[5]=1;
     glViewport( 0, HEIGHT/2, WIDTH/2, HEIGHT/2 );
     UniformMatrix4fv( uniform_model_view, 1, GL_FALSE, m );
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements( GL_TRIANGLES, count, GL_UNSIGNED_SHORT, NULL );
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
@@ -480,7 +481,6 @@ static void gl_core_draw( void )
     UniformMatrix4fv( uniform_model_view, 1, GL_FALSE, m );
     glDrawElements( GL_TRIANGLES, count, GL_UNSIGNED_SHORT, NULL );
 
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     t += 0.01f;
 }
 

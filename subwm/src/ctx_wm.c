@@ -86,10 +86,14 @@ sgui_ctx_wm* sgui_ctx_wm_create( sgui_window* wnd )
     case SGUI_OPENGL_COMPAT:
         return gl_wm_create( wnd );
 #endif
+#ifndef SGUI_NO_D3D9
     case SGUI_DIRECT3D_9:
         break;
+#endif
+#ifndef SGUI_NO_D3D11
     case SGUI_DIRECT3D_11:
         break;
+#endif
     }
 
     return NULL;

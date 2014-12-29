@@ -104,6 +104,10 @@ extern "C" {
  * \param wnd A pointer to an sgui_window to manage sgui_ctx_window
  *            objects for
  *
+ * For OpenGL windows, the context has to be current when calling this.
+ * OpenGL state is preserved, except for vertex array objects in OpenGL
+ * 3.0+ core contexts.
+ *
  * \return A pointer to a new sgui_ctx_wm or NULL on failure
  */
 sgui_ctx_wm* sgui_ctx_wm_create( sgui_window* wnd );
@@ -113,6 +117,9 @@ sgui_ctx_wm* sgui_ctx_wm_create( sgui_window* wnd );
  *        memory allocated for them
  *
  * \memberof sgui_ctx_wm
+ *
+ * For OpenGL windows, the context has to be current when calling this.
+ * OpenGL state is preserved.
  *
  * \param wm A pointer to an sgui_ctx_wm object
  */
@@ -149,6 +156,23 @@ void sgui_ctx_wm_remove_window( sgui_ctx_wm* wm, sgui_window* wnd );
  *        system
  *
  * \memberof sgui_ctx_wm
+ *
+ * For OpenGL windows, all states immediately needed for rendering the UI are
+ * saved and restored after rendering (shader objects used, active texture
+ * unit, 2D textures bound), except for vertex array objects in OpenGL 3.0+
+ * core contexts. Further more, commonly used functionallity that effects UI
+ * rendering is changed and restored too, including viewport settings,
+ * blending, blending factors, depth test, depth write, culling, polygon mode,
+ * fixed function lighting, fixed function transformation matrices, currently
+ * set matrix mode.
+ *
+ * If you use something not mentioned above that alters the behaviour of
+ * rendering the UI (e.g. scissor test or alpha test) it must be disabled
+ * manually.
+ *
+ * Note that for OpenGL below 3.0, the texture environment and active unit are
+ * left untouched. Please set texturing to use unit 0 with normal replace mode
+ * for the texture environment.
  *
  * \param wm A pointer to an sgui_ctx_wm object
  */
