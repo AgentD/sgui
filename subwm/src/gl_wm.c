@@ -73,8 +73,6 @@ static const char* window_fsh =
 "    color = vec4( mixed, skin.a*transparency );\n"
 "}";
 
-/****************************************************************************/
-
 /*
     0_1__________2_3
     |_|__________|_|
@@ -169,6 +167,8 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
     m[2] = 0.0f;   m[6] = 0.0f;   m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f;   m[7] = 0.0f;   m[11] = 0.0f; m[15] = 1.0f;
 
+    glGetIntegerv( GL_CURRENT_PROGRAM, &state->program );
+    glGetIntegerv( GL_ACTIVE_TEXTURE, &state->activetex );
     glGetIntegerv( GL_VIEWPORT, state->view );
     glGetIntegerv( GL_BLEND, &state->blending );
     glGetIntegerv( GL_BLEND_SRC, &state->blend_src );
@@ -188,11 +188,9 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
         sgui_gl_core_wm* this = (sgui_gl_core_wm*)super;
         sgui_gl_functions* gl = &this->gl;
 
-        glGetIntegerv( GL_CURRENT_PROGRAM, &state->program );
         gl->UseProgram( this->prog );
         gl->UniformMatrix4fv( this->u_mvp, 1, GL_FALSE, m );
 
-        glGetIntegerv( GL_ACTIVE_TEXTURE, &state->activetex );
         gl->ActiveTexture( GL_TEXTURE0 );
         glGetIntegerv( GL_TEXTURE_BINDING_2D, &state->tex[0] );
         glBindTexture( GL_TEXTURE_2D, this->super.wndtex );
@@ -276,6 +274,64 @@ static GLuint create_skin_texture( void )
     return tex;
 }
 
+static void sgui_gl_functions_load( sgui_gl_functions* this,
+                                    sgui_context* ctx )
+{
+    this->CompileShader=(GLCOMPILESHADERPROC)ctx->load(ctx,"glCompileShader");
+    this->CreateShader=(GLCREATESHADERPROC)ctx->load(ctx,"glCreateShader");
+    this->CreateProgram=(GLCREATEPROGRAMPROC)ctx->load(ctx,"glCreateProgram");
+    this->GenBuffers=(GLGENBUFFERSPROC)ctx->load(ctx,"glGenBuffers");
+    this->LinkProgram=(GLLINKPROGRAMPROC)ctx->load(ctx,"glLinkProgram");
+    this->ShaderSource=(GLSHADERSOURCEPROC)ctx->load(ctx,"glShaderSource");
+    this->Uniform1f=(GLUNIFORM1FPROC)ctx->load(ctx,"glUniform1f");
+    this->Uniform1i=(GLUNIFORM1IPROC)ctx->load(ctx,"glUniform1i");
+    this->BindBuffer=(GLBINDBUFFERPROC)ctx->load(ctx,"glBindBuffer");
+    this->BufferData=(GLBUFFERDATAPROC)ctx->load(ctx,"glBufferData");
+    this->AttachShader=(GLATTACHSHADERPROC)ctx->load(ctx,"glAttachShader");
+    this->BufferSubData=(GLBUFFERSUBDATAPROC)ctx->load(ctx,"glBufferSubData");
+    this->UseProgram=(GLUSEPROGRAMPROC)ctx->load(ctx,"glUseProgram");
+    this->ActiveTexture=(GLACTIVETEXTUREPROC)ctx->load(ctx,"glActiveTexture");
+    this->DeleteBuffers=(GLDELETEBUFFERSPROC)ctx->load(ctx,"glDeleteBuffers");
+    this->DeleteShader=(GLDELETESHADERPROC)ctx->load(ctx,"glDeleteShader");
+    this->DeleteProgram=(GLDELETEPROGRAMPROC)ctx->load(ctx,"glDeleteProgram");
+
+    this->DeleteVertexArrays = (GLDELETEVERTEXARRAYSPROC)
+    ctx->load(ctx,"glDeleteVertexArrays");
+
+    this->GenVertexArrays = (GLGENVERTEXARRAYSPROC)
+    ctx->load( ctx,"glGenVertexArrays" );
+
+    this->GetProgramInfoLog = (GLGETPROGRAMINFOLOGPROC)
+    ctx->load( ctx, "glGetProgramInfoLog" );
+
+    this->GetShaderInfoLog = (GLGETSHADERINFOLOGPROC)
+    ctx->load( ctx, "glGetShaderInfoLog" );
+
+    this->GetUniformLocation = (GLGETUNIFORMLOCATIONPROC)
+    ctx->load( ctx, "glGetUniformLocation" );
+
+    this->UniformMatrix4fv = (GLUNIFORMMATRIX4FVPROC)
+    ctx->load( ctx, "glUniformMatrix4fv" );
+
+    this->BindFragDataLocation = (GLBINDFRAGDATALOCATIONPROC)
+    ctx->load( ctx, "glBindFragDataLocation" );
+
+    this->BindAttribLocation = (GLBINDATTRIBLOCATIONPROC)
+    ctx->load( ctx, "glBindAttribLocation" );
+
+    this->VertexAttribPointer = (GLVERTEXATTRIBPOINTERPROC)
+    ctx->load( ctx, "glVertexAttribPointer" );
+
+    this->EnableVertexAttribArray = (GLENABLEVERTEXATTRIBARRAYPROC)
+    ctx->load( ctx, "glEnableVertexAttribArray" );
+
+    this->BindVertexArray = (GLBINDVERTEXARRAYPROC)
+    ctx->load( ctx, "glBindVertexArray" );
+
+    this->DrawElementsBaseVertex = (GLDRAWELEMENTSBASEVERTEXPROC)
+    ctx->load( ctx, "glDrawElementsBaseVertex" );
+}
+
 /****************************************************************************/
 
 static void gl_wm_destroy( sgui_ctx_wm* this )
@@ -350,6 +406,24 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
     restore_gl_state( NULL, &state, 0 );
 }
 
+sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
+{
+    sgui_gl_wm* this = malloc( sizeof(sgui_gl_wm) );
+    sgui_ctx_wm* super = (sgui_ctx_wm*)this;
+
+    if( this )
+    {
+        memset( this, 0, sizeof(sgui_gl_wm) );
+        super->wnd = wnd;
+        super->destroy = gl_wm_destroy;
+        super->draw_gui = gl_wm_draw_gui;
+
+        this->wndtex = create_skin_texture( );
+    }
+
+    return (sgui_ctx_wm*)this;
+}
+
 /****************************************************************************/
 
 static void gl_wm_core_destroy( sgui_ctx_wm* super )
@@ -422,86 +496,6 @@ static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
     restore_gl_state( gl, &state, 1 );
 }
 
-/****************************************************************************/
-
-static void sgui_gl_functions_load( sgui_gl_functions* this,
-                                    sgui_context* ctx )
-{
-    this->CompileShader=(GLCOMPILESHADERPROC)ctx->load(ctx,"glCompileShader");
-    this->CreateShader=(GLCREATESHADERPROC)ctx->load(ctx,"glCreateShader");
-    this->CreateProgram=(GLCREATEPROGRAMPROC)ctx->load(ctx,"glCreateProgram");
-    this->GenBuffers=(GLGENBUFFERSPROC)ctx->load(ctx,"glGenBuffers");
-    this->LinkProgram=(GLLINKPROGRAMPROC)ctx->load(ctx,"glLinkProgram");
-    this->ShaderSource=(GLSHADERSOURCEPROC)ctx->load(ctx,"glShaderSource");
-    this->Uniform1f=(GLUNIFORM1FPROC)ctx->load(ctx,"glUniform1f");
-    this->Uniform1i=(GLUNIFORM1IPROC)ctx->load(ctx,"glUniform1i");
-    this->BindBuffer=(GLBINDBUFFERPROC)ctx->load(ctx,"glBindBuffer");
-    this->BufferData=(GLBUFFERDATAPROC)ctx->load(ctx,"glBufferData");
-    this->AttachShader=(GLATTACHSHADERPROC)ctx->load(ctx,"glAttachShader");
-    this->BufferSubData=(GLBUFFERSUBDATAPROC)ctx->load(ctx,"glBufferSubData");
-    this->UseProgram=(GLUSEPROGRAMPROC)ctx->load(ctx,"glUseProgram");
-    this->ActiveTexture=(GLACTIVETEXTUREPROC)ctx->load(ctx,"glActiveTexture");
-    this->DeleteBuffers=(GLDELETEBUFFERSPROC)ctx->load(ctx,"glDeleteBuffers");
-    this->DeleteShader=(GLDELETESHADERPROC)ctx->load(ctx,"glDeleteShader");
-    this->DeleteProgram=(GLDELETEPROGRAMPROC)ctx->load(ctx,"glDeleteProgram");
-
-    this->DeleteVertexArrays = (GLDELETEVERTEXARRAYSPROC)
-    ctx->load(ctx,"glDeleteVertexArrays");
-
-    this->GenVertexArrays = (GLGENVERTEXARRAYSPROC)
-    ctx->load( ctx,"glGenVertexArrays" );
-
-    this->GetProgramInfoLog = (GLGETPROGRAMINFOLOGPROC)
-    ctx->load( ctx, "glGetProgramInfoLog" );
-
-    this->GetShaderInfoLog = (GLGETSHADERINFOLOGPROC)
-    ctx->load( ctx, "glGetShaderInfoLog" );
-
-    this->GetUniformLocation = (GLGETUNIFORMLOCATIONPROC)
-    ctx->load( ctx, "glGetUniformLocation" );
-
-    this->UniformMatrix4fv = (GLUNIFORMMATRIX4FVPROC)
-    ctx->load( ctx, "glUniformMatrix4fv" );
-
-    this->BindFragDataLocation = (GLBINDFRAGDATALOCATIONPROC)
-    ctx->load( ctx, "glBindFragDataLocation" );
-
-    this->BindAttribLocation = (GLBINDATTRIBLOCATIONPROC)
-    ctx->load( ctx, "glBindAttribLocation" );
-
-    this->VertexAttribPointer = (GLVERTEXATTRIBPOINTERPROC)
-    ctx->load( ctx, "glVertexAttribPointer" );
-
-    this->EnableVertexAttribArray = (GLENABLEVERTEXATTRIBARRAYPROC)
-    ctx->load( ctx, "glEnableVertexAttribArray" );
-
-    this->BindVertexArray = (GLBINDVERTEXARRAYPROC)
-    ctx->load( ctx, "glBindVertexArray" );
-
-    this->DrawElementsBaseVertex = (GLDRAWELEMENTSBASEVERTEXPROC)
-    ctx->load( ctx, "glDrawElementsBaseVertex" );
-}
-
-/****************************************************************************/
-
-sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
-{
-    sgui_gl_wm* this = malloc( sizeof(sgui_gl_wm) );
-    sgui_ctx_wm* super = (sgui_ctx_wm*)this;
-
-    if( this )
-    {
-        memset( this, 0, sizeof(sgui_gl_wm) );
-        super->wnd = wnd;
-        super->destroy = gl_wm_destroy;
-        super->draw_gui = gl_wm_draw_gui;
-
-        this->wndtex = create_skin_texture( );
-    }
-
-    return (sgui_ctx_wm*)this;
-}
-
 sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
 {
     sgui_gl_functions* gl;
@@ -510,6 +504,7 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     sgui_gl_wm* super;
     const char* str;
     GLsizei length;
+    GLint program;
 
     /* use normal gl wm if version < 3.0 */
     str = (const char*)glGetString( GL_VERSION );
@@ -599,9 +594,12 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     this->u_alpha = gl->GetUniformLocation( this->prog, "transparency" );
 
     /* initialize shader variables */
+    glGetIntegerv( GL_CURRENT_PROGRAM, &program );
+
     gl->UseProgram( this->prog );
     gl->Uniform1i( gl->GetUniformLocation( this->prog, "tex0" ), 0 );
     gl->Uniform1i( gl->GetUniformLocation( this->prog, "tex1" ), 1 );
+    gl->UseProgram( program );
 
     /* hook callbacks */
     super->super.destroy = gl_wm_core_destroy;
@@ -610,6 +608,5 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     super->wndtex = create_skin_texture( );
     return (sgui_ctx_wm*)this;
 }
-
 #endif /* SGUI_NO_OPENGL */
 
