@@ -83,6 +83,14 @@
     #define GL_TEXTURE0 0x84C0
 #endif
 
+#ifndef GL_ACTIVE_TEXTURE
+    #define GL_ACTIVE_TEXTURE 0x84E0
+#endif
+
+#ifndef GL_CURRENT_PROGRAM
+    #define GL_CURRENT_PROGRAM 0x8B8D
+#endif
+
 
 
 #define GLWM_CORE_MAX_WINDOWS 10
@@ -207,6 +215,20 @@ typedef struct
     sgui_gl_functions gl;
 }
 sgui_gl_core_wm;
+
+typedef struct
+{
+    GLint view[4];      /**< \brief Viewport data */
+    GLint tex[2];       /**< \brief Texture bindings */
+    GLint activetex;    /**< \brief The active texture unit */
+    GLint program;      /**< \brief Active shader program */
+    GLint blending;     /**< \brief Is blending enabled? */
+    GLint depth_test;   /**< \brief Is depth test enabled? */
+    GLint depth_write;  /**< \brief Is depth write enabled? */
+    GLint blend_src;    /**< \brief Source blend factor */
+    GLint blend_dst;    /**< \brief Destination blend factor */
+}
+gl_state;
 
 
 

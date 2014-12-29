@@ -74,10 +74,6 @@ int main( void )
     /* */
     wm = sgui_ctx_wm_create( wnd );
 
-    glEnable( GL_TEXTURE_2D );
-    glEnable( GL_BLEND );
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
     sgui_window_set_userptr( wnd, wm );
     sgui_window_on_event( wnd,
                           (sgui_window_callback)sgui_ctx_wm_inject_event );

@@ -160,72 +160,92 @@ static void window_vertices( unsigned int width, unsigned int height,
     vbo[51] = vbo[55] = vbo[59] = vbo[63] = height;
 }
 
-static void set_gl_state( sgui_ctx_wm* super, GLint* view )
+static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
 {
-    GLfloat m[16], w, h;
-
-    w = (float)super->wnd->w;
-    h = (float)super->wnd->h;
-
-    m[0] = 2.0f/w; m[4] = 0.0f;   m[ 8] = 0.0f; m[12] =-1.0f;
-    m[1] = 0.0f;   m[5] =-2.0f/h; m[ 9] = 0.0f; m[13] = 1.0f;
-    m[2] = 0.0f;   m[6] = 0.0f;   m[10] = 1.0f; m[14] = 0.0f;
-    m[3] = 0.0f;   m[7] = 0.0f;   m[11] = 0.0f; m[15] = 1.0f;
-
-    /* save matrices, set to identity projection and model scaling */
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix( );
-    glLoadIdentity( );
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix( );
-    glLoadMatrixf( m );
-
-    /* save viewport, set viewport to window */
-    glGetIntegerv( GL_VIEWPORT, view );
-    glViewport( 0, 0, super->wnd->w, super->wnd->h );
-}
-
-static void restore_gl_state( GLint* view )
-{
-    glViewport( view[0], view[1], view[2], view[3] );
-
-    glMatrixMode( GL_MODELVIEW );
-    glPopMatrix( );
-    glMatrixMode( GL_PROJECTION );
-    glPopMatrix( );
-}
-
-static void set_gl_core_state( sgui_ctx_wm* super, GLint* view )
-{
-    sgui_gl_core_wm* this = (sgui_gl_core_wm*)super;
     GLfloat w=super->wnd->w, h=super->wnd->h, m[16];
-    sgui_gl_functions* gl = &this->gl;
 
-    /* save and adjust viewport */
-    glGetIntegerv( GL_VIEWPORT, view );
-    glViewport( 0, 0, super->wnd->w, super->wnd->h );
-
-    /* set vertex array */
-    gl->BindVertexArray( this->vao );
-
-    /* bind textures */
-    gl->ActiveTexture( GL_TEXTURE0 );
-    glBindTexture( GL_TEXTURE_2D, this->super.wndtex );
-    gl->ActiveTexture( GL_TEXTURE0+1 );
-
-    /* setup shader */
     m[0] = 2.0f/w; m[4] = 0.0f;   m[ 8] = 0.0f; m[12] =-1.0f;
     m[1] = 0.0f;   m[5] =-2.0f/h; m[ 9] = 0.0f; m[13] = 1.0f;
     m[2] = 0.0f;   m[6] = 0.0f;   m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f;   m[7] = 0.0f;   m[11] = 0.0f; m[15] = 1.0f;
 
-    gl->UseProgram( this->prog );
-    gl->UniformMatrix4fv( this->u_mvp, 1, GL_FALSE, m );
+    glGetIntegerv( GL_VIEWPORT, state->view );
+    glGetIntegerv( GL_BLEND, &state->blending );
+    glGetIntegerv( GL_BLEND_SRC, &state->blend_src );
+    glGetIntegerv( GL_BLEND_DST, &state->blend_dst );
+    glGetIntegerv( GL_DEPTH_TEST, &state->depth_test );
+    glGetIntegerv( GL_DEPTH_WRITEMASK, &state->depth_write );
+
+    glEnable( GL_BLEND );
+    glEnable( GL_TEXTURE_2D );
+    glDisable( GL_DEPTH_TEST );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    glViewport( 0, 0, super->wnd->w, super->wnd->h );
+    glDepthMask( GL_FALSE );
+
+    if( core )
+    {
+        sgui_gl_core_wm* this = (sgui_gl_core_wm*)super;
+        sgui_gl_functions* gl = &this->gl;
+
+        glGetIntegerv( GL_CURRENT_PROGRAM, &state->program );
+        gl->UseProgram( this->prog );
+        gl->UniformMatrix4fv( this->u_mvp, 1, GL_FALSE, m );
+
+        glGetIntegerv( GL_ACTIVE_TEXTURE, &state->activetex );
+        gl->ActiveTexture( GL_TEXTURE0 );
+        glGetIntegerv( GL_TEXTURE_BINDING_2D, &state->tex[0] );
+        glBindTexture( GL_TEXTURE_2D, this->super.wndtex );
+        gl->ActiveTexture( GL_TEXTURE0+1 );
+        glGetIntegerv( GL_TEXTURE_BINDING_2D, &state->tex[1] );
+
+        gl->BindVertexArray( this->vao );
+    }
+    else
+    {
+        glMatrixMode( GL_PROJECTION );
+        glPushMatrix( );
+        glLoadIdentity( );
+        glMatrixMode( GL_MODELVIEW );
+        glPushMatrix( );
+        glLoadMatrixf( m );
+
+        glGetIntegerv( GL_TEXTURE_BINDING_2D, &state->tex[0] );
+    }
 }
 
-static void restore_gl_state_core( GLint* view )
+static void restore_gl_state(sgui_gl_functions* gl, gl_state* state, int core)
 {
-    glViewport( view[0], view[1], view[2], view[3] );
+    glViewport(state->view[0],state->view[1],state->view[2],state->view[3]);
+    glBlendFunc( state->blend_src, state->blend_dst );
+
+    if( !state->blending )
+        glDisable( GL_BLEND );
+
+    if( state->depth_test )
+        glEnable( GL_DEPTH_TEST );
+
+    glDepthMask( state->depth_write );
+
+    if( core )
+    {
+        gl->ActiveTexture( GL_TEXTURE0 );
+        glBindTexture( GL_TEXTURE_2D, state->tex[0] );
+        gl->ActiveTexture( GL_TEXTURE0+1 );
+        glBindTexture( GL_TEXTURE_2D, state->tex[1] );
+        gl->ActiveTexture( state->activetex );
+
+        gl->UseProgram( state->program );
+    }
+    else
+    {
+        glMatrixMode( GL_MODELVIEW );
+        glPopMatrix( );
+        glMatrixMode( GL_PROJECTION );
+        glPopMatrix( );
+
+        glBindTexture( GL_TEXTURE_2D, state->tex[0] );
+    }
 }
 
 static GLuint create_skin_texture( void )
@@ -272,10 +292,10 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
     GLfloat vbo[16*4];
     sgui_ctx_window* wnd;
     sgui_subwm_skin* skin;
-    GLint view[4];
+    gl_state state;
     GLuint* tex;
 
-    set_gl_state( super, view );
+    set_gl_state( super, &state, 0 );
 
     skin = sgui_subwm_skin_get( );
 
@@ -290,10 +310,11 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
         alpha = skin->get_window_transparency( skin, alpha );
 
         /* get window texture and dimensions */
-        tex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
+        if( !(tex = sgui_ctx_window_get_texture( (sgui_window*)wnd )) )
+            continue;
+
         sgui_window_get_position( (sgui_window*)wnd, &wx, &wy );
         sgui_window_get_size( (sgui_window*)wnd, &ww, &wh );
-
         window_vertices( ww, wh, vbo, skin );
 
         /* draw window background */
@@ -326,7 +347,7 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
         glTranslatef( -(float)wx, -(float)wy, 0.0f );
     }
 
-    restore_gl_state( view );
+    restore_gl_state( NULL, &state, 0 );
 }
 
 /****************************************************************************/
@@ -341,61 +362,57 @@ static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
 {
     sgui_gl_core_wm* this = (sgui_gl_core_wm*)super;
     float buffer[ 6*16 ], vb[ 4*16 ];
+    unsigned int i, j, alpha;
     sgui_subwm_skin* skin;
     sgui_gl_functions* gl;
     sgui_ctx_window* wnd;
-    unsigned int i, j=0;
-    GLint *tex, view[4];
-    int alpha;
+    gl_state state;
+    GLint *tex;
 
     skin = sgui_subwm_skin_get( );
     gl = &this->gl;
 
-    for( wnd=super->list; wnd && j<GLWM_CORE_MAX_WINDOWS; wnd=wnd->next, ++j )
+    for( j=0, wnd=super->list; wnd && j<GLWM_CORE_MAX_WINDOWS; wnd=wnd->next )
     {
-        while( wnd && !wnd->super.visible )
-            wnd = wnd->next;
-        if( wnd )
+        if( !wnd->super.visible )
+            continue;
+
+        window_vertices( wnd->super.w, wnd->super.h, vb, skin );
+
+        for( i=0; i<16; ++i )
         {
-            window_vertices( wnd->super.w, wnd->super.h, vb, skin );
-
-            for( i=0; i<16; ++i )
-            {
-                buffer[i*6    ] = vb[i*4+2] + wnd->super.x;
-                buffer[i*6 + 1] = vb[i*4+3] + wnd->super.y;
-                buffer[i*6 + 2] = vb[i*4  ];
-                buffer[i*6 + 3] = vb[i*4+1];
-                buffer[i*6 + 4] = vb[i*4+2] / (float)wnd->super.w;
-                buffer[i*6 + 5] = vb[i*4+3] / (float)wnd->super.h;
-            }
-
-            gl->BufferSubData( GL_ARRAY_BUFFER, j*sizeof(buffer),
-                               sizeof(buffer), buffer );
+            buffer[i*6    ] = vb[i*4+2] + wnd->super.x;
+            buffer[i*6 + 1] = vb[i*4+3] + wnd->super.y;
+            buffer[i*6 + 2] = vb[i*4  ];
+            buffer[i*6 + 3] = vb[i*4+1];
+            buffer[i*6 + 4] = vb[i*4+2] / (float)wnd->super.w;
+            buffer[i*6 + 5] = vb[i*4+3] / (float)wnd->super.h;
         }
+
+        gl->BufferSubData( GL_ARRAY_BUFFER, (j++)*sizeof(buffer),
+                           sizeof(buffer), buffer );
     }
 
-    set_gl_core_state( super, view );
+    set_gl_state( super, &state, 1 );
 
-    for(j=0,wnd=super->list; wnd&&j<GLWM_CORE_MAX_WINDOWS; wnd=wnd->next,++j)
+    for( j=0, wnd=super->list; wnd && j<GLWM_CORE_MAX_WINDOWS; wnd=wnd->next )
     {
-        while( wnd && !wnd->super.visible )
-            wnd = wnd->next;
-        if( !wnd )
-            break;
+        if( !wnd->super.visible )
+            continue;
+        if( !(tex = sgui_ctx_window_get_texture( (sgui_window*)wnd )) )
+            continue;
 
         alpha = wnd->next ? SGUI_WINDOW_BACKGROUND :
                 super->draging ? SGUI_WINDOW_DRAGING : SGUI_WINDOW_TOPMOST;
         alpha = skin->get_window_transparency( skin, alpha );
 
-        tex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
         glBindTexture( GL_TEXTURE_2D, *tex );
-
         gl->Uniform1f( this->u_alpha, (float)alpha/255.0f );
         gl->DrawElementsBaseVertex( GL_TRIANGLES, sizeof(ibo)/sizeof(ibo[0]),
-                                    GL_UNSIGNED_SHORT, 0, j*16 );
+                                    GL_UNSIGNED_SHORT, 0, (j++)*16 );
     }
 
-    restore_gl_state_core( view );
+    restore_gl_state( gl, &state, 1 );
 }
 
 /****************************************************************************/
