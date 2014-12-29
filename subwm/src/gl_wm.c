@@ -352,9 +352,16 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
 
 /****************************************************************************/
 
-static void gl_wm_core_destroy( sgui_ctx_wm* this )
+static void gl_wm_core_destroy( sgui_ctx_wm* super )
 {
-    glDeleteTextures( 1, &(((sgui_gl_wm*)this)->wndtex) );
+    sgui_gl_core_wm* this = (sgui_gl_core_wm*)super;
+
+    this->gl.DeleteProgram( this->prog );
+    this->gl.DeleteShader( this->vsh );
+    this->gl.DeleteShader( this->fsh );
+    this->gl.DeleteVertexArrays( 1, &this->vao );
+    this->gl.DeleteBuffers( 2, this->buffers );
+    glDeleteTextures( 1, &(((sgui_gl_wm*)super)->wndtex) );
     free( this );
 }
 
@@ -434,6 +441,12 @@ static void sgui_gl_functions_load( sgui_gl_functions* this,
     this->BufferSubData=(GLBUFFERSUBDATAPROC)ctx->load(ctx,"glBufferSubData");
     this->UseProgram=(GLUSEPROGRAMPROC)ctx->load(ctx,"glUseProgram");
     this->ActiveTexture=(GLACTIVETEXTUREPROC)ctx->load(ctx,"glActiveTexture");
+    this->DeleteBuffers=(GLDELETEBUFFERSPROC)ctx->load(ctx,"glDeleteBuffers");
+    this->DeleteShader=(GLDELETESHADERPROC)ctx->load(ctx,"glDeleteShader");
+    this->DeleteProgram=(GLDELETEPROGRAMPROC)ctx->load(ctx,"glDeleteProgram");
+
+    this->DeleteVertexArrays = (GLDELETEVERTEXARRAYSPROC)
+    ctx->load(ctx,"glDeleteVertexArrays");
 
     this->GenVertexArrays = (GLGENVERTEXARRAYSPROC)
     ctx->load( ctx,"glGenVertexArrays" );

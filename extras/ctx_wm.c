@@ -124,6 +124,7 @@ int main( void )
     sgui_widget_destroy( check2 );
     sgui_widget_destroy( label );
 
+    sgui_ctx_wm_destroy( wm );
     sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
     sgui_deinit( );

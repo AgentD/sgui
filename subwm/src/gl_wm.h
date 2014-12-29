@@ -152,6 +152,12 @@ typedef void (GLAPIENTRY * GLBUFFERSUBDATAPROC) (GLenum target,
                                                  const void* data);
 typedef void (GLAPIENTRY * GLUSEPROGRAMPROC) (GLuint program);
 typedef void (GLAPIENTRY * GLACTIVETEXTUREPROC) (GLenum texture);
+typedef void (GLAPIENTRY * GLDELETEBUFFERSPROC) (GLsizei n,
+                                                 const GLuint* buffers);
+typedef void (GLAPIENTRY * GLDELETESHADERPROC) (GLuint shader);
+typedef void (GLAPIENTRY * GLDELETEPROGRAMPROC) (GLuint program);
+typedef void (GLAPIENTRY * GLDELETEVERTEXARRAYSPROC) (GLsizei n,
+                                                      const GLuint* arrays);
 typedef void (GLAPIENTRY * GLUNIFORMMATRIX4FVPROC) (GLint location,
                                                     GLsizei count,
                                                     GLboolean transpose,
@@ -187,6 +193,10 @@ typedef struct
     GLDRAWELEMENTSBASEVERTEXPROC DrawElementsBaseVertex;
     GLUSEPROGRAMPROC UseProgram;
     GLACTIVETEXTUREPROC ActiveTexture;
+    GLDELETEBUFFERSPROC DeleteBuffers;
+    GLDELETEVERTEXARRAYSPROC DeleteVertexArrays;
+    GLDELETESHADERPROC DeleteShader;
+    GLDELETEPROGRAMPROC DeleteProgram;
 }
 sgui_gl_functions;
 
