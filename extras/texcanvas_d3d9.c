@@ -145,9 +145,9 @@ int main( void )
     sgui_button_set_state( check, 1 );
     sgui_button_set_state( check2, 1 );
 
-    sgui_widget_add_child( sgui_canvas_get_root( texcanvas ), butt );
-    sgui_widget_add_child( sgui_canvas_get_root( texcanvas ), check );
-    sgui_widget_add_child( sgui_canvas_get_root( texcanvas ), check2 );
+    sgui_widget_add_child( &texcanvas->root, butt );
+    sgui_widget_add_child( &texcanvas->root, check );
+    sgui_widget_add_child( &texcanvas->root, check2 );
 
     /* clear the canvas */
     sgui_canvas_begin( texcanvas, NULL );
