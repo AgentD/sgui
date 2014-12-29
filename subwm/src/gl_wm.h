@@ -47,55 +47,38 @@
     #include <GL/gl.h>
 #endif
 
-#ifndef GLAPIENTRY
-    #define GLAPIENTRY APIENTRY
+#ifndef GL_VERSION_1_5
+    typedef ptrdiff_t GLsizeiptr;
+    typedef ptrdiff_t GLintptr;
 #endif
 
 #ifndef GL_VERSION_2_0
     typedef char GLchar;
 #endif
 
-#ifndef GL_VERSION_1_5
-    typedef ptrdiff_t GLsizeiptr;
-    typedef ptrdiff_t GLintptr;
-#endif
+#undef GLAPIENTRY
+#undef GL_FRAGMENT_SHADER
+#undef GL_VERTEX_SHADER
+#undef GL_ARRAY_BUFFER
+#undef GL_ELEMENT_ARRAY_BUFFER
+#undef GL_STATIC_DRAW
+#undef GL_STREAM_DRAW
+#undef GL_TEXTURE0
+#undef GL_ACTIVE_TEXTURE
+#undef GL_CURRENT_PROGRAM
 
-#ifndef GL_FRAGMENT_SHADER
-    #define GL_FRAGMENT_SHADER 0x8B30
+#ifdef APIENTRY
+    #define GLAPIENTRY APIENTRY
 #endif
-
-#ifndef GL_VERTEX_SHADER
-    #define GL_VERTEX_SHADER 0x8B31
-#endif
-
-#ifndef GL_ARRAY_BUFFER
-    #define GL_ARRAY_BUFFER 0x8892
-#endif
-
-#ifndef GL_ELEMENT_ARRAY_BUFFER
-    #define GL_ELEMENT_ARRAY_BUFFER 0x8893
-#endif
-
-#ifndef GL_STATIC_DRAW
-    #define GL_STATIC_DRAW 0x88E4
-#endif
-
-#ifndef GL_STREAM_DRAW
-    #define GL_STREAM_DRAW 0x88E0
-#endif
-
-#ifndef GL_TEXTURE0
-    #define GL_TEXTURE0 0x84C0
-#endif
-
-#ifndef GL_ACTIVE_TEXTURE
-    #define GL_ACTIVE_TEXTURE 0x84E0
-#endif
-
-#ifndef GL_CURRENT_PROGRAM
-    #define GL_CURRENT_PROGRAM 0x8B8D
-#endif
-
+#define GL_FRAGMENT_SHADER 0x8B30
+#define GL_VERTEX_SHADER 0x8B31
+#define GL_ARRAY_BUFFER 0x8892
+#define GL_ELEMENT_ARRAY_BUFFER 0x8893
+#define GL_STATIC_DRAW 0x88E4
+#define GL_STREAM_DRAW 0x88E0
+#define GL_TEXTURE0 0x84C0
+#define GL_ACTIVE_TEXTURE 0x84E0
+#define GL_CURRENT_PROGRAM 0x8B8D
 
 
 #define GLWM_CORE_MAX_WINDOWS 10
@@ -173,35 +156,13 @@ typedef void (GLAPIENTRY * GLUNIFORMMATRIX4FVPROC) (GLint location,
 
 typedef struct
 {
-    GLCREATESHADERPROC CreateShader;
-    GLLINKPROGRAMPROC LinkProgram;
-    GLCREATEPROGRAMPROC CreateProgram;
-    GLCOMPILESHADERPROC CompileShader;
-    GLGENBUFFERSPROC GenBuffers;
-    GLSHADERSOURCEPROC ShaderSource;
-    GLATTACHSHADERPROC AttachShader;
-    GLGENVERTEXARRAYSPROC GenVertexArrays;
-    GLGETPROGRAMINFOLOGPROC GetProgramInfoLog;
-    GLGETSHADERINFOLOGPROC GetShaderInfoLog;
-    GLGETUNIFORMLOCATIONPROC GetUniformLocation;
     GLUNIFORM1FPROC Uniform1f;
-    GLUNIFORM1IPROC Uniform1i;
     GLUNIFORMMATRIX4FVPROC UniformMatrix4fv;
-    GLBINDFRAGDATALOCATIONPROC BindFragDataLocation;
-    GLBINDATTRIBLOCATIONPROC BindAttribLocation;
-    GLVERTEXATTRIBPOINTERPROC VertexAttribPointer;
-    GLENABLEVERTEXATTRIBARRAYPROC EnableVertexAttribArray;
     GLBINDVERTEXARRAYPROC BindVertexArray;
-    GLBINDBUFFERPROC BindBuffer;
-    GLBUFFERDATAPROC BufferData;
     GLBUFFERSUBDATAPROC BufferSubData;
     GLDRAWELEMENTSBASEVERTEXPROC DrawElementsBaseVertex;
     GLUSEPROGRAMPROC UseProgram;
     GLACTIVETEXTUREPROC ActiveTexture;
-    GLDELETEBUFFERSPROC DeleteBuffers;
-    GLDELETEVERTEXARRAYSPROC DeleteVertexArrays;
-    GLDELETESHADERPROC DeleteShader;
-    GLDELETEPROGRAMPROC DeleteProgram;
 }
 sgui_gl_functions;
 
