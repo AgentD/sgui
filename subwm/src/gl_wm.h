@@ -55,6 +55,11 @@
     typedef char GLchar;
 #endif
 
+#ifndef GL_VERSION_1_5
+    typedef ptrdiff_t GLsizeiptr;
+    typedef ptrdiff_t GLintptr;
+#endif
+
 #ifndef GL_FRAGMENT_SHADER
     #define GL_FRAGMENT_SHADER 0x8B30
 #endif
