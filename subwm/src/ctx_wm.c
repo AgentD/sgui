@@ -103,14 +103,17 @@ void sgui_ctx_wm_destroy( sgui_ctx_wm* this )
 {
     sgui_ctx_window* w;
 
-    /* destroy all the windows */
-    for( w=this->list; w!=NULL; w=w->next )
-        sgui_window_destroy( (sgui_window*)w );
+    if( this )
+    {
+        /* destroy all the windows */
+        for( w=this->list; w!=NULL; w=w->next )
+            sgui_window_destroy( (sgui_window*)w );
 
-    this->list = NULL;
+        this->list = NULL;
 
-    /* destroy the object */
-    this->destroy( this );
+        /* destroy the object */
+        this->destroy( this );
+    }
 }
 
 sgui_window* sgui_ctx_wm_create_window( sgui_ctx_wm* this,
