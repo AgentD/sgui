@@ -111,14 +111,14 @@ static int add_spinbox( sgui_widget** box, sgui_widget** label,
 
 /****************************************************************************/
 
-static void color_dialog_handle_button( sgui_dialog* super, int index )
+static void color_dialog_handle_button( sgui_dialog* super, int idx )
 {
     sgui_color_dialog* this = (sgui_color_dialog*)super;
     sgui_event ev;
 
     ev.src.other = this;
 
-    switch( index )
+    switch( idx )
     {
     case 0:
         ev.type = SGUI_COLOR_SELECTED_RGBA_EVENT;

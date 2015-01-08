@@ -60,11 +60,11 @@ struct sgui_dialog
      * \brief Gets conntected by sgui_dialog_init to the button row events
      *
      * \param dialog A pointer to a dialog object
-     * \param index  0 for the first button, 1 for the second button,
-     *               2 for the third button, or a negative index if the
+     * \param idx    0 for the first button, 1 for the second button,
+     *               2 for the third button, or a negative idx if the
      *               window got closed.
      */
-    void(* handle_button )( sgui_dialog* dialog, int index );
+    void(* handle_button )( sgui_dialog* dialog, int idx );
 };
 
 
