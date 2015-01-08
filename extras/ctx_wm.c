@@ -18,6 +18,8 @@
 
 #ifdef SGUI_WINDOWS
     #include <windows.h>
+
+    #include "sgui_d3d9.h"
 #endif
 #include <GL/gl.h>
 
@@ -29,7 +31,7 @@
 
 
 static void renderer_init( int backend, sgui_context* ctx );
-static void renderer_draw( int backend );
+static void renderer_draw( int backend, sgui_context* ctx );
 
 
 
@@ -39,6 +41,7 @@ int main( void )
     sgui_window_description desc;
     sgui_window* subwnd;
     sgui_window* subwnd2;
+    sgui_context* ctx;
     sgui_window* wnd;
     sgui_ctx_wm* wm;
     int selection;
@@ -83,7 +86,8 @@ int main( void )
     sgui_window_make_current( wnd );
     sgui_window_set_vsync( wnd, 1 );
 
-    renderer_init( selection, sgui_window_get_context( wnd ) );
+    ctx = sgui_window_get_context( wnd );
+    renderer_init( selection, ctx );
 
     /* */
     wm = sgui_ctx_wm_create( wnd );
@@ -125,7 +129,7 @@ int main( void )
     /* main loop */
     while( sgui_main_loop_step( ) )
     {
-        renderer_draw( selection );
+        renderer_draw( selection, ctx );
         sgui_ctx_wm_draw_gui( wm );
         sgui_window_swap_buffers( wnd );
     }
@@ -486,24 +490,131 @@ static void gl_core_draw( void )
 
 /****************************************************************************/
 
+typedef struct
+{
+    FLOAT x, y, z;
+    DWORD color;
+}
+CUSTOMVERTEX;
+
+#define CUSTOMFVF (D3DFVF_XYZ|D3DFVF_DIFFUSE)
+
+LPDIRECT3DVERTEXBUFFER9 v_buffer;
+VOID* pVoid;
+
+static void d3d9_init( sgui_context* context )
+{
+    float m[16], f, iNF, fov_deg = 60.0f, Near = 0.1f, Far = 100.0f;
+    CUSTOMVERTEX vdat[ sizeof(indices)/sizeof(indices[0]) ];
+    sgui_d3d9_context* ctx = (sgui_d3d9_context*)context;
+    float aspectratio = (float)WIDTH / (float)HEIGHT;
+    unsigned int i, idx, r, g, b;
+
+    for( i=0; i<sizeof(indices)/sizeof(indices[0]); ++i )
+    {
+        idx = indices[ i ];
+        r = vertices[ idx*6+3 ] * 255.0f;
+        g = vertices[ idx*6+4 ] * 255.0f;
+        b = vertices[ idx*6+5 ] * 255.0f;
+
+        vdat[ i ].x = vertices[ idx*6   ];
+        vdat[ i ].y = vertices[ idx*6+1 ];
+        vdat[ i ].z = vertices[ idx*6+2 ];
+        vdat[ i ].color = D3DCOLOR_ARGB(0xFF,r,g,b);
+    }
+
+    IDirect3DDevice9_Reset( ctx->device, &ctx->present );
+
+    IDirect3DDevice9_CreateVertexBuffer( ctx->device, sizeof(vdat), 0,
+                                         CUSTOMFVF, D3DPOOL_MANAGED,
+                                         &v_buffer, NULL );
+
+    /* load vertex data */
+    IDirect3DVertexBuffer9_Lock( v_buffer, 0, 0, (void**)&pVoid, 0 );
+    memcpy( pVoid, vdat, sizeof(vdat) );
+    IDirect3DVertexBuffer9_Unlock( v_buffer );
+
+    /* setup renderer state */
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_CULLMODE,D3DCULL_NONE);
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_LIGHTING,FALSE       );
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_ZENABLE, TRUE        );
+
+    /* set up perspective projection matrix */
+    f   = 1.0 / tan( fov_deg * DEGTORAD * 0.5 );
+	iNF = 1.0 / ( Near - Far );
+    m[0]=f/aspectratio; m[4]=0; m[ 8]=0;              m[12]=0;
+    m[1]=0;             m[5]=f; m[ 9]=0;              m[13]=0;
+    m[2]=0;             m[6]=0; m[10]=(Far+Near)*iNF; m[14]=2*Far*Near*iNF;
+    m[3]=0;             m[7]=0; m[11]=-1;             m[15]=0;
+    IDirect3DDevice9_SetTransform(ctx->device,D3DTS_PROJECTION,(D3DMATRIX*)m);
+}
+
+static void d3d9_draw( sgui_context* context )
+{
+    sgui_d3d9_context* ctx = (sgui_d3d9_context*)context;
+    D3DVIEWPORT9 vp;
+    float m[16];
+
+    m[3]=m[7]=m[11]=m[12]=m[13]=0.0f; m[14]=-5.0f; m[15]=1.0f;
+    vp.X=0; vp.Y=0; vp.Width=WIDTH; vp.Height=HEIGHT;
+    vp.MinZ = 0.0f; vp.MaxZ = 1.0f;
+
+    IDirect3DDevice9_SetViewport( ctx->device, &vp );
+    IDirect3DDevice9_Clear( ctx->device, 0, NULL,
+                            D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER, 0, 1.0f, 0 );
+    vp.Width=WIDTH/2; vp.Height=HEIGHT/2;
+
+    IDirect3DDevice9_BeginScene( ctx->device );
+
+    IDirect3DDevice9_SetFVF( ctx->device, CUSTOMFVF );
+    IDirect3DDevice9_SetStreamSource( ctx->device, 0, v_buffer, 0,
+                                      sizeof(CUSTOMVERTEX) );
+
+    m[0]=m[10]=cos(t); m[2]=sin(t); m[8]=-m[2]; m[1]=m[4]=m[6]=m[9]=0; m[5]=1;
+    vp.X = 0; vp.Y = HEIGHT/2;
+    IDirect3DDevice9_SetTransform( ctx->device, D3DTS_VIEW, (D3DMATRIX*)m );
+    IDirect3DDevice9_SetViewport( ctx->device, &vp );
+    IDirect3DDevice9_DrawPrimitive( ctx->device, D3DPT_TRIANGLELIST, 0, 12 );
+
+    m[1]=m[8]=-sin(t); m[0]=cos(t); m[9]=-m[0]; m[2]=m[4]=m[5]=m[10]=0;m[6]=1;
+    vp.X = WIDTH/2; vp.Y = 0;
+    IDirect3DDevice9_SetTransform( ctx->device, D3DTS_VIEW, (D3DMATRIX*)m );
+    IDirect3DDevice9_SetViewport( ctx->device, &vp );
+    IDirect3DDevice9_DrawPrimitive( ctx->device, D3DPT_TRIANGLELIST, 0, 12 );
+
+    m[0]=m[10]=-sin(t); m[2]=cos(t); m[8]=-m[2]; m[1]=m[4]=m[6]=m[9]=0;m[5]=1;
+    vp.X = 0; vp.Y = 0;
+    IDirect3DDevice9_SetTransform( ctx->device, D3DTS_VIEW, (D3DMATRIX*)m );
+    IDirect3DDevice9_SetViewport( ctx->device, &vp );
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_FILLMODE,D3DFILL_SOLID);
+    IDirect3DDevice9_DrawPrimitive( ctx->device, D3DPT_TRIANGLELIST, 0, 12 );
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_FILLMODE,
+                                    D3DFILL_WIREFRAME);
+
+    IDirect3DDevice9_EndScene( ctx->device );
+    t += 0.01f;
+}
+
+/****************************************************************************/
+
 static void renderer_init( int backend, sgui_context* ctx )
 {
     switch( backend )
     {
     case SGUI_OPENGL_CORE:   gl_core_init( ctx ); break;
-    case SGUI_OPENGL_COMPAT: gl_old_init( );     break;
-    case SGUI_DIRECT3D_9:    break;
+    case SGUI_OPENGL_COMPAT: gl_old_init( );      break;
+    case SGUI_DIRECT3D_9:    d3d9_init( ctx );    break;
     case SGUI_DIRECT3D_11:   break;
     }
 }
 
-static void renderer_draw( int backend )
+static void renderer_draw( int backend, sgui_context* ctx )
 {
     switch( backend )
     {
-    case SGUI_OPENGL_CORE:   gl_core_draw( ); break;
-    case SGUI_OPENGL_COMPAT: gl_old_draw( );  break;
-    case SGUI_DIRECT3D_9:    break;
+    case SGUI_OPENGL_CORE:   gl_core_draw( );  break;
+    case SGUI_OPENGL_COMPAT: gl_old_draw( );   break;
+    case SGUI_DIRECT3D_9:    d3d9_draw( ctx ); break;
     case SGUI_DIRECT3D_11:   break;
     }
 }
