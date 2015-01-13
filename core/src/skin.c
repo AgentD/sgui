@@ -23,7 +23,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "sgui_filesystem.h"
 #include "sgui_internal.h"
 #include "sgui_skin.h"
 #include "sgui_font.h"

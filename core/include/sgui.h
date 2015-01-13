@@ -145,7 +145,6 @@
 #include "sgui_canvas.h"
 #include "sgui_context.h"
 #include "sgui_event.h"
-#include "sgui_filesystem.h"
 #include "sgui_font.h"
 #include "sgui_icon_cache.h"
 #include "sgui_keycodes.h"
