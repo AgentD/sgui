@@ -205,16 +205,25 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
 void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
 {
     unsigned int i;
+    sgui_rect r0;
 
     if( !this || !r )
         return;
 
     sgui_internal_lock_mutex( );
 
+    /* make sure dirty rect is inside canvase area */
+    sgui_rect_set_size( &r0, 0, 0, this->width, this->height );
+    if( !sgui_rect_get_intersection( &r0, &r0, r ) )
+    {
+        sgui_internal_unlock_mutex( );
+        return;
+    }
+
     /* try to find an existing diry rect it touches */
     for( i=0; i<this->num_dirty; ++i )
     {
-        if( sgui_rect_join( this->dirty + i, r, 1 ) )
+        if( sgui_rect_join( this->dirty + i, &r0, 1 ) )
         {
             sgui_internal_unlock_mutex( );
             return;
@@ -224,14 +233,14 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     /* add a new one if posible, join all existing if not */
     if( this->num_dirty < CANVAS_MAX_DIRTY )
     {
-        sgui_rect_copy( this->dirty + (this->num_dirty++), r );
+        sgui_rect_copy( this->dirty + (this->num_dirty++), &r0 );
     }
     else
     {
         for( i=1; i<this->num_dirty; ++i )
             sgui_rect_join( this->dirty, this->dirty + i, 0 );
 
-        sgui_rect_copy( this->dirty + 1, r );
+        sgui_rect_copy( this->dirty + 1, &r0 );
         this->num_dirty = 2;
     }
 
