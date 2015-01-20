@@ -344,7 +344,10 @@ SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
  * enter, mouse leave, focus and focus lost events for the widgets it holds.
  *
  * \param canvas The canvas
- * \param e      The event data to send
+ * \param e      The event data to send. If the event is of type
+ *               SGUI_FOCUS_LOSE_EVENT, the canvas assumes that the window
+ *               owning the canvas lost focus and drops focus of the focused
+ *               widget.
  */
 SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
                                              const sgui_event* e );

@@ -330,8 +330,8 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         return;
 
     /* don't handle events that the canvas generates */
-    if( e->type==SGUI_FOCUS_EVENT || e->type==SGUI_MOUSE_ENTER_EVENT ||
-        e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT )
+    if( e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT ||
+        e->type==SGUI_FOCUS_EVENT )
         return;
 
     sgui_internal_lock_mutex( );
@@ -358,6 +358,10 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
 
     switch( e->type )
     {
+    case SGUI_FOCUS_LOSE_EVENT:
+        if( this->focus )
+            sgui_canvas_set_focus( this, NULL );
+        break;
     case SGUI_MOUSE_PRESS_EVENT:
     case SGUI_MOUSE_RELEASE_EVENT:
         /* transform to widget local coordinates and redirect event */

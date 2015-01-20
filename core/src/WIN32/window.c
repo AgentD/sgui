@@ -450,6 +450,14 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         super->x = LOWORD( lp );
         super->y = HIWORD( lp );
         break;
+    case WM_SETFOCUS:
+        e.type = SGUI_FOCUS_EVENT;
+        sgui_internal_window_fire_event( super, &e );
+        break;
+    case WM_KILLFOCUS:
+        e.type = SGUI_FOCUS_LOSE_EVENT;
+        sgui_internal_window_fire_event( super, &e );
+        break;
     case WM_PAINT:
         if( super->backend==SGUI_NATIVE )
         {

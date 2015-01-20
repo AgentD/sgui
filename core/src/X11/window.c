@@ -373,6 +373,14 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
             sgui_internal_window_fire_event( super, &se );
         }
         break;
+    case FocusIn:
+        se.type = SGUI_FOCUS_EVENT;
+        sgui_internal_window_fire_event( super, &se );
+        break;
+    case FocusOut:
+        se.type = SGUI_FOCUS_LOSE_EVENT;
+        sgui_internal_window_fire_event( super, &se );
+        break;
     };
 }
 
@@ -466,7 +474,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     XSelectInput( dpy, this->wnd, ExposureMask | StructureNotifyMask |
                                   KeyPressMask | KeyReleaseMask |
                                   PointerMotionMask | PropertyChangeMask |
-                                  ButtonPressMask | ButtonReleaseMask );
+                                  ButtonPressMask | ButtonReleaseMask |
+                                  FocusChangeMask );
 
     XSetWMProtocols( dpy, this->wnd, &atom_wm_delete, 1 );
 
