@@ -28,6 +28,7 @@
 
 #include <sys/select.h>
 #include <pthread.h>
+#include <time.h>
 
 
 
@@ -46,6 +47,9 @@ static Atom atom_pty = 0;
 static Atom atom_inc = 0;
 static Atom atom_UTF8 = 0;
 static Atom atom_clipboard = 0;
+
+static sgui_window_xlib* clicked = NULL;
+static unsigned long click_time = 0;
 
 static pthread_mutex_t mutex;
 
@@ -349,6 +353,46 @@ const char* xlib_window_clipboard_read( sgui_window* this )
 
     sgui_internal_unlock_mutex( );
     return clipboard_buffer;
+}
+
+/****************************************************************************/
+
+static unsigned long get_time_ms( void )
+{
+    struct timespec ts;
+
+    #ifdef CLOCK_MONOTONIC_RAW
+        clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    #else
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+    #endif
+
+    return ts.tv_sec*1000 + ts.tv_nsec/1000000;
+}
+
+int check_double_click( sgui_window_xlib* window )
+{
+    unsigned long delta, current;
+
+    if( clicked == window )
+    {
+        current = get_time_ms( );
+        delta = current >= click_time ? (current - click_time) :
+                                        DOUBLE_CLICK_MS*64;
+
+        if( delta <= DOUBLE_CLICK_MS )
+            return 1;
+    }
+
+    clicked = window;
+    click_time = get_time_ms( );
+    return 0;
+}
+
+void interrupt_double_click( void )
+{
+    clicked = NULL;
+    click_time = 0;
 }
 
 /****************************************************************************/

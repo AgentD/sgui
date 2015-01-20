@@ -35,27 +35,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef SGUI_WINDOWS
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-#else
-    #include <sys/time.h>
-#endif
 
-#define DOUBLE_CLICK_MS 750
-
-static unsigned long get_time_ms( void )
-{
-#ifdef SGUI_WINDOWS
-    return GetTickCount( );
-#else
-    struct timeval tp;
-
-    gettimeofday( &tp, NULL );
-
-    return tp.tv_sec*1000 + tp.tv_usec/1000;
-#endif
-}
 
 static void draw_children( sgui_canvas* this, sgui_widget* widget,
                            sgui_rect* r )
@@ -351,13 +331,12 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
 
     /* don't handle events that the canvas generates */
     if( e->type==SGUI_FOCUS_EVENT || e->type==SGUI_MOUSE_ENTER_EVENT ||
-        e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT ||
-        e->type==SGUI_DOUBLE_CLICK_EVENT )
+        e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT )
         return;
 
     sgui_internal_lock_mutex( );
 
-    if( e->type == SGUI_MOUSE_MOVE_EVENT )
+    if( e->type==SGUI_MOUSE_MOVE_EVENT || e->type==SGUI_DOUBLE_CLICK_EVENT )
     {
         /* find the widget under the mouse cursor */
         i = sgui_widget_get_child_from_point( &this->root,
@@ -380,15 +359,6 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
     switch( e->type )
     {
     case SGUI_MOUSE_PRESS_EVENT:
-        if( !this->wait_double_click )
-        {
-            this->wait_double_click = 1;
-            this->last_click_time = get_time_ms( );
-        }
-        else
-        {
-            this->wait_double_click = 2;
-        }
     case SGUI_MOUSE_RELEASE_EVENT:
         /* transform to widget local coordinates and redirect event */
         sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
@@ -405,20 +375,9 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
             sgui_canvas_set_focus( this, this->mouse_over );
             this->draw_focus = 0;
         }
-
-        if( e->type==SGUI_MOUSE_RELEASE_EVENT && this->wait_double_click==2 )
-        {
-            if( (get_time_ms( ) - this->last_click_time) <= DOUBLE_CLICK_MS )
-            {
-                ev.type = SGUI_DOUBLE_CLICK_EVENT;
-                sgui_widget_send_event( this->mouse_over, &ev, 0 );
-            }
-            this->wait_double_click = 0;
-        }
         break;
     case SGUI_MOUSE_MOVE_EVENT:
-        this->wait_double_click = 0;
-
+    case SGUI_DOUBLE_CLICK_EVENT:
         /* transform to widget local coordinates and redirect event */
         sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
         ev = *e;
@@ -428,7 +387,6 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         sgui_widget_send_event( this->mouse_over, &ev, 0 );
         break;
     case SGUI_MOUSE_WHEEL_EVENT:
-        this->wait_double_click = 0;
         sgui_widget_send_event( this->mouse_over, e, 0 );
         break;
     case SGUI_KEY_RELEASED_EVENT:

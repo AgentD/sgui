@@ -75,9 +75,6 @@ struct sgui_canvas
 
     int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
 
-    int wait_double_click;          /**< \brief Waiting for double click */
-    unsigned long last_click_time;  /**< \brief Timestamp of last click */
-
     sgui_rect dirty[ CANVAS_MAX_DIRTY ];
     unsigned int num_dirty;
 

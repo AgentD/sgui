@@ -273,9 +273,18 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
                                              SGUI_MOUSE_RELEASE_EVENT;
 
             sgui_internal_window_fire_event( super, &se );
+
+            if( e->type==ButtonRelease && e->xbutton.button==Button1 &&
+                check_double_click( this ) )
+            {
+                se.type = SGUI_DOUBLE_CLICK_EVENT;
+                sgui_internal_window_fire_event( super, &se );
+            }
         }
         break;
     case MotionNotify:
+        interrupt_double_click( );
+
         /* ignore mouse move event when the warp counter is positive */
         if( this->mouse_warped )
         {

@@ -214,7 +214,7 @@ int sgui_init( void )
     memset( &wc, 0, sizeof(WNDCLASSEXA) );
 
     wc.cbSize        = sizeof(WNDCLASSEX);
-    wc.style         = CS_HREDRAW | CS_VREDRAW;
+    wc.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
     wc.lpfnWndProc   = WindowProcFun;
     wc.hInstance     = hInstance;
     wc.lpszClassName = wndclass;

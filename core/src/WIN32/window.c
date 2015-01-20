@@ -313,6 +313,12 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
 
     switch( msg )
     {
+    case WM_LBUTTONDBLCLK:
+        e.arg.i2.x = LOWORD( lp );
+        e.arg.i2.y = HIWORD( lp );
+        e.type = SGUI_DOUBLE_CLICK_EVENT;
+        sgui_internal_window_fire_event( super, &e );
+        break;
     case WM_DESTROY:
         super->visible = 0;
         e.type = SGUI_USER_CLOSED_EVENT;
