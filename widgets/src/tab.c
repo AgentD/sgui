@@ -62,41 +62,33 @@ sgui_tab_group;
 static void tab_on_state_change( sgui_widget* super, int change )
 {
     sgui_tab_group* g = (sgui_tab_group*)super->parent;
-    sgui_tab *this = (sgui_tab*)super, *old;
+    sgui_tab* this = (sgui_tab*)super;
+    sgui_widget* w;
     sgui_event ev;
 
-    if( change == SGUI_WIDGET_VISIBILLITY_CHANGED )
+    if( change & SGUI_WIDGET_VISIBILLITY_CHANGED )
     {
-        /* set tab to invisible is not allowed */
-        if( !super->visible )
+        if( super->parent )
         {
-            super->visible = 1;
-            return;
-        }
-
-        if( g && this==g->current )
-            return;
-
-        /* turn previously visible tab invisible */
-        if( g )
-        {
-            old = g->current;
-            g->current = this;
-
-            if( old )
+            if( super->visible )
             {
-                old->super.visible = 0;
+                g->current = this;
 
-                ev.src.widget = (sgui_widget*)old;
-                ev.type = SGUI_TAB_DESELECTED;
-                sgui_widget_send_event( (sgui_widget*)old, &ev, 1 );
+                for( w=super->parent->children; w!=NULL; w=w->next )
+                {
+                    if( w!=super && w->visible )
+                        sgui_widget_set_visible( w, 0 );
+                }
+            }
+            else if( g->current==this )
+            {
+                g->current = NULL;
             }
         }
 
-        /* generate select event for current tab */
-        ev.src.widget = (sgui_widget*)this;
-        ev.type = SGUI_TAB_SELECTED;
-        sgui_widget_send_event( super, &ev, 1 );
+        ev.type = super->visible ? SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
+        ev.src.widget = super;
+        sgui_event_post( &ev );
     }
 }
 
@@ -141,7 +133,7 @@ static void tab_group_on_state_change( sgui_widget* super, int change )
                 return;
         }
 
-        this->current = NULL;
+        this->current = (sgui_tab*)super->children;
         sgui_widget_set_visible( super->children, 1 );
     }
 }
