@@ -46,20 +46,115 @@ void font_deinit( void )
 
 /****************************************************************************/
 
-static sgui_font* sgui_font_load_common( unsigned int pixel_height )
+static void x11_font_destroy( sgui_font* this )
 {
-    sgui_font* this;
+    if( this )
+    {
+        FT_Done_Face( ((sgui_x11_font*)this)->face );
+
+        free( ((sgui_x11_font*)this)->buffer );
+        free( this );
+    }
+}
+
+static void x11_font_load_glyph( sgui_font* super, unsigned int codepoint )
+{
+    sgui_x11_font* this = (sgui_x11_font*)super;
+    FT_UInt i;
+
+    if( this )
+    {
+        this->current_glyph = codepoint;
+
+        i = FT_Get_Char_Index( this->face, codepoint );
+
+        FT_Load_Glyph( this->face, i, FT_LOAD_DEFAULT );
+        FT_Render_Glyph( this->face->glyph, FT_RENDER_MODE_NORMAL );
+    }
+}
+
+static int x11_font_get_kerning_distance( sgui_font* super,
+                                          unsigned int first,
+                                          unsigned int second )
+{
+    sgui_x11_font* this = (sgui_x11_font*)super;
+    FT_UInt index_a, index_b;
+    FT_Vector delta;
+
+    if( this && FT_HAS_KERNING( this->face ) )
+    {
+        index_a = FT_Get_Char_Index( this->face, first );
+        index_b = FT_Get_Char_Index( this->face, second );
+
+        FT_Get_Kerning( this->face, index_a, index_b,
+                        FT_KERNING_DEFAULT, &delta );
+
+        return -((delta.x < 0 ? -delta.x : delta.x) >> 6);
+    }
+
+    return 0;
+}
+
+static void x11_font_get_glyph_metrics( sgui_font* super, unsigned int* width,
+                                        unsigned int* height, int* bearing )
+{
+    sgui_x11_font* this = (sgui_x11_font*)super;
+    unsigned int w = 0, h = 0;
+    int b = 0;
+
+    if( this )
+    {
+        if( this->current_glyph == ' ' )
+        {
+            w = super->height / 3;
+            h = super->height;
+            b = 0;
+        }
+        else
+        {
+            w = this->face->glyph->bitmap.width;
+            h = this->face->glyph->bitmap.rows;
+            b = super->height - this->face->glyph->bitmap_top;
+        }
+    }
+
+    if( width   ) *width   = w;
+    if( height  ) *height  = h;
+    if( bearing ) *bearing = b;
+}
+
+static unsigned char* x11_font_get_glyph( sgui_font* this )
+{
+    if( this && ((sgui_x11_font*)this)->current_glyph != ' ' )
+        return ((sgui_x11_font*)this)->face->glyph->bitmap.buffer;
+
+    return NULL;
+}
+
+/****************************************************************************/
+
+static sgui_x11_font* sgui_font_load_common( unsigned int pixel_height )
+{
+    sgui_x11_font* this;
+    sgui_font* super;
 
     /* allocate font structure */
-    this = malloc( sizeof(sgui_font) );
+    this = malloc( sizeof(sgui_x11_font) );
+    super = (sgui_font*)this;
 
     if( !this )
         return NULL;
 
     /* initialise the remaining fields */
     this->buffer        = NULL;
-    this->height        = pixel_height;
     this->current_glyph = 0;
+
+    super->height               = pixel_height;
+    super->destroy              = x11_font_destroy;
+    super->load_glyph           = x11_font_load_glyph;
+    super->get_kerning_distance = x11_font_get_kerning_distance;
+    super->get_glyph_metrics    = x11_font_get_glyph_metrics;
+    super->get_glyph            = x11_font_get_glyph;
 
     return this;
 }
@@ -67,7 +162,7 @@ static sgui_font* sgui_font_load_common( unsigned int pixel_height )
 sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 {
     char buffer[ 512 ];
-    sgui_font* this;
+    sgui_x11_font* this;
 
     /* sanity check */
     if( !filename )
@@ -96,13 +191,13 @@ sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
 cont:
     FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
 
-    return this;
+    return (sgui_font*)this;
 }
 
 sgui_font* sgui_font_load_memory( const void* data, unsigned long size,
                                   unsigned int pixel_height )
 {
-    sgui_font* this;
+    sgui_x11_font* this;
 
     /* sanity check */
     if( !data || !size )
@@ -133,92 +228,6 @@ sgui_font* sgui_font_load_memory( const void* data, unsigned long size,
 
     FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
 
-    return this;
-}
-
-void sgui_font_destroy( sgui_font* this )
-{
-    if( this )
-    {
-        FT_Done_Face( this->face );
-
-        free( this->buffer );
-        free( this );
-    }
-}
-
-unsigned int sgui_font_get_height( const sgui_font* this )
-{
-    return this ? this->height : 0;
-}
-
-void sgui_font_load_glyph( sgui_font* this, unsigned int codepoint )
-{
-    FT_UInt i;
-
-    if( this )
-    {
-        this->current_glyph = codepoint;
-
-        i = FT_Get_Char_Index( this->face, codepoint );
-
-        FT_Load_Glyph( this->face, i, FT_LOAD_DEFAULT );
-        FT_Render_Glyph( this->face->glyph, FT_RENDER_MODE_NORMAL );
-    }
-}
-
-int sgui_font_get_kerning_distance( sgui_font* this, unsigned int first,
-                                    unsigned int second )
-{
-    FT_Vector delta;
-    FT_UInt index_a, index_b;
-
-    if( this && FT_HAS_KERNING( this->face ) )
-    {
-        index_a = FT_Get_Char_Index( this->face, first );
-        index_b = FT_Get_Char_Index( this->face, second );
-
-        FT_Get_Kerning( this->face, index_a, index_b,
-                        FT_KERNING_DEFAULT, &delta );
-
-        return -((delta.x < 0 ? -delta.x : delta.x) >> 6);
-    }
-
-    return 0;
-}
-
-void sgui_font_get_glyph_metrics( sgui_font* this, unsigned int* width,
-                                  unsigned int* height, int* bearing )
-{
-    unsigned int w = 0, h = 0;
-    int b = 0;
-
-    if( this )
-    {
-        if( this->current_glyph == ' ' )
-        {
-            w = this->height / 3;
-            h = this->height;
-            b = 0;
-        }
-        else
-        {
-            w = this->face->glyph->bitmap.width;
-            h = this->face->glyph->bitmap.rows;
-            b = this->height - this->face->glyph->bitmap_top;
-        }
-    }
-
-    if( width   ) *width   = w;
-    if( height  ) *height  = h;
-    if( bearing ) *bearing = b;
-}
-
-unsigned char* sgui_font_get_glyph( sgui_font* this )
-{
-    if( this && this->current_glyph != ' ' )
-        return this->face->glyph->bitmap.buffer;
-
-    return NULL;
+    return (sgui_font*)this;
 }
 

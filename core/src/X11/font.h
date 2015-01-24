@@ -42,13 +42,14 @@
 
 
 
-struct sgui_font
+typedef struct
 {
+    sgui_font super;
     FT_Face face;
     void* buffer;
-    unsigned int height;
     unsigned int current_glyph;
-};
+}
+sgui_x11_font;
 
 
 

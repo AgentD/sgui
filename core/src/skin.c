@@ -242,11 +242,11 @@ unsigned int sgui_skin_default_font_extents( const char* text,
     {
         /* load the next glyph */
         character = sgui_utf8_decode( text, &len );
-        sgui_font_load_glyph( font_face, character );
+        font_face->load_glyph( font_face, character );
 
         /* advance cursor */
-        x += sgui_font_get_kerning_distance( font_face, previous, character );
-        sgui_font_get_glyph_metrics( font_face, &w, NULL, NULL );
+        x += font_face->get_kerning_distance(font_face, previous, character);
+        font_face->get_glyph_metrics( font_face, &w, NULL, NULL );
 
         x += w + 1;
 

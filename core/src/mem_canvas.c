@@ -415,14 +415,14 @@ static int canvas_mem_draw_string( sgui_canvas* super, int x, int y,
     {
         /* load the next glyph */
         character = sgui_utf8_decode( text, &len );
-        sgui_font_load_glyph( font, character );
+        font->load_glyph( font, character );
 
         /* apply kerning */
-        x += sgui_font_get_kerning_distance( font, previous, character );
+        x += font->get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
-        sgui_font_get_glyph_metrics( font, &w, &h, &bearing );
-        buffer = sgui_font_get_glyph( font );
+        font->get_glyph_metrics( font, &w, &h, &bearing );
+        buffer = font->get_glyph( font );
 
         sgui_rect_set_size( &r, x, y + bearing, w, h );
 

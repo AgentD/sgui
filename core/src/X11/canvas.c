@@ -72,7 +72,7 @@ static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
         character = sgui_utf8_decode( text, &len );
 
         /* apply kerning */
-        x += sgui_font_get_kerning_distance( font, previous, character );
+        x += font->get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
         x += sgui_font_cache_draw_glyph( this->cache, font, character,
