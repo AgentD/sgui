@@ -85,7 +85,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
 
     super->draw = group_box_draw;
     super->destroy = group_box_destroy;
-    super->focus_policy = 0;
+    super->flags = SGUI_WIDGET_VISIBLE;
 
     return super;
 }

@@ -47,11 +47,12 @@
 #define SGUI_WIDGET_CHILD_REMOVED        0x10
 #define SGUI_WIDGET_CANVAS_CHANGED       0x20
 
-/* flags for widget focus polocy */
+/* widget flags */
 #define SGUI_FOCUS_ACCEPT           0x01    /* the widget accepts focus */
 #define SGUI_FOCUS_DRAW             0x02    /* draw focus box */
 #define SGUI_FOCUS_DROP_ESC         0x04    /* drop focus on ESC-key */
 #define SGUI_FOCUS_DROP_TAB         0x08    /* drop focus on TAB-key */
+#define SGUI_WIDGET_VISIBLE         0x10    /* widget is visible */
 
 
 
@@ -64,9 +65,7 @@ struct sgui_widget
 {
     sgui_rect area;  /**< \brief The area occupied by a widget */
 
-    int visible;     /**< \brief zero if the widget should not be rendered */
-
-    int focus_policy;   /**< \brief widget focus policy flags */
+    int flags;       /**< \brief A combination of widget flags */
 
     /** \brief The canvas that the widget is attached to */
     sgui_canvas* canvas;

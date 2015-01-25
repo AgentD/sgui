@@ -569,8 +569,8 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     super->window_event = icon_view_on_event;
     super->draw         = icon_view_draw;
     super->destroy      = icon_view_destroy;
-    super->focus_policy = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                          SGUI_FOCUS_DROP_TAB;
+    super->flags        = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                          SGUI_FOCUS_DROP_TAB|SGUI_WIDGET_VISIBLE;
     return super;
 }
 

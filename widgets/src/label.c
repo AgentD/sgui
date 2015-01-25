@@ -82,7 +82,7 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
 
     super->draw          = label_draw;
     super->destroy       = label_destroy;
-    super->focus_policy  = 0;
+    super->flags         = SGUI_WIDGET_VISIBLE;
 
     /* copy the text */
     strcpy( this->text, text );

@@ -176,8 +176,11 @@ sgui_widget* clock_widget_create( int x, int y, int hour, int minute,
                                when the user presses the escape key
          - SGUI_FOCUS_DROP_TAB If set, the focus is withdrawn from the widget
                                when the user presses the tab key
+
+        However, set the SGUI_WIDGET_VISIBLE flag, so the widget is
+        visible by default.
      */
-    super->focus_policy = 0;
+    super->flags = SGUI_WIDGET_VISIBLE;
 
     /*
         setup the internal values of the widget

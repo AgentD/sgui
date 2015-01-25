@@ -53,7 +53,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
     for( i=widget->children; i!=NULL; i=i->next )
     {
-        if( !i->visible )
+        if( !(i->flags & SGUI_WIDGET_VISIBLE) )
             continue;
 
         sgui_widget_get_absolute_rect( i, &wr );
@@ -79,7 +79,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
         draw_children( this, i, r ? &wr : NULL );
 
         /* draw focus box */
-        if( i==this->focus && (i->focus_policy & SGUI_FOCUS_DRAW) &&
+        if( i==this->focus && (i->flags & SGUI_FOCUS_DRAW) &&
             this->draw_focus )
         {
             skin = sgui_skin_get( );
@@ -113,7 +113,7 @@ void sgui_canvas_init( sgui_canvas* this, unsigned int width,
     this->height = height;
 
     sgui_rect_set_size( &this->root.area, 0, 0, width, height );
-    this->root.visible = 1;
+    this->root.flags = SGUI_WIDGET_VISIBLE;
     this->root.canvas = this;
 }
 
@@ -146,7 +146,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     skin = sgui_skin_get( );
     fbw = skin->get_focus_box_width( skin );
 
-    if( this->focus && (this->focus->focus_policy & SGUI_FOCUS_DRAW) &&
+    if( this->focus && (this->focus->flags & SGUI_FOCUS_DRAW) &&
         this->draw_focus )
     {
         sgui_widget_get_absolute_rect( this->focus, &r );
@@ -154,8 +154,8 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
         sgui_canvas_add_dirty_rect( this, &r );
     }
 
-    if( widget && (widget->focus_policy & SGUI_FOCUS_DRAW) &&
-        (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+    if( widget && (widget->flags & SGUI_FOCUS_DRAW) &&
+        (widget->flags & SGUI_FOCUS_ACCEPT) )
     {
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_rect_extend( &r, fbw, fbw );
@@ -167,7 +167,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     ev.type = SGUI_FOCUS_LOSE_EVENT;
     sgui_widget_send_event( this->focus, &ev, 0 );
 
-    if( widget && (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+    if( widget && (widget->flags & SGUI_FOCUS_ACCEPT) )
     {
         ev.type = SGUI_FOCUS_EVENT;
         sgui_widget_send_event( widget, &ev, 0 );

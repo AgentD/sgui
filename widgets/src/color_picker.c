@@ -436,8 +436,8 @@ sgui_widget* sgui_color_picker_create( int x, int y )
     super->state_change_event = color_picker_on_state_change;
     super->destroy            = color_picker_destroy;
     super->window_event       = color_picker_on_event;
-    super->focus_policy       = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                                SGUI_FOCUS_DROP_TAB;
+    super->flags              = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                SGUI_FOCUS_DROP_TAB|SGUI_WIDGET_VISIBLE;
     return super;
 fail:
     free( this->vbardata );

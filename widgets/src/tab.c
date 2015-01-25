@@ -70,13 +70,13 @@ static void tab_on_state_change( sgui_widget* super, int change )
     {
         if( super->parent )
         {
-            if( super->visible )
+            if( super->flags & SGUI_WIDGET_VISIBLE )
             {
                 g->current = this;
 
                 for( w=super->parent->children; w!=NULL; w=w->next )
                 {
-                    if( w!=super && w->visible )
+                    if( w!=super && (w->flags & SGUI_WIDGET_VISIBLE) )
                         sgui_widget_set_visible( w, 0 );
                 }
             }
@@ -86,7 +86,8 @@ static void tab_on_state_change( sgui_widget* super, int change )
             }
         }
 
-        ev.type = super->visible ? SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
+        ev.type = (super->flags & SGUI_WIDGET_VISIBLE) ?
+                  SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
         ev.src.widget = super;
         sgui_event_post( &ev );
     }
@@ -251,8 +252,7 @@ sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
 
     this->caption_width = g->tab_cap_width +
                           sgui_skin_default_font_extents( caption, -1, 0, 0 );
-    super->focus_policy       = 0;
-    super->visible            = 0;
+    super->flags              = 0;
     super->state_change_event = tab_on_state_change;
     super->draw               = tab_on_draw;
     super->destroy            = tab_destroy;
