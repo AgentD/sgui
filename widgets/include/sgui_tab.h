@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_tab.h
+ *
+ * \brief Contains the declarations of the sgui_tab and sgui_tab_group widgets
+ */
 #ifndef SGUI_TAB_H
 #define SGUI_TAB_H
 

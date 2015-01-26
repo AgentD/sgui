@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_edit_box.h
+ *
+ * \brief Contains the declarations of the sgui_edit_box widget
+ */
 #ifndef SGUI_EDIT_BOX_H
 #define SGUI_EDIT_BOX_H
 
@@ -145,6 +151,8 @@ SGUI_DLL sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
  *
  * \note This function is used when subclassing an editbox to initialize the
  *       base structure.
+ *
+ * \memberof sgui_edit_box
  *
  * \param eb        A pointer to the edit box base structure
  * \param x         Distance from the left of the window.

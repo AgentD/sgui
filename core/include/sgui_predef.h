@@ -26,7 +26,7 @@
 /**
  * \file sgui_predef.h
  *
- * This file contains forward declarations of all datatypes.
+ * \brief Contains forward declarations of all datatypes.
  */
 #ifndef SGUI_PREDEF_H
 #define SGUI_PREDEF_H

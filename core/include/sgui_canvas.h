@@ -26,7 +26,7 @@
 /**
  * \file sgui_canvas.h
  *
- * This file contains the interface functions for the canvas datatype.
+ * \brief Contains the declaration of the abstract canvas datatype.
  */
 #ifndef SGUI_CANVAS_H
 #define SGUI_CANVAS_H

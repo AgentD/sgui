@@ -26,7 +26,7 @@
 /**
  * \file sgui_utf8.h
  *
- * This file contains helper functions for unicode string handling.
+ * \brief Contains helper functions for UTF-8 string handling.
  */
 #ifndef SGUI_UTF8_H
 #define SGUI_UTF8_H

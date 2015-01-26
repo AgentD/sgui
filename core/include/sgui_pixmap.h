@@ -26,8 +26,7 @@
 /**
  * \file sgui_pixmap.h
  *
- * This file contains the interface functions for the abstract pixmap
- * datatype.
+ * \brief Contains the declarations of the abstract pixmap datatype.
  */
 #ifndef SGUI_PIXMAP_H
 #define SGUI_PIXMAP_H

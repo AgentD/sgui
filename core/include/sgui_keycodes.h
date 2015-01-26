@@ -26,7 +26,7 @@
 /**
  * \file sgui_keycodes.h
  *
- * This file contains the definitions of all sgui keyboard codes.
+ * \brief Contains the definitions of all sgui keyboard codes.
  */
 #ifndef SGUI_KEYCODES_H
 #define SGUI_KEYCODES_H

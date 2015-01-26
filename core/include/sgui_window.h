@@ -26,8 +26,7 @@
 /**
  * \file sgui_window.h
  *
- * This file contains the interface functions for the abstract window
- * datatype.
+ * \brief Contains the declarations of the abstract window datatype.
  */
 #ifndef SGUI_WINDOW_H
 #define SGUI_WINDOW_H
@@ -534,7 +533,15 @@ SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
  */
 SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
 
-/** \brief Returns non-zero if a given window is visible, zero otherwise */
+/**
+ * \brief Returns non-zero if a given window is visible, zero otherwise
+ *
+ * \memberof sgui_window
+ *
+ * \param wnd A pointer to the window
+ *
+ * \return Non-zero if the window is visible, zero if not
+ */
 SGUI_DLL int sgui_window_is_visible( const sgui_window* wnd );
 
 /**

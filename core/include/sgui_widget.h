@@ -26,8 +26,7 @@
 /**
  * \file sgui_widget.h
  *
- * This file contains the interface functions for the abstract widget
- * datatype.
+ * \brief Contains the declaration of the abstract widget datatype.
  */
 #ifndef SGUI_WIDGET_H
 #define SGUI_WIDGET_H

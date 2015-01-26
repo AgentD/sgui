@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_progress_bar.h
+ *
+ * \brief Contains the declarations of the sgui_progress_bar widget
+ */
 #ifndef SGUI_PROGRESS_BAR_H
 #define SGUI_PROGRESS_BAR_H
 

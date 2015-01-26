@@ -26,8 +26,10 @@
 /**
  * \file sgui.h
  *
- * This is the global sgui header. It includes all other sgui headers and
- * declares the initialization, cleanup and main loop functions.
+ * \brief This is the global sgui header
+ *
+ * This file includes all other sgui headers and declares the initialization,
+ * cleanup and main loop functions.
  */
 
 /**

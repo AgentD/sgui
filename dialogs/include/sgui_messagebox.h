@@ -23,6 +23,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_messagebox.h
+ *
+ * \brief Contains the declarations of the message box dialog implementation
+ */
 #ifndef SGUI_MESSAGEBOX_H
 #define SGUI_MESSAGEBOX_H
 

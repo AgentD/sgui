@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_icon_view.h
+ *
+ * \brief Contains the declarations of the sgui_icon_view widget
+ */
 #ifndef SGUI_ICON_VIEW_H
 #define SGUI_ICON_VIEW_H
 

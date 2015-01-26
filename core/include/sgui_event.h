@@ -26,8 +26,8 @@
 /**
  * \file sgui_event.h
  *
- * This file contains the interface functions and enumerations for the event
- * processing subsystem.
+ * \brief Contains the declarations and enumerations for the event
+ *        processing subsystem.
  */
 #ifndef SGUI_EVENT_H
 #define SGUI_EVENT_H

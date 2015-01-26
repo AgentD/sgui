@@ -22,6 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_numeric_edit.h
+ *
+ * \brief Contains the declarations of the sgui_numeric_edit and
+ *        sgui_spin_box widgets
+ */
 #ifndef SGUI_NUMERIC_EDIT_H
 #define SGUI_NUMERIC_EDIT_H
 

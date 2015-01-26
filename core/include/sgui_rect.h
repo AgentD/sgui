@@ -26,8 +26,8 @@
 /**
  * \file sgui_rect.h
  *
- * This file contains functions for the sgui_rect helper datatype used to
- * handle operations on rectangles.
+ * \brief Contains functions for the sgui_rect helper datatype used to
+ *        handle operations on rectangles.
  */
 #ifndef SGUI_RECT_H
 #define SGUI_RECT_H

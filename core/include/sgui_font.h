@@ -26,8 +26,7 @@
 /**
  * \file sgui_font.h
  *
- * This file contains the interface functions for the font rendering
- * abstraction, implemented directly in the backend.
+ * \brief Contains the declarations of the font rendering abstraction.
  */
 #ifndef SGUI_FONT_H
 #define SGUI_FONT_H

@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_scroll_bar.h
+ *
+ * \brief Contains the declarations of the sgui_scroll_bar widget
+ */
 #ifndef SGUI_SCROLL_BAR_HEADER
 #define SGUI_SCROLL_BAR_HEADER
 
@@ -110,7 +116,15 @@ SGUI_DLL void sgui_scroll_bar_on_scroll( sgui_widget* bar,
 SGUI_DLL void sgui_scroll_bar_set_offset( sgui_widget* bar,
                                           unsigned int offset );
 
-/** \brief Get the scroll area offset in pixels from a scroll bar */
+/**
+ * \brief Get the scroll area offset in pixels from a scroll bar
+ *
+ * \memberof sgui_scroll_bar
+ *
+ * \param bar The scroll bar
+ *
+ * \return The offset of the scroll area in pixels
+ */
 SGUI_DLL unsigned int sgui_scroll_bar_get_offset( sgui_widget* bar );
 
 /**

@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_color_picker.h
+ *
+ * \brief Contains the declarations of the sgui_color_picker widget
+ */
 #ifndef SGUI_COLOR_PICKER_H
 #define SGUI_COLOR_PICKER_H
 
