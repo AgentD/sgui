@@ -31,6 +31,7 @@
 #include "sgui_ctx_window.h"
 #include "sgui_internal.h"
 #include "sgui_ctx_wm.h"
+#include "sgui_predef.h"
 #include "sgui_event.h"
 #include "sgui_skin.h"
 
@@ -56,7 +57,6 @@
     typedef char GLchar;
 #endif
 
-#undef GLAPIENTRY
 #undef GL_FRAGMENT_SHADER
 #undef GL_VERTEX_SHADER
 #undef GL_ARRAY_BUFFER
@@ -67,9 +67,6 @@
 #undef GL_ACTIVE_TEXTURE
 #undef GL_CURRENT_PROGRAM
 
-#ifdef APIENTRY
-    #define GLAPIENTRY APIENTRY
-#endif
 #define GL_FRAGMENT_SHADER 0x8B30
 #define GL_VERTEX_SHADER 0x8B31
 #define GL_ARRAY_BUFFER 0x8892
@@ -80,89 +77,94 @@
 #define GL_ACTIVE_TEXTURE 0x84E0
 #define GL_CURRENT_PROGRAM 0x8B8D
 
+#ifndef GLAPIENTRY
+    #define GLAPIENTRY
+#endif
+
+
 
 #define GLWM_CORE_MAX_WINDOWS 10
 
 
 
-typedef GLuint (GLAPIENTRY * GLCREATESHADERPROC) (GLenum type);
-typedef void (GLAPIENTRY * GLLINKPROGRAMPROC) (GLuint program);
-typedef GLuint (GLAPIENTRY * GLCREATEPROGRAMPROC) (void);
-typedef void (GLAPIENTRY * GLCOMPILESHADERPROC) (GLuint shader);
-typedef void (GLAPIENTRY * GLGENBUFFERSPROC) (GLsizei n, GLuint* buffers);
-typedef void (GLAPIENTRY * GLSHADERSOURCEPROC) (GLuint shader,
+typedef GLuint (GLAPIENTRY * GLCREATESHADER) (GLenum type);
+typedef void (GLAPIENTRY * GLLINKPROGRAM) (GLuint program);
+typedef GLuint (GLAPIENTRY * GLCREATEPROGRAM) (void);
+typedef void (GLAPIENTRY * GLCOMPILESHADER) (GLuint shader);
+typedef void (GLAPIENTRY * GLGENBUFFERS) (GLsizei n, GLuint* buffers);
+typedef void (GLAPIENTRY * GLSHADERSOURCE) (GLuint shader,
+                                            GLsizei count,
+                                            const GLchar** string,
+                                            const GLint* length);
+typedef void (GLAPIENTRY * GLATTACHSHADER) (GLuint program,
+                                            GLuint shader);
+typedef void (GLAPIENTRY * GLGENVERTEXARRAYS) (GLsizei n,
+                                               GLuint* arrays);
+typedef void (GLAPIENTRY * GLGETPROGRAMINFOLOG) (GLuint program,
+                                                 GLsizei bufSize,
+                                                 GLsizei* length,
+                                                 GLchar* infoLog);
+typedef void (GLAPIENTRY * GLGETSHADERINFOLOG) (GLuint shader,
+                                                GLsizei bufSize,
+                                                GLsizei* length,
+                                                GLchar* infoLog);
+
+typedef void (GLAPIENTRY * GLBINDVERTEXARRAY) (GLuint array);
+typedef void (GLAPIENTRY * GLBINDBUFFER) (GLenum target, GLuint buffer);
+
+typedef void (GLAPIENTRY * GLBINDFRAGDATALOCATION) (GLuint program,
+                                                    GLuint colorNumber,
+                                                    const GLchar* name);
+typedef void (GLAPIENTRY * GLBINDATTRIBLOCATION) (GLuint program,
+                                                  GLuint index,
+                                                  const GLchar* name);
+typedef void (GLAPIENTRY * GLENABLEVERTEXATTRIBARRAY) (GLuint index);
+typedef void (GLAPIENTRY * GLVERTEXATTRIBPOINTER) (GLuint index,
+                                                   GLint size,
+                                                   GLenum type,
+                                                   GLboolean normalized,
+                                                   GLsizei stride,
+                                                   const void* pointer);
+typedef GLint (GLAPIENTRY * GLGETUNIFORMLOCATION) (GLuint program,
+                                                   const GLchar* name);
+typedef void (GLAPIENTRY * GLBUFFERDATA) (GLenum target, GLsizeiptr size,
+                                          const void* data, GLenum usage);
+typedef void (GLAPIENTRY * GLUNIFORM1F) (GLint location, GLfloat v0);
+typedef void (GLAPIENTRY * GLUNIFORM1I) (GLint location, GLint v0);
+typedef void (GLAPIENTRY * GLDRAWELEMENTSBASEVERTEX) (GLenum mode,
+                                                      GLsizei count,
+                                                      GLenum type,
+                                                      const void *indices,
+                                                      GLint basevertex);
+typedef void (GLAPIENTRY * GLBUFFERSUBDATA) (GLenum target,
+                                             GLintptr offset,
+                                             GLsizeiptr size,
+                                             const void* data);
+typedef void (GLAPIENTRY * GLUSEPROGRAM) (GLuint program);
+typedef void (GLAPIENTRY * GLACTIVETEXTURE) (GLenum texture);
+typedef void (GLAPIENTRY * GLDELETEBUFFERS) (GLsizei n,
+                                             const GLuint* buffers);
+typedef void (GLAPIENTRY * GLDELETESHADER) (GLuint shader);
+typedef void (GLAPIENTRY * GLDELETEPROGRAM) (GLuint program);
+typedef void (GLAPIENTRY * GLDELETEVERTEXARRAYS) (GLsizei n,
+                                                  const GLuint* arrays);
+typedef void (GLAPIENTRY * GLUNIFORMMATRIX4FV) (GLint location,
                                                 GLsizei count,
-                                                const GLchar** string,
-                                                const GLint* length);
-typedef void (GLAPIENTRY * GLATTACHSHADERPROC) (GLuint program,
-                                                GLuint shader);
-typedef void (GLAPIENTRY * GLGENVERTEXARRAYSPROC) (GLsizei n,
-                                                   GLuint* arrays);
-typedef void (GLAPIENTRY * GLGETPROGRAMINFOLOGPROC) (GLuint program,
-                                                     GLsizei bufSize,
-                                                     GLsizei* length,
-                                                     GLchar* infoLog);
-typedef void (GLAPIENTRY * GLGETSHADERINFOLOGPROC) (GLuint shader,
-                                                    GLsizei bufSize,
-                                                    GLsizei* length,
-                                                    GLchar* infoLog);
-
-typedef void (GLAPIENTRY * GLBINDVERTEXARRAYPROC) (GLuint array);
-typedef void (GLAPIENTRY * GLBINDBUFFERPROC) (GLenum target, GLuint buffer);
-
-typedef void (GLAPIENTRY * GLBINDFRAGDATALOCATIONPROC) (GLuint program,
-                                                        GLuint colorNumber,
-                                                        const GLchar* name);
-typedef void (GLAPIENTRY * GLBINDATTRIBLOCATIONPROC) (GLuint program,
-                                                      GLuint index,
-                                                      const GLchar* name);
-typedef void (GLAPIENTRY * GLENABLEVERTEXATTRIBARRAYPROC) (GLuint index);
-typedef void (GLAPIENTRY * GLVERTEXATTRIBPOINTERPROC) (GLuint index,
-                                                       GLint size,
-                                                       GLenum type,
-                                                       GLboolean normalized,
-                                                       GLsizei stride,
-                                                       const void* pointer);
-typedef GLint (GLAPIENTRY * GLGETUNIFORMLOCATIONPROC) (GLuint program,
-                                                       const GLchar* name);
-typedef void (GLAPIENTRY * GLBUFFERDATAPROC) (GLenum target, GLsizeiptr size,
-                                              const void* data, GLenum usage);
-typedef void (GLAPIENTRY * GLUNIFORM1FPROC) (GLint location, GLfloat v0);
-typedef void (GLAPIENTRY * GLUNIFORM1IPROC) (GLint location, GLint v0);
-typedef void (GLAPIENTRY * GLDRAWELEMENTSBASEVERTEXPROC) (GLenum mode,
-                                                          GLsizei count,
-                                                          GLenum type,
-                                                          const void *indices,
-                                                          GLint basevertex);
-typedef void (GLAPIENTRY * GLBUFFERSUBDATAPROC) (GLenum target,
-                                                 GLintptr offset,
-                                                 GLsizeiptr size,
-                                                 const void* data);
-typedef void (GLAPIENTRY * GLUSEPROGRAMPROC) (GLuint program);
-typedef void (GLAPIENTRY * GLACTIVETEXTUREPROC) (GLenum texture);
-typedef void (GLAPIENTRY * GLDELETEBUFFERSPROC) (GLsizei n,
-                                                 const GLuint* buffers);
-typedef void (GLAPIENTRY * GLDELETESHADERPROC) (GLuint shader);
-typedef void (GLAPIENTRY * GLDELETEPROGRAMPROC) (GLuint program);
-typedef void (GLAPIENTRY * GLDELETEVERTEXARRAYSPROC) (GLsizei n,
-                                                      const GLuint* arrays);
-typedef void (GLAPIENTRY * GLUNIFORMMATRIX4FVPROC) (GLint location,
-                                                    GLsizei count,
-                                                    GLboolean transpose,
-                                                    const GLfloat* value);
+                                                GLboolean transpose,
+                                                const GLfloat* value);
 
 
 
 
 typedef struct
 {
-    GLUNIFORM1FPROC Uniform1f;
-    GLUNIFORMMATRIX4FVPROC UniformMatrix4fv;
-    GLBINDVERTEXARRAYPROC BindVertexArray;
-    GLBUFFERSUBDATAPROC BufferSubData;
-    GLDRAWELEMENTSBASEVERTEXPROC DrawElementsBaseVertex;
-    GLUSEPROGRAMPROC UseProgram;
-    GLACTIVETEXTUREPROC ActiveTexture;
+    GLUNIFORM1F Uniform1f;
+    GLUNIFORMMATRIX4FV UniformMatrix4fv;
+    GLBINDVERTEXARRAY BindVertexArray;
+    GLBUFFERSUBDATA BufferSubData;
+    GLDRAWELEMENTSBASEVERTEX DrawElementsBaseVertex;
+    GLUSEPROGRAM UseProgram;
+    GLACTIVETEXTURE ActiveTexture;
 }
 sgui_gl_functions;
 

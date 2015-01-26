@@ -293,18 +293,18 @@ static GLuint create_skin_texture( void )
 static void sgui_gl_functions_load( sgui_gl_functions* this,
                                     sgui_context* ctx )
 {
-    this->Uniform1f=(GLUNIFORM1FPROC)ctx->load(ctx,"glUniform1f");
-    this->BufferSubData=(GLBUFFERSUBDATAPROC)ctx->load(ctx,"glBufferSubData");
-    this->UseProgram=(GLUSEPROGRAMPROC)ctx->load(ctx,"glUseProgram");
-    this->ActiveTexture=(GLACTIVETEXTUREPROC)ctx->load(ctx,"glActiveTexture");
+    this->Uniform1f=(GLUNIFORM1F)ctx->load(ctx,"glUniform1f");
+    this->BufferSubData=(GLBUFFERSUBDATA)ctx->load(ctx,"glBufferSubData");
+    this->UseProgram=(GLUSEPROGRAM)ctx->load(ctx,"glUseProgram");
+    this->ActiveTexture=(GLACTIVETEXTURE)ctx->load(ctx,"glActiveTexture");
 
-    this->UniformMatrix4fv = (GLUNIFORMMATRIX4FVPROC)
+    this->UniformMatrix4fv = (GLUNIFORMMATRIX4FV)
     ctx->load( ctx, "glUniformMatrix4fv" );
 
-    this->BindVertexArray = (GLBINDVERTEXARRAYPROC)
+    this->BindVertexArray = (GLBINDVERTEXARRAY)
     ctx->load( ctx, "glBindVertexArray" );
 
-    this->DrawElementsBaseVertex = (GLDRAWELEMENTSBASEVERTEXPROC)
+    this->DrawElementsBaseVertex = (GLDRAWELEMENTSBASEVERTEX)
     ctx->load( ctx, "glDrawElementsBaseVertex" );
 }
 
@@ -406,16 +406,16 @@ static void gl_wm_core_destroy( sgui_ctx_wm* super )
 {
     sgui_gl_core_wm* this = (sgui_gl_core_wm*)super;
     sgui_context* ctx = sgui_window_get_context( super->wnd );
-    GLDELETEVERTEXARRAYSPROC DeleteVertexArrays;
-    GLDELETEBUFFERSPROC DeleteBuffers;
-    GLDELETEPROGRAMPROC DeleteProgram;
-    GLDELETESHADERPROC DeleteShader;
+    GLDELETEVERTEXARRAYS DeleteVertexArrays;
+    GLDELETEBUFFERS DeleteBuffers;
+    GLDELETEPROGRAM DeleteProgram;
+    GLDELETESHADER DeleteShader;
 
     /* load extensions */
-    DeleteBuffers = (GLDELETEBUFFERSPROC)ctx->load( ctx, "glDeleteBuffers" );
-    DeleteShader = (GLDELETESHADERPROC)ctx->load( ctx, "glDeleteShader" );
-    DeleteProgram = (GLDELETEPROGRAMPROC)ctx->load( ctx, "glDeleteProgram" );
-    DeleteVertexArrays = (GLDELETEVERTEXARRAYSPROC)
+    DeleteBuffers = (GLDELETEBUFFERS)ctx->load( ctx, "glDeleteBuffers" );
+    DeleteShader = (GLDELETESHADER)ctx->load( ctx, "glDeleteShader" );
+    DeleteProgram = (GLDELETEPROGRAM)ctx->load( ctx, "glDeleteProgram" );
+    DeleteVertexArrays = (GLDELETEVERTEXARRAYS)
                          ctx->load(ctx,"glDeleteVertexArrays");
 
     /* delete objects */
@@ -488,30 +488,30 @@ static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
 sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
 {
     sgui_context* ctx = sgui_window_get_context( wnd );
-    GLENABLEVERTEXATTRIBARRAYPROC EnableVertexAttribArray;
-    GLBINDFRAGDATALOCATIONPROC BindFragDataLocation;
-    GLVERTEXATTRIBPOINTERPROC VertexAttribPointer;
-    GLGETUNIFORMLOCATIONPROC GetUniformLocation;
-    GLBINDATTRIBLOCATIONPROC BindAttribLocation;
-    GLGENVERTEXARRAYSPROC GenVertexArrays;
-    GLCREATEPROGRAMPROC CreateProgram;
-    GLCOMPILESHADERPROC CompileShader;
-    GLCREATESHADERPROC CreateShader;
-    GLSHADERSOURCEPROC ShaderSource;
-    GLATTACHSHADERPROC AttachShader;
-    GLLINKPROGRAMPROC LinkProgram;
-    GLGENBUFFERSPROC GenBuffers;
-    GLUNIFORM1IPROC Uniform1i;
-    GLBINDBUFFERPROC BindBuffer;
-    GLBUFFERDATAPROC BufferData;
+    GLENABLEVERTEXATTRIBARRAY EnableVertexAttribArray;
+    GLBINDFRAGDATALOCATION BindFragDataLocation;
+    GLVERTEXATTRIBPOINTER VertexAttribPointer;
+    GLGETUNIFORMLOCATION GetUniformLocation;
+    GLBINDATTRIBLOCATION BindAttribLocation;
+    GLGENVERTEXARRAYS GenVertexArrays;
+    GLCREATEPROGRAM CreateProgram;
+    GLCOMPILESHADER CompileShader;
+    GLCREATESHADER CreateShader;
+    GLSHADERSOURCE ShaderSource;
+    GLATTACHSHADER AttachShader;
+    GLLINKPROGRAM LinkProgram;
+    GLGENBUFFERS GenBuffers;
+    GLUNIFORM1I Uniform1i;
+    GLBINDBUFFER BindBuffer;
+    GLBUFFERDATA BufferData;
     sgui_gl_functions* gl;
     sgui_gl_core_wm* this;
     sgui_gl_wm* super;
     const char* str;
     GLint program;
 #ifndef NDEBUG
-    GLGETPROGRAMINFOLOGPROC GetProgramInfoLog;
-    GLGETSHADERINFOLOGPROC GetShaderInfoLog;
+    GLGETPROGRAMINFOLOG GetProgramInfoLog;
+    GLGETSHADERINFOLOG GetShaderInfoLog;
     char buffer[ 128 ];
     GLsizei length;
 #endif
@@ -536,30 +536,30 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     gl = &(this->gl);
     sgui_gl_functions_load( gl, wnd->ctx.ctx );
 
-    Uniform1i = (GLUNIFORM1IPROC)ctx->load( ctx, "glUniform1i" );
-    GetUniformLocation = (GLGETUNIFORMLOCATIONPROC)
+    Uniform1i = (GLUNIFORM1I)ctx->load( ctx, "glUniform1i" );
+    GetUniformLocation = (GLGETUNIFORMLOCATION)
                          ctx->load( ctx, "glGetUniformLocation" );
 
-    CompileShader=(GLCOMPILESHADERPROC)ctx->load(ctx,"glCompileShader");
-    CreateShader=(GLCREATESHADERPROC)ctx->load(ctx,"glCreateShader");
-    CreateProgram=(GLCREATEPROGRAMPROC)ctx->load(ctx,"glCreateProgram");
-    GenBuffers=(GLGENBUFFERSPROC)ctx->load(ctx,"glGenBuffers");
-    LinkProgram=(GLLINKPROGRAMPROC)ctx->load(ctx,"glLinkProgram");
-    ShaderSource=(GLSHADERSOURCEPROC)ctx->load(ctx,"glShaderSource");
-    AttachShader=(GLATTACHSHADERPROC)ctx->load(ctx,"glAttachShader");
-    GenVertexArrays=(GLGENVERTEXARRAYSPROC)ctx->load(ctx,"glGenVertexArrays");
-    BindBuffer=(GLBINDBUFFERPROC)ctx->load(ctx,"glBindBuffer");
-    BufferData=(GLBUFFERDATAPROC)ctx->load(ctx,"glBufferData");
-    BindFragDataLocation = (GLBINDFRAGDATALOCATIONPROC)
+    CompileShader=(GLCOMPILESHADER)ctx->load(ctx,"glCompileShader");
+    CreateShader=(GLCREATESHADER)ctx->load(ctx,"glCreateShader");
+    CreateProgram=(GLCREATEPROGRAM)ctx->load(ctx,"glCreateProgram");
+    GenBuffers=(GLGENBUFFERS)ctx->load(ctx,"glGenBuffers");
+    LinkProgram=(GLLINKPROGRAM)ctx->load(ctx,"glLinkProgram");
+    ShaderSource=(GLSHADERSOURCE)ctx->load(ctx,"glShaderSource");
+    AttachShader=(GLATTACHSHADER)ctx->load(ctx,"glAttachShader");
+    GenVertexArrays=(GLGENVERTEXARRAYS)ctx->load(ctx,"glGenVertexArrays");
+    BindBuffer=(GLBINDBUFFER)ctx->load(ctx,"glBindBuffer");
+    BufferData=(GLBUFFERDATA)ctx->load(ctx,"glBufferData");
+    BindFragDataLocation = (GLBINDFRAGDATALOCATION)
     ctx->load( ctx, "glBindFragDataLocation" );
 
-    BindAttribLocation=(GLBINDATTRIBLOCATIONPROC)
+    BindAttribLocation=(GLBINDATTRIBLOCATION)
     ctx->load( ctx, "glBindAttribLocation" );
 
-    VertexAttribPointer = (GLVERTEXATTRIBPOINTERPROC)
+    VertexAttribPointer = (GLVERTEXATTRIBPOINTER)
     ctx->load( ctx, "glVertexAttribPointer" );
 
-    EnableVertexAttribArray = (GLENABLEVERTEXATTRIBARRAYPROC)
+    EnableVertexAttribArray = (GLENABLEVERTEXATTRIBARRAY)
     ctx->load( ctx, "glEnableVertexAttribArray" );
 
     /* create buffer objects */
@@ -612,9 +612,9 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
 
 #ifndef NDEBUG
     /* print compile and link logs */
-    GetProgramInfoLog = (GLGETPROGRAMINFOLOGPROC)
+    GetProgramInfoLog = (GLGETPROGRAMINFOLOG)
                         ctx->load( ctx, "glGetProgramInfoLog" );
-    GetShaderInfoLog = (GLGETSHADERINFOLOGPROC)
+    GetShaderInfoLog = (GLGETSHADERINFOLOG)
                        ctx->load( ctx, "glGetShaderInfoLog" );
 
     GetShaderInfoLog( this->vsh, sizeof(buffer), &length, buffer );

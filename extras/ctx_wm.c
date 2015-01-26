@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#ifdef SGUI_WINDOWS
+#if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
     #include <windows.h>
 
     #include "sgui_d3d9.h"
@@ -490,6 +490,7 @@ static void gl_core_draw( void )
 
 /****************************************************************************/
 
+#ifndef SGUI_NO_D3D9
 typedef struct
 {
     FLOAT x, y, z;
@@ -594,6 +595,7 @@ static void d3d9_draw( sgui_context* context )
     IDirect3DDevice9_EndScene( ctx->device );
     t += 0.01f;
 }
+#endif
 
 /****************************************************************************/
 
@@ -603,18 +605,23 @@ static void renderer_init( int backend, sgui_context* ctx )
     {
     case SGUI_OPENGL_CORE:   gl_core_init( ctx ); break;
     case SGUI_OPENGL_COMPAT: gl_old_init( );      break;
+#ifndef SGUI_NO_D3D9
     case SGUI_DIRECT3D_9:    d3d9_init( ctx );    break;
+#endif
     case SGUI_DIRECT3D_11:   break;
     }
 }
 
 static void renderer_draw( int backend, sgui_context* ctx )
 {
+    (void)ctx;
     switch( backend )
     {
     case SGUI_OPENGL_CORE:   gl_core_draw( );  break;
     case SGUI_OPENGL_COMPAT: gl_old_draw( );   break;
+#ifndef SGUI_NO_D3D9
     case SGUI_DIRECT3D_9:    d3d9_draw( ctx ); break;
+#endif
     case SGUI_DIRECT3D_11:   break;
     }
 }
