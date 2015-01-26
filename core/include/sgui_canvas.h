@@ -39,10 +39,6 @@
 
 
 
-#define SGUI_CANVAS_MAX_DIRTY 10
-
-
-
 /**
  * \struct sgui_canvas
  *

@@ -33,6 +33,10 @@
 
 
 
+#include "sgui_config.h"
+
+
+
 #ifdef SGUI_WINDOWS
     #ifdef SGUI_BUILDING_DLL
         #define SGUI_DLL __declspec(dllexport)

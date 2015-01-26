@@ -1,0 +1,93 @@
+/*
+ * sgui_config.h
+ * This file is part of sgui
+ *
+ * Copyright (C) 2012 - David Oberhollenzer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+#ifndef SGUI_CONFIG_H
+#define SGUI_CONFIG_H
+
+
+
+/* defined if no floatingpoint calculations should be used */
+#cmakedefine SGUI_NO_FLOAT
+
+/* defined if Direct3D 9 support is disabled */
+#cmakedefine SGUI_NO_D3D9
+
+/* defined if Direct3D 11 support is disabled */
+#cmakedefine SGUI_NO_D3D11
+
+/* defined if OpenGL support is disabled */
+#cmakedefine SGUI_NO_OPENGL
+
+/* defined if the message box is disabled */
+#cmakedefine SGUI_NO_MESSAGEBOX
+
+/* defined if native message boxes are disabled */
+#cmakedefine SGUI_NO_NATIVE_MESSAGEBOX
+
+/* defined if icon cache is disabled */
+#cmakedefine SGUI_NO_ICON_CACHE
+
+/* defined if icon view widget is disabled */
+#cmakedefine SGUI_NO_ICON_VIEW
+
+/* defined if subview widget is disabled */
+#cmakedefine SGUI_NO_SUBVIEW
+
+/* defined if tab and tab group widgets are disabled */
+#cmakedefine SGUI_NO_TABS
+
+/* defined if frame widget is disabled */
+#cmakedefine SGUI_NO_FRAME
+
+/* defined if group box widget is disabled */
+#cmakedefine SGUI_NO_GROUP_BOX
+
+/* defined if color picke is disabled */
+#cmakedefine SGUI_NO_COLOR_PICKER
+
+/* defined if color dialog is disabled */
+#cmakedefine SGUI_NO_COLOR_DIALOG
+
+/* defined if MVC data structures are disabled */
+#cmakedefine SGUI_NO_MODEL
+
+/* defined if non-implemented functions should be replaced by NOPs */
+#cmakedefine SGUI_NOP_IMPLEMENTATIONS
+
+/* defined if memory canvas is disabled */
+#cmakedefine SGUI_NO_MEM_CANVAS
+
+/* set if compiling for MS windows */
+#cmakedefine SGUI_WINDOWS
+
+/* set if compiling for a Unix like system */
+#cmakedefine SGUI_UNIX
+
+/* static maximum of canvas dirty rects */
+#define SGUI_CANVAS_MAX_DIRTY 10
+
+
+
+#endif /* SGUI_CONFIG_H */
+
