@@ -104,10 +104,15 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
 /****************************************************************************/
 
-void sgui_canvas_init( sgui_canvas* this, unsigned int width,
-                       unsigned int height )
+int sgui_canvas_init( sgui_canvas* this, unsigned int width,
+                      unsigned int height )
 {
     memset( this, 0, sizeof(sgui_canvas) );
+
+    this->dirty = malloc( sizeof(sgui_rect) * SGUI_CANVAS_MAX_DIRTY );
+
+    if( !this->dirty )
+        return 0;
 
     this->width = width;
     this->height = height;
@@ -115,6 +120,7 @@ void sgui_canvas_init( sgui_canvas* this, unsigned int width,
     sgui_rect_set_size( &this->root.area, 0, 0, width, height );
     this->root.flags = SGUI_WIDGET_VISIBLE;
     this->root.canvas = this;
+    return 1;
 }
 
 void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
@@ -211,7 +217,7 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     }
 
     /* add a new one if posible, join all existing if not */
-    if( this->num_dirty < CANVAS_MAX_DIRTY )
+    if( this->num_dirty < SGUI_CANVAS_MAX_DIRTY )
     {
         sgui_rect_copy( this->dirty + (this->num_dirty++), &r0 );
     }
@@ -437,6 +443,8 @@ void sgui_canvas_destroy( sgui_canvas* this )
     {
         for( i=this->root.children; i!=NULL; i=i->next )
             sgui_widget_remove_from_parent( i );
+
+        free( this->dirty );
 
         this->destroy( this );
     }

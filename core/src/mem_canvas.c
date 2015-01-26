@@ -488,7 +488,8 @@ int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
     if( format!=SGUI_RGBA8 && format!=SGUI_RGB8 )
         return 0;
 
-    sgui_canvas_init( super, width, height );
+    if( !sgui_canvas_init( super, width, height ) )
+        return 0;
 
     this->data = buffer;
     this->bpp = format==SGUI_RGBA8 ? 4 : 3;

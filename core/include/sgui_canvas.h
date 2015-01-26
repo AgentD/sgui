@@ -39,7 +39,7 @@
 
 
 
-#define CANVAS_MAX_DIRTY 10
+#define SGUI_CANVAS_MAX_DIRTY 10
 
 
 
@@ -75,8 +75,8 @@ struct sgui_canvas
 
     int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
 
-    sgui_rect dirty[ CANVAS_MAX_DIRTY ];
-    unsigned int num_dirty;
+    sgui_rect* dirty;       /**< \brief Array of dirty rectangles */
+    unsigned int num_dirty; /**< \brief Number of dirty rectangles in array */
 
     /** \copydoc sgui_canvas_destroy */
     void(* destroy )( sgui_canvas* canvas );
@@ -243,8 +243,8 @@ extern "C"
  * \param width  The width of the canvas
  * \param height The height of the canvas
  */
-SGUI_DLL void sgui_canvas_init( sgui_canvas* cv, unsigned int width,
-                                unsigned int height );
+SGUI_DLL int sgui_canvas_init( sgui_canvas* cv, unsigned int width,
+                               unsigned int height );
 
 /**
  * \brief Destroy a canvas
