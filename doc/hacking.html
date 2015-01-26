@@ -52,6 +52,10 @@ implementations. It consists basically of the following subsystems:
     organize glyphs on a pixmap.
 <li>An <b>icon cache</b> is provided by <b>sgui_icon_cache</b>. It also
     provides an integer ID to rect on a pixmap lookup using an RB-tree.
+<li>Based on the icon cache, the <b>sgui_font_cache</b> provides
+    glyph caching.
+<li>An <b>abstract data model</b> for MVC widgets is provided in
+    <b>sgui_model.h</b>, together with a simple in-memory implementation.
 <li>Actually rendering a widget onto a canvas is done by the <b>skinning</b>
     subsystem, using in implementation of an <b>sgui_skin</b> structure.
     There is a default implementation in <b>skin_default.c</b>, exported via
@@ -62,11 +66,12 @@ implementations. It consists basically of the following subsystems:
 
 <h3 id="code">Coding style</h3>
 
-As long as there is no indent file, here are a few guidelines:
+At the moment, there is not indent file. Altough it should not be too hard to
+mimic the style of the code already there, here are a few guidelines:
 <ul>
 <li><b>Braces</b> are always on the <b>next line</b> with the same indentation
     as the asociated control statement.
-<li>Lines aren't longer than <b>80 characters</b>.
+<li>Lines are no longer than <b>80 characters</b>.
 <li><b>Space characters (4 of them)</b> are used for indentation.
 <li>There is no space between a function name and the opening paranthesis.
 <li>There is no space between a control keyword and the opening paranthesis.
@@ -80,9 +85,11 @@ As long as there is no indent file, here are a few guidelines:
 <li>All <b>structures are typedefed</b>.
 <li><b>No typedefs to atomic data types</b> are used. Always use the integer
     data types provided by C (i.e. unsigned int and int).
-<li>Preprocessor definitions are used instead of enums.
-<li>Try <b>not</b> to <b>use</b> any <b>floating point</b> calculations
-    at all.
+<li>Preprocessor definitions can be used instead of enums. Enums are used for
+    large blocks of logically connected constants are. <b>Never make an
+    enum value a function argument or struct member</b> for the sake of ABI
+    stability.
+<li></b>Do not use any floating point calculations or data types</b>.
 <li><b>Functions or structures</b> delcared in publicly visible headers have
     to start with <b>sgui_* prefix</b>.
 <li><b>Constants</b> have to start with <b>SGUI_*</b>
