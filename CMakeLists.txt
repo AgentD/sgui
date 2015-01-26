@@ -33,7 +33,7 @@ if( NOT WIN32 )
   option( MEMCANVAS "Compile memory canvas implementation" ON )
 
   if( NOT MEMCANVAS )
-    add_definitions( -DSGUI_NO_MEM_CANVAS )
+    set( SGUI_NO_MEM_CANVAS 1 )
   endif( )
 endif( )
 
@@ -67,67 +67,67 @@ option( MVC "Compile with model object for MVC widgets" ON )
 option( NOPS "Replace disabled features with API compatible NOP functions" ON)
 
 if( NOFLOAT )
-  add_definitions( -DSGUI_NO_FLOAT )
+  set( SGUI_NO_FLOAT 1 )
 endif( )
 
 if( NOT DIRECT3D9 )
-  add_definitions( -DSGUI_NO_D3D9 )
+  set( SGUI_NO_D3D9 1 )
 endif( )
 
 if( NOT DIRECT3D11 )
-  add_definitions( -DSGUI_NO_D3D11 )
+  set( SGUI_NO_D3D11 1 )
 endif( )
 
 if( NOT OPENGL )
-  add_definitions( -DSGUI_NO_OPENGL )
+  set( SGUI_NO_OPENGL 1 )
 endif( )
 
 if( NOT MESSAGEBOX )
-  add_definitions( -DSGUI_NO_MESSAGEBOX )
+  set( SGUI_NO_MESSAGEBOX 1 )
 endif( )
 
 if( NOT NATIVE_MB )
-  add_definitions( -DSGUI_NO_NATIVE_MESSAGEBOX )
+  set( SGUI_NO_NATIVE_MESSAGEBOX 1 )
 endif( )
 
 if( NOT ICONCACHE )
-  add_definitions( -DSGUI_NO_ICON_CACHE )
+  set( SGUI_NO_ICON_CACHE 1 )
 endif( )
 
 if( NOT ICONVIEW )
-  add_definitions( -DSGUI_NO_ICON_VIEW )
+  set( SGUI_NO_ICON_VIEW 1 )
 endif( )
 
 if( NOT SUBVIEW )
-  add_definitions( -DSGUI_NO_SUBVIEW )
+  set( SGUI_NO_SUBVIEW 1 )
 endif( )
 
 if( NOT TABS )
-  add_definitions( -DSGUI_NO_TABS )
+  set( SGUI_NO_TABS 1 )
 endif( )
 
 if( NOT FRAME )
-  add_definitions( -DSGUI_NO_FRAME )
+  set( SGUI_NO_FRAME 1 )
 endif( )
 
 if( NOT GROUP )
-  add_definitions( -DSGUI_NO_GROUP_BOX )
+  set( SGUI_NO_GROUP_BOX 1 )
 endif( )
 
 if( NOT COLPICKER )
-  add_definitions( -DSGUI_NO_COLOR_PICKER )
+  set( SGUI_NO_COLOR_PICKER 1 )
 endif( )
 
 if( NOT COLDIALOG )
-  add_definitions( -DSGUI_NO_COLOR_DIALOG )
+  set( SGUI_NO_COLOR_DIALOG 1 )
 endif( )
 
 if( NOT MVC )
-  add_definitions( -DSGUI_NO_MODEL )
+  set( SGUI_NO_MODEL 1 )
 endif( )
 
 if( NOPS )
-  add_definitions( -DSGUI_NOP_IMPLEMENTATIONS )
+  set( SGUI_NOP_IMPLEMENTATIONS 1 )
 endif( )
 
 #----------------------------------------------------------------------
@@ -177,7 +177,7 @@ endif( )
 # OS detection
 #----------------------------------------------------------------------
 if( WIN32 )
-  add_definitions( -DSGUI_WINDOWS )
+  set( SGUI_WINDOWS 1 )
 
   if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     message( STATUS "Compiling for 64 bit Windows" )
@@ -187,7 +187,7 @@ if( WIN32 )
 elseif( APPLE )
   message( ERROR "Mac OS X is not supported yet!" )
 elseif( UNIX )
-  add_definitions( -DSGUI_UNIX )
+  set( SGUI_UNIX 1 )
   message( STATUS "Compiling for a generic UNIX like operating system" )
 else( )
   message( ERROR "Unknown, possibly unsupported operating system!" )
@@ -249,6 +249,12 @@ endif( )
 #----------------------------------------------------------------------
 # Configure targets
 #----------------------------------------------------------------------
+
+configure_file( ${CMAKE_SOURCE_DIR}/sgui_config.in
+                ${CMAKE_BINARY_DIR}/include/sgui_config.h )
+
+include_directories( ${CMAKE_BINARY_DIR}/include )
+
 add_subdirectory( core )
 add_subdirectory( widgets )
 add_subdirectory( dialogs )
@@ -326,6 +332,7 @@ if( UNIX )
   install( DIRECTORY core/include DESTINATION include )
   install( DIRECTORY widgets/include DESTINATION include )
   install( DIRECTORY dialogs/include DESTINATION include )
+  install( DIRECTORY ${CMAKE_BINARY_DIR}/include DESTINATION include )
 
   install( TARGETS sgui
            RUNTIME DESTINATION bin

@@ -127,7 +127,7 @@ sgui_widget* sgui_image_create( int x, int y,
     super->draw               = image_draw;
     super->state_change_event = image_on_state_change;
     super->destroy            = image_destroy;
-    super->focus_policy       = 0;
+    super->flags              = SGUI_WIDGET_VISIBLE;
     this->pixmap  = NULL;
     this->format  = format;
     this->blend   = blend;

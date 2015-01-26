@@ -91,7 +91,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
     sgui_widget_init( super, 0, 0, 0, 0 );
 
     super->draw          = progress_draw;
-    super->focus_policy  = 0;
+    super->flags         = SGUI_WIDGET_VISIBLE;
     super->destroy       = (void(*)(sgui_widget*))free;
     this->progress       = progress;
     this->stippled       = style==SGUI_PROGRESS_BAR_STIPPLED;

@@ -26,7 +26,7 @@
 /**
  * \file sgui_font_cache.h
  *
- * This file contains the interface functions for the font cache datatype.
+ * \brief Contains the declarations of the font cache datatype.
  */
 #ifndef SGUI_FONT_CACHE_H
 #define SGUI_FONT_CACHE_H

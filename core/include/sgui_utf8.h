@@ -26,7 +26,7 @@
 /**
  * \file sgui_utf8.h
  *
- * This file contains helper functions for unicode string handling.
+ * \brief Contains helper functions for UTF-8 string handling.
  */
 #ifndef SGUI_UTF8_H
 #define SGUI_UTF8_H
@@ -101,6 +101,17 @@ SGUI_DLL unsigned int sgui_utf8_from_latin1_length( const char* in );
  * \param in A pointer to the input buffer
  */
 SGUI_DLL void sgui_utf8_from_latin1( char* out, const char* in );
+
+/**
+ * \brief Copy a null-terimated string
+ *
+ * \note We use this because strdup( ) is not available on all platforms
+ *
+ * \param string A pointer to a string
+ *
+ * \return A copy of the string that can be free'd using free( )
+ */
+SGUI_DLL char* sgui_strdup( const char* string );
 
 #ifdef __cplusplus
 }

@@ -26,7 +26,7 @@
 /**
  * \file sgui_icon_cache.h
  *
- * This file contains the interface functions for the icon cache data type.
+ * \brief Contains the declarations of the icon cache data type.
  */
 #ifndef SGUI_ICON_CACHE_H
 #define SGUI_ICON_CACHE_H

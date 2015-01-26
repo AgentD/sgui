@@ -26,7 +26,7 @@
 /**
  * \file sgui_canvas.h
  *
- * This file contains the interface functions for the canvas datatype.
+ * \brief Contains the declaration of the abstract canvas datatype.
  */
 #ifndef SGUI_CANVAS_H
 #define SGUI_CANVAS_H
@@ -36,10 +36,6 @@
 #include "sgui_predef.h"
 #include "sgui_widget.h"
 #include "sgui_rect.h"
-
-
-
-#define CANVAS_MAX_DIRTY 10
 
 
 
@@ -75,11 +71,8 @@ struct sgui_canvas
 
     int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
 
-    int wait_double_click;          /**< \brief Waiting for double click */
-    unsigned long last_click_time;  /**< \brief Timestamp of last click */
-
-    sgui_rect dirty[ CANVAS_MAX_DIRTY ];
-    unsigned int num_dirty;
+    sgui_rect* dirty;       /**< \brief Array of dirty rectangles */
+    unsigned int num_dirty; /**< \brief Number of dirty rectangles in array */
 
     /** \copydoc sgui_canvas_destroy */
     void(* destroy )( sgui_canvas* canvas );
@@ -246,8 +239,8 @@ extern "C"
  * \param width  The width of the canvas
  * \param height The height of the canvas
  */
-SGUI_DLL void sgui_canvas_init( sgui_canvas* cv, unsigned int width,
-                                unsigned int height );
+SGUI_DLL int sgui_canvas_init( sgui_canvas* cv, unsigned int width,
+                               unsigned int height );
 
 /**
  * \brief Destroy a canvas
@@ -347,7 +340,10 @@ SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
  * enter, mouse leave, focus and focus lost events for the widgets it holds.
  *
  * \param canvas The canvas
- * \param e      The event data to send
+ * \param e      The event data to send. If the event is of type
+ *               SGUI_FOCUS_LOSE_EVENT, the canvas assumes that the window
+ *               owning the canvas lost focus and drops focus of the focused
+ *               widget.
  */
 SGUI_DLL void sgui_canvas_send_window_event( sgui_canvas* canvas,
                                              const sgui_event* e );

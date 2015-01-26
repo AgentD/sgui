@@ -283,6 +283,7 @@ void update_window( sgui_window_w32* this )
 
     if( super->backend == SGUI_DIRECT3D_9 )
     {
+#ifndef SGUI_NO_D3D9
         IDirect3DDevice9* dev = ((sgui_d3d9_context*)super->ctx.ctx)->device;
         sgui_event e;
 
@@ -292,6 +293,7 @@ void update_window( sgui_window_w32* this )
             e.src.window = (sgui_window*)this;
             sgui_internal_window_fire_event( super, &e );
         }
+#endif
     }
 }
 
@@ -311,6 +313,12 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
 
     switch( msg )
     {
+    case WM_LBUTTONDBLCLK:
+        e.arg.i2.x = LOWORD( lp );
+        e.arg.i2.y = HIWORD( lp );
+        e.type = SGUI_DOUBLE_CLICK_EVENT;
+        sgui_internal_window_fire_event( super, &e );
+        break;
     case WM_DESTROY:
         super->visible = 0;
         e.type = SGUI_USER_CLOSED_EVENT;
@@ -441,6 +449,14 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
     case WM_MOVE:
         super->x = LOWORD( lp );
         super->y = HIWORD( lp );
+        break;
+    case WM_SETFOCUS:
+        e.type = SGUI_FOCUS_EVENT;
+        sgui_internal_window_fire_event( super, &e );
+        break;
+    case WM_KILLFOCUS:
+        e.type = SGUI_FOCUS_LOSE_EVENT;
+        sgui_internal_window_fire_event( super, &e );
         break;
     case WM_PAINT:
         if( super->backend==SGUI_NATIVE )

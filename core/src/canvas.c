@@ -35,27 +35,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef SGUI_WINDOWS
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-#else
-    #include <sys/time.h>
-#endif
 
-#define DOUBLE_CLICK_MS 750
-
-static unsigned long get_time_ms( void )
-{
-#ifdef SGUI_WINDOWS
-    return GetTickCount( );
-#else
-    struct timeval tp;
-
-    gettimeofday( &tp, NULL );
-
-    return tp.tv_sec*1000 + tp.tv_usec/1000;
-#endif
-}
 
 static void draw_children( sgui_canvas* this, sgui_widget* widget,
                            sgui_rect* r )
@@ -73,7 +53,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
     for( i=widget->children; i!=NULL; i=i->next )
     {
-        if( !i->visible )
+        if( !(i->flags & SGUI_WIDGET_VISIBLE) )
             continue;
 
         sgui_widget_get_absolute_rect( i, &wr );
@@ -99,7 +79,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
         draw_children( this, i, r ? &wr : NULL );
 
         /* draw focus box */
-        if( i==this->focus && (i->focus_policy & SGUI_FOCUS_DRAW) &&
+        if( i==this->focus && (i->flags & SGUI_FOCUS_DRAW) &&
             this->draw_focus )
         {
             skin = sgui_skin_get( );
@@ -124,17 +104,23 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
 /****************************************************************************/
 
-void sgui_canvas_init( sgui_canvas* this, unsigned int width,
-                       unsigned int height )
+int sgui_canvas_init( sgui_canvas* this, unsigned int width,
+                      unsigned int height )
 {
     memset( this, 0, sizeof(sgui_canvas) );
+
+    this->dirty = malloc( sizeof(sgui_rect) * SGUI_CANVAS_MAX_DIRTY );
+
+    if( !this->dirty )
+        return 0;
 
     this->width = width;
     this->height = height;
 
     sgui_rect_set_size( &this->root.area, 0, 0, width, height );
-    this->root.visible = 1;
+    this->root.flags = SGUI_WIDGET_VISIBLE;
     this->root.canvas = this;
+    return 1;
 }
 
 void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
@@ -166,7 +152,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     skin = sgui_skin_get( );
     fbw = skin->get_focus_box_width( skin );
 
-    if( this->focus && (this->focus->focus_policy & SGUI_FOCUS_DRAW) &&
+    if( this->focus && (this->focus->flags & SGUI_FOCUS_DRAW) &&
         this->draw_focus )
     {
         sgui_widget_get_absolute_rect( this->focus, &r );
@@ -174,8 +160,8 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
         sgui_canvas_add_dirty_rect( this, &r );
     }
 
-    if( widget && (widget->focus_policy & SGUI_FOCUS_DRAW) &&
-        (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+    if( widget && (widget->flags & SGUI_FOCUS_DRAW) &&
+        (widget->flags & SGUI_FOCUS_ACCEPT) )
     {
         sgui_widget_get_absolute_rect( widget, &r );
         sgui_rect_extend( &r, fbw, fbw );
@@ -187,7 +173,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     ev.type = SGUI_FOCUS_LOSE_EVENT;
     sgui_widget_send_event( this->focus, &ev, 0 );
 
-    if( widget && (widget->focus_policy & SGUI_FOCUS_ACCEPT) )
+    if( widget && (widget->flags & SGUI_FOCUS_ACCEPT) )
     {
         ev.type = SGUI_FOCUS_EVENT;
         sgui_widget_send_event( widget, &ev, 0 );
@@ -205,16 +191,25 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
 void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
 {
     unsigned int i;
+    sgui_rect r0;
 
     if( !this || !r )
         return;
 
     sgui_internal_lock_mutex( );
 
+    /* make sure dirty rect is inside canvase area */
+    sgui_rect_set_size( &r0, 0, 0, this->width, this->height );
+    if( !sgui_rect_get_intersection( &r0, &r0, r ) )
+    {
+        sgui_internal_unlock_mutex( );
+        return;
+    }
+
     /* try to find an existing diry rect it touches */
     for( i=0; i<this->num_dirty; ++i )
     {
-        if( sgui_rect_join( this->dirty + i, r, 1 ) )
+        if( sgui_rect_join( this->dirty + i, &r0, 1 ) )
         {
             sgui_internal_unlock_mutex( );
             return;
@@ -222,16 +217,16 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     }
 
     /* add a new one if posible, join all existing if not */
-    if( this->num_dirty < CANVAS_MAX_DIRTY )
+    if( this->num_dirty < SGUI_CANVAS_MAX_DIRTY )
     {
-        sgui_rect_copy( this->dirty + (this->num_dirty++), r );
+        sgui_rect_copy( this->dirty + (this->num_dirty++), &r0 );
     }
     else
     {
         for( i=1; i<this->num_dirty; ++i )
             sgui_rect_join( this->dirty, this->dirty + i, 0 );
 
-        sgui_rect_copy( this->dirty + 1, r );
+        sgui_rect_copy( this->dirty + 1, &r0 );
         this->num_dirty = 2;
     }
 
@@ -341,14 +336,13 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         return;
 
     /* don't handle events that the canvas generates */
-    if( e->type==SGUI_FOCUS_EVENT || e->type==SGUI_MOUSE_ENTER_EVENT ||
-        e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT ||
-        e->type==SGUI_DOUBLE_CLICK_EVENT )
+    if( e->type==SGUI_MOUSE_ENTER_EVENT || e->type==SGUI_MOUSE_LEAVE_EVENT ||
+        e->type==SGUI_FOCUS_EVENT )
         return;
 
     sgui_internal_lock_mutex( );
 
-    if( e->type == SGUI_MOUSE_MOVE_EVENT )
+    if( e->type==SGUI_MOUSE_MOVE_EVENT || e->type==SGUI_DOUBLE_CLICK_EVENT )
     {
         /* find the widget under the mouse cursor */
         i = sgui_widget_get_child_from_point( &this->root,
@@ -370,16 +364,11 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
 
     switch( e->type )
     {
+    case SGUI_FOCUS_LOSE_EVENT:
+        if( this->focus )
+            sgui_canvas_set_focus( this, NULL );
+        break;
     case SGUI_MOUSE_PRESS_EVENT:
-        if( !this->wait_double_click )
-        {
-            this->wait_double_click = 1;
-            this->last_click_time = get_time_ms( );
-        }
-        else
-        {
-            this->wait_double_click = 2;
-        }
     case SGUI_MOUSE_RELEASE_EVENT:
         /* transform to widget local coordinates and redirect event */
         sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
@@ -396,20 +385,9 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
             sgui_canvas_set_focus( this, this->mouse_over );
             this->draw_focus = 0;
         }
-
-        if( e->type==SGUI_MOUSE_RELEASE_EVENT && this->wait_double_click==2 )
-        {
-            if( (get_time_ms( ) - this->last_click_time) <= DOUBLE_CLICK_MS )
-            {
-                ev.type = SGUI_DOUBLE_CLICK_EVENT;
-                sgui_widget_send_event( this->mouse_over, &ev, 0 );
-            }
-            this->wait_double_click = 0;
-        }
         break;
     case SGUI_MOUSE_MOVE_EVENT:
-        this->wait_double_click = 0;
-
+    case SGUI_DOUBLE_CLICK_EVENT:
         /* transform to widget local coordinates and redirect event */
         sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
         ev = *e;
@@ -419,7 +397,6 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         sgui_widget_send_event( this->mouse_over, &ev, 0 );
         break;
     case SGUI_MOUSE_WHEEL_EVENT:
-        this->wait_double_click = 0;
         sgui_widget_send_event( this->mouse_over, e, 0 );
         break;
     case SGUI_KEY_RELEASED_EVENT:
@@ -466,6 +443,8 @@ void sgui_canvas_destroy( sgui_canvas* this )
     {
         for( i=this->root.children; i!=NULL; i=i->next )
             sgui_widget_remove_from_parent( i );
+
+        free( this->dirty );
 
         this->destroy( this );
     }

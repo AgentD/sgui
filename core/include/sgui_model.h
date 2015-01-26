@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_model.h
+ *
+ * \brief Contains an abstract model interface and an in memory implementation
+ */
 #ifndef SGUI_MODEL_H
 #define SGUI_MODEL_H
 
@@ -206,6 +212,8 @@ SGUI_DLL const sgui_item* sgui_model_query_items( const sgui_model* model,
                                                   unsigned int count );
 /**
  * \brief Free a list of items obtained from sgui_model_query_items
+ *
+ * \memberof sgui_model
  *
  * \param model A pointer to a model object
  * \param start A pointer to the start of the list

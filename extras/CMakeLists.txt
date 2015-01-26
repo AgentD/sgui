@@ -66,3 +66,5 @@ if( UNIX )
   target_link_libraries( ctx_wm m )
 endif( )
 
+add_executable( sguiicon sguiicon.c )
+

@@ -26,7 +26,7 @@
 /**
  * \file sgui_skin.h
  *
- * This file contains interface functions for the skinning subsystem.
+ * \brief Contains the declarations of the skinning subsystem.
  */
 #ifndef SGUI_SKIN_H
 #define SGUI_SKIN_H

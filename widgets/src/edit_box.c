@@ -459,8 +459,8 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
     this->sync_cursors           = sync_cursors;
     this->offset_from_position   = cursor_from_mouse;
     this->text_changed           = edit_box_text_changed;
-    super->focus_policy          = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
-                                   SGUI_FOCUS_DROP_TAB;
+    super->flags                 = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DROP_ESC|
+                                   SGUI_FOCUS_DROP_TAB|SGUI_WIDGET_VISIBLE;
     return 1;
 }
 

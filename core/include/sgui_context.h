@@ -26,8 +26,8 @@
 /**
  * \file sgui_context.h
  *
- * This file contains the interface functionsfor the rendering context
- * abstraction.
+ * \brief Contains the declarations of the abstract rendering
+ *        context structure
  */
 #ifndef SGUI_CONTEXT_H
 #define SGUI_CONTEXT_H

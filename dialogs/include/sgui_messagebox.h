@@ -23,6 +23,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_messagebox.h
+ *
+ * \brief Contains the declarations of the message box dialog implementation
+ */
 #ifndef SGUI_MESSAGEBOX_H
 #define SGUI_MESSAGEBOX_H
 
@@ -34,6 +40,8 @@
 
 /**
  * \struct sgui_message_box
+ *
+ * \extends sgui_dialog
  *
  * \brief A message box dialog window
  *
@@ -72,38 +80,12 @@ extern "C" {
  *
  * \return A pointer to a message box
  */
-SGUI_DLL sgui_message_box* sgui_message_box_create( int icon,
-                                                    const char* caption,
-                                                    const char* text,
-                                                    const char* button1,
-                                                    const char* button2,
-                                                    const char* button3 );
-
-/**
- * \brief Destroy a message box and free all its memory
- *
- * \memberof sgui_message_box
- *
- * \param mb A pointer to a message box
- */
-SGUI_DLL void sgui_message_box_destroy( sgui_message_box* mb );
-
-/**
- * \brief Display a message box in the center of the screen
- *
- * \memberof sgui_message_box
- *
- * When the user presses one of the buttons, the message box window is closed
- * an event is generated (SGUI_MESSAGE_BOX_BUTTON1_EVENT,
- * SGUI_MESSAGE_BOX_BUTTON2_EVENT or SGUI_MESSAGE_BOX_BUTTON3_EVENT) with the
- * pointer to the message box set source pointer.
- *
- * If the user closes the window without pressing a button,
- * SGUI_DIALOG_REJECTED is generated.
- *
- * \param mb A pointer to a message box
- */
-SGUI_DLL void sgui_message_box_display( sgui_message_box* mb );
+SGUI_DLL sgui_dialog* sgui_message_box_create( int icon,
+                                               const char* caption,
+                                               const char* text,
+                                               const char* button1,
+                                               const char* button2,
+                                               const char* button3 );
 
 /**
  * \brief Display a message box by directly using the platform functions

@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_frame.h
+ *
+ * \brief Contains the declarations of the sgui_frame widget
+ */
 #ifndef SGUI_FRAME_H
 #define SGUI_FRAME_H
 

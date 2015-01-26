@@ -12,25 +12,27 @@
 <h3>Font rasterization</h3>
 
 The backend also has to supply an implementation of the <b>sgui_font</b> data
-structure. The functions from <b>sgui_font.h</b> are implemented directly in
-the backend.<br>
+structure. There are two functions in <b>sgui_font.h</b> that are implemented
+directly in the backend. One for loading an abstract font data structure from
+a file and one for loading it from memory.<br>
 <br>
 The implementations in the Windows&reg; and X11 backends use the FreeType
-library to rasterize true type fonts, but a backend might also implement a
-simple, static font bitmap.<br>
+library to rasterize true type fonts, but one could also implement a simple,
+static font bitmap.<br>
 <br>
-The <b>sgui_font</b> functions support the following operations:
+The <b>sgui_font</b> abstract data structure supports the
+following operations:
 <ul>
-<li>Load fonts from a file or from memory (Check both system font
-    directories and current working dir).
-<li>Get the dimensions of a glyph.
-<li>Render a glyph to a memory buffer.
+<li>Resolve a unicode code point to a glyph from the in-memory representation.
+<li>Get the dimensions of a previously loaded glyph.
+<li>Get a pointer to a buffer containing the previously loaded,
+    rasterized glyph.
 </ul>
-Those functions are then used by canvas implementations to rasterize text.
+The font data structure is used by a canvas implementations to rasterize text.
 However, a canvas might also use an <b>sgui_font_cache</b> that caches glyph
 in an <b>sgui_pixmap</b> to minimize glyph loading and rasterizing and instead
 blend the already loaded glyphs. The font cache uses an RB-Tree internally to
-store loaded glyphs and theire area on the cache pixmap. It only loads glyphs
+store loaded glyphs and their area on the cache pixmap. It only loads glyphs
 if they cannot be found in the tree.
 
 <hr>

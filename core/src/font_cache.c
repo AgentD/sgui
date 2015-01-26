@@ -64,9 +64,9 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
     int b;
 
     /* load glyph and get metrics */
-    sgui_font_load_glyph( font, codepoint );
-    sgui_font_get_glyph_metrics( font, &w, &h, &b );
-    src = sgui_font_get_glyph( font );
+    font->load_glyph( font, codepoint );
+    font->get_glyph_metrics( font, &w, &h, &b );
+    src = font->get_glyph( font );
 
     /* create glyph */
     if( !(g = malloc( sizeof(GLYPH) )) )

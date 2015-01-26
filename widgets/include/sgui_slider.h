@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_slider.h
+ *
+ * \brief Contains the declarations of the sgui_slider widget
+ */
 #ifndef SGUI_SLIDER_H
 #define SGUI_SLIDER_H
 

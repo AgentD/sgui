@@ -26,7 +26,7 @@
 /**
  * \file sgui_internal.h
  *
- * This file contains internal functions and helper macros.
+ * \brief Contains internal functions and helper macros.
  */
 #ifndef SGUI_INTERNAL_H
 #define SGUI_INTERNAL_H

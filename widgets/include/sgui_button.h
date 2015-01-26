@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_button.h
+ *
+ * \brief Contains the declarations of the sgui_button widget
+ */
 #ifndef SGUI_BUTTON_H
 #define SGUI_BUTTON_H
 
@@ -147,6 +153,8 @@ SGUI_DLL void sgui_button_group_connect( sgui_widget* button,
 
 /**
  * \brief Set the text to be printed onto a button
+ *
+ * \memberof sgui_button
  *
  * \param button The button to alter.
  * \param text   The text printed on the button.

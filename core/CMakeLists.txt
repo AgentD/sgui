@@ -27,7 +27,6 @@ endif( )
 
 set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/event.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/filesystem.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/font_cache.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/icon_cache.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_canvas.c

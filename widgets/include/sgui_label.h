@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_label.h
+ *
+ * \brief Contains the declarations of the sgui_label widget
+ */
 #ifndef SGUI_LABEL_H
 #define SGUI_LABEL_H
 

@@ -11,169 +11,13 @@
 
 <h3>The SGUI build system</h3>
 
-The sgui library uses a CMake based build system. CMake is a cross platform
-tool to generate platform dependend files for compiling source code (e.g. it
-can generate a Makefile or an MSVC solution file).<br>
-For more information on CMake, please consult
-<a href="http://www.cmake.org/">the CMake website</a>.<br>
+For an overview on how to <i>use</i> the build system, how to compile SGUI,
+how to configure the build system and what options are available, please
+refere to the section <a href="compiling.html">Compiling the SGUI library</a>.
 <br>
-Since the demo programs need special files and the Windows&reg; backend needs
-the freetype DLL, the build tree stub is contained within the source tree.<br>
-<br>
-<h4>Compiling on Unix-like systems</h4>
-
-To compile and build everything, issue the following commands from within the
-source directory:
-<p class="code">
-<font class="command">cd</font> build<br>
-<font class="command">cmake</font> ..<br>
-<font class="command">make</font><br>
-</p>
-If you replace "cmake" in the above commands with "ccmake", you will get a
-text based user interface. Pressing [c] will configure the build system and
-give you a screen with lots of compilation options. Pressing [c] again and
-then [g] generates the build system and you will return to the shell where
-you can run make to compile sgui.<br>
-<br>
-SGUI can easily be cross compiled using a special CMake cross-compilation
-toolchain file. Toolchain files for 32 bit and 64 bit Windows&reg; via Mingw
-are provided with the source tree. Simply replace the above commands with the
-following to cross compile for 32 bit Windows&reg;:
-<p class="code">
-<font class="command">cd</font> build<br>
-<font class="command">cmake</font> .. -DCMAKE_TOOLCHAIN_FILE="../CMake/mingw.cmake"<br>
-<font class="command">make</font><br>
-</p>
-Alternatively, use "mingw64.cmake" for a 64 bit Windows&reg; build.<br>
-<br>
-<b>Note</b>:<pre>
-   Since mingw cross compiling has so far only been done on Arch
-   Linux, it might require minor adjustments of the mingwXX.cmake file to
-   point to the correct compiler location.
-
-   Cross compiling for other architectures will require some fiddling with
-   CMake toolchain files, if not even porting of SGUI itself. <i>If something
-   breaks that should not break, please let me know.</i></pre>
-<br>
-<h4>Compiling on Windows&reg;</h4>
-<img src="images/cmake.png"><br>
-<br>
-On Windows&reg;, start the CMake gui program. A screenshot of the CMake GUI
-can be seen above.<br>
-<br>
-There should be a field labeled "Where is the source code" <b>(1)</b>. Enter
-the path where this README file is located.<br>
-<br>
-In an other field, labeled "Where to build the binaries" <b>(2)</b>, enter the
-path to the "build" directory within the directory where this README file is
-located.<br>
-<br>
-When clicking configure <b>(3)</b>, a dialog should pop open where the target
-build system can be selected (e.g. which version of MSVC to use) and the main
-dialog should be filled with lots of configuration options that you can see
-above (initially displayed in red). Pressing "configure" <b>(3)</b> again and
-then "generate" <b>(4)</b> should generate the build system (e.g. An MSVC
-Solution file) which can then be used to compile sgui.<br>
-<br>
-<b>Note</b>:<pre>
-   Some effort has been put into making SGUI compile with VisualStudio&reg;,
-   on Windows&reg;, however it is not a priority target. It should work in
-   general, but it is only tested occasionally.
-
-   It has been observed that sometimes CMake generates an error message, but
-   no error actually occoured and re-running "configure" and "generate"
-   created a working build system.
-
-   Depending on your versions of Windows&reg; and VisualStudio&reg;, you may
-   want do disable Direct3D&reg; 11 in the compile configuration.
-</pre>
 <br>
 
-<h4>Compilation options</h4>
-
-When running cmake the following build options are available:
-<ul>
-<li><b>COLDIALOG</b> Compile with color selection dialog. <b>Default: ON</b>
-<li><b>COLPICKER</b> Compile with color picker widget. <b>Default: ON</b>
-<li><b>MEMCANVAS</b> Enable or disable the memory canvas implementation.
-    <b>Default: ON</b>. This option might not be disabled if the backend
-    implementation for the current platform needs the memory canvas. If this
-    is set to OFF, the definition <b>SGUI_NO_MEM_CANVAS</b> is set via the
-    preprocessor.
-<li><b>MVC</b> Compile with model object for MVC widgets. <b>Default: ON</b>
-<li><b>OPENGL</b> Enable or disable OpenGL&reg; support. <b>Default: ON</b>
-    If this is set to OFF, the definition <b>SGUI_NO_OPENGL</b> is set via the
-    preprocessor.
-<li><b>NOFLOAT</b> Can be used to disable all internal use of floating point
-    data types and arithmetic. <b>Default: OFF</b>. If this is set to ON, the
-    definition <b>SGUI_NO_FLOAT</b> is set via the preprocessor.
-<li><b>FRAME</b> Default ON. If set to OFF, the frame widget is not compiled.
-<li><b>GROUP</b> Default ON. If set to OFF, the group widget is not compiled.
-<li><b>ICONCACHE</b> Default ON. If set to OFF,
-    the icon cache is not compiled.
-<li><b>ICONVIEW</b> Default ON. If set to OFF, the icon view widget is not
-    compiled.
-<li><b>MESSAGEBOX</b> Default ON. If set to OFF, the message box is not
-    compiled.
-<li><b>NATIVE_MB</b> Default ON. If set to OFF, the native message box is
-    not compiled.
-<li><b>SUBVIEW</b> Default ON. If set to OFF, the sub view widget is
-    not compiled.
-<li><b>TABS</b> Default ON. If set to OFF, the tab widget is not compiled.
-<li><b>NOPS</b> For all the above functionallity, noop functions that always
-    fail are generated if they are disabled to avoid linking problems.
-    If set to OFF, there will be no noop implementations. Default ON.
-<li><b>DIRECT3D9</b> Compile with Direct3D&reg; 9 support. <b>Default: ON</b>
-    If set to OFF, <b>SGUI_NO_D3D9</b> is defined via the pre processor.
-<li><b>DIRECT3D11</b> Compile with Direct3D&reg; 11 support. <b>Default: ON</b>
-    If set to OFF, <b>SGUI_NO_D3D11</b> is defined via the pre processor.
-</ul>
-
-Some options may or may not be available, depending on whether the target
-system supports them in the first place, or wether the target system needs
-them and cannot have them disabled.<br>
-<br>
-Also note that some options might be interdependend, e.g. the color dialog
-uses the color picker widget, so when disabling the widget, the dialog will
-also not be available.<br>
-<br>
-Depending on the target operating system, the following definitions are set
-via the preprocessor:
-<ul>
-<li>SGUI_WINDOWS
-<li>SGUI_UNIX
-</ul>
-
-<h3>Generating Doxygen reference</h3>
-
-If Doxygen is available on a system, running the target <b>doxydoc</b>
-processes the <i>Doxyfile.in</i> file to generate a propper Doxygen input file
-and runs Doxygen on the input file.<br>
-<br>
-The Doxygen output is written to the directory <i>doxydoc</i> in the output
-directory tree.
-
-<h3>Installing &amp; generating binary packages</h3>
-
-On Unix&reg; like systems, <b>make install</b> can be used to install the SGUI
-library. By default, headers are installed to <i>/usr/local/include</i> and
-the compiled, stripped library to <i>/usr/local/lib</i>.<br>
-<br>
-To change the prefix from <i>/usr/local</i> to something differnt, the
-variable CMAKE_INSTALL_PREFIX has to be altered.<br>
-<br>
-To install to a different root directory,
-<b>make DESTDIR=&lt;root&gt;install</b> can be used to install to
-<i>&lt;root&gt;/&lt;prefix&gt;/lib</i> and
-<i>&lt;root&gt;/&lt;prefix&gt;/include</i> instead.<br>
-<br>
-<br>
-When cross compiling for Windows&reg;, the target <b>pack</b>
-(i.e. <b>make pack</b>) can be used to generate a zip archive with
-Windows&reg; binaries, example programs, documentation, etc... like the one
-that can be downloaded from the SGUI website.
-
-<h3>The source directory tree</h3>
+<h4>The source directory tree</h4>
 
 The library is split into several modules, each in a dedicated subdirectory,
 that are then compiled into a single library:
@@ -199,8 +43,10 @@ Other than that, there are few more sub directories:
 </ul>
 
 In addition, the source directory contains a <b>CMakeLists.txt</b>, a doxygen
-<b>Doxyfile</b> the textfiles <b>LICENSE</b> and <b>README</b> as well as the
-beforementioned <b>package.sh</b>.
+<b>Doxyfile.in</b> file that is used to generate the actual doxygen input file,
+the textfiles <b>LICENSE</b> and <b>README</b> as well as an
+<b>sgui_config.in</b> file that is used to generate a header with compile
+configuration.
 <br>
 <br>
 The combined <b>include</b> directories, the <b>doc</b> directory, the
@@ -210,8 +56,10 @@ development package.<br>
 Everything inside the source tree ends up in the source package.<br>
 <br>
 The <b>LICENSE</b> and <b>README</b> files are added to every package.
+<br>
+<br>
 
-<h3>The output directory tree</h3>
+<h4>The output directory tree</h4>
 
 The output directory initially contains the following entries:
 <ul>
@@ -229,6 +77,34 @@ When building SGUI, a lot of temporary clutter is generated by CMake and make.
 The interesting directores are <b>bin</b> and <b>lib</b>, the former
 containing executables and dynamic libraries and the later containing static
 libraries.
+<br>
+<br>
+
+<h4>The CMake build system</h4>
+
+The toplevel CMakeLists.txt in the SGUI source root directory contains, in
+the following order:
+<ul>
+<li>General settings and output path confiugration
+<li>Compilation options
+<li>Compiler detection and compiler specific configuration
+<li>Operating system detection and OS specific configuration
+<li>Dependency configuration (mostly also OS specific)
+<li><font color="red">compilation target configuration</font>
+<li>Doxygen target
+<li>Packaging and installation configuration
+</ul>
+The subdirectories "core", "widgets" and "dialogs" also contain
+CMakeLists.txt files. However, those do not add any build targets. They load
+a list of source files into CMake variables named after the subdirectories
+(<b>CORE_SRC</b>, <b>WIDGETS_SRC</b> and <b>DIALOGS_SRC</b>). Those variables
+are then used in the toplevel CMakeLists.txt to setup the target <b>sgui</b>,
+since the sources from those subdirectores are compiled into one binary, the
+sgui libary itself.<br>
+<br>
+The directories <b>extras</b> and <b>tests</b> contain CMakeLists.txt files
+that actually add compilation targets for executables that use SGUI without
+any exterenal intervention from the toplevel file.
 
 <hr>
 <a href="hacking.html">Previous</a>

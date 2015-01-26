@@ -26,7 +26,7 @@
 /**
  * \file sgui_d3d9.h
  *
- * This file contains the Direct3D 9 context implementation.
+ * \brief Contains the Direct3D 9 context implementation.
  */
 #ifndef SGUI_D3D9_H
 #define SGUI_D3D9_H

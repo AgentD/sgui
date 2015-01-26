@@ -26,10 +26,14 @@
 /**
  * \file sgui_predef.h
  *
- * This file contains forward declarations of all datatypes.
+ * \brief Contains forward declarations of all datatypes.
  */
 #ifndef SGUI_PREDEF_H
 #define SGUI_PREDEF_H
+
+
+
+#include "sgui_config.h"
 
 
 
@@ -69,15 +73,13 @@ typedef struct sgui_context sgui_context;
 
 typedef struct sgui_event sgui_event;
 
-typedef struct sgui_message_box sgui_message_box;
-
-typedef struct sgui_color_dialog sgui_color_dialog;
-
 typedef struct sgui_window_description sgui_window_description;
 
 typedef struct sgui_model sgui_model;
 
 typedef struct sgui_item sgui_item;
+
+typedef struct sgui_dialog sgui_dialog;
 
 typedef void(* sgui_funptr )( );
 

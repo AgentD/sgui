@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_pass_box.h
+ *
+ * \brief Contains the declarations of the sgui_pass_box widget
+ */
 #ifndef SGUI_PASS_BOX_H
 #define SGUI_PASS_BOX_H
 

@@ -58,9 +58,9 @@ static sgui_widget* find_child_focus( const sgui_widget* this )
 
     for( w=this->children; w!=NULL; w=w->next )
     {
-        if( w->visible )
+        if( w->flags & SGUI_WIDGET_VISIBLE )
         {
-            if( w->focus_policy & SGUI_FOCUS_ACCEPT )
+            if( w->flags & SGUI_FOCUS_ACCEPT )
                 return w;
 
             candidate = candidate ? candidate : find_child_focus( w );
@@ -80,7 +80,6 @@ void sgui_widget_init( sgui_widget* this, int x, int y,
 
     sgui_rect_set_size( &this->area, x, y, width, height );
 
-    this->visible            = 1;
     this->next               = NULL;
     this->children           = NULL;
     this->parent             = NULL;
@@ -88,8 +87,9 @@ void sgui_widget_init( sgui_widget* this, int x, int y,
     this->draw               = NULL;
     this->window_event       = NULL;
     this->state_change_event = NULL;
-    this->focus_policy       = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
-                               SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB;
+    this->flags              = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
+                               SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB|
+                               SGUI_WIDGET_VISIBLE;
 }
 
 void sgui_widget_destroy( sgui_widget* this )
@@ -226,7 +226,7 @@ int sgui_widget_is_absolute_visible( const sgui_widget* this )
 
     for( ; this!=NULL; this=this->parent )
     {
-        if( !this->visible )
+        if( !(this->flags & SGUI_WIDGET_VISIBLE) )
         {
             sgui_internal_unlock_mutex( );
             return 0;
@@ -241,11 +241,14 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
 {
     sgui_rect r;
 
-    if( this && this->visible!=visible )
+    if( this && (((this->flags & SGUI_WIDGET_VISIBLE)!=0) ^ (visible!=0)) )
     {
         sgui_internal_lock_mutex( );
 
-        this->visible = visible;
+        if( visible )
+            this->flags |= SGUI_WIDGET_VISIBLE;
+        else
+            this->flags &= ~SGUI_WIDGET_VISIBLE;
 
         if( this->state_change_event )
             this->state_change_event(this,SGUI_WIDGET_VISIBILLITY_CHANGED);
@@ -301,7 +304,7 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
         {
             /* escape key pressed -> lose focus if policy says so. */
             if( event->arg.i==SGUI_KC_ESCAPE && 
-                (this->focus_policy & SGUI_FOCUS_DROP_ESC) )
+                (this->flags & SGUI_FOCUS_DROP_ESC) )
             {
                 sgui_canvas_set_focus( this->canvas, NULL );
                 return;
@@ -310,7 +313,7 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
             /* tab key pressed -> advance focus if policy says so. */
             if( event->type==SGUI_KEY_RELEASED_EVENT &&
                 event->arg.i==SGUI_KC_TAB &&
-                (this->focus_policy & SGUI_FOCUS_DROP_TAB) )
+                (this->flags & SGUI_FOCUS_DROP_TAB) )
             {
                 i = sgui_widget_find_next_focus( this );
 
@@ -469,8 +472,11 @@ sgui_widget* sgui_widget_get_child_from_point( const sgui_widget* this,
         /* find last child at position */
         for( it=this->children; it!=NULL; it=it->next )
         {
-            if( it->visible && sgui_rect_is_point_inside( &it->area, x, y ) )
+            if( (it->flags & SGUI_WIDGET_VISIBLE) &&
+                sgui_rect_is_point_inside( &it->area, x, y ) )
+            {
                 candidate = it;
+            }
         }
     }
     while( candidate );
@@ -502,10 +508,10 @@ sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
          */
         for( w=this->next; w!=NULL; w=w->next )
         {
-            if( !w->visible )
+            if( !(w->flags & SGUI_WIDGET_VISIBLE) )
                 continue;
 
-            if( w && (w->focus_policy & SGUI_FOCUS_ACCEPT) )
+            if( w && (w->flags & SGUI_FOCUS_ACCEPT) )
             {
                 sgui_internal_unlock_mutex( );
                 return w;
@@ -521,10 +527,10 @@ sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
         /* go to the right uncle, check if it accepts focus, reiterate */
         this = this->parent ? this->parent->next : NULL;
 
-        while( this && !this->visible )
+        while( this && !(this->flags & SGUI_WIDGET_VISIBLE) )
             this = this->next;
 
-        if( this && (this->focus_policy & SGUI_FOCUS_ACCEPT) )
+        if( this && (this->flags & SGUI_FOCUS_ACCEPT) )
         {
             sgui_internal_unlock_mutex( );
             return (sgui_widget*)this;

@@ -415,14 +415,14 @@ static int canvas_mem_draw_string( sgui_canvas* super, int x, int y,
     {
         /* load the next glyph */
         character = sgui_utf8_decode( text, &len );
-        sgui_font_load_glyph( font, character );
+        font->load_glyph( font, character );
 
         /* apply kerning */
-        x += sgui_font_get_kerning_distance( font, previous, character );
+        x += font->get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
-        sgui_font_get_glyph_metrics( font, &w, &h, &bearing );
-        buffer = sgui_font_get_glyph( font );
+        font->get_glyph_metrics( font, &w, &h, &bearing );
+        buffer = font->get_glyph( font );
 
         sgui_rect_set_size( &r, x, y + bearing, w, h );
 
@@ -488,7 +488,8 @@ int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
     if( format!=SGUI_RGBA8 && format!=SGUI_RGB8 )
         return 0;
 
-    sgui_canvas_init( super, width, height );
+    if( !sgui_canvas_init( super, width, height ) )
+        return 0;
 
     this->data = buffer;
     this->bpp = format==SGUI_RGBA8 ? 4 : 3;
@@ -539,9 +540,14 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
     return NULL;
 }
 
-void sgui_memory_canvas_init( sgui_canvas* super )
+int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
+                             unsigned int width,
+                             unsigned int height,
+                             int format, int swaprb )
 {
-    (void)super;
+    (void)super; (void)buffer; (void)width; (void)height;
+    (void)format; (void)swaprb;
+    return 0;
 }
 
 void sgui_memory_canvas_set_buffer( sgui_canvas* canvas,

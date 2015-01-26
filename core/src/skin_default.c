@@ -739,10 +739,10 @@ void sgui_interal_skin_deinit_default( void )
 {
     if( is_init )
     {
-        sgui_font_destroy( sgui_default_skin.font_bold );
-        sgui_font_destroy( sgui_default_skin.font_ital );
-        sgui_font_destroy( sgui_default_skin.font_boit );
-        sgui_font_destroy( sgui_default_skin.font_norm );
+        sgui_default_skin.font_bold->destroy( sgui_default_skin.font_bold );
+        sgui_default_skin.font_ital->destroy( sgui_default_skin.font_ital );
+        sgui_default_skin.font_boit->destroy( sgui_default_skin.font_boit );
+        sgui_default_skin.font_norm->destroy( sgui_default_skin.font_norm );
         is_init = 0;
     }
 }

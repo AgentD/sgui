@@ -14,6 +14,9 @@
 The sample program <b>extras/dialogs.c</b> illustrates the usage of dialog
 windows.<br>
 <br>
+All dialogs structures inherit the common base structure
+<b>sgui_dialog</b>.<br>
+<br>
 
 <h4>Message Box</h4>
 
@@ -38,7 +41,7 @@ display:<br>
 Along with the icon type, the caption and the text, up to 3 button captions
 can be specified.<br>
 <br>
-The function <b>sgui_message_box_display</b> makes the window of a message box
+The function <b>sgui_dialog_display</b> makes the window of a message box
 visible and moves it into the center of the screen. Unlike some operating
 system message box functions, this function returns immediately. The message
 box window is a normal window and needs event processing by the SGUI main
@@ -54,7 +57,7 @@ of the following events is generated:
     clicking any button
 </ul>
 <br>
-When a message box is no longer needed, the <b>sgui_message_box_destroy</b>
+When a message box is no longer needed, the <b>sgui_dialog_destroy</b>
 function has to be used to free the resources allocated
 by <b>sgui_message_box_create</b>.
 <br>
@@ -96,9 +99,9 @@ dialog. It takes three arguments:
 <li>The caption of the reject button
 </ol>
 <br>
-Similar to the message box, the function <b>sgui_color_dialog_destroy</b>
+Similar to the message box, the function <b>sgui_dialog_destroy</b>
 destroys the color-picker dialog and the function
-<b>sgui_color_dialog_display</b> is used make the dialog window visible.<br>
+<b>sgui_dialog_display</b> is used make the dialog window visible.<br>
 <br>
 The color currently selected by the dialog can be changed using the functions
 <b>sgui_color_dialog_set_rgba</b> for RGBA color space and

@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "sgui_tab.h"
 #include "sgui_skin.h"
+#include "sgui_utf8.h"
 #include "sgui_event.h"
 #include "sgui_canvas.h"
 #include "sgui_widget.h"
@@ -61,41 +62,34 @@ sgui_tab_group;
 static void tab_on_state_change( sgui_widget* super, int change )
 {
     sgui_tab_group* g = (sgui_tab_group*)super->parent;
-    sgui_tab *this = (sgui_tab*)super, *old;
+    sgui_tab* this = (sgui_tab*)super;
+    sgui_widget* w;
     sgui_event ev;
 
-    if( change == SGUI_WIDGET_VISIBILLITY_CHANGED )
+    if( change & SGUI_WIDGET_VISIBILLITY_CHANGED )
     {
-        /* set tab to invisible is not allowed */
-        if( !super->visible )
+        if( super->parent )
         {
-            super->visible = 1;
-            return;
-        }
-
-        if( g && this==g->current )
-            return;
-
-        /* turn previously visible tab invisible */
-        if( g )
-        {
-            old = g->current;
-            g->current = this;
-
-            if( old )
+            if( super->flags & SGUI_WIDGET_VISIBLE )
             {
-                old->super.visible = 0;
+                g->current = this;
 
-                ev.src.widget = (sgui_widget*)old;
-                ev.type = SGUI_TAB_DESELECTED;
-                sgui_widget_send_event( (sgui_widget*)old, &ev, 1 );
+                for( w=super->parent->children; w!=NULL; w=w->next )
+                {
+                    if( w!=super && (w->flags & SGUI_WIDGET_VISIBLE) )
+                        sgui_widget_set_visible( w, 0 );
+                }
+            }
+            else if( g->current==this )
+            {
+                g->current = NULL;
             }
         }
 
-        /* generate select event for current tab */
-        ev.src.widget = (sgui_widget*)this;
-        ev.type = SGUI_TAB_SELECTED;
-        sgui_widget_send_event( super, &ev, 1 );
+        ev.type = (super->flags & SGUI_WIDGET_VISIBLE) ?
+                  SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
+        ev.src.widget = super;
+        sgui_event_post( &ev );
     }
 }
 
@@ -140,7 +134,7 @@ static void tab_group_on_state_change( sgui_widget* super, int change )
                 return;
         }
 
-        this->current = NULL;
+        this->current = (sgui_tab*)super->children;
         sgui_widget_set_visible( super->children, 1 );
     }
 }
@@ -244,13 +238,11 @@ sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
 
     memset( this, 0, sizeof(sgui_tab) );
 
-    if( !(this->caption = malloc( strlen(caption) + 1 )) )
+    if( !(this->caption = sgui_strdup( caption )) )
     {
         free( this );
         return NULL;
     }
-
-    strcpy( this->caption, caption );
 
     sgui_internal_lock_mutex( );
     sgui_widget_init( super, 0, g->tab_cap_height,
@@ -260,8 +252,7 @@ sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
 
     this->caption_width = g->tab_cap_width +
                           sgui_skin_default_font_extents( caption, -1, 0, 0 );
-    super->focus_policy       = 0;
-    super->visible            = 0;
+    super->flags              = 0;
     super->state_change_event = tab_on_state_change;
     super->draw               = tab_on_draw;
     super->destroy            = tab_destroy;

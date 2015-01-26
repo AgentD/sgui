@@ -38,8 +38,7 @@ callbacks. Please note that in the <b>draw callback</b>, widgets normaly don't
 use the canvas drawing functions directly, but instead use the functions of
 the skinning subsystem.<br>
 <br>
-The focus policy field of the widget can be initialized with the following
-flags:
+The flag field of the widget can contain the following flags:
 <ul>
 <li><b>SGUI_FOCUS_ACCEPT</b> The widget accepts keyboard focus.
 <li><b>SGUI_FOCUS_DRAW</b> The canvas is allowed to draw a border around
@@ -49,6 +48,7 @@ flags:
 <li><b>SGUI_FOCUS_DROP_TAB</b> When the tab key is pressed, the canvas is
     allowd to move focus to the next widget in focus order, which is
     determined using <b>sgui_widget_find_next_focus</b>
+<li><b>SGUI_WIDGET_VISIBLE</b> This flag is set when the widget is visible.
 </ul>
 The focus order that the <b>sgui_widget_find_next_focus</b> function dictates
 depends on the order in which widgets are attached to their parent widget.

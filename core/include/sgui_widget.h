@@ -26,8 +26,7 @@
 /**
  * \file sgui_widget.h
  *
- * This file contains the interface functions for the abstract widget
- * datatype.
+ * \brief Contains the declaration of the abstract widget datatype.
  */
 #ifndef SGUI_WIDGET_H
 #define SGUI_WIDGET_H
@@ -39,19 +38,36 @@
 
 
 
-/* flags for the widget state change callback */
-#define SGUI_WIDGET_POSITION_CHANGED     0x01
-#define SGUI_WIDGET_VISIBILLITY_CHANGED  0x02
-#define SGUI_WIDGET_PARENT_CHANGED       0x04
-#define SGUI_WIDGET_CHILD_ADDED          0x08
-#define SGUI_WIDGET_CHILD_REMOVED        0x10
-#define SGUI_WIDGET_CANVAS_CHANGED       0x20
+/**
+ * \enum SGUI_WIDGET_STATE_CHANGE
+ *
+ * \brief Flags for the widget state change callback
+ */
+typedef enum
+{
+    SGUI_WIDGET_POSITION_CHANGED     = 0x01,
+    SGUI_WIDGET_VISIBILLITY_CHANGED  = 0x02,
+    SGUI_WIDGET_PARENT_CHANGED       = 0x04,
+    SGUI_WIDGET_CHILD_ADDED          = 0x08,
+    SGUI_WIDGET_CHILD_REMOVED        = 0x10,
+    SGUI_WIDGET_CANVAS_CHANGED       = 0x20
+}
+SGUI_WIDGET_STATE_CHANGE_FLAG;
 
-/* flags for widget focus polocy */
-#define SGUI_FOCUS_ACCEPT           0x01    /* the widget accepts focus */
-#define SGUI_FOCUS_DRAW             0x02    /* draw focus box */
-#define SGUI_FOCUS_DROP_ESC         0x04    /* drop focus on ESC-key */
-#define SGUI_FOCUS_DROP_TAB         0x08    /* drop focus on TAB-key */
+/**
+ * \enum SGUI_WIDGET_FLAG
+ *
+ * \brief Generic widget flags
+ */
+typedef enum
+{
+    SGUI_FOCUS_ACCEPT   = 0x01,    /**< \brief the widget accepts focus */
+    SGUI_FOCUS_DRAW     = 0x02,    /**< \brief draw focus box */
+    SGUI_FOCUS_DROP_ESC = 0x04,    /**< \brief drop focus on ESC-key */
+    SGUI_FOCUS_DROP_TAB = 0x08,    /**< \brief drop focus on TAB-key */
+    SGUI_WIDGET_VISIBLE = 0x10     /**< \brief widget is visible */
+}
+SGUI_WIDGET_FLAG;
 
 
 
@@ -64,9 +80,7 @@ struct sgui_widget
 {
     sgui_rect area;  /**< \brief The area occupied by a widget */
 
-    int visible;     /**< \brief zero if the widget should not be rendered */
-
-    int focus_policy;   /**< \brief widget focus policy flags */
+    int flags;  /**< \brief A combination of \ref SGUI_WIDGET_FLAG flags */
 
     /** \brief The canvas that the widget is attached to */
     sgui_canvas* canvas;
@@ -106,8 +120,8 @@ struct sgui_widget
      *        changes(e.g. position, visibility, etc...)
      * 
      * \param widget A pointer to the widget that changed
-     * \param change A combination of WIDGET_*_CHANGED flags that indicate
-     *               what changed
+     * \param change A combination of \ref SGUI_WIDGET_STATE_CHANGE_FLAG flags
+     *               that indicate what changed
      */
     void (* state_change_event )( sgui_widget* widget, int change );
 };

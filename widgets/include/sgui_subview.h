@@ -22,6 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+/**
+ * \file sgui_subview.h
+ *
+ * \brief Contains the declarations of the sgui_subview widget
+ */
 #ifndef SGUI_SUBVIEW_H
 #define SGUI_SUBVIEW_H
 

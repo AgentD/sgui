@@ -72,7 +72,7 @@ static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
         character = sgui_utf8_decode( text, &len );
 
         /* apply kerning */
-        x += sgui_font_get_kerning_distance( font, previous, character );
+        x += font->get_kerning_distance( font, previous, character );
 
         /* blend onto destination buffer */
         x += sgui_font_cache_draw_glyph( this->cache, font, character,
@@ -474,7 +474,8 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
         goto failure;
 
     /* finish initialisation */
-    sgui_canvas_init( super, width, height );
+    if( !sgui_canvas_init( super, width, height ) )
+        goto failure;
     sgui_internal_unlock_mutex( );
 
     super->destroy       = canvas_xrender_destroy;
@@ -532,7 +533,15 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     }
 
     /* finish initialisation */
-    sgui_canvas_init( super, width, height );
+    if( !sgui_canvas_init( super, width, height ) )
+    {
+        XFreeGC( dpy, this->gc );
+        XFreePixmap( dpy, this->pixmap );
+        sgui_internal_unlock_mutex( );
+        free( this );
+        return NULL;
+    }
+
     memcpy( this->bg, sgui_skin_get( )->window_color, 4 );
 
     sgui_internal_unlock_mutex( );

@@ -330,7 +330,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
 
     super->draw           = scroll_bar_draw;
     super->destroy        = (void(*)(sgui_widget*))free;
-    super->focus_policy   = 0;
+    super->flags          = SGUI_WIDGET_VISIBLE;
     this->horizontal      = horizontal;
     this->length          = length;
     this->v_length        = disp_area_length;

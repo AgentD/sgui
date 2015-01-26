@@ -51,6 +51,8 @@
 #define DPY_WIDTH DisplayWidth( dpy, DefaultScreen(dpy) )
 #define DPY_HEIGHT DisplayHeight( dpy, DefaultScreen(dpy) )
 
+#define DOUBLE_CLICK_MS 750
+
 extern XIM im;
 extern Display* dpy;
 extern Window root;
@@ -68,6 +70,14 @@ void add_window( sgui_window_xlib* window );
 
 /* remove a window from the list */
 void remove_window( sgui_window_xlib* window );
+
+/* called from window.c when window is clicked,
+   returns non-zero if double click */
+int check_double_click( sgui_window_xlib* window );
+
+/* called from window.c when mouse moves or
+   otherwise interrupts double click */
+void interrupt_double_click( void );
 
 #endif /* X11_PLATFORM_H */
 

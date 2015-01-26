@@ -26,8 +26,7 @@
 /**
  * \file sgui_window.h
  *
- * This file contains the interface functions for the abstract window
- * datatype.
+ * \brief Contains the declarations of the abstract window datatype.
  */
 #ifndef SGUI_WINDOW_H
 #define SGUI_WINDOW_H
@@ -48,6 +47,108 @@
 typedef void (* sgui_window_callback ) (void* user, const sgui_event* event);
 
 
+/**
+ * \enum SGUI_WINDOW_BACKEND
+ *
+ * \brief Constants specifiying the backend to use for a window
+ */
+typedef enum
+{
+    /**
+     * \brief Use the native window system
+     *
+     * Native windows use the native window sytem API and have a canvas
+     * implementation that renders widgets to the window.
+     */
+    SGUI_NATIVE = 0,
+
+    /**
+     * \brief OpenGL core profile, highest verstion available
+     *
+     * Windows with this backend have an asociated OpenGL rendering context.
+     * The rendering context uses OpenGL core profile with the hightes GL
+     * version available.
+     * Windows with this backend do not have a canvas implementation. Instead,
+     * they have an sgui_context implementation that abstracts access to the
+     * context.
+     *
+     * A window with this backend generates an SGUI_EXPOSE_EVENT when the
+     * window needs to be redrawn.
+     */
+    SGUI_OPENGL_CORE   = 1,
+
+    /**
+     * \brief OpenGL compatibillity profile, highest verstion available
+     *
+     * Windows with this backend have an asociated OpenGL rendering context.
+     * The rendering context uses OpenGL compatibillity profile with the
+     * hightes GL version available.
+     * Windows with this backend do not have a canvas implementation. Instead,
+     * they have an sgui_context implementation that abstracts access to the
+     * context.
+     *
+     * A window with this backend generates an SGUI_EXPOSE_EVENT when the
+     * window needs to be redrawn.
+     */
+    SGUI_OPENGL_COMPAT = 2,
+
+    /**
+     * \brief A window with a Direct3D 9 context
+     *
+     * Windows with this backend have an asociated IDirect3DDevice9 object
+     * that can be used to render to the window using Direct3D 9.
+     * Windows with this backend do not have a canvas implementation. Instead,
+     * they have an sgui_context implementation (more precisely an
+     * sgui_d3d9_context) from wich the IDirect3DDevice9 and
+     * D3DPRESENT_PARAMETERS can be obtained.
+     *
+     * A window with this backend generates an SGUI_D3D9_DEVICE_LOST event
+     * when the Direct3D device is lost. An SGUI_EXPOSE_EVENT is generated
+     * when the window needs to be redrawn.
+     *
+     * When the window is resized, the D3DPRESENT_PARAMETERS in the context
+     * are updated, but resetting the device is left as a task to the user
+     * since doing so requires re-uploading all GPU buffers of the application
+     * that the window has no knowledge of.
+     */
+    SGUI_DIRECT3D_9 = 3,
+
+    /**
+     * \brief A window with a Direct3D 11 context
+     *
+     * Windows with this backend have asociated sgui_d3d11_context that can
+     * be used to render to the window using Direct3D 11.
+     *
+     * Windows with this backend do not have a canvas implementation. Instead,
+     * they have an sgui_context implementation (more precisely an
+     * sgui_d3d11_context) from wich the IDXGISwapChain, ID3D11Device,
+     * ID3D11DeviceContext, backbuffer ID3D11RenderTargetView, depth/stencil
+     * ID3D11Texture2D and ID3D11DepthStencilView can be obtained.
+     *
+     * The back buffer render target views and textures are automatically
+     * resized and reattached if they were before resizing.
+     *
+     * A window with this backend generates an SGUI_EXPOSE_EVENT when the
+     * window needs to be redrawn.
+     */
+    SGUI_DIRECT3D_11 = 4,
+
+    /**
+     * \brief A window with neither a canvas nor a context
+     *
+     * A window with this backend does not have a canvas or a context object
+     * asociated with it. It simply abstracts a platform dependend window and
+     * generates SGUI_EXPOSE_EVENT when the window needs to be redrawn.
+     *
+     * The function sgui_window_get_platform_data can be used to obtain a
+     * platform dependend window handle and do something interesting with the
+     * window.
+     */
+    SGUI_CUSTOM = 10
+}
+SGUI_WINDOW_BACKEND;
+
+
 
 /**
  * \struct sgui_window
@@ -56,6 +157,10 @@ typedef void (* sgui_window_callback ) (void* user, const sgui_event* event);
  */
 struct sgui_window
 {
+    /**
+     * \brief A window can have either an sgui_canvas implementation, or an
+     *        sgui_context implementation, not both
+     */
     union
     {
         sgui_canvas* canvas;       /**< \brief pointer to a canvas */
@@ -65,13 +170,26 @@ struct sgui_window
 
     sgui_window_callback event_fun; /**< \brief the window event callback */
 
-    int x, y;                   /**< \brief position of the window */
-    unsigned int w, h;          /**< \brief the size of the window */
+    int x;          /**< \brief The distance from the left of the screen */
+    int y;          /**< \brief The distance from the top of the screen */
+    unsigned int w; /**< \brief The horizontal extents of the window */
+    unsigned int h; /**< \brief The vertical extents of the window */
 
-    int visible;                /**< \brief Window visibility */
-    int modmask;                /**< \brief Keyboard modifyer mask */
-    int backend;                /**< \brief Window backend used */
+    int visible;    /**< \brief Window visibility */
+    int modmask;    /**< \brief Set of \ref SGUI_MODIFYER_FLAG flags */
 
+    /**
+     * \brief The backend used by the window
+     *
+     * \see SGUI_WINDOW_BACKEND
+     */
+    int backend;
+
+    /**
+     * \brief A user data pointer asociated with the window
+     *
+     * \see sgui_window_callback
+     */
     void* userptr;
 
     /**
@@ -211,17 +329,9 @@ struct sgui_window_description
     int flags;
 
     /**
-     * \brief What back end to use
+     * \brief An \ref SGUI_WINDOW_BACKEND value specifying what backend to use
      *
-     * 0 or SGUI_NATIVE for native window system back end, SGUI_OPENGL_CORE to
-     * create a core profile OpenGL context for the window, SGUI_OPENGL_COMPAT
-     * for compatibillity profile. OpenGL contexts are created for the highest
-     * version available on the current system.
-     * The constants SGUI_DIRECT3D_9 and SGUI_DIRECT3D_11 can be used to
-     * request a window with a Direct3D 9 and 11 context respectively.
-     * Direct3D 11 windows try to created feature levels 11.0 down to 9.0.
-     * The constant SGUI_CUSTOM requests a window that has neither a canvas
-     * nor a context object for custom applications.
+     * \see SGUI_WINDOW_BACKEND
      */
     int backend;
 
@@ -256,13 +366,6 @@ struct sgui_window_description
 
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
-
-#define SGUI_NATIVE        0
-#define SGUI_OPENGL_CORE   1
-#define SGUI_OPENGL_COMPAT 2
-#define SGUI_DIRECT3D_9    3
-#define SGUI_DIRECT3D_11   4
-#define SGUI_CUSTOM        10
 
 
 
@@ -430,7 +533,15 @@ SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
  */
 SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
 
-/** \brief Returns non-zero if a given window is visible, zero otherwise */
+/**
+ * \brief Returns non-zero if a given window is visible, zero otherwise
+ *
+ * \memberof sgui_window
+ *
+ * \param wnd A pointer to the window
+ *
+ * \return Non-zero if the window is visible, zero if not
+ */
 SGUI_DLL int sgui_window_is_visible( const sgui_window* wnd );
 
 /**
@@ -607,9 +718,11 @@ SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
 SGUI_DLL sgui_canvas* sgui_window_get_canvas( const sgui_window* wnd );
 
 /**
- * \brief Get a combination of SGUI_MOD_ flags for the current modifiers
+ * \brief Get the currently set keyboard modifiers
  *
  * \memberof sgui_window
+ *
+ * \return A combination of \ref SGUI_MODIFYER_FLAG
  */
 SGUI_DLL int sgui_window_get_modifyer_mask( const sgui_window* wnd );
 
