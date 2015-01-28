@@ -198,6 +198,7 @@ sgui_ctx_window* sgui_ctx_wm_window_from_point( sgui_ctx_wm* this,
 void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
 {
     sgui_ctx_window* wnd;
+    sgui_event ev;
     int x, y;
 
     if( !this || !event )
@@ -252,12 +253,16 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
         else
         {
             sgui_ctx_window_inject_event((sgui_window*)this->mouseover,event);
+        }
 
-            if( this->focus != this->mouseover )
-            {
-                /* TODO: tell old window it no longer has focus */
-                this->focus = this->mouseover;
-            }
+        if( this->focus != this->mouseover )
+        {
+            ev.type = SGUI_FOCUS_LOSE_EVENT;
+            sgui_ctx_window_inject_event((sgui_window*)this->focus,&ev);
+
+            this->focus = this->mouseover;
+            ev.type = SGUI_FOCUS_EVENT;
+            sgui_ctx_window_inject_event((sgui_window*)this->focus,&ev);
         }
         break;
     case SGUI_MOUSE_WHEEL_EVENT:
