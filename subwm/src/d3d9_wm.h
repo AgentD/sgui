@@ -27,6 +27,10 @@
 
 
 
+#include "sgui_predef.h"
+
+
+
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
 #include "sgui_ctx_window.h"
 #include "sgui_window.h"
