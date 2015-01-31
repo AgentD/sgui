@@ -290,8 +290,8 @@ static GLuint create_skin_texture( void )
     return tex;
 }
 
-static void sgui_gl_functions_load( sgui_gl_functions* this,
-                                    sgui_context* ctx )
+static int sgui_gl_functions_load( sgui_gl_functions* this,
+                                   sgui_context* ctx )
 {
     this->Uniform1f=(GLUNIFORM1F)ctx->load(ctx,"glUniform1f");
     this->BufferSubData=(GLBUFFERSUBDATA)ctx->load(ctx,"glBufferSubData");
@@ -306,6 +306,15 @@ static void sgui_gl_functions_load( sgui_gl_functions* this,
 
     this->DrawElementsBaseVertex = (GLDRAWELEMENTSBASEVERTEX)
     ctx->load( ctx, "glDrawElementsBaseVertex" );
+
+    if(!this->Uniform1f||!this->BufferSubData||!this->UseProgram||
+       !this->ActiveTexture||!this->UniformMatrix4fv||!this->BindVertexArray||
+       !this->DrawElementsBaseVertex)
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
 /****************************************************************************/
@@ -534,7 +543,11 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
 
     /* load extensions */
     gl = &(this->gl);
-    sgui_gl_functions_load( gl, wnd->ctx.ctx );
+    if( !sgui_gl_functions_load( gl, wnd->ctx.ctx ) )
+    {
+        free( this );
+        return NULL;
+    }
 
     Uniform1i = (GLUNIFORM1I)ctx->load( ctx, "glUniform1i" );
     GetUniformLocation = (GLGETUNIFORMLOCATION)
@@ -561,6 +574,16 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
 
     EnableVertexAttribArray = (GLENABLEVERTEXATTRIBARRAY)
     ctx->load( ctx, "glEnableVertexAttribArray" );
+
+    if(!Uniform1i||!GetUniformLocation||!CompileShader||!CreateShader||
+       !CreateProgram||!GenBuffers||!LinkProgram||!ShaderSource||
+       !AttachShader||!GenVertexArrays||!BindBuffer||!BufferData||
+       !BindFragDataLocation||!BindAttribLocation||!VertexAttribPointer||
+       !EnableVertexAttribArray)
+    {
+        free( this );
+        return NULL;
+    }
 
     /* create buffer objects */
     GenVertexArrays( 1, &(this->vao) );
@@ -603,7 +626,6 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     /* link shader program */
     AttachShader( this->prog, this->vsh );
     AttachShader( this->prog, this->fsh );
-
     BindFragDataLocation( this->prog, 0, "color" );
     BindAttribLocation( this->prog, 0, "v_pos" );
     BindAttribLocation( this->prog, 1, "v_tc0" );
@@ -617,19 +639,22 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     GetShaderInfoLog = (GLGETSHADERINFOLOG)
                        ctx->load( ctx, "glGetShaderInfoLog" );
 
-    GetShaderInfoLog( this->vsh, sizeof(buffer), &length, buffer );
-    if( length > 3 )
-        fprintf( stderr, "SGUI VERTEX SHADER COMPILE FAILED!!\n\n%s\n\n",
-                 buffer );
+    if( GetProgramInfoLog!=NULL && GetShaderInfoLog!=NULL )
+    {
+        GetShaderInfoLog( this->vsh, sizeof(buffer), &length, buffer );
+        if( length > 3 )
+            fprintf( stderr, "SGUI VERTEX SHADER COMPILE FAILED!!\n\n%s\n\n",
+                     buffer );
 
-    GetShaderInfoLog( this->fsh, sizeof(buffer), &length, buffer );
-    if( length > 3 )
-        fprintf(stderr,"SGUI FRAGMENT SHADER COMPILE FAILED!!\n\n%s\n\n",
-                buffer);
+        GetShaderInfoLog( this->fsh, sizeof(buffer), &length, buffer );
+        if( length > 3 )
+            fprintf(stderr,"SGUI FRAGMENT SHADER COMPILE FAILED!!\n\n%s\n\n",
+                    buffer);
 
-    GetProgramInfoLog( this->prog, sizeof(buffer), &length, buffer );
-    if( length > 3 )
-        fprintf( stderr, "SGUI SHADER LINK FAILED!!\n\n%s\n\n", buffer );
+        GetProgramInfoLog( this->prog, sizeof(buffer), &length, buffer );
+        if( length > 3 )
+            fprintf( stderr, "SGUI SHADER LINK FAILED!!\n\n%s\n\n", buffer );
+    }
 #endif
     /* get shader unfiroms */
     this->u_mvp   = GetUniformLocation( this->prog, "mvp" );
