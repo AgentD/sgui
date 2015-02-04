@@ -116,7 +116,7 @@ sgui_ctx_wm* d3d9_wm_create( sgui_window* wnd )
     if( !this )
         return NULL;
 
-    ctx = (sgui_d3d9_context*)sgui_window_get_context( super->wnd );
+    ctx = (sgui_d3d9_context*)sgui_window_get_context( wnd );
     memset( this, 0, sizeof(sgui_d3d9_wm) );
 
     /* create skin texture */

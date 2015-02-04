@@ -78,7 +78,11 @@
 #define GL_CURRENT_PROGRAM 0x8B8D
 
 #ifndef GLAPIENTRY
-    #define GLAPIENTRY
+    #ifdef APIENTRY
+        #define GLAPIENTRY APIENTRY
+    #else
+        #define GLAPIENTRY
+    #endif
 #endif
 
 

@@ -528,7 +528,10 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
     /* use normal gl wm if version < 3.0 */
     str = (const char*)glGetString( GL_VERSION );
 
-    if( str && strtol( str, NULL, 0 )<3 )
+    if( !str )
+        return NULL;
+
+    if( strtol( str, NULL, 0 )<3 )
         return gl_wm_create( wnd );
 
     /* create object */
