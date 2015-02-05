@@ -60,6 +60,9 @@ struct sgui_tex_canvas
  * \extends sgui_tex_canvas
  *
  * \brief A Direct3D 9 implementation of a texture canvas
+ *
+ * The implementation uses D3DPOOL_SYSTEMMEM for the underlying dynamic
+ * texture and does not need texture recreation if the device is lost.
  */
 
 /**

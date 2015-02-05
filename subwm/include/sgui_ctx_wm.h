@@ -90,6 +90,18 @@ struct sgui_ctx_wm
  * \brief An OpenGL implementation of a window manager
  */
 
+/**
+ * \struct sgui_d3d9_wm
+ *
+ * \implements sgui_ctx_wm
+ *
+ * \brief A Direct3D 9 implementation of a window manager
+ *
+ * The underlying implementation uses D3DPOOL_MANAGED for the skin texture and
+ * does not need to recreate resources when the device is lost.
+ */
+
+
 
 
 #ifdef __cplusplus
