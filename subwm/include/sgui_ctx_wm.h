@@ -174,6 +174,11 @@ void sgui_ctx_wm_remove_window( sgui_ctx_wm* wm, sgui_window* wnd );
  * left untouched. Please set texturing to use unit 0 with normal replace mode
  * for the texture environment.
  *
+ * If you are using Direct3D 9, you are responsible to call this function
+ * inside a begin/end block. The Direct3D state is not backed up. The FVF
+ * settings, blending state, depth test and texture bindings are altered.
+ * State management is the responsibillity of the user.
+ *
  * \param wm A pointer to an sgui_ctx_wm object
  */
 void sgui_ctx_wm_draw_gui( sgui_ctx_wm* wm );

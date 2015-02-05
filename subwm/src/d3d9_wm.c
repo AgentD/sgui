@@ -78,17 +78,15 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
     vp.MaxZ   = 1.0f;
 
     ctx = (sgui_d3d9_context*)sgui_window_get_context( super->wnd );
-    IDirect3DDevice9_BeginScene( ctx->device );
     IDirect3DDevice9_SetViewport( ctx->device, &vp );
     IDirect3DDevice9_SetFVF( ctx->device, WINDOWFVF );
 
-    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_FILLMODE,
-                                    D3DFILL_SOLID);
     IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_SRCBLEND,
                                     D3DBLEND_SRCALPHA);
     IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_DESTBLEND,
                                     D3DBLEND_INVSRCALPHA);
     IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_ALPHABLENDENABLE,TRUE);
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_ZENABLE,FALSE);
 
     IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_COLOROP,
                                            D3DTOP_MODULATE );
@@ -147,7 +145,6 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
     }
 
     IDirect3DDevice9_SetTexture( ctx->device, 0, NULL );
-    IDirect3DDevice9_EndScene( ctx->device );
 }
 
 static void d3d9_wm_destroy( sgui_ctx_wm* super )

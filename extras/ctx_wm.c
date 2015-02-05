@@ -30,6 +30,8 @@
 
 
 
+static sgui_ctx_wm* wm;
+static int drawgui = 1;
 static void renderer_init( int backend, sgui_context* ctx );
 static void renderer_draw( int backend, sgui_context* ctx );
 
@@ -43,7 +45,6 @@ int main( void )
     sgui_window* subwnd2;
     sgui_context* ctx;
     sgui_window* wnd;
-    sgui_ctx_wm* wm;
     int selection;
 
     puts( "Select rendering backend: " );
@@ -130,7 +131,10 @@ int main( void )
     while( sgui_main_loop_step( ) )
     {
         renderer_draw( selection, ctx );
-        sgui_ctx_wm_draw_gui( wm );
+
+        if( drawgui )
+            sgui_ctx_wm_draw_gui( wm );
+
         sgui_window_swap_buffers( wnd );
     }
 
@@ -548,6 +552,8 @@ static void d3d9_init( sgui_context* context )
     m[2]=0;             m[6]=0; m[10]=(Far+Near)*iNF; m[14]=2*Far*Near*iNF;
     m[3]=0;             m[7]=0; m[11]=-1;             m[15]=0;
     IDirect3DDevice9_SetTransform(ctx->device,D3DTS_PROJECTION,(D3DMATRIX*)m);
+
+    drawgui = 0;
 }
 
 static void d3d9_draw( sgui_context* context )
@@ -567,9 +573,12 @@ static void d3d9_draw( sgui_context* context )
 
     IDirect3DDevice9_BeginScene( ctx->device );
 
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_ZENABLE,TRUE);
     IDirect3DDevice9_SetFVF( ctx->device, CUSTOMFVF );
     IDirect3DDevice9_SetStreamSource( ctx->device, 0, v_buffer, 0,
                                       sizeof(CUSTOMVERTEX) );
+    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_FILLMODE,
+                                    D3DFILL_WIREFRAME);
 
     m[0]=m[10]=cos(t); m[2]=sin(t); m[8]=-m[2]; m[1]=m[4]=m[6]=m[9]=0; m[5]=1;
     vp.X = 0; vp.Y = HEIGHT/2;
@@ -589,8 +598,9 @@ static void d3d9_draw( sgui_context* context )
     IDirect3DDevice9_SetViewport( ctx->device, &vp );
     IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_FILLMODE,D3DFILL_SOLID);
     IDirect3DDevice9_DrawPrimitive( ctx->device, D3DPT_TRIANGLELIST, 0, 12 );
-    IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_FILLMODE,
-                                    D3DFILL_WIREFRAME);
+
+    /* draw GUI in begin/end block */
+    sgui_ctx_wm_draw_gui( wm );
 
     IDirect3DDevice9_EndScene( ctx->device );
     t += 0.01f;
