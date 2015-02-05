@@ -15,6 +15,7 @@ set( SUBWM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/tex_canvas.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/ctx_window.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/ctx_wm.c
                ${CMAKE_CURRENT_SOURCE_DIR}/src/skin.c
+               ${CMAKE_CURRENT_SOURCE_DIR}/src/ctx_mesh.c
                ${SUBWM_OS_SRC}
      PARENT_SCOPE )
 
