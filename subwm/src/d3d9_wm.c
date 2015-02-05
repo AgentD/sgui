@@ -31,7 +31,8 @@
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
 static void d3d9_wm_draw_background( IDirect3DDevice9* device,
                                      sgui_subwm_skin* skin, int x, int y,
-                                     unsigned int width, unsigned int height )
+                                     unsigned int width, unsigned int height,
+                                     int alpha )
 {
     unsigned short* indices;
     WINDOWVERTEX vb[16];
@@ -43,12 +44,13 @@ static void d3d9_wm_draw_background( IDirect3DDevice9* device,
 
     for( i=0; i<16; ++i )
     {
-        vb[i].x   = buffer[i*4+2] + x;
-        vb[i].y   = buffer[i*4+3] + y;
-        vb[i].z   = 0.0f;
-        vb[i].rhw = 1.0f;
-        vb[i].u   = buffer[i*4  ];
-        vb[i].v   = buffer[i*4+1];
+        vb[i].x     = buffer[i*4+2] + x;
+        vb[i].y     = buffer[i*4+3] + y;
+        vb[i].z     = 0.0f;
+        vb[i].rhw   = 1.0f;
+        vb[i].u     = buffer[i*4  ];
+        vb[i].v     = buffer[i*4+1];
+        vb[i].color = D3DCOLOR_ARGB(alpha,0xFF,0xFF,0xFF);
     }
 
     IDirect3DDevice9_DrawIndexedPrimitiveUP( device, D3DPT_TRIANGLELIST,
@@ -66,6 +68,7 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
     sgui_ctx_window* wnd;
     WINDOWVERTEX vb[6];
     D3DVIEWPORT9 vp;
+    int alpha;
 
     vp.X      = 0;
     vp.Y      = 0;
@@ -94,7 +97,7 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
     IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_COLORARG2,
                                            D3DTA_DIFFUSE );
     IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_ALPHAOP,
-                                           D3DTOP_SELECTARG1 );
+                                           D3DTOP_MODULATE );
 
     vb[0].z   = vb[1].z   = vb[2].z   = vb[5].z   = 0.0f;
     vb[0].rhw = vb[1].rhw = vb[2].rhw = vb[5].rhw = 1.0f;
@@ -111,12 +114,26 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
 
     for( wnd=super->list; wnd!=NULL; wnd=wnd->next )
     {
+        if( !wnd->super.visible )
+            continue;
+
+        wndtex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
+
+        if( !wndtex )
+            continue;
+
+        alpha = wnd->next ? SGUI_WINDOW_BACKGROUND :
+                super->draging ? SGUI_WINDOW_DRAGING : SGUI_WINDOW_TOPMOST;
+        alpha = skin->get_window_transparency( skin, alpha );
+
         IDirect3DDevice9_SetTexture( ctx->device, 0,
                                      (IDirect3DBaseTexture9*)this->skintex );
         d3d9_wm_draw_background( ctx->device, skin,
                                  wnd->super.x, wnd->super.y,
-                                 wnd->super.w, wnd->super.h );
+                                 wnd->super.w, wnd->super.h, alpha );
 
+        vb[0].color = vb[1].color =
+        vb[2].color = vb[5].color = D3DCOLOR_ARGB(alpha,0xFF,0xFF,0xFF);
         vb[0].x = vb[5].x = wnd->super.x;
         vb[0].y = vb[1].y = wnd->super.y;
         vb[1].x = vb[2].x = wnd->super.x + wnd->super.w-1;
@@ -124,7 +141,6 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
         vb[3] = vb[0];
         vb[4] = vb[2];
 
-        wndtex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
         IDirect3DDevice9_SetTexture( ctx->device, 0, wndtex );
         IDirect3DDevice9_DrawPrimitiveUP( ctx->device, D3DPT_TRIANGLELIST, 2,
                                           vb, sizeof(WINDOWVERTEX) );
