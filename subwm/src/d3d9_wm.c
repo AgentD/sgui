@@ -23,15 +23,46 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "d3d9_wm.h"
+#include "ctx_mesh.h"
 #include "sgui_subwm_skin.h"
 
 
 
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
+static void d3d9_wm_draw_background( IDirect3DDevice9* device,
+                                     sgui_subwm_skin* skin, int x, int y,
+                                     unsigned int width, unsigned int height )
+{
+    unsigned short* indices;
+    WINDOWVERTEX vb[16];
+    float buffer[16*4];
+    int i;
+
+    ctx_get_window_vertices( width, height, buffer, skin, -1 );
+    ctx_get_window_indices( &indices );
+
+    for( i=0; i<16; ++i )
+    {
+        vb[i].x   = buffer[i*4+2] + x;
+        vb[i].y   = buffer[i*4+3] + y;
+        vb[i].z   = 0.0f;
+        vb[i].rhw = 1.0f;
+        vb[i].u   = buffer[i*4  ];
+        vb[i].v   = buffer[i*4+1];
+    }
+
+    IDirect3DDevice9_DrawIndexedPrimitiveUP( device, D3DPT_TRIANGLELIST,
+                                             0, 16, 18,
+                                             indices, D3DFMT_INDEX16, vb,
+                                             sizeof(WINDOWVERTEX) );
+}
+
 static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
 {
+    sgui_d3d9_wm* this = (sgui_d3d9_wm*)super;
     IDirect3DBaseTexture9* wndtex;
     sgui_d3d9_context* ctx;
+    sgui_subwm_skin* skin;
     sgui_ctx_window* wnd;
     WINDOWVERTEX vb[6];
     D3DVIEWPORT9 vp;
@@ -76,10 +107,15 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
     vb[5].u = 0.0f;
     vb[5].v = 1.0f;
 
+    skin = sgui_subwm_skin_get( );
+
     for( wnd=super->list; wnd!=NULL; wnd=wnd->next )
     {
-        wndtex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
-        IDirect3DDevice9_SetTexture( ctx->device, 0, wndtex );
+        IDirect3DDevice9_SetTexture( ctx->device, 0,
+                                     (IDirect3DBaseTexture9*)this->skintex );
+        d3d9_wm_draw_background( ctx->device, skin,
+                                 wnd->super.x, wnd->super.y,
+                                 wnd->super.w, wnd->super.h );
 
         vb[0].x = vb[5].x = wnd->super.x;
         vb[0].y = vb[1].y = wnd->super.y;
@@ -88,6 +124,8 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
         vb[3] = vb[0];
         vb[4] = vb[2];
 
+        wndtex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
+        IDirect3DDevice9_SetTexture( ctx->device, 0, wndtex );
         IDirect3DDevice9_DrawPrimitiveUP( ctx->device, D3DPT_TRIANGLELIST, 2,
                                           vb, sizeof(WINDOWVERTEX) );
     }

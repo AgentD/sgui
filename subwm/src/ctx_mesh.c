@@ -54,7 +54,7 @@ static unsigned short ibo[] =
 
 
 void ctx_get_window_vertices( unsigned int width, unsigned int height,
-                              float* vbo, sgui_subwm_skin* skin )
+                              float* vbo, sgui_subwm_skin* skin, int offset )
 {
     int a, b, c, d, e, f, g, h;
     sgui_rect tl, tr, bl, br;
@@ -103,16 +103,16 @@ void ctx_get_window_vertices( unsigned int width, unsigned int height,
     /* vertex positions */
     vbo[2]=vbo[3]=vbo[7]=vbo[11]=vbo[15]=vbo[18]=vbo[34]=vbo[50]=0.0f;
 
-    vbo[ 6] = vbo[22] = a;
-    vbo[10] = vbo[26] = width-b;
-    vbo[19] = vbo[23] = c;
-    vbo[27] = vbo[31] = d;
-    vbo[38] = vbo[54] = e;
-    vbo[42] = vbo[58] = width-f;
-    vbo[35] = vbo[39] = height-g;
-    vbo[43] = vbo[47] = height-h;
-    vbo[14] = vbo[30] = vbo[46] = vbo[62] = width;
-    vbo[51] = vbo[55] = vbo[59] = vbo[63] = height;
+    vbo[ 6] = vbo[22] = a+offset;
+    vbo[10] = vbo[26] = width-b+offset;
+    vbo[19] = vbo[23] = c+offset;
+    vbo[27] = vbo[31] = d+offset;
+    vbo[38] = vbo[54] = e+offset;
+    vbo[42] = vbo[58] = width-f+offset;
+    vbo[35] = vbo[39] = height-g+offset;
+    vbo[43] = vbo[47] = height-h+offset;
+    vbo[14] = vbo[30] = vbo[46] = vbo[62] = width+offset;
+    vbo[51] = vbo[55] = vbo[59] = vbo[63] = height+offset;
 }
 
 unsigned int ctx_get_window_indices( unsigned short** indexbuffer )

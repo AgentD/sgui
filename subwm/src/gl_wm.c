@@ -275,7 +275,7 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
 
         sgui_window_get_position( (sgui_window*)wnd, &wx, &wy );
         sgui_window_get_size( (sgui_window*)wnd, &ww, &wh );
-        ctx_get_window_vertices( ww, wh, vbo, skin );
+        ctx_get_window_vertices( ww, wh, vbo, skin, 0 );
 
         /* draw window background */
         glTranslatef( (float)wx, (float)wy, 0.0f );
@@ -376,7 +376,7 @@ static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
         if( !wnd->super.visible )
             continue;
 
-        ctx_get_window_vertices( wnd->super.w, wnd->super.h, vb, skin );
+        ctx_get_window_vertices( wnd->super.w, wnd->super.h, vb, skin, 0 );
 
         for( i=0; i<16; ++i )
         {

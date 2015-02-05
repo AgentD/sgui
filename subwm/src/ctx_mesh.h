@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 void ctx_get_window_vertices( unsigned int width, unsigned int height,
-                              float* vbo, sgui_subwm_skin* skin );
+                              float* vbo, sgui_subwm_skin* skin, int offset );
 
 unsigned int ctx_get_window_indices( unsigned short** indexbuffer );
 
