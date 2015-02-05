@@ -30,6 +30,7 @@
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
 static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
 {
+    IDirect3DBaseTexture9* wndtex;
     sgui_d3d9_context* ctx;
     sgui_ctx_window* wnd;
     WINDOWVERTEX vb[6];
@@ -55,43 +56,43 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
                                     D3DBLEND_INVSRCALPHA);
     IDirect3DDevice9_SetRenderState(ctx->device,D3DRS_ALPHABLENDENABLE,TRUE);
 
+    IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_COLOROP,
+                                           D3DTOP_MODULATE );
+    IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_COLORARG1,
+                                           D3DTA_TEXTURE );
+    IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_COLORARG2,
+                                           D3DTA_DIFFUSE );
+    IDirect3DDevice9_SetTextureStageState( ctx->device, 0, D3DTSS_ALPHAOP,
+                                           D3DTOP_SELECTARG1 );
+
+    vb[0].z   = vb[1].z   = vb[2].z   = vb[5].z   = 0.0f;
+    vb[0].rhw = vb[1].rhw = vb[2].rhw = vb[5].rhw = 1.0f;
+    vb[0].u = 0.0f;
+    vb[0].v = 0.0f;
+    vb[1].u = 1.0f;
+    vb[1].v = 0.0f;
+    vb[2].u = 1.0f;
+    vb[2].v = 1.0f;
+    vb[5].u = 0.0f;
+    vb[5].v = 1.0f;
+
     for( wnd=super->list; wnd!=NULL; wnd=wnd->next )
     {
-        vb[0].x   = wnd->super.x;
-        vb[0].y   = wnd->super.y;
-        vb[0].z   = 0.0f;
-        vb[0].rhw = 1.0f;
-        /*vb[0].u   = 0.0f;
-        vb[0].v   = 0.0f;*/
+        wndtex = sgui_ctx_window_get_texture( (sgui_window*)wnd );
+        IDirect3DDevice9_SetTexture( ctx->device, 0, wndtex );
 
-        vb[1].x   = wnd->super.x + wnd->super.w-1;
-        vb[1].y   = wnd->super.y;
-        vb[1].z   = 0.0f;
-        vb[1].rhw = 1.0f;
-        /*vb[1].u   = 1.0f;
-        vb[1].v   = 0.0f;*/
-
-        vb[2].x   = wnd->super.x + wnd->super.w-1;
-        vb[2].y   = wnd->super.y + wnd->super.h-1;
-        vb[2].z   = 0.0f;
-        vb[2].rhw = 1.0f;
-        /*vb[2].u   = 1.0f;
-        vb[2].v   = 1.0f;*/
-
+        vb[0].x = vb[5].x = wnd->super.x;
+        vb[0].y = vb[1].y = wnd->super.y;
+        vb[1].x = vb[2].x = wnd->super.x + wnd->super.w-1;
+        vb[2].y = vb[5].y = wnd->super.y + wnd->super.h-1;
         vb[3] = vb[0];
         vb[4] = vb[2];
-
-        vb[5].x   = wnd->super.x;
-        vb[5].y   = wnd->super.y + wnd->super.h-1;
-        vb[5].z   = 0.0f;
-        vb[5].rhw = 1.0f;
-        /*vb[5].u   = 0.0f;
-        vb[5].v   = 1.0f;*/
 
         IDirect3DDevice9_DrawPrimitiveUP( ctx->device, D3DPT_TRIANGLELIST, 2,
                                           vb, sizeof(WINDOWVERTEX) );
     }
 
+    IDirect3DDevice9_SetTexture( ctx->device, 0, NULL );
     IDirect3DDevice9_EndScene( ctx->device );
 }
 

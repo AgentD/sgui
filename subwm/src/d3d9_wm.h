@@ -49,11 +49,11 @@ sgui_d3d9_wm;
 typedef struct
 {
     FLOAT x, y, z, rhw;
-    /*FLOAT u, v;*/
+    FLOAT u, v;
 }
 WINDOWVERTEX;
 
-#define WINDOWFVF (D3DFVF_XYZRHW /*| D3DFVF_TEX1*/)
+#define WINDOWFVF (D3DFVF_XYZRHW | D3DFVF_TEX1)
 
 
 
