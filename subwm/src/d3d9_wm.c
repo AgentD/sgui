@@ -98,7 +98,9 @@ static void d3d9_wm_draw_gui( sgui_ctx_wm* super )
 
 static void d3d9_wm_destroy( sgui_ctx_wm* super )
 {
-    (void)super;
+    sgui_d3d9_wm* this = (sgui_d3d9_wm*)super;
+    IDirect3DBaseTexture9_Release( this->skintex );
+    free( this );
 }
 
 
@@ -149,6 +151,7 @@ sgui_ctx_wm* d3d9_wm_create( sgui_window* wnd )
     }
 
     memcpy( locked.pBits, skin->get_ctx_skin_texture(skin), width*height*4 );
+    IDirect3DTexture9_UnlockRect( this->skintex, 0 );
 
     /* init */
     super->wnd      = wnd;
