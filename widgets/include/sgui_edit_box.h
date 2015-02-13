@@ -38,10 +38,17 @@
 
 
 
-#define SGUI_EDIT_NORMAL 0
-#define SGUI_EDIT_NUMERIC 1
-
-
+/**
+ * \enum sgui_edit_box_flags
+ *
+ * \brief Flags describing the state of an edit box
+ */
+typedef enum
+{
+    SGUI_EDIT_SELECTING = 0x01,
+    SGUI_EDIT_DRAW_CURSOR = 0x02
+}
+sgui_edit_box_flags;
 
 /**
  * \struct sgui_edit_box
@@ -56,26 +63,17 @@ typedef struct sgui_edit_box
 {
     sgui_widget super;
 
-    /* maximum number of UTF8 characters the user can enter and
-       the number of UTF8 characters that have already been entered */
-    unsigned int max_chars, num_entered;
+    unsigned int max_chars;  /**< Number of code points that can be entered */
+    unsigned int num_entered;/**< Number of currently entered code points */
+    unsigned int end;        /**< Number of currently entered code units */
+    unsigned int cursor;     /**< Code unit index of the cursor */
+    unsigned int selection;  /**< Code unit index of the selection start */
 
-    /* BYTE OFFSET of the last character in the text buffer */
-    unsigned int end;
-
-    /* BYTE OFFSET of the character after which to draw the cursor */
-    unsigned int cursor;
-
-    /* BYTE OFFSET of the cursor before selection started */
-    unsigned int selection;
-
-    /* BYTE OFFSET of the first character
-       visible at the left side of the box */
+    /** Code unit index of the first visible character */
     unsigned int offset;
 
-    int selecting;      /* boolean: currently in selection mode? */
-    int draw_cursor;    /* boolean: draw the cursor? */
-    char* buffer;       /* text buffer */
+    int flags;      /**< \brief a combination of \ref sgui_edit_box_flags */
+    char* buffer;   /**< \brief text buffer */
 
     /**
      * \brief Insert a piece of text at the current cursor position

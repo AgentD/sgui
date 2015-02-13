@@ -173,7 +173,8 @@ static void numeric_edit_draw( sgui_widget* super )
 
     skin->draw_editbox( skin, super->canvas, &(super->area),
                               this->buffer, this->offset,
-                              this->draw_cursor ? (int)this->cursor : -1,
+                              this->flags & SGUI_EDIT_DRAW_CURSOR ?
+                              (int)this->cursor : -1,
                               this->selection, 1, 0 );
 }
 
@@ -184,7 +185,8 @@ static void spin_box_draw( sgui_widget* super )
 
     skin->draw_editbox( skin, super->canvas, &(super->area),
                               this->buffer, this->offset,
-                              this->draw_cursor ? (int)this->cursor : -1,
+                              this->flags & SGUI_EDIT_DRAW_CURSOR ?
+                              (int)this->cursor : -1,
                               this->selection, 1, 1 );
 }
 
@@ -269,7 +271,8 @@ static int numeric_edit_init( sgui_numeric_edit* this,
 
     sprintf( super->buffer, "%d", current );
     super->end = super->num_entered = strlen( super->buffer );
-    super->selecting=super->offset=super->selection=super->cursor = 0;
+    super->flags &= ~SGUI_EDIT_SELECTING; 
+    super->offset = super->selection = super->cursor = 0;
     return 1;
 }
 
@@ -344,7 +347,8 @@ void sgui_numeric_edit_set_value( sgui_widget* box, int value )
         sprintf( super->buffer, "%d", value );
 
         super->end = super->num_entered = strlen( super->buffer );
-        super->selecting=super->offset=super->selection=super->cursor = 0;
+        super->flags &= ~SGUI_EDIT_SELECTING;
+        super->offset = super->selection = super->cursor = 0;
 
         super->sync_cursors( super );
 
