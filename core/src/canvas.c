@@ -508,10 +508,10 @@ void sgui_canvas_set_scissor_rect( sgui_canvas* this, const sgui_rect* r )
     {
         if( r )
         {
-            this->sc.left   = MIN(0,                   r->left  );
-            this->sc.top    = MIN(0,                   r->top   );
-            this->sc.right  = MAX((int)this->width-1,  r->right );
-            this->sc.bottom = MAX((int)this->height-1, r->bottom);
+            this->sc.left   = MAX(0,                   r->left  );
+            this->sc.top    = MAX(0,                   r->top   );
+            this->sc.right  = MIN((int)this->width-1,  r->right );
+            this->sc.bottom = MIN((int)this->height-1, r->bottom);
         }
         else
         {
