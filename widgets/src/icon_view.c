@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
+#include "sgui_scroll_bar.h"
 #include "sgui_icon_cache.h"
 #include "sgui_icon_view.h"
 #include "sgui_internal.h"
@@ -56,8 +57,10 @@ typedef struct
 {
     sgui_widget super;
     sgui_model* model;      /* underlying model */
+    sgui_widget* v_bar;     /* vertical scroll bar */
     icon* icons;            /* an array of icons */
     unsigned int num_icons; /* number of icons */
+    unsigned int v_bar_dist;/* distance of the vertical scroll bar */
     sgui_rect selection;    /* selection rect */
     unsigned int icon_col;
     unsigned int txt_col;
@@ -73,6 +76,8 @@ icon_view;
 #define SELECT( icon, state )\
         (icon).selected = (state);\
         get_icon_bounding_box( this, &(icon), &r );\
+        r.bottom -= offset;\
+        r.top -= offset;\
         sgui_canvas_add_dirty_rect( this->super.canvas, &r )
 
 
@@ -104,19 +109,23 @@ static void sink( icon_view* this, sgui_item_compare_fun fun,
     }
 }
 
-static void draw_icon( icon_view* this, icon* i, sgui_skin* skin )
+static void draw_icon( icon_view* this, icon* i, sgui_skin* skin,
+                       unsigned int offset )
 {
     sgui_rect r;
 
     sgui_icon_cache_draw_icon( sgui_model_get_icon_cache(this->model),
                            sgui_item_icon(this->model,i->item,this->icon_col),
                            this->super.area.left + i->icon_area.left,
-                           this->super.area.top  + i->icon_area.top );
+                           this->super.area.top  + i->icon_area.top - offset);
 
     if( i->selected )
     {
         r = sgui_item_text(this->model,i->item,this->txt_col) ?
             i->text_area : i->icon_area;
+
+        r.top -= offset;
+        r.bottom -= offset;
 
         sgui_rect_add_offset(&r, this->super.area.left, this->super.area.top);
         skin->draw_focus_box(skin, this->super.canvas, &r);
@@ -124,7 +133,7 @@ static void draw_icon( icon_view* this, icon* i, sgui_skin* skin )
 
     sgui_skin_draw_text( this->super.canvas,
                          this->super.area.left + i->text_area.left,
-                         this->super.area.top  + i->text_area.top,
+                         this->super.area.top  + i->text_area.top - offset,
                          sgui_item_text(this->model,i->item,this->txt_col) );
 }
 
@@ -213,6 +222,17 @@ static void set_all_icons( icon_view* this, int state )
     sgui_canvas_add_dirty_rect( this->super.canvas, &r );
 }
 
+static void view_on_scroll_v( void* userptr, int new_offset, int delta )
+{
+    sgui_widget* this = userptr;
+    sgui_rect r;
+    (void)new_offset;
+    (void)delta;
+
+    sgui_widget_get_absolute_rect( this, &r );
+    sgui_canvas_add_dirty_rect( this->canvas, &r );
+}
+
 static icon* icon_from_point( icon_view* this, int x, int y )
 {
     unsigned int i;
@@ -261,10 +281,50 @@ static void generate_event_for_each_selected( icon_view* this, int type )
     }
 }
 
+static void update_scroll_area( icon_view* this )
+{
+    unsigned int i, length, displength;
+    sgui_rect r;
+
+    displength = SGUI_RECT_HEIGHT(this->super.area);
+
+    if( this->num_icons )
+    {
+        r = this->icons[0].icon_area;
+        sgui_rect_join( &r, &this->icons[0].text_area, 0 );
+
+        for( i=1; i<this->num_icons; ++i )
+        {
+            sgui_rect_join( &r, &this->icons[i].icon_area, 0 );
+            sgui_rect_join( &r, &this->icons[i].text_area, 0 );
+        }
+
+        r.top = 0;
+        length = SGUI_RECT_HEIGHT( r ) + 10;
+        length = MAX(length, displength);
+    }
+    else
+    {
+        length = displength;
+    }
+
+    sgui_scroll_bar_set_area( this->v_bar, length, displength );
+
+    if( length==displength )
+    {
+        sgui_scroll_bar_set_offset( this->v_bar, 0 );
+        sgui_widget_set_visible( this->v_bar, 0 );
+    }
+    else
+    {
+        sgui_widget_set_visible( this->v_bar, 1 );
+    }
+}
+
 static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 {
     icon_view* this = (icon_view*)super;
-    int x, y, dx, dy, hit;
+    int x, y, dx, dy, hit, offset;
     sgui_rect r, r1;
     unsigned int i;
     sgui_event ev;
@@ -277,8 +337,12 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
 
     if(e->type==SGUI_MOUSE_PRESS_EVENT && e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT)
     {
-        sgui_rect_set_size(&this->selection, e->arg.i3.x, e->arg.i3.y, 0, 0);
-        new = icon_from_point( this, e->arg.i3.x, e->arg.i3.y );
+        offset = sgui_scroll_bar_get_offset( this->v_bar );
+
+        x = e->arg.i3.x;
+        y = e->arg.i3.y + offset;
+        sgui_rect_set_size(&this->selection, x, y, 0, 0);
+        new = icon_from_point( this, x, y );
 
         if( !(this->flags & IV_MULTISELECT) && !(new && new->selected) )
             set_all_icons( this, 0 );
@@ -288,6 +352,8 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             this->flags |= IV_DRAG;
             new->selected = !(new->selected && (this->flags&IV_MULTISELECT));
             get_icon_bounding_box( this, new, &r );
+            r.top -= offset;
+            r.bottom -= offset;
             sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
         else if( !(this->flags & IV_MULTISELECT) )
@@ -297,9 +363,11 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
     }
     else if( e->type==SGUI_DOUBLE_CLICK_EVENT )
     {
+        x = e->arg.i2.x;
+        y = e->arg.i2.y + sgui_scroll_bar_get_offset( this->v_bar );
         set_all_icons( this, 0 );
         this->flags &= ~IV_SELECTBOX;
-        new = icon_from_point( this, e->arg.i2.x, e->arg.i2.y );
+        new = icon_from_point( this, x, y );
 
         if( new )
         {
@@ -309,14 +377,34 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             sgui_event_post( &ev );
         }
     }
+    else if( e->type==SGUI_MOUSE_WHEEL_EVENT )
+    {
+        dy = SGUI_RECT_HEIGHT(super->area) / 4;
+        offset = sgui_scroll_bar_get_offset( this->v_bar );
+
+        if( e->arg.i > 0 )
+        {
+            dy = (dy>offset) ? offset : dy;
+            sgui_scroll_bar_set_offset( this->v_bar, offset - dy );
+            view_on_scroll_v( this, offset - dy, -dy );
+        }
+        else if( e->arg.i < 0 )
+        {
+            sgui_scroll_bar_set_offset( this->v_bar, offset + dy );
+            view_on_scroll_v( this, offset + dy, dy );
+        }
+    }
     else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_SELECTBOX) )
     {
+        offset = sgui_scroll_bar_get_offset( this->v_bar );
+
         /* get affected area */
         r1 = this->selection;
         sgui_rect_repair( &r1 );
 
         this->selection.right  = e->arg.i2.x;
-        this->selection.bottom = e->arg.i2.y;
+        this->selection.bottom = e->arg.i2.y +
+                                 sgui_scroll_bar_get_offset( this->v_bar );
 
         r = this->selection;
         sgui_rect_repair( &r );
@@ -326,6 +414,8 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
         sgui_widget_get_absolute_position( &(this->super), &x, &y );
         sgui_rect_add_offset( &r1, x, y );
         sgui_rect_extend( &r1, 1, 1 );
+        r1.top -= offset;
+        r1.bottom -= offset;
         sgui_canvas_add_dirty_rect( super->canvas, &r1 );
 
         /* get selected icons */
@@ -338,18 +428,25 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             {
                 this->icons[i].selected = hit;
                 get_icon_bounding_box( this, this->icons+i, &r );
+                r.top -= offset;
+                r.bottom -= offset;
                 sgui_canvas_add_dirty_rect( super->canvas, &r );
             }
         }
     }
     else if( e->type==SGUI_MOUSE_MOVE_EVENT && (this->flags & IV_DRAG) )
     {
-        /* get mouse movement difference vector */
-        dx = e->arg.i2.x - this->selection.left;
-        dy = e->arg.i2.y - this->selection.top;
-        sgui_rect_set_size(&this->selection, e->arg.i2.x, e->arg.i2.y, 0, 0);
+        offset = sgui_scroll_bar_get_offset( this->v_bar );
 
-        x = SGUI_RECT_WIDTH(super->area) - this->offset;
+        x = e->arg.i2.x;
+        y = e->arg.i2.y + offset;
+
+        /* get mouse movement difference vector */
+        dx = x - this->selection.left;
+        dy = y - this->selection.top;
+        sgui_rect_set_size( &this->selection, x, y, 0, 0 );
+
+        x = this->v_bar_dist;
         y = SGUI_RECT_HEIGHT(super->area) - this->offset;
 
         /* clamp movement vector to keep icons inside area */
@@ -364,26 +461,41 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
             if( (r.left   + dx)<this->offset ) dx = this->offset - r.left;
             if( (r.top    + dy)<this->offset ) dy = this->offset - r.top;
             if( (r.right  + dx)>x            ) dx = x - r.right;
-            if( (r.bottom + dy)>y            ) dy = y - r.bottom;
         }
 
         /* move all selected icons by difference vector */
+        r1.left = r1.top = r1.right = r1.bottom = 0;
+
         for( i=0; i<this->num_icons; ++i )
         {
             if( this->icons[i].selected )
             {
-                /* flag affected area as dirty */
-                get_icon_bounding_box( this, &this->icons[i], &r );
-                r1 = r;
-                sgui_rect_add_offset( &r1, dx, dy );
-                sgui_rect_join( &r, &r1, 0 );
-                sgui_canvas_add_dirty_rect( super->canvas, &r );
+                /* accumulate dirty area */
+                sgui_rect_join( &r, &(this->icons[i].text_area), 0 );
+                sgui_rect_join( &r, &(this->icons[i].icon_area), 0 );
+
+                if( r1.left==r1.right )
+                    r1 = r;
+                else
+                    sgui_rect_join( &r1, &r, 0 );
+
+                sgui_rect_add_offset( &r, dx, dy );
+                sgui_rect_join( &r1, &r, 0 );
 
                 /* move */
                 sgui_rect_add_offset( &this->icons[i].icon_area, dx, dy );
                 sgui_rect_add_offset( &this->icons[i].text_area, dx, dy );
             }
         }
+
+        if( r1.bottom!=r1.top )
+        {
+            sgui_widget_get_absolute_position( super, &x, &y );
+            sgui_rect_add_offset( &r1, x, y-offset );
+            sgui_canvas_add_dirty_rect( super->canvas, &r1 );
+        }
+
+        update_scroll_area( this );
     }
     else if( e->type==SGUI_KEY_PRESSED_EVENT )
     {
@@ -398,6 +510,8 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
     }
     else if( e->type==SGUI_KEY_RELEASED_EVENT )
     {
+        offset = sgui_scroll_bar_get_offset( this->v_bar );
+
         switch( e->arg.i )
         {
         case SGUI_KC_CONTROL:
@@ -473,10 +587,18 @@ static void icon_view_on_event( sgui_widget* super, const sgui_event* e )
               e->arg.i3.z==SGUI_MOUSE_BUTTON_LEFT) ||
              e->type==SGUI_MOUSE_LEAVE_EVENT )
     {
-        if( this->flags & IV_SELECTBOX )
+        if( this->flags & IV_DRAG )
+        {
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
+        else if( this->flags & IV_SELECTBOX )
         {
             r = this->selection;
             sgui_rect_repair( &r );
+            dy = sgui_scroll_bar_get_offset( this->v_bar );
+            r.top -= dy;
+            r.bottom -= dy;
             sgui_widget_get_absolute_position( &(this->super), &x, &y );
             sgui_rect_add_offset( &r, x, y );
             sgui_rect_extend( &r, 1, 1 );
@@ -498,8 +620,10 @@ static void icon_view_draw( sgui_widget* super )
 {
     icon_view* this = (icon_view*)super;
     sgui_skin* skin = sgui_skin_get( );
-    unsigned int i;
-    sgui_rect r;
+    unsigned int i, offset;
+    sgui_rect r, sc;
+
+    offset = sgui_scroll_bar_get_offset( this->v_bar );
 
     if( this->flags & IV_DRAW_BG )
         skin->draw_frame( skin, super->canvas, &(super->area) );
@@ -508,27 +632,51 @@ static void icon_view_draw( sgui_widget* super )
     {
         r = this->selection;
         sgui_rect_repair( &r );
+        r.top -= offset;
+        r.bottom -= offset;
         sgui_rect_add_offset( &r, super->area.left, super->area.top );
         skin->draw_focus_box( skin, super->canvas, &r );
     }
 
     /* draw selected icons on top of non-selected */
+    sgui_widget_get_absolute_rect( super, &r );
+    sgui_rect_extend( &r, -this->offset, -this->offset );
+    sgui_canvas_get_scissor_rect( super->canvas, &sc );
+    sgui_canvas_set_scissor_rect( super->canvas, &r );
+
     for( i=0; i<this->num_icons; ++i )
     {
         if( !this->icons[i].selected )
-            draw_icon( this, this->icons+i, skin );
+            draw_icon( this, this->icons+i, skin, offset );
     }
 
     for( i=0; i<this->num_icons; ++i )
     {
         if( this->icons[i].selected )
-            draw_icon( this, this->icons + i, skin );
+            draw_icon( this, this->icons + i, skin, offset );
     }
+
+    sgui_canvas_set_scissor_rect( super->canvas, &sc );
 }
 
 static void icon_view_destroy( sgui_widget* super )
 {
     icon_view* this = (icon_view*)super;
+    sgui_widget* i;
+
+    /* recursive destroy might have already destroyed the scrollbar */
+    if( super->children )
+    {
+        for( i=super->children; i!=NULL; i=i->next )
+        {
+            if( i->next == this->v_bar )
+            {
+                i->next = i->next->next;
+                sgui_widget_destroy( this->v_bar );
+                break;
+            }
+        }
+    }
 
     sgui_model_free_item_list( this->model, this->itemlist );
     free( this->icons );
@@ -547,6 +695,8 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     sgui_skin* skin = sgui_skin_get( );
     sgui_widget* super;
     icon_view* this;
+    unsigned int w;
+    sgui_rect r;
 
     if( !model )
         return NULL;
@@ -565,6 +715,31 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     this->offset   = background ? skin->get_frame_border_width(skin):0;
     this->icon_col = icon_col;
     this->txt_col  = txt_col;
+
+
+
+
+    skin->get_scroll_bar_button_extents( skin, &r );
+    w = SGUI_RECT_WIDTH( r );
+
+    this->v_bar_dist = width - w - this->offset;
+    this->v_bar = sgui_scroll_bar_create( this->v_bar_dist, this->offset, 0,
+                                          height-2*this->offset,
+                                          height-2*this->offset,
+                                          height-2*this->offset );
+
+    if( !this->v_bar )
+    {
+        free( this );
+        return NULL;
+    }
+
+    sgui_scroll_bar_on_scroll( this->v_bar, view_on_scroll_v, this );
+    sgui_widget_set_visible( this->v_bar, 0 );
+    sgui_widget_add_child( super, this->v_bar );
+
+
+
 
     super->window_event = icon_view_on_event;
     super->draw         = icon_view_draw;
@@ -612,6 +787,7 @@ void sgui_icon_view_populate( sgui_widget* super, sgui_item* root )
     }
 
     gridify( this );
+    update_scroll_area( this );
     sgui_internal_unlock_mutex( );
     return;
 fail:
@@ -659,6 +835,7 @@ void sgui_icon_view_snap_to_grid( sgui_widget* super )
                             this->icons[i].icon_area.bottom, txt_w, txt_h );
     }
 
+    update_scroll_area( this );
     sgui_widget_get_absolute_rect( super, &r );
     sgui_canvas_add_dirty_rect( super->canvas, &r );
     sgui_internal_unlock_mutex( );
@@ -684,6 +861,7 @@ void sgui_icon_view_sort( sgui_widget* super, sgui_item_compare_fun fun )
     }
 
     gridify( this );
+    update_scroll_area( this );
     sgui_internal_unlock_mutex( );
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
