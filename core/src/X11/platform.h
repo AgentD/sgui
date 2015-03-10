@@ -48,15 +48,42 @@
 #include <X11/extensions/Xrender.h>
 
 
-#define DPY_WIDTH DisplayWidth( dpy, DefaultScreen(dpy) )
-#define DPY_HEIGHT DisplayHeight( dpy, DefaultScreen(dpy) )
+#define DPY_WIDTH DisplayWidth( x11.dpy, x11.screen )
+#define DPY_HEIGHT DisplayHeight( x11.dpy, x11.screen )
 
 #define DOUBLE_CLICK_MS 750
 
-extern XIM im;
-extern Display* dpy;
-extern Window root;
-extern Atom atom_wm_delete;
+extern struct x11_state
+{
+    XIM im;                         /* X11 input method */
+    Display* dpy;                   /* X11 Display connection */
+    Window root;                    /* root window */
+    int screen;                     /* default screen of root window */
+
+    char* clipboard_buffer;
+    unsigned int clipboard_size;
+    unsigned int clipboard_strlen;
+
+    Atom atom_wm_delete;
+    Atom atom_targets;
+    Atom atom_text;
+    Atom atom_pty;
+    Atom atom_inc;
+    Atom atom_UTF8;
+    Atom atom_clipboard;
+
+    sgui_window_xlib* clicked;      /* last window clicked for double click */
+    unsigned long click_time;       /* last click time for double click */
+
+    pthread_mutex_t mutex;          /* global mutex */
+
+    sgui_window_xlib* list;         /* internal list of Xlib windows */
+}
+x11;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* implementation of window clipboard_write */
 void xlib_window_clipboard_write( sgui_window* super, const char* text,
@@ -78,6 +105,10 @@ int check_double_click( sgui_window_xlib* window );
 /* called from window.c when mouse moves or
    otherwise interrupts double click */
 void interrupt_double_click( void );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* X11_PLATFORM_H */
 

@@ -48,16 +48,12 @@ static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
                                          SGUI_A8 );
 
         if( !font_map )
-        {
-            sgui_internal_unlock_mutex( );
-            return super->width;
-        }
+            goto fail;
 
         if( !(this->cache = sgui_font_cache_create( font_map )) )
         {
             sgui_pixmap_destroy( font_map );
-            sgui_internal_unlock_mutex( );
-            return super->width;
+            goto fail;
         }
     }
 
@@ -85,6 +81,9 @@ static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
     this->set_clip_rect( this, 0, 0, super->width, super->height );
     sgui_internal_unlock_mutex( );
     return x - oldx;
+fail:
+    sgui_internal_unlock_mutex( );
+    return super->width;
 }
 
 /************************ xlib based implementation ************************/
@@ -96,8 +95,8 @@ static void canvas_xlib_destroy( sgui_canvas* super )
     if( ((sgui_canvas_x11*)this)->cache )
         sgui_icon_cache_destroy( ((sgui_canvas_x11*)this)->cache );
 
-    XFreeGC( dpy, this->gc );
-    XFreePixmap( dpy, this->pixmap );
+    XFreeGC( x11.dpy, this->gc );
+    XFreePixmap( x11.dpy, this->pixmap );
     sgui_internal_unlock_mutex( );
 
     free( this );
@@ -114,7 +113,7 @@ static void canvas_xlib_set_clip_rect( sgui_canvas_x11* super,
     r.width  = width;
     r.height = height;
     sgui_internal_lock_mutex( );
-    XSetClipRectangles( dpy, this->gc, 0, 0, &r, 1, Unsorted );
+    XSetClipRectangles( x11.dpy, this->gc, 0, 0, &r, 1, Unsorted );
     sgui_internal_unlock_mutex( );
 }
 
@@ -126,28 +125,25 @@ static void canvas_xlib_resize( sgui_canvas* super, unsigned int width,
     GC newgc;
 
     sgui_internal_lock_mutex( );
-    newpm = XCreatePixmap( dpy, ((sgui_canvas_x11*)this)->wnd,
+    newpm = XCreatePixmap( x11.dpy, ((sgui_canvas_x11*)this)->wnd,
                            width, height, 24 );
 
     if( !newpm )
-    {
-        sgui_internal_unlock_mutex( );
-        return;
-    }
+        goto done;
 
-    newgc = XCreateGC( dpy, this->pixmap, 0, NULL );
+    newgc = XCreateGC( x11.dpy, this->pixmap, 0, NULL );
 
     if( !newgc )
     {
-        XFreePixmap( dpy, newpm );
-        sgui_internal_unlock_mutex( );
-        return;
+        XFreePixmap( x11.dpy, newpm );
+        goto done;
     }
 
-    XFreeGC( dpy, this->gc );
-    XFreePixmap( dpy, this->pixmap );
+    XFreeGC( x11.dpy, this->gc );
+    XFreePixmap( x11.dpy, this->pixmap );
     this->pixmap = newpm;
     this->gc = newgc;
+done:
     sgui_internal_unlock_mutex( );
 }
 
@@ -159,8 +155,8 @@ static void canvas_xlib_clear( sgui_canvas* super, sgui_rect* r )
     color = (this->bg[0]<<16) | (this->bg[1]<<8) | this->bg[2];
 
     sgui_internal_lock_mutex( );
-    XSetForeground( dpy, this->gc, color );
-    XFillRectangle( dpy, this->pixmap, this->gc, r->left, r->top,
+    XSetForeground( x11.dpy, this->gc, color );
+    XFillRectangle( x11.dpy, this->pixmap, this->gc, r->left, r->top,
                     SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
     sgui_internal_unlock_mutex( );
 }
@@ -192,8 +188,8 @@ static void canvas_xlib_draw_box( sgui_canvas* super, sgui_rect* r,
     }
 
     sgui_internal_lock_mutex( );
-    XSetForeground( dpy, this->gc, (R<<16) | (G<<8) | B );
-    XFillRectangle( dpy, this->pixmap, this->gc, r->left, r->top,
+    XSetForeground( x11.dpy, this->gc, (R<<16) | (G<<8) | B );
+    XFillRectangle( x11.dpy, this->pixmap, this->gc, r->left, r->top,
                     SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
     sgui_internal_unlock_mutex( );
 }
@@ -208,7 +204,7 @@ static void canvas_xlib_blit( sgui_canvas* super, int x, int y,
         return;
 
     sgui_internal_lock_mutex( );
-    XCopyArea( dpy, pix->data.xpm, this->pixmap, this->gc,
+    XCopyArea( x11.dpy, pix->data.xpm, this->pixmap, this->gc,
                srcrect->left, srcrect->top,
                SGUI_RECT_WIDTH_V(srcrect), SGUI_RECT_HEIGHT_V(srcrect), x, y );
     sgui_internal_unlock_mutex( );
@@ -234,8 +230,8 @@ static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
         {
             if( (*src_row)>=0x80 )
             {
-                XSetForeground( dpy, this->gc, C );
-                XDrawPoint( dpy, this->pixmap, this->gc,
+                XSetForeground( x11.dpy, this->gc, C );
+                XDrawPoint( x11.dpy, this->pixmap, this->gc,
                             x+X-r->left, y+Y-r->top );
             }
         }
@@ -249,7 +245,7 @@ static void canvas_xlib_display( sgui_canvas_x11* super, int x, int y,
     sgui_canvas_xlib* this = (sgui_canvas_xlib*)super;
 
     sgui_internal_lock_mutex( );
-    XCopyArea( dpy, this->pixmap, super->wnd, this->gc,
+    XCopyArea( x11.dpy, this->pixmap, super->wnd, this->gc,
                x, y, width, height, x, y );
     sgui_internal_unlock_mutex( );
 }
@@ -264,12 +260,12 @@ static void canvas_xrender_destroy( sgui_canvas* super )
     if( ((sgui_canvas_x11*)this)->cache )
         sgui_icon_cache_destroy( ((sgui_canvas_x11*)this)->cache );
 
-    if( this->pic ) XRenderFreePicture( dpy, this->pic );
-    if( this->pen ) XRenderFreePicture( dpy, this->pen );
-    if( this->wndpic ) XRenderFreePicture( dpy, this->wndpic );
+    if( this->pic ) XRenderFreePicture( x11.dpy, this->pic );
+    if( this->pen ) XRenderFreePicture( x11.dpy, this->pen );
+    if( this->wndpic ) XRenderFreePicture( x11.dpy, this->wndpic );
 
-    if( this->pixmap ) XFreePixmap( dpy, this->pixmap );
-    if( this->penmap ) XFreePixmap( dpy, this->penmap );
+    if( this->pixmap ) XFreePixmap( x11.dpy, this->pixmap );
+    if( this->penmap ) XFreePixmap( x11.dpy, this->penmap );
 
     sgui_internal_unlock_mutex( );
 
@@ -287,7 +283,7 @@ static void canvas_xrender_set_clip_rect( sgui_canvas_x11* super,
     r.width  = width;
     r.height = height;
     sgui_internal_lock_mutex( );
-    XRenderSetPictureClipRectangles( dpy, this->pic, 0, 0, &r, 1 );
+    XRenderSetPictureClipRectangles( x11.dpy, this->pic, 0, 0, &r, 1 );
     sgui_internal_unlock_mutex( );
 }
 
@@ -300,15 +296,15 @@ static void canvas_xrender_resize( sgui_canvas* super, unsigned int width,
     sgui_internal_lock_mutex( );
 
     /* destroy the pixmap */
-    XRenderFreePicture( dpy, this->pic );
-    XFreePixmap( dpy, this->pixmap );
+    XRenderFreePicture( x11.dpy, this->pic );
+    XFreePixmap( x11.dpy, this->pixmap );
 
     /* create a new pixmap */
-    this->pixmap = XCreatePixmap( dpy, ((sgui_canvas_x11*)this)->wnd,
+    this->pixmap = XCreatePixmap( x11.dpy, ((sgui_canvas_x11*)this)->wnd,
                                   width, height, 32 );
 
-    fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
-    this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
+    fmt = XRenderFindStandardFormat( x11.dpy, PictStandardARGB32 );
+    this->pic = XRenderCreatePicture( x11.dpy, this->pixmap, fmt, 0, NULL );
 
     sgui_internal_unlock_mutex( );
 }
@@ -321,7 +317,7 @@ static void canvas_xrender_clear( sgui_canvas* super, sgui_rect* r )
     c.red = c.green = c.blue = c.alpha = 0;
 
     sgui_internal_lock_mutex( );
-    XRenderFillRectangle( dpy, PictOpSrc, this->pic, &c, r->left, r->top,
+    XRenderFillRectangle( x11.dpy, PictOpSrc, this->pic, &c, r->left, r->top,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
 
     sgui_internal_unlock_mutex( );
@@ -347,7 +343,7 @@ static void canvas_xrender_draw_box( sgui_canvas* super, sgui_rect* r,
     }
 
     sgui_internal_lock_mutex( );
-    XRenderFillRectangle( dpy, PictOpOver, this->pic, &c, r->left, r->top,
+    XRenderFillRectangle( x11.dpy, PictOpOver, this->pic, &c, r->left, r->top,
                           SGUI_RECT_WIDTH_V( r ), SGUI_RECT_HEIGHT_V( r ) );
     sgui_internal_unlock_mutex( );
 }
@@ -364,8 +360,8 @@ static void canvas_xrender_blit( sgui_canvas* super, int x, int y,
     c.alpha = 0xFFFF;
 
     sgui_internal_lock_mutex( );
-    XRenderFillRectangle( dpy, PictOpSrc, this->pic, &c, x, y, w, h );
-    XRenderComposite( dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic, 0,
+    XRenderFillRectangle( x11.dpy, PictOpSrc, this->pic, &c, x, y, w, h );
+    XRenderComposite( x11.dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic, 0,
                       this->pic, srcrect->left, srcrect->top, 0, 0,
                       x, y, w, h );
     sgui_internal_unlock_mutex( );
@@ -377,7 +373,7 @@ static void canvas_xrender_blend( sgui_canvas* super, int x, int y,
     sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
 
     sgui_internal_lock_mutex( );
-    XRenderComposite( dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic, 0,
+    XRenderComposite( x11.dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic, 0,
                       this->pic, srcrect->left, srcrect->top, 0, 0, x, y,
                       SGUI_RECT_WIDTH_V(srcrect),
                       SGUI_RECT_HEIGHT_V(srcrect) );
@@ -397,9 +393,9 @@ static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
     c.alpha = 0xFFFF;
 
     sgui_internal_lock_mutex( );
-    XRenderFillRectangle( dpy, PictOpSrc, this->pen, &c, 0, 0, 1, 1 );
+    XRenderFillRectangle( x11.dpy, PictOpSrc, this->pen, &c, 0, 0, 1, 1 );
 
-    XRenderComposite( dpy, PictOpOver, this->pen,
+    XRenderComposite( x11.dpy, PictOpOver, this->pen,
                       ((xrender_pixmap*)pixmap)->pic,
                       this->pic, 0, 0, r->left, r->top, x, y,
                       SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r) );
@@ -412,8 +408,8 @@ static void canvas_xrender_display( sgui_canvas_x11* super, int x, int y,
     sgui_canvas_xrender* this = (sgui_canvas_xrender*)super;
 
     sgui_internal_lock_mutex( );
-    XClearArea( dpy, super->wnd, x, y, width, height, False );
-    XRenderComposite( dpy, PictOpOver, this->pic, 0, this->wndpic, x, y,
+    XClearArea( x11.dpy, super->wnd, x, y, width, height, False );
+    XRenderComposite( x11.dpy, PictOpOver, this->pic, 0, this->wndpic, x, y,
                       0, 0, x, y, width, height );
     sgui_internal_unlock_mutex( );
 }
@@ -431,7 +427,7 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
     sgui_internal_lock_mutex( );
 
     /* make sure that the XRender extension is present */
-    if( !XRenderQueryExtension( dpy, &base, &error ) )
+    if( !XRenderQueryExtension( x11.dpy, &base, &error ) )
     {
         sgui_internal_unlock_mutex( );
         return NULL;
@@ -448,34 +444,34 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
     }
 
     /* create pixmaps */
-    if( !(this->pixmap = XCreatePixmap( dpy, wnd, width, height, 32 )) )
-        goto failure;
+    if( !(this->pixmap = XCreatePixmap( x11.dpy, wnd, width, height, 32 )) )
+        goto fail;
 
-    if( !(this->penmap = XCreatePixmap( dpy, wnd, 1, 1, 24 )) )
-        goto failure;
+    if( !(this->penmap = XCreatePixmap( x11.dpy, wnd, 1, 1, 24 )) )
+        goto fail;
 
     /* crate Xrender pictures */
-    fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
-    this->pic = XRenderCreatePicture( dpy, this->pixmap, fmt, 0, NULL );
+    fmt = XRenderFindStandardFormat( x11.dpy, PictStandardARGB32 );
+    this->pic = XRenderCreatePicture( x11.dpy, this->pixmap, fmt, 0, NULL );
 
     if( !this->pic )
-        goto failure;
+        goto fail;
 
-    fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-    this->wndpic = XRenderCreatePicture( dpy, wnd, fmt, 0, NULL );
+    fmt = XRenderFindStandardFormat( x11.dpy, PictStandardRGB24 );
+    this->wndpic = XRenderCreatePicture( x11.dpy, wnd, fmt, 0, NULL );
 
     if( !this->wndpic )
-        goto failure;
+        goto fail;
 
     attr.repeat = RepeatNormal;
-    this->pen = XRenderCreatePicture(dpy, this->penmap, fmt, CPRepeat, &attr);
+    this->pen = XRenderCreatePicture(x11.dpy,this->penmap,fmt,CPRepeat,&attr);
 
     if( !this->pen )
-        goto failure;
+        goto fail;
 
     /* finish initialisation */
     if( !sgui_canvas_init( super, width, height ) )
-        goto failure;
+        goto fail;
     sgui_internal_unlock_mutex( );
 
     super->destroy       = canvas_xrender_destroy;
@@ -494,7 +490,7 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
     ((sgui_canvas_x11*)this)->set_clip_rect = canvas_xrender_set_clip_rect;
 
     return (sgui_canvas*)this;
-failure:
+fail:
     sgui_internal_unlock_mutex( );
     canvas_xrender_destroy( super );
     return NULL;
@@ -516,31 +512,14 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
 
     sgui_internal_lock_mutex( );
 
-    /* create pixmap */
-    if( !(this->pixmap = XCreatePixmap( dpy, wnd, width, height, 24 )) )
-    {
-        sgui_internal_unlock_mutex( );
-        free( this );
-        return NULL;
-    }
+    if( !(this->pixmap = XCreatePixmap( x11.dpy, wnd, width, height, 24 )) )
+        goto fail;
 
-    if( !(this->gc = XCreateGC( dpy, this->pixmap, 0, NULL )) )
-    {
-        XFreePixmap( dpy, this->pixmap );
-        sgui_internal_unlock_mutex( );
-        free( this );
-        return NULL;
-    }
+    if( !(this->gc = XCreateGC( x11.dpy, this->pixmap, 0, NULL )) )
+        goto fail;
 
-    /* finish initialisation */
     if( !sgui_canvas_init( super, width, height ) )
-    {
-        XFreeGC( dpy, this->gc );
-        XFreePixmap( dpy, this->pixmap );
-        sgui_internal_unlock_mutex( );
-        free( this );
-        return NULL;
-    }
+        goto fail;
 
     memcpy( this->bg, sgui_skin_get( )->window_color, 4 );
 
@@ -562,6 +541,12 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
     ((sgui_canvas_x11*)this)->set_clip_rect = canvas_xlib_set_clip_rect;
 
     return (sgui_canvas*)this;
+fail:
+    if( this->gc     ) XFreeGC( x11.dpy, this->gc );
+    if( this->pixmap ) XFreePixmap( x11.dpy, this->pixmap );
+    sgui_internal_unlock_mutex( );
+    free( this );
+    return NULL;
 }
 
 void canvas_x11_display( sgui_canvas* super, int x, int y,

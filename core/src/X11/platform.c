@@ -32,30 +32,23 @@
 
 
 
-Display* dpy = NULL;
-XIM im = 0;
-Atom atom_wm_delete = 0;
-Window root = 0;
-
-static char* clipboard_buffer = NULL;
-static unsigned int clipboard_size = 0;
-static unsigned int clipboard_strlen = 0;
-
-static Atom atom_targets = 0;
-static Atom atom_text = 0;
-static Atom atom_pty = 0;
-static Atom atom_inc = 0;
-static Atom atom_UTF8 = 0;
-static Atom atom_clipboard = 0;
-
-static sgui_window_xlib* clicked = NULL;
-static unsigned long click_time = 0;
-
-static pthread_mutex_t mutex;
-
-static sgui_window_xlib* list = NULL;
+struct x11_state x11;
 
 
+
+static int resize_clipboard_buffer( unsigned int additional )
+{
+    char* new;
+
+    new = realloc(x11.clipboard_buffer, x11.clipboard_size + additional);
+
+    if( !new )
+        return 0;
+
+    x11.clipboard_buffer = new;
+    x11.clipboard_size += additional;
+    return 1;
+}
 
 /* used by wait_for_event to filter for a certain event type */
 static Bool filter_event( Display* display, XEvent* event, XPointer arg )
@@ -68,7 +61,7 @@ static Bool filter_event( Display* display, XEvent* event, XPointer arg )
 /* receives Xlib events and returns when a certain event is in the queue */
 static void wait_for_event( XEvent* ret, int type )
 {
-    XIfEvent( dpy, ret, filter_event, (XPointer)&type );
+    XIfEvent( x11.dpy, ret, filter_event, (XPointer)&type );
 }
 
 /* Xlib error callback to prevent xlib from crashing our program on error */
@@ -85,29 +78,29 @@ static void handle_events( void )
     XEvent e, respond;
     long data[2];
 
-    while( XPending( dpy ) > 0 )
+    while( XPending( x11.dpy ) > 0 )
     {
-        XNextEvent( dpy, &e );
+        XNextEvent( x11.dpy, &e );
 
         /* process selection requests */
         if( e.type==SelectionRequest )
         {
-            if( e.xselectionrequest.target == atom_UTF8 )
+            if( e.xselectionrequest.target == x11.atom_UTF8 )
             {
-                XChangeProperty( dpy, e.xselectionrequest.requestor,
+                XChangeProperty( x11.dpy, e.xselectionrequest.requestor,
                                  e.xselectionrequest.property,
                                  e.xselectionrequest.target, 8,
                                  PropModeReplace,
-                                 (unsigned char*)clipboard_buffer,
-                                 clipboard_strlen );
+                                 (unsigned char*)x11.clipboard_buffer,
+                                 x11.clipboard_strlen );
                 respond.xselection.property = e.xselectionrequest.property;
             }
-            else if( e.xselectionrequest.target == atom_targets )
+            else if( e.xselectionrequest.target == x11.atom_targets )
             {
-                data[0] = atom_text;
-                data[1] = atom_UTF8;
+                data[0] = x11.atom_text;
+                data[1] = x11.atom_UTF8;
 
-                XChangeProperty( dpy, e.xselectionrequest.requestor,
+                XChangeProperty( x11.dpy, e.xselectionrequest.requestor,
                                  e.xselectionrequest.property,
                                  e.xselectionrequest.target, 8,
                                  PropModeReplace, (unsigned char*)&data,
@@ -125,8 +118,8 @@ static void handle_events( void )
             respond.xselection.selection = e.xselectionrequest.selection;
             respond.xselection.target    = e.xselectionrequest.target;
             respond.xselection.time      = e.xselectionrequest.time;
-            XSendEvent( dpy, e.xselectionrequest.requestor, 0, 0, &respond );
-            XFlush( dpy );
+            XSendEvent(x11.dpy,e.xselectionrequest.requestor,0,0,&respond);
+            XFlush( x11.dpy );
             continue;
         }
 
@@ -135,7 +128,7 @@ static void handle_events( void )
         if( !XFilterEvent( &e, None ) )
         {
             /* route the event to it's window */
-            for( i=list; i!=NULL && i->wnd!=e.xany.window; i=i->next );
+            for( i=x11.list; i!=NULL && i->wnd!=e.xany.window; i=i->next );
 
             if( i!=NULL )
                 handle_window_events( i, &e );
@@ -149,7 +142,7 @@ static int have_active_windows( void )
     sgui_window_xlib* i;
 
     sgui_internal_lock_mutex( );
-    for( i=list; i!=NULL && !i->super.visible; i=i->next );
+    for( i=x11.list; i!=NULL && !i->super.visible; i=i->next );
     sgui_internal_unlock_mutex( );
 
     return i!=NULL;
@@ -159,7 +152,7 @@ static void update_windows( void )
 {
     sgui_window_xlib* i;
 
-    for( i=list; i!=NULL; i=i->next )
+    for( i=x11.list; i!=NULL; i=i->next )
         update_window( i );
 }
 
@@ -167,14 +160,14 @@ static void update_windows( void )
 
 void add_window( sgui_window_xlib* this )
 {
-    SGUI_ADD_TO_LIST( list, this );
+    SGUI_ADD_TO_LIST( x11.list, this );
 }
 
 void remove_window( sgui_window_xlib* this )
 {
     sgui_window_xlib* i;
 
-    SGUI_REMOVE_FROM_LIST( list, i, this );
+    SGUI_REMOVE_FROM_LIST( x11.list, i, this );
 }
 
 /****************************************************************************/
@@ -184,19 +177,20 @@ void xlib_window_clipboard_write( sgui_window* this, const char* text,
 {
     sgui_internal_lock_mutex( );
 
-    clipboard_strlen = length;
+    x11.clipboard_strlen = length;
 
-    if( clipboard_size <= clipboard_strlen )
+    if( x11.clipboard_size <= x11.clipboard_strlen )
     {
-        clipboard_size = clipboard_strlen+1;
-        clipboard_buffer = realloc( clipboard_buffer, clipboard_size );
+        x11.clipboard_size=x11.clipboard_strlen+1;
+        x11.clipboard_buffer=realloc(x11.clipboard_buffer,x11.clipboard_size);
     }
 
-    strncpy( clipboard_buffer, text, clipboard_strlen );
-    clipboard_buffer[ clipboard_strlen ] = '\0';
+    strncpy( x11.clipboard_buffer, text, x11.clipboard_strlen );
+    x11.clipboard_buffer[ x11.clipboard_strlen ] = '\0';
 
-    XSetSelectionOwner( dpy, atom_clipboard, TO_X11(this)->wnd, CurrentTime );
-    XFlush( dpy );
+    XSetSelectionOwner( x11.dpy, x11.atom_clipboard,
+                        TO_X11(this)->wnd, CurrentTime );
+    XFlush( x11.dpy );
 
     sgui_internal_unlock_mutex( );
 }
@@ -207,31 +201,25 @@ const char* xlib_window_clipboard_read( sgui_window* this )
     int pty_format, convert = 0;
     unsigned char* buffer;
     unsigned long pty_size, pty_items;
-    Atom target = atom_UTF8;
+    Atom target = x11.atom_UTF8;
     Window owner;
     XEvent evt;
 
     sgui_internal_lock_mutex( );
 
     /* sanity check clipboard owner */
-    owner = XGetSelectionOwner( dpy, atom_clipboard );
+    owner = XGetSelectionOwner( x11.dpy, x11.atom_clipboard );
 
     if( owner==TO_X11(this)->wnd )
-    {
-        sgui_internal_unlock_mutex( );
-        return clipboard_buffer;
-    }
+        goto done;
 
     if( owner==None )
-    {
-        sgui_internal_unlock_mutex( );
-        return NULL;
-    }
+        goto fail;
 
     /* try to convert the selection to an UTF8 string */
-    XConvertSelection( dpy, atom_clipboard, target, atom_pty,
+    XConvertSelection( x11.dpy, x11.atom_clipboard, target, x11.atom_pty,
                        TO_X11(this)->wnd, CurrentTime );
-    XFlush( dpy );
+    XFlush( x11.dpy );
 
     wait_for_event( &evt, SelectionNotify );
 
@@ -239,120 +227,119 @@ const char* xlib_window_clipboard_read( sgui_window* this )
     if( evt.xselection.property==None )
     {
         target = XA_STRING;
-        XConvertSelection( dpy, atom_clipboard, target, atom_pty,
+        XConvertSelection( x11.dpy, x11.atom_clipboard, target, x11.atom_pty,
                            TO_X11(this)->wnd, CurrentTime );
-        XFlush( dpy );
+        XFlush( x11.dpy );
         wait_for_event( &evt, SelectionNotify );
         convert = 1;
     }
 
     /* determine how to convert the selection */
-    XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, 0, False,
+    XGetWindowProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty, 0, 0, False,
                         AnyPropertyType, &pty_type, &pty_format, &pty_items,
                         &pty_size, &buffer );
     XFree( buffer );
-    clipboard_strlen = 0;
+    x11.clipboard_strlen = 0;
 
     /* increment method */
-    if( pty_type == atom_inc )
+    if( pty_type == x11.atom_inc )
     {
-        XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
-        XFlush( dpy );
+        XDeleteProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty );
+        XFlush( x11.dpy );
 
-	    while( 1 )
-	    {
-	        /* wait for next package */
+        while( 1 )
+        {
+            /* wait for next package */
             wait_for_event( &evt, PropertyNotify );
 
-        	if( evt.xproperty.state!=PropertyNewValue )
+            if( evt.xproperty.state!=PropertyNewValue )
                 continue;
 
             /* get data format and size */
-        	XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, 0, False,
-        	                    AnyPropertyType, &pty_type, &pty_format,
-        	                    &pty_items, &pty_size, &buffer );
+            XGetWindowProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty,
+                                0, 0, False, AnyPropertyType, &pty_type,
+                                &pty_format, &pty_items, &pty_size, &buffer );
+
+            XFree( buffer );
 
             if( pty_format != 8 )
             {
-        	    XFree( buffer );
-                XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
+                XDeleteProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty );
                 continue;
             }
 
             if( pty_size == 0 )
             {
-        	    XFree( buffer );
-                XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
+                XDeleteProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty );
                 break;
             }
 
-            XFree( buffer );
-
             /* get data */
-        	XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, pty_size,
-        	                    False, AnyPropertyType, &pty_type,
-        	                    &pty_format, &pty_items, &pty_size, &buffer );
+            XGetWindowProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty, 0,
+                                pty_size, False, AnyPropertyType, &pty_type,
+                                &pty_format, &pty_items, &pty_size, &buffer );
 
             /* resize clipboard buffer if neccessary */
-            if( (clipboard_strlen + pty_items + 1) > clipboard_size )
+            if( ((x11.clipboard_strlen+pty_items+1) > x11.clipboard_size) &&
+                !resize_clipboard_buffer( pty_items + 1 ) )
             {
-        	    clipboard_size += pty_items + 1;
-        	    clipboard_buffer = realloc(clipboard_buffer, clipboard_size);
+                goto fail;
             }
 
             /* append to clipboard buffer */
-        	memcpy( clipboard_buffer + clipboard_strlen, buffer, pty_items );
-        	clipboard_strlen += pty_items;
-        	clipboard_buffer[ clipboard_strlen ] = '\0';
-        	XFree( buffer );
+            memcpy(x11.clipboard_buffer+x11.clipboard_strlen,buffer,pty_items);
+            x11.clipboard_strlen += pty_items;
+            x11.clipboard_buffer[ x11.clipboard_strlen ] = '\0';
+            XFree( buffer );
 
-        	XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
-        	XFlush( dpy );
-	    }
+            XDeleteProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty );
+            XFlush( x11.dpy );
+        }
     }
     else
     {
         if( pty_format != 8 )
+            goto fail;
+
+        XGetWindowProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty, 0,
+                            pty_size, False, AnyPropertyType, &pty_type,
+                            &pty_format, &pty_items, &pty_size, &buffer );
+
+        XDeleteProperty( x11.dpy, TO_X11(this)->wnd, x11.atom_pty );
+
+        if( ((pty_items + 1) > x11.clipboard_size) &&
+            !resize_clipboard_buffer( pty_items + 1 ) )
         {
-            sgui_internal_unlock_mutex( );
-            return NULL;
+            goto fail;
         }
 
-        XGetWindowProperty( dpy, TO_X11(this)->wnd, atom_pty, 0, pty_size,
-                            False, AnyPropertyType, &pty_type, &pty_format,
-                            &pty_items, &pty_size, &buffer );
-
-        XDeleteProperty( dpy, TO_X11(this)->wnd, atom_pty );
-
-        if( (pty_items + 1) > clipboard_size )
-        {
-    	    clipboard_size += pty_items + 1;
-    	    clipboard_buffer = realloc(clipboard_buffer, clipboard_size);
-        }
-
-        clipboard_strlen = pty_items;
-    	memcpy( clipboard_buffer, buffer, pty_items );
-    	clipboard_buffer[ clipboard_strlen ] = '\0';
+        x11.clipboard_strlen = pty_items;
+        memcpy( x11.clipboard_buffer, buffer, pty_items );
+        x11.clipboard_buffer[ x11.clipboard_strlen ] = '\0';
         XFree( buffer );
     }
 
     if( convert )
     {
-        pty_size = sgui_utf8_from_latin1_length( clipboard_buffer );
+        pty_size = sgui_utf8_from_latin1_length( x11.clipboard_buffer );
 
-        if( pty_size > clipboard_strlen )
-        {
-            buffer = malloc( pty_size + 1 );
-            sgui_utf8_from_latin1( (char*)buffer, clipboard_buffer );
-            free( clipboard_buffer );
-            clipboard_buffer = (char*)buffer;
-            clipboard_size = pty_size+1;
-            clipboard_strlen = pty_size;
-        }
+        buffer = malloc( pty_size + 1 );
+        if( !buffer )
+            goto fail;
+
+        sgui_utf8_from_latin1( (char*)buffer, x11.clipboard_buffer );
+        free( x11.clipboard_buffer );
+        x11.clipboard_buffer = (char*)buffer;
+        x11.clipboard_size = pty_size+1;
+        x11.clipboard_strlen = pty_size;
     }
 
+done:
     sgui_internal_unlock_mutex( );
-    return clipboard_buffer;
+    return x11.clipboard_buffer;
+fail:
+    sgui_internal_unlock_mutex( );
+    return NULL;
 }
 
 /****************************************************************************/
@@ -374,109 +361,98 @@ int check_double_click( sgui_window_xlib* window )
 {
     unsigned long delta, current;
 
-    if( clicked == window )
+    if( x11.clicked == window )
     {
         current = get_time_ms( );
-        delta = current >= click_time ? (current - click_time) :
-                                        DOUBLE_CLICK_MS*64;
+        delta = current >= x11.click_time ? (current - x11.click_time) :
+                                             DOUBLE_CLICK_MS*64;
 
         if( delta <= DOUBLE_CLICK_MS )
             return 1;
     }
 
-    clicked = window;
-    click_time = get_time_ms( );
+    x11.clicked = window;
+    x11.click_time = get_time_ms( );
     return 0;
 }
 
 void interrupt_double_click( void )
 {
-    clicked = NULL;
-    click_time = 0;
+    x11.clicked = NULL;
+    x11.click_time = 0;
 }
 
 /****************************************************************************/
 
 void sgui_internal_lock_mutex( void )
 {
-    pthread_mutex_lock( &mutex );
+    pthread_mutex_lock( &x11.mutex );
 }
 
 void sgui_internal_unlock_mutex( void )
 {
-    pthread_mutex_unlock( &mutex );
+    pthread_mutex_unlock( &x11.mutex );
 }
 
 int sgui_init( void )
 {
-    /* create global mutex */
     pthread_mutexattr_t attr;
+
+    memset( &x11, 0, sizeof(x11) );
 
     pthread_mutexattr_init( &attr );
     pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
-    pthread_mutex_init( &mutex, &attr );
-
-    XInitThreads( );
+    pthread_mutex_init( &x11.mutex, &attr );
 
     if( !font_init( ) )
-        goto failure;
+        goto fail;
 
     /* open display connection */
-    if( !(dpy = XOpenDisplay( 0 )) )
-        goto failure;
+    XInitThreads( );
+
+    if( !(x11.dpy = XOpenDisplay( 0 )) )
+        goto fail;
 
     XSetErrorHandler( xlib_swallow_errors );
 
     /* create input method */
-    if( !(im = XOpenIM( dpy, NULL, NULL, NULL )) )
-        goto failure;
+    if( !(x11.im = XOpenIM( x11.dpy, NULL, NULL, NULL )) )
+        goto fail;
 
-    /* get usefull constants */
-    atom_wm_delete = XInternAtom( dpy, "WM_DELETE_WINDOW", True );
-    atom_pty       = XInternAtom( dpy, "SGUI_CLIP", False );
-    atom_targets   = XInternAtom( dpy, "TARGETS", False );
-    atom_text      = XInternAtom( dpy, "TEXT", False );
-    atom_inc       = XInternAtom( dpy, "INCR", False );
-    atom_UTF8      = XInternAtom( dpy, "UTF8_STRING", False );
-    atom_clipboard = XInternAtom( dpy, "CLIPBOARD", False );
-    root = DefaultRootWindow( dpy );
+    init_keycodes( );           /* initialise keycode translation LUT */
+    sgui_skin_set( NULL );      /* initialise default GUI skin */
+    sgui_event_reset( );        /* reset event system */
 
-    /* initialise keycode translation LUT */
-    init_keycodes( );
-
-    /* initialise default GUI skin */
-    sgui_skin_set( NULL );
-
-    sgui_event_reset( );
+    x11.atom_wm_delete = XInternAtom( x11.dpy, "WM_DELETE_WINDOW", True );
+    x11.atom_pty       = XInternAtom( x11.dpy, "SGUI_CLIP", False );
+    x11.atom_targets   = XInternAtom( x11.dpy, "TARGETS", False );
+    x11.atom_text      = XInternAtom( x11.dpy, "TEXT", False );
+    x11.atom_inc       = XInternAtom( x11.dpy, "INCR", False );
+    x11.atom_UTF8      = XInternAtom( x11.dpy, "UTF8_STRING", False );
+    x11.atom_clipboard = XInternAtom( x11.dpy, "CLIPBOARD", False );
+    x11.root           = DefaultRootWindow( x11.dpy );
+    x11.screen         = DefaultScreen( x11.dpy );
     return 1;
-failure:
+fail:
     sgui_deinit( );
     return 0;
 }
 
 void sgui_deinit( void )
 {
-    sgui_event_reset( );
+    sgui_event_reset( );                    /* clear event queue */
+    sgui_interal_skin_deinit_default( );    /* reset skinning system */
+    font_deinit( );                         /* reset font system */
+    pthread_mutex_destroy( &x11.mutex );    /* destroy global mutex */
 
-    sgui_interal_skin_deinit_default( );
+    if( x11.im )
+        XCloseIM( x11.im );
 
-    font_deinit( );
+    if( x11.dpy )
+        XCloseDisplay( x11.dpy );
 
-    pthread_mutex_destroy( &mutex );
-
-    if( im )
-        XCloseIM( im );
-
-    if( dpy )
-        XCloseDisplay( dpy );
-
-    free( clipboard_buffer );
-
-    clipboard_buffer = NULL;
-    clipboard_size = 0;
-    dpy = NULL;
-    im = 0;
-    list = NULL;
+    free( x11.clipboard_buffer );
+    memset( &x11, 0, sizeof(x11) );
 }
 
 int sgui_main_loop_step( void )
@@ -484,7 +460,7 @@ int sgui_main_loop_step( void )
     sgui_internal_lock_mutex( );
     handle_events( );
     update_windows( );
-    XFlush( dpy );
+    XFlush( x11.dpy );
     sgui_internal_unlock_mutex( );
 
     sgui_event_process( );
@@ -494,18 +470,16 @@ int sgui_main_loop_step( void )
 
 void sgui_main_loop( void )
 {
+    int x11_fd = XConnectionNumber( x11.dpy );
     struct timeval tv;
     fd_set in_fds;
-    int x11_fd;
-
-    x11_fd = XConnectionNumber( dpy );
 
     while( have_active_windows( ) )
     {
         sgui_internal_lock_mutex( );
         handle_events( );
         update_windows( );
-        XFlush( dpy );
+        XFlush( x11.dpy );
         sgui_internal_unlock_mutex( );
 
         sgui_event_process( );

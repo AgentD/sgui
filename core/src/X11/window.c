@@ -40,15 +40,15 @@ static void xlib_window_get_mouse_position(sgui_window* this, int* x, int* y)
     unsigned int t5; /* a NULL pointer for these */
 
     sgui_internal_lock_mutex( );
-    XQueryPointer( dpy, TO_X11(this)->wnd, &t1, &t2, &t3, &t4, x, y, &t5 );
+    XQueryPointer(x11.dpy, TO_X11(this)->wnd, &t1, &t2, &t3, &t4, x, y, &t5);
     sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_set_mouse_position( sgui_window* this, int x, int y )
 {
     sgui_internal_lock_mutex( );
-    XWarpPointer(dpy, None, TO_X11(this)->wnd, 0, 0, this->w, this->h, x, y);
-    XFlush( dpy );
+    XWarpPointer(x11.dpy,None,TO_X11(this)->wnd,0,0,this->w,this->h,x,y);
+    XFlush( x11.dpy );
 
     ++(TO_X11(this)->mouse_warped);  /* increment warp counter */
     sgui_internal_unlock_mutex( );
@@ -59,9 +59,9 @@ static void xlib_window_set_visible( sgui_window* this, int visible )
     sgui_internal_lock_mutex( );
 
     if( visible )
-        XMapWindow( dpy, TO_X11(this)->wnd );
+        XMapWindow( x11.dpy, TO_X11(this)->wnd );
     else
-        XUnmapWindow( dpy, TO_X11(this)->wnd );
+        XUnmapWindow( x11.dpy, TO_X11(this)->wnd );
 
     sgui_internal_unlock_mutex( );
 }
@@ -69,7 +69,7 @@ static void xlib_window_set_visible( sgui_window* this, int visible )
 static void xlib_window_set_title( sgui_window* this, const char* title )
 {
     sgui_internal_lock_mutex( );
-    XStoreName( dpy, TO_X11(this)->wnd, title );
+    XStoreName( x11.dpy, TO_X11(this)->wnd, title );
     sgui_internal_unlock_mutex( );
 }
 
@@ -88,15 +88,15 @@ static void xlib_window_set_size( sgui_window* this,
         hints.min_width  = hints.base_width  = hints.max_width  = (int)width;
         hints.min_height = hints.base_height = hints.max_height = (int)height;
 
-        XSetWMNormalHints( dpy, TO_X11(this)->wnd, &hints );
+        XSetWMNormalHints( x11.dpy, TO_X11(this)->wnd, &hints );
     }
 
     /* resize the window */
-    XResizeWindow( dpy, TO_X11(this)->wnd, width, height );
-    XFlush( dpy );
+    XResizeWindow( x11.dpy, TO_X11(this)->wnd, width, height );
+    XFlush( x11.dpy );
 
     /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( dpy, TO_X11(this)->wnd, &attr );
+    XGetWindowAttributes( x11.dpy, TO_X11(this)->wnd, &attr );
     this->w = (unsigned int)attr.width;
     this->h = (unsigned int)attr.height;
 
@@ -109,14 +109,14 @@ static void xlib_window_move_center( sgui_window* this )
     this->y = (DPY_HEIGHT >> 1) - (int)(this->h >> 1);
 
     sgui_internal_lock_mutex( );
-    XMoveWindow( dpy, TO_X11(this)->wnd, this->x, this->y );
+    XMoveWindow( x11.dpy, TO_X11(this)->wnd, this->x, this->y );
     sgui_internal_unlock_mutex( );
 }
 
 static void xlib_window_move( sgui_window* this, int x, int y )
 {
     sgui_internal_lock_mutex( );
-    XMoveWindow( dpy, TO_X11(this)->wnd, x, y );
+    XMoveWindow( x11.dpy, TO_X11(this)->wnd, x, y );
     sgui_internal_unlock_mutex( );
 }
 
@@ -127,7 +127,7 @@ static void xlib_window_force_redraw( sgui_window* this, sgui_rect* r )
     exp.type       = Expose;
     exp.serial     = 0;
     exp.send_event = 1;
-    exp.display    = dpy;
+    exp.display    = x11.dpy;
     exp.window     = TO_X11(this)->wnd;
     exp.count      = 0;
     exp.x          = r->left;
@@ -136,7 +136,7 @@ static void xlib_window_force_redraw( sgui_window* this, sgui_rect* r )
     exp.height     = r->bottom - r->top  + 1;
 
     sgui_internal_lock_mutex( );
-    XSendEvent( dpy, TO_X11(this)->wnd, False, ExposureMask, (XEvent*)&exp );
+    XSendEvent(x11.dpy,TO_X11(this)->wnd,False,ExposureMask,(XEvent*)&exp);
     sgui_internal_unlock_mutex( );
 }
 
@@ -153,7 +153,7 @@ static void xlib_window_destroy( sgui_window* this )
         this->ctx.ctx->destroy( this->ctx.ctx );
 
     if( TO_X11(this)->wnd )
-        XDestroyWindow( dpy, TO_X11(this)->wnd );
+        XDestroyWindow( x11.dpy, TO_X11(this)->wnd );
 
     remove_window( TO_X11(this) );
     sgui_internal_unlock_mutex( );
@@ -183,7 +183,7 @@ void update_window( sgui_window_xlib* this )
         exp.type       = Expose;
         exp.serial     = 0;
         exp.send_event = 1;
-        exp.display    = dpy;
+        exp.display    = x11.dpy;
         exp.window     = this->wnd;
         exp.count      = 0;
 
@@ -196,7 +196,7 @@ void update_window( sgui_window_xlib* this )
             exp.width  = r.right  - r.left + 1;
             exp.height = r.bottom - r.top  + 1;
 
-            XSendEvent( dpy, this->wnd, False, ExposureMask, (XEvent*)&exp );
+            XSendEvent(x11.dpy,this->wnd,False,ExposureMask,(XEvent*)&exp);
         }
 
         sgui_canvas_redraw_widgets( super->ctx.canvas, 1 );
@@ -351,12 +351,12 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         break;
     case ClientMessage:
-        if( e->xclient.data.l[0] == (long)atom_wm_delete )
+        if( e->xclient.data.l[0] == (long)x11.atom_wm_delete )
         {
             se.type = SGUI_USER_CLOSED_EVENT;
             super->visible = 0;
-            XUnmapWindow( dpy, this->wnd );
-            XUnmapSubwindows( dpy, this->wnd );
+            XUnmapWindow( x11.dpy, this->wnd );
+            XUnmapSubwindows( x11.dpy, this->wnd );
             sgui_internal_window_fire_event( super, &se );
         }
         break;
@@ -420,7 +420,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     add_window( this );
 
     /******************** create the window ********************/
-    x_parent = desc->parent ? TO_X11(desc->parent)->wnd : root;
+    x_parent = desc->parent ? TO_X11(desc->parent)->wnd : x11.root;
     this->is_child = (desc->parent!=NULL);
 
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
@@ -436,7 +436,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         /* create the window */
         swa.border_pixel = 0;
 
-        this->wnd = XCreateWindow( dpy, x_parent, 0, 0,
+        this->wnd = XCreateWindow( x11.dpy, x_parent, 0, 0,
                                    desc->width, desc->height, 0,
                                    vi->depth, InputOutput, vi->visual,
                                    CWBorderPixel|CWColormap, &swa );
@@ -450,7 +450,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         color = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
 
-        this->wnd = XCreateSimpleWindow( dpy, x_parent, 0, 0,
+        this->wnd = XCreateSimpleWindow( x11.dpy, x_parent, 0, 0,
                                          desc->width, desc->height,
                                          0, 0, color );
     }
@@ -467,22 +467,22 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         hints.min_height = hints.max_height =
         hints.base_height = (int)desc->height;
 
-        XSetWMNormalHints( dpy, this->wnd, &hints );
+        XSetWMNormalHints( x11.dpy, this->wnd, &hints );
     }
 
     /* tell X11 what events we will handle */
-    XSelectInput( dpy, this->wnd, ExposureMask | StructureNotifyMask |
-                                  KeyPressMask | KeyReleaseMask |
-                                  PointerMotionMask | PropertyChangeMask |
-                                  ButtonPressMask | ButtonReleaseMask |
-                                  FocusChangeMask );
+    XSelectInput( x11.dpy, this->wnd, ExposureMask | StructureNotifyMask |
+                                      KeyPressMask | KeyReleaseMask |
+                                      PointerMotionMask | PropertyChangeMask |
+                                      ButtonPressMask | ButtonReleaseMask |
+                                      FocusChangeMask );
 
-    XSetWMProtocols( dpy, this->wnd, &atom_wm_delete, 1 );
+    XSetWMProtocols( x11.dpy, this->wnd, &x11.atom_wm_delete, 1 );
 
-    XFlush( dpy );
+    XFlush( x11.dpy );
 
     /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( dpy, this->wnd, &attr );
+    XGetWindowAttributes( x11.dpy, this->wnd, &attr );
 
     super->x = attr.x;
     super->y = attr.y;
@@ -531,7 +531,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
 
     /*********** Create an input context ************/
-    this->ic = XCreateIC( im, XNInputStyle,
+    this->ic = XCreateIC( x11.im, XNInputStyle,
                           XIMPreeditNothing|XIMStatusNothing, XNClientWindow,
                           this->wnd, XNFocusWindow, this->wnd, NULL );
 
