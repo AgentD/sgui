@@ -81,8 +81,11 @@
 /* set if compiling for MS windows */
 #cmakedefine SGUI_WINDOWS
 
-/* set if compiling for a Unix like system */
+/* set if compiling for a Unix like system (not defined for OS X) */
 #cmakedefine SGUI_UNIX
+
+/* set if compiling for Mac OS X */
+#cmakedefine SGUI_OSX
 
 /* static maximum of canvas dirty rects */
 #define SGUI_CANVAS_MAX_DIRTY 10
