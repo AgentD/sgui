@@ -51,32 +51,25 @@ static int load_d3d9( void )
         libd3d9 = LoadLibrary( "d3d9.dll" );
 
         if( !libd3d9 )
-        {
-            sgui_internal_unlock_mutex( );
-            return 0;
-        }
+            goto fail;
 
         D3DCreate9 = (D3DCREATE9)GetProcAddress( libd3d9, "Direct3DCreate9" );
 
         if( !D3DCreate9 )
-        {
-            FreeLibrary( libd3d9 );
-            sgui_internal_unlock_mutex( );
-            return 0;
-        }
+            goto fail;
 
         d3d9 = D3DCreate9( D3D_SDK_VERSION );
 
         if( !d3d9 )
-        {
-            FreeLibrary( libd3d9 );
-            sgui_internal_unlock_mutex( );
-            return 0;
-        }
+            goto fail;
     }
 
     sgui_internal_unlock_mutex( );
     return 1;
+fail:
+    if( libd3d9 ) FreeLibrary( libd3d9 );
+    sgui_internal_unlock_mutex( );
+    return 0;
 }
 
 static void release_d3d9( void )

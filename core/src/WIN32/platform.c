@@ -27,32 +27,25 @@
 #include "platform.h"
 
 
-static sgui_window_w32* list = NULL;
-static CRITICAL_SECTION mutex;
-static char* clipboard = NULL;
-
-HINSTANCE hInstance;
-const char* wndclass = "sgui_wnd_class";
+struct w32_state w32;
 
 
 static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
                                        LPARAM lp )
 {
     sgui_window_w32* wnd;
-    int result = -1;
+    int result;
 
-    /* get window pointer and redirect */
     sgui_internal_lock_mutex( );
 
     wnd = (sgui_window_w32*)GET_USER_PTR( hWnd );
 
-    if( wnd )
-        result = handle_window_events( wnd, msg, wp, lp );
+    result = wnd ? handle_window_events( wnd, msg, wp, lp ) :
+                   DefWindowProcA( hWnd, msg, wp, lp );
 
     sgui_internal_unlock_mutex( );
 
-    /* return result, call default window proc if result < 0 */
-    return result < 0 ? DefWindowProcA( hWnd, msg, wp, lp ) : result;
+    return result;
 }
 
 static int is_window_active( void )
@@ -60,7 +53,7 @@ static int is_window_active( void )
     sgui_window_w32* i;
 
     sgui_internal_lock_mutex( );
-    for( i=list; i!=NULL && !i->super.visible; i=i->next );
+    for( i=w32.list; i!=NULL && !i->super.visible; i=i->next );
     sgui_internal_unlock_mutex( );
 
     return (i!=NULL);
@@ -72,7 +65,7 @@ static void update_windows( void )
 
     sgui_internal_lock_mutex( );
 
-    for( i=list; i!=NULL; i=i->next )
+    for( i=w32.list; i!=NULL; i=i->next )
        update_window( i );
 
     sgui_internal_unlock_mutex( );
@@ -109,36 +102,39 @@ char* utf16_to_utf8( WCHAR* utf16 )
 void w32_window_write_clipboard( sgui_window* this, const char* text,
                                  unsigned int length )
 {
+    WCHAR* ptr = NULL;
     unsigned int i;
-	HGLOBAL hDATA;
-	WCHAR* ptr;
-	(void)this;
+    HGLOBAL hDATA;
+    LPVOID dst;
+    (void)this;
 
-    /* try to open and empty the clipboard */
     sgui_internal_lock_mutex( );
 
-	if( !OpenClipboard( NULL ) )
-	{
-	    sgui_internal_unlock_mutex( );
-		return;
-	}
+    if( OpenClipboard( NULL ) )
+    {
+        EmptyClipboard( );
 
-	EmptyClipboard( );
+        if( (ptr = utf8_to_utf16( text, length )) )
+        {
+            i = lstrlenW( ptr );
 
-    /* convert text to utf16 and measure length */
-    ptr = utf8_to_utf16( text, length );
-    for( i=0; ptr[i]; ++i ) { }
+            if( (hDATA = GlobalAlloc( GMEM_MOVEABLE, sizeof(WCHAR)*(i+1) )) )
+            {
+                if( (dst = GlobalLock( hDATA )) )
+                {
+                    memcpy( dst, ptr, sizeof(WCHAR)*(i+1) );
+                    GlobalUnlock( hDATA );
+                    SetClipboardData( CF_UNICODETEXT, hDATA );
+                }
+            }
 
-    /* alocate buffer handle and copy the converted text */
-	hDATA = GlobalAlloc( GMEM_MOVEABLE, sizeof(WCHAR)*(i+1) );
-	memcpy( GlobalLock( hDATA ), ptr, sizeof(WCHAR)*(i+1) );
-	GlobalUnlock( hDATA );
-	free( ptr );
+            free( ptr );
+        }
 
-    /* set clipboard data and close */
-	SetClipboardData( CF_UNICODETEXT, hDATA );
-	CloseClipboard( );
-	sgui_internal_unlock_mutex( );
+        CloseClipboard( );
+    }
+
+    sgui_internal_unlock_mutex( );
 }
 
 const char* w32_window_read_clipboard( sgui_window* this )
@@ -147,68 +143,70 @@ const char* w32_window_read_clipboard( sgui_window* this )
     HANDLE hDATA;
     (void)this;
 
-    /* try to open the clipboard */
     sgui_internal_lock_mutex( );
 
-	if( !OpenClipboard( NULL ) )
-	{
-	    sgui_internal_unlock_mutex( );
-		return NULL;
-	}
+    free( w32.clipboard );
+    w32.clipboard = NULL;
 
-    /* get a pointer to the data */
-	hDATA = GetClipboardData( CF_UNICODETEXT );
-	buffer = (WCHAR*)GlobalLock( hDATA );
-    free( clipboard );
-    clipboard = utf16_to_utf8( buffer );
-    GlobalUnlock( hDATA );
+    if( OpenClipboard( NULL ) )
+    {
+        if( (hDATA = GetClipboardData( CF_UNICODETEXT )) )
+        {
+            if( (buffer = (WCHAR*)GlobalLock( hDATA )) )
+            {
+                w32.clipboard = utf16_to_utf8( buffer );
+                GlobalUnlock( hDATA );
+            }
+        }
 
-    /* close the clipboard and return the data */
-	CloseClipboard( );
-	sgui_internal_unlock_mutex( );
-	return clipboard;
+        CloseClipboard( );
+    }
+
+    sgui_internal_unlock_mutex( );
+    return w32.clipboard;
 }
 
 /****************************************************************************/
 
 void add_window( sgui_window_w32* this )
 {
-    SGUI_ADD_TO_LIST( list, this );
+    SGUI_ADD_TO_LIST( w32.list, this );
 }
 
 void remove_window( sgui_window_w32* this )
 {
     sgui_window_w32* i;
 
-    SGUI_REMOVE_FROM_LIST( list, i, this );
+    SGUI_REMOVE_FROM_LIST( w32.list, i, this );
 }
 
 /****************************************************************************/
 
 void sgui_internal_lock_mutex( void )
 {
-    EnterCriticalSection( &mutex );
+    EnterCriticalSection( &w32.mutex );
 }
 
 void sgui_internal_unlock_mutex( void )
 {
-    LeaveCriticalSection( &mutex );
+    LeaveCriticalSection( &w32.mutex );
 }
 
 int sgui_init( void )
 {
     WNDCLASSEXA wc;
 
-    /* initalize global mutex */
-    InitializeCriticalSection( &mutex );
+    memset( &w32, 0, sizeof(w32) );             /* clear global state */
 
-    /* initialise freetype library */
-    if( !font_init( ) )
-        goto failure;
+    w32.wndclass = "sgui_wnd_class";            /* store wndclass name */
 
-    /* get hInstance */
-    if( !(hInstance = GetModuleHandleA( NULL )) )
-        goto failure;
+    InitializeCriticalSection( &w32.mutex );    /* initalize global mutex */
+
+    if( !font_init( ) )                         /* initialise font system */
+        goto fail;
+
+    if( !(w32.hInstance = GetModuleHandleA( NULL )) )   /* get hInstance */
+        goto fail;
 
     /* Register window class */
     memset( &wc, 0, sizeof(WNDCLASSEXA) );
@@ -216,44 +214,32 @@ int sgui_init( void )
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
     wc.lpfnWndProc   = WindowProcFun;
-    wc.hInstance     = hInstance;
-    wc.lpszClassName = wndclass;
+    wc.hInstance     = w32.hInstance;
+    wc.lpszClassName = w32.wndclass;
     wc.hCursor       = LoadCursorA( NULL, IDC_ARROW );
 
     if( RegisterClassExA( &wc ) == 0 )
-        goto failure;
+        goto fail;
 
-    /* initialise default GUI skin */
-    sgui_skin_set( NULL );
-
-    sgui_event_reset( );
+    sgui_skin_set( NULL );      /* initialise default GUI skin */
+    sgui_event_reset( );        /* reset event subsystem */
     return 1;
-failure:
+fail:
     sgui_deinit( );
     return 0;
 }
 
 void sgui_deinit( void )
 {
-    sgui_event_reset( );
+    sgui_event_reset( );                        /* reset event subsystem */
+    sgui_interal_skin_deinit_default( );        /* reset skinning system */
+    font_deinit( );                             /* cleanup font system */
 
-    sgui_interal_skin_deinit_default( );
+    UnregisterClassA( w32.wndclass, w32.hInstance );   /* remove wndclass */
+    DeleteCriticalSection( &w32.mutex );        /* destroy global mutex */
+    free( w32.clipboard );                      /* destroy clipboard buffer */
 
-    /* unregister window class */
-    UnregisterClassA( wndclass, hInstance );
-
-    font_deinit( );
-
-    /* destroy global mutex */
-    DeleteCriticalSection( &mutex );
-
-    /* destroy global clipboard conversion buffer */
-    free( clipboard );
-
-    /* reset values */
-    hInstance = 0;
-    list = NULL;
-    clipboard = NULL;
+    memset( &w32, 0, sizeof(w32) );             /* clear global state */
 }
 
 int sgui_main_loop_step( void )
