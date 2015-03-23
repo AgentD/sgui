@@ -136,3 +136,45 @@ sgui_widget* sgui_image_create( int x, int y,
     return super;
 }
 
+void sgui_image_reload( sgui_widget* super, unsigned int x, unsigned int y,
+                        unsigned int width, unsigned int height )
+{
+    sgui_image* this = (sgui_image*)super;
+    unsigned int scan, imgheight;
+    sgui_rect r;
+
+    if( !this || !this->pixmap )
+        return;
+
+    scan      = SGUI_RECT_WIDTH(super->area);
+    imgheight = SGUI_RECT_HEIGHT(super->area);
+
+    /* clamp image area */
+    if( x>=scan || y>=imgheight )
+        return;
+
+    if( (x+width) > scan )
+        width = scan - x;
+
+    if( (y+height) > imgheight )
+        height = imgheight - y;
+
+    if( !width || !height )
+        return;
+
+    /* reupload image portion */
+    sgui_pixmap_load( this->pixmap, x, y, this->data, x, y, width, height,
+                      scan, this->format );
+
+    /* flag changed area dirty */
+    if( super->canvas )
+    {
+        sgui_widget_get_absolute_rect( super, &r );
+        r.left += x;
+        r.top += y;
+        r.right = r.left + width - 1;
+        r.bottom = r.top + height - 1;
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
+    }
+}
+

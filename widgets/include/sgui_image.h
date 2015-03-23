@@ -75,6 +75,25 @@ SGUI_DLL sgui_widget* sgui_image_create( int x, int y,
                                          const void* data, int format,
                                          int blend, int useptr );
 
+/**
+ * \brief Reload a portion of an image
+ *
+ * \memberof sgui_image
+ *
+ * If a portion of an image has changed, reupload the data to the underlying
+ * pixmap and ask the canvas to redraw the image. This way, dynamic, animated
+ * images can be displayed based on a simple sgui_image.
+ *
+ * \param image  A pointer to an image widget
+ * \param x      A distance from the left of the image
+ * \param y      A distance from the top of the image
+ * \param width  The width of the altered are in pixels
+ * \param height The height of the altered are in pixels
+ */
+SGUI_DLL void sgui_image_reload( sgui_widget* image,
+                                 unsigned int x, unsigned int y,
+                                 unsigned int width, unsigned int height );
+
 #ifdef __cplusplus
 }
 #endif
