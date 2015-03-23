@@ -92,24 +92,25 @@ static int get_descriptor_from_array( PIXELFORMATDESCRIPTOR* pfd,
 }
 
 /*
-    On Windows, the ChosePixelFormat / SetPixelFormat functions were used to
-    get a pixel format for OpenGL rendering. The first function gets a pointer
-    to a structure describing the format und returns a unique ID of the best
-    matching format that then gets passed into the later function.
+    On Windows, to create an OpenGL context, the SetPixelFormat function has
+    to be called on a Window/HDC pair to set a framebuffer format. Framebuffer
+    formats are identifed by unique IDs. We can get such an ID by using
+    ChosePixelFormat which gets a pointer to a description struct.
 
-    When multisampling and other things were added, it turned out that this
-    was not expandable. So a new function was introduced as an extension that
-    accepts an array of key value pairs. So now if we want pixel format
-    extensions like multisampling, we have to set up a dummy OpenGL context
-    to get the extension, determine the unique identifier, and use the
-    identifier in the actual window setup process. Since SetPixelFormat is
-    only allowed ONCE per window, we even have to create a dummy window for
-    the whole process.
+    Later, when multisampling and other things were added, the function
+    wglChoosePixelFormatARB was introduced to get a framebuffer format ID
+    from an array of key-value pairs instead of a struct.
 
-    This is basically what this function does. It takes a new style pixel
-    format attribute array as input, derives an old style structure from it,
-    determines the pixel format, checks if it can determine the pixel format
-    from the actual array, do that, return the identifier.
+    If we want multisampling, we need wglChoosePixelFormatARB. However,
+    this function is an extension. To get the extension, we need an OpenGL
+    context. To get a context, we need to set a pixel format to a window
+    first. However, we can only set the pixel format once per window, so we
+    have to set up a dummy window, set a dummy pixel format the old way,
+    create a dummy OpenGL context to get the extension and determine the
+    unique ID for the actual format we want to use.
+
+    This function abstracts all of this and determines the unique ID for
+    a key-value array.
  */
 static int determine_pixel_format( int* pixel_attribs, int only_new )
 {
@@ -124,8 +125,9 @@ static int determine_pixel_format( int* pixel_attribs, int only_new )
     /* Generate an old style pixel format descriptor */
     need_new = get_descriptor_from_array( &pfd, pixel_attribs );
 
+
     /* Create a dummy window */
-    tempwnd = CreateWindow(wndclass,"",0,0,0,100,100,0,0,hInstance,0);
+    tempwnd = CreateWindow(w32.wndclass,"",0,0,0,100,100,0,0,w32.hInstance,0);
     tempdc = GetWindowDC( tempwnd );
     pixelformat = ChoosePixelFormat( tempdc, &pfd );
     SetPixelFormat( tempdc, pixelformat, NULL );
@@ -168,13 +170,11 @@ static int determine_pixel_format( int* pixel_attribs, int only_new )
 static void set_attributes( int* attr, int bpp, int depth, int stencil,
                             int doublebuffer, int samples )
 {
-    int i=0;
-
     bpp = (bpp!=16 && bpp!=24 && bpp!=32) ? 32 : bpp;
     depth = (depth!=0 && depth!=16 && depth!=24 && depth!=32) ? 24 : depth;
     stencil = (stencil!=0 && stencil!=8) ? 8 : stencil;
 
-#define ATTRIB( name, value ) attr[ i++ ] = (name); attr[ i++ ] = (value)
+#define ATTRIB( name, value ) *(attr++) = (name); *(attr++) = (value)
     ATTRIB( WGL_DRAW_TO_WINDOW_ARB, GL_TRUE         );
     ATTRIB( WGL_SUPPORT_OPENGL_ARB, GL_TRUE         );
     ATTRIB( WGL_COLOR_BITS_ARB,     bpp             );
@@ -200,11 +200,9 @@ static void set_attributes( int* attr, int bpp, int depth, int stencil,
 int set_pixel_format( sgui_window_w32* this,
                       const sgui_window_description* desc )
 {
-    int attribs[20], samples, format;
+    int attribs[20], format = 0, samples = desc->samples;
 
-    samples = desc->samples;
-
-    do
+    while( samples>=0 && format<1 )
     {
         set_attributes( attribs, desc->bits_per_pixel, desc->depth_bits,
                         desc->stencil_bits,
@@ -212,13 +210,12 @@ int set_pixel_format( sgui_window_w32* this,
 
         format = determine_pixel_format( attribs, 1 );
     }
-    while( samples>=0 && format<1 );
 
     if( !format )
-        format = determine_pixel_format( attribs, 0 );
-
-    if( !format )
-        return 0;
+    {
+        if( !(format = determine_pixel_format( attribs, 0 )) )
+            return 0;
+    }
 
     SetPixelFormat( this->hDC, format, NULL );
     return 1;
@@ -283,11 +280,10 @@ static void* context_gl_get_internal( sgui_context* this )
 sgui_context* gl_context_create( sgui_window* wnd, int core,
                                  sgui_gl_context* share )
 {
+    HGLRC temp, oldctx, src = share ? ((sgui_gl_context*)share)->hRC : 0;
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
     sgui_gl_context* this = malloc( sizeof(sgui_gl_context) );
-    HGLRC src = share ? ((sgui_gl_context*)share)->hRC : 0;
     sgui_context* super = (sgui_context*)this;
-    HGLRC temp, oldctx;
     int attribs[20];
     unsigned int i;
     HDC olddc;
@@ -300,22 +296,15 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
 
     /********** create a trampoline context **********/
     if( !(temp = wglCreateContext( TO_W32(wnd)->hDC )) )
-    {
-        free( this );
-        sgui_internal_unlock_mutex( );
-        return NULL;
-    }
+        goto fail;
 
-    /* make the trampoline context current */
     oldctx = wglGetCurrentContext( );
     olddc = wglGetCurrentDC( );
 
     if( !wglMakeCurrent( TO_W32(wnd)->hDC, temp ) )
     {
         wglDeleteContext( temp );
-        free( this );
-        sgui_internal_unlock_mutex( );
-        return NULL;
+        goto fail;
     }
 
     /********** try to create a new context **********/
@@ -358,7 +347,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
             wglShareLists( src, this->hRC );
     }
 
-    /* set callbacks */
+    /* finish initialization */
     this->wnd = wnd;
 
     super->create_share    = context_gl_create_share;
@@ -372,6 +361,10 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
     wglMakeCurrent( olddc, oldctx );
     sgui_internal_unlock_mutex( );
     return super;
+fail:
+    free( this );
+    sgui_internal_unlock_mutex( );
+    return NULL;
 }
 
 void gl_swap_buffers( sgui_window* this )

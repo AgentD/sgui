@@ -4,7 +4,7 @@
 # the public domain.
 #--------------------------------------------------------------------
 
-if( UNIX )
+if( UNIX AND NOT APPLE )
   set( CORE_PLATFORM_SRC
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/canvas.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/font.c

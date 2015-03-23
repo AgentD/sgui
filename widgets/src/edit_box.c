@@ -145,9 +145,7 @@ static void remove_selection( sgui_edit_box* this )
 
     for( len=0, i=start; i<end; ++len )
     {
-        ++i;
-        while( (this->buffer[i] & 0xC0)==0x80 )
-            ++i;
+        ADVANCE_UTF8( this->buffer, i );
     }
 
     memmove( this->buffer+start, this->buffer+end, this->end-end+1 );
@@ -201,7 +199,8 @@ static void edit_box_draw( sgui_widget* super )
 
     skin->draw_editbox( skin, super->canvas, &(super->area),
                               this->buffer, this->offset,
-                              this->draw_cursor ? (int)this->cursor : -1,
+                              this->flags & SGUI_EDIT_DRAW_CURSOR ?
+                              (int)this->cursor : -1,
                               this->selection, 0, 0 );
 }
 
@@ -226,16 +225,16 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
     if( e->type == SGUI_FOCUS_EVENT )
     {
         this->selection = this->cursor;
-        this->selecting = 0;
-        this->draw_cursor = 1;
+        this->flags &= ~SGUI_EDIT_SELECTING;
+        this->flags |= SGUI_EDIT_DRAW_CURSOR;
         update = 1;
         this->sync_cursors( this );
     }
     else if( e->type == SGUI_FOCUS_LOSE_EVENT )
     {
         this->selection = this->cursor;
-        this->selecting = 0;
-        this->draw_cursor = 0;
+        this->flags &= ~SGUI_EDIT_SELECTING;
+        this->flags &= ~SGUI_EDIT_DRAW_CURSOR;
         update = 1;
         this->sync_cursors( this );
         this->text_changed( this, SGUI_EDIT_BOX_TEXT_CHANGED );
@@ -244,7 +243,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
              (e->arg.i3.z == SGUI_MOUSE_BUTTON_LEFT) &&
              this->num_entered )
     {
-        this->selecting = 0;
+        this->flags &= ~SGUI_EDIT_SELECTING;
         this->cursor = this->offset_from_position( this, e->arg.i3.x );
         this->selection = this->cursor;
         this->sync_cursors( this );
@@ -254,7 +253,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
              (e->arg.i==SGUI_KC_LSHIFT || e->arg.i==SGUI_KC_RSHIFT ||
               e->arg.i==SGUI_KC_SHIFT) )
     {
-        this->selecting = 0;
+        this->flags &= ~SGUI_EDIT_SELECTING;
     }
     else if( e->type == SGUI_KEY_PRESSED_EVENT )
     {
@@ -263,7 +262,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
         case SGUI_KC_SELECT_ALL:
             if( this->num_entered )
             {
-                this->selecting = 0;
+                this->flags &= ~SGUI_EDIT_SELECTING;
                 this->cursor = 0;
                 this->selection = this->end;
                 this->sync_cursors( this );
@@ -306,8 +305,9 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
         case SGUI_KC_LSHIFT:
         case SGUI_KC_RSHIFT:
         case SGUI_KC_SHIFT:
-            this->selection=this->selecting ? this->selection : this->cursor;
-            this->selecting=1;
+            this->selection = (this->flags & SGUI_EDIT_SELECTING) ?
+                              this->selection : this->cursor;
+            this->flags |= SGUI_EDIT_SELECTING;
             break;
         case SGUI_KC_BACK:
             if( this->num_entered )
@@ -343,7 +343,8 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             if( this->cursor )
             {
                 ROLL_BACK_UTF8( this->buffer, this->cursor );
-                this->selection=this->selecting?this->selection:this->cursor;
+                this->selection = this->flags & SGUI_EDIT_SELECTING ?
+                                  this->selection : this->cursor;
                 this->sync_cursors( this );
                 determine_offset( this );
                 update = 1;
@@ -353,7 +354,8 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             if( this->cursor < this->end )
             {
                 ADVANCE_UTF8( this->buffer, this->cursor );
-                this->selection=this->selecting?this->selection:this->cursor;
+                this->selection = this->flags & SGUI_EDIT_SELECTING ?
+                                  this->selection : this->cursor;
                 this->sync_cursors( this );
                 determine_offset( this );
                 update = 1;
@@ -363,7 +365,8 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             if( this->offset || this->cursor )
             {
                 this->cursor = this->offset = 0;
-                this->selection=this->selecting?this->selection:this->cursor;
+                this->selection = this->flags & SGUI_EDIT_SELECTING ?
+                                  this->selection : this->cursor;
                 this->sync_cursors( this );
                 update = 1;
             }
@@ -372,7 +375,8 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             if( this->cursor < this->end )
             {
                 this->offset = this->cursor = this->end;
-                this->selection=this->selecting?this->selection:this->cursor;
+                this->selection = this->flags & SGUI_EDIT_SELECTING ?
+                                  this->selection : this->cursor;
                 this->sync_cursors( this );
                 determine_offset( this );
                 update = 1;
@@ -380,7 +384,7 @@ static void edit_box_on_event( sgui_widget* super, const sgui_event* e )
             break;
         case SGUI_KC_RETURN:
             this->text_changed( this, SGUI_EDIT_BOX_TEXT_ENTERED );
-            this->selecting = 0;
+            this->flags &= ~SGUI_EDIT_SELECTING;
             this->selection = this->cursor;
             break;
         }
@@ -481,7 +485,8 @@ void sgui_edit_box_set_text( sgui_widget* super, const char* text )
         if( this->num_entered )
         {
             /* select all */
-            this->selecting = this->cursor = 0;
+            this->flags &= ~SGUI_EDIT_SELECTING;
+            this->cursor = 0;
             this->selection = this->end;
             this->sync_cursors( this );
 

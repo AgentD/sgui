@@ -22,8 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef INTERNAL_H
-#define INTERNAL_H
+#ifndef PLATFORM_H
+#define PLATFORM_H
 
 
 
@@ -66,8 +66,21 @@
 
 
 
-extern HINSTANCE hInstance;
-extern const char* wndclass;
+extern struct w32_state
+{
+    HINSTANCE hInstance;        /* instance handle */
+    const char* wndclass;       /* window class name */
+    sgui_window_w32* list;      /* global list of all windows */
+    CRITICAL_SECTION mutex;     /* global sgui mutex */
+    char* clipboard;            /* clipboard translaton buffer */
+}
+w32;
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* convert an UTF-8 string to UTF-16 */
 WCHAR* utf8_to_utf16( const char* utf8, int rdbytes );
@@ -88,5 +101,9 @@ void add_window( sgui_window_w32* wnd );
 /* remove a window from the list used by the main loop */
 void remove_window( sgui_window_w32* wnd );
 
-#endif /* INTERNAL_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* PLATFORM_H */
 

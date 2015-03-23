@@ -41,7 +41,7 @@ void sgui_message_box_emergency( const char* caption, const char* text )
 {
     int black, white, length, height, direction, ascent, descent, X, Y, W, H;
     int okX1, okY1, okX2, okY2, okBaseX, okBaseY, okWidth, okHeight, run=1;
-    int buttonFocus=0, offset, i, j, lines;
+    int buttonFocus=0, offset, i, j, lines, screen;
     Atom atom_wm_delete;
     Display* dpy=NULL;
     Window wnd=0;
@@ -53,11 +53,12 @@ void sgui_message_box_emergency( const char* caption, const char* text )
 
     /* Open a display */
     if( !(dpy = XOpenDisplay( 0 )) )
-        return;
+        goto fail;
 
     atom_wm_delete = XInternAtom( dpy, "WM_DELETE_WINDOW", True );
-    black = BlackPixel( dpy, DefaultScreen(dpy) );
-    white = WhitePixel( dpy, DefaultScreen(dpy) );
+    screen = DefaultScreen(dpy);
+    black = BlackPixel( dpy, screen );
+    white = WhitePixel( dpy, screen );
 
     /* Create a window with the specified caption */
     wnd = XCreateSimpleWindow( dpy, DefaultRootWindow(dpy), 0, 0, 100, 100,
@@ -99,10 +100,10 @@ void sgui_message_box_emergency( const char* caption, const char* text )
     }
 
     /* Resize and position the window accordingly */
-    X = DisplayWidth (dpy, DefaultScreen(dpy))/2 - length/2 - 10;
-    Y = DisplayHeight(dpy, DefaultScreen(dpy))/2 - lines*height/2 - height-10;
     W = length + 20;
     H = lines*height + height + 40;
+    X = DisplayWidth (dpy, screen)/2 - W/2;
+    Y = DisplayHeight(dpy, screen)/2 - H/2;
 
     hints.flags      = PSize | PMinSize | PMaxSize;
     hints.min_width  = hints.max_width  = hints.base_width  = W;
@@ -118,11 +119,11 @@ void sgui_message_box_emergency( const char* caption, const char* text )
     okHeight = ascent + descent;
 
     okX1 = W/2 - okWidth/2 - 15;
+    okX2 = okX1 + okWidth + 30;
     okY1 = (lines*height + 20) + 5;
-    okX2 = W/2 + okWidth/2 + 15;
     okY2 = okY1 + 4 + okHeight;
     okBaseX = okX1 + 15;
-    okBaseY = okY1 + 2 + okHeight;
+    okBaseY = okY2 - 2;
 
     XFreeFontInfo( NULL, font, 1 );
 
@@ -137,21 +138,13 @@ void sgui_message_box_emergency( const char* caption, const char* text )
 
         if( e.type == MotionNotify )
         {
-            if( e.xmotion.x>=okX1 && e.xmotion.x<=okX2 &&
-                e.xmotion.y>=okY1 && e.xmotion.y<=okY2 )
-            {
-                if( !buttonFocus )
-                    e.type = Expose;
+            i = e.xmotion.x>=okX1 && e.xmotion.x<=okX2 &&
+                e.xmotion.y>=okY1 && e.xmotion.y<=okY2;
 
-                buttonFocus = 1;
-            }
-            else
-            {
-                if( buttonFocus )
-                    e.type = Expose;
+            if( i != buttonFocus )
+                e.type = Expose;
 
-                buttonFocus = 0;
-            }
+            buttonFocus = i;
         }
 
         switch( e.type )
@@ -188,10 +181,7 @@ void sgui_message_box_emergency( const char* caption, const char* text )
             }
             else
             {
-                XDrawLine( dpy, wnd, gc, okX1, okY1, okX2, okY1 );
-                XDrawLine( dpy, wnd, gc, okX1, okY2, okX2, okY2 );
-                XDrawLine( dpy, wnd, gc, okX1, okY1, okX1, okY2 );
-                XDrawLine( dpy, wnd, gc, okX2, okY1, okX2, okY2 );
+                XDrawRectangle(dpy,wnd,gc,okX1,okY1,okX2-okX1,okY2-okY1);
             }
 
             XDrawString( dpy, wnd, gc, offset+okBaseX, offset+okBaseY,
@@ -219,7 +209,7 @@ void sgui_message_box_emergency( const char* caption, const char* text )
 fail:
     if( gc  ) XFreeGC( dpy, gc );
     if( wnd ) XDestroyWindow( dpy, wnd );
-    XCloseDisplay( dpy );
+    if( dpy ) XCloseDisplay( dpy );
 
     /* last chance: print to error stream */
     fprintf( stderr, "***** %s *****\n%s\n\n", caption, text );

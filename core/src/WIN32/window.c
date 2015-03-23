@@ -152,12 +152,12 @@ static void w32_window_set_size( sgui_window* this,
         resize_pixmap( TO_W32(this) );
         sgui_canvas_resize( this->ctx.canvas, width, height );
     }
+#ifndef SGUI_NO_D3D11
     else if( this->backend == SGUI_DIRECT3D_11 )
     {
-#ifndef SGUI_NO_D3D11
         d3d11_resize( this->ctx.ctx );
-#endif
     }
+#endif
 
     sgui_internal_unlock_mutex( );
 }
@@ -178,8 +178,7 @@ static void w32_window_move_center( sgui_window* this )
     dw = desktop.right  - desktop.left;
     dh = desktop.bottom - desktop.top;
 
-    MoveWindow( TO_W32(this)->hWnd, (dw>>1)-(w>>1),
-                (dh>>1)-(h>>1), w, h, TRUE );
+    MoveWindow( TO_W32(this)->hWnd, (dw-w)/2, (dh-h)/2, w, h, TRUE );
 
     sgui_internal_unlock_mutex( );
 }
@@ -187,16 +186,13 @@ static void w32_window_move_center( sgui_window* this )
 static void w32_window_move( sgui_window* this, int x, int y )
 {
     RECT r;
-    int w, h;
 
     sgui_internal_lock_mutex( );
 
     GetWindowRect( TO_W32(this)->hWnd, &r );
 
-    w = r.right  - r.left;
-    h = r.bottom - r.top;
-
-    MoveWindow( TO_W32(this)->hWnd, x, y, w, h, TRUE );
+    MoveWindow( TO_W32(this)->hWnd, x, y, r.right - r.left,
+                r.bottom - r.top, TRUE );
 
     sgui_internal_unlock_mutex( );
 }
@@ -242,7 +238,7 @@ static void w32_window_destroy( sgui_window* this )
 
     if( TO_W32(this)->hWnd )
     {
-        this->ctx.canvas = NULL; /* HACK: DestroyWindow calls message proc */
+        this->ctx.canvas = NULL; /* XXX: DestroyWindow calls message proc */
         this->ctx.ctx    = NULL;
 
         DestroyWindow( TO_W32(this)->hWnd );
@@ -280,10 +276,9 @@ void update_window( sgui_window_w32* this )
 
         sgui_canvas_redraw_widgets( super->ctx.canvas, 1 );
     }
-
-    if( super->backend == SGUI_DIRECT3D_9 )
-    {
 #ifndef SGUI_NO_D3D9
+    else if( super->backend == SGUI_DIRECT3D_9 )
+    {
         IDirect3DDevice9* dev = ((sgui_d3d9_context*)super->ctx.ctx)->device;
         sgui_event e;
 
@@ -293,8 +288,8 @@ void update_window( sgui_window_w32* this )
             e.src.window = (sgui_window*)this;
             sgui_internal_window_fire_event( super, &e );
         }
-#endif
     }
+#endif
 }
 
 int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
@@ -313,82 +308,44 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
 
     switch( msg )
     {
-    case WM_LBUTTONDBLCLK:
-        e.arg.i2.x = LOWORD( lp );
-        e.arg.i2.y = HIWORD( lp );
-        e.type = SGUI_DOUBLE_CLICK_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
+    case WM_SETFOCUS:       e.type = SGUI_FOCUS_EVENT;        goto send_ev;
+    case WM_KILLFOCUS:      e.type = SGUI_FOCUS_LOSE_EVENT;   goto send_ev;
+    case WM_LBUTTONDBLCLK:  e.type = SGUI_DOUBLE_CLICK_EVENT; goto event_xy;
+    case WM_MOUSEMOVE:      e.type = SGUI_MOUSE_MOVE_EVENT;   goto event_xy;
     case WM_DESTROY:
         super->visible = 0;
         e.type = SGUI_USER_CLOSED_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
-    case WM_MOUSEMOVE:
-        e.arg.i2.x = LOWORD( lp );
-        e.arg.i2.y = HIWORD( lp );
-        e.type = SGUI_MOUSE_MOVE_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
+        goto send_ev;
     case WM_MOUSEWHEEL:
-        e.arg.i = GET_WHEEL_DELTA_WPARAM( wp )/120;
+        e.arg.i = GET_WHEEL_DELTA_WPARAM( wp ) / WHEEL_DELTA;
         e.type = SGUI_MOUSE_WHEEL_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
+        goto send_ev;
     case WM_LBUTTONDOWN:
-        e.arg.i3.z = SGUI_MOUSE_BUTTON_LEFT;
-        e.arg.i3.x = LOWORD( lp );
-        e.arg.i3.y = HIWORD( lp );
-        e.type = SGUI_MOUSE_PRESS_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
-    case WM_LBUTTONUP:
-        e.arg.i3.z = SGUI_MOUSE_BUTTON_LEFT;
-        e.arg.i3.x = LOWORD( lp );
-        e.arg.i3.y = HIWORD( lp );
-        e.type = SGUI_MOUSE_RELEASE_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
     case WM_MBUTTONDOWN:
-        e.arg.i3.z = SGUI_MOUSE_BUTTON_MIDDLE;
-        e.arg.i3.x = LOWORD( lp );
-        e.arg.i3.y = HIWORD( lp );
-        e.type = SGUI_MOUSE_PRESS_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
-    case WM_MBUTTONUP:
-        e.arg.i3.z = SGUI_MOUSE_BUTTON_MIDDLE;
-        e.arg.i3.x = LOWORD( lp );
-        e.arg.i3.y = HIWORD( lp );
-        e.type = SGUI_MOUSE_RELEASE_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
     case WM_RBUTTONDOWN:
-        e.arg.i3.z = SGUI_MOUSE_BUTTON_RIGHT;
-        e.arg.i3.x = LOWORD( lp );
-        e.arg.i3.y = HIWORD( lp );
+        e.arg.i3.z = msg==WM_LBUTTONDOWN ? SGUI_MOUSE_BUTTON_LEFT : 
+                     (msg==WM_RBUTTONDOWN ? SGUI_MOUSE_BUTTON_RIGHT :
+                      SGUI_MOUSE_BUTTON_MIDDLE);
         e.type = SGUI_MOUSE_PRESS_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
+        goto event_xy;
+    case WM_LBUTTONUP:
+    case WM_MBUTTONUP:
     case WM_RBUTTONUP:
-        e.arg.i3.z = SGUI_MOUSE_BUTTON_RIGHT;
-        e.arg.i3.x = LOWORD( lp );
-        e.arg.i3.y = HIWORD( lp );
+        e.arg.i3.z = msg==WM_LBUTTONUP ? SGUI_MOUSE_BUTTON_LEFT : 
+                     (msg==WM_RBUTTONUP ? SGUI_MOUSE_BUTTON_RIGHT :
+                      SGUI_MOUSE_BUTTON_MIDDLE);
         e.type = SGUI_MOUSE_RELEASE_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
+        goto event_xy;
     case WM_CHAR:
         c[0] = (WCHAR)wp;
         c[1] = '\0';
 
-        WideCharToMultiByte( CP_UTF8, 0, c, 2, e.arg.utf8, 8, NULL, NULL );
+        if( (c[0] < 0x80) && iscntrl( c[0] ) )
+            break;
 
-        if( (e.arg.utf8[0] & 0x80) || !iscntrl( e.arg.utf8[0] ) )
-        {
-            e.type = SGUI_CHAR_EVENT;
-            sgui_internal_window_fire_event( super, &e );
-        }
-        break;
+        WideCharToMultiByte( CP_UTF8, 0, c, 2, e.arg.utf8, 8, NULL, NULL );
+        e.type = SGUI_CHAR_EVENT;
+        goto send_ev;
     case WM_SYSKEYUP:
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
@@ -417,11 +374,10 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         if( (msg==WM_SYSKEYUP || msg==WM_SYSKEYDOWN) &&
             !(key==VK_MENU || key==VK_LMENU || key==VK_RMENU) )
         {
-            return -1;
+            return DefWindowProcA( this->hWnd, msg, wp, lp );
         }
         break;
     case WM_SIZE:
-        /* send size change event */
         e.arg.ui2.x = super->w = LOWORD( lp );
         e.arg.ui2.y = super->h = HIWORD( lp );
         e.type = SGUI_SIZE_CHANGE_EVENT;
@@ -432,17 +388,14 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
             resize_pixmap( this );
             sgui_canvas_resize( super->ctx.canvas, super->w, super->h );
         }
+#ifndef SGUI_NO_D3D11
         else if( super->backend==SGUI_DIRECT3D_11 )
         {
-#ifndef SGUI_NO_D3D11
             d3d11_resize( super->ctx.ctx );
-#endif
         }
-
-        /* fire a resize event */
+#endif
         sgui_internal_window_fire_event( super, &e );
 
-        /* redraw the widgets */
         if( super->backend==SGUI_NATIVE )
             sgui_canvas_draw_widgets( super->ctx.canvas, 1 );
         break;
@@ -450,28 +403,15 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
         super->x = LOWORD( lp );
         super->y = HIWORD( lp );
         break;
-    case WM_SETFOCUS:
-        e.type = SGUI_FOCUS_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
-    case WM_KILLFOCUS:
-        e.type = SGUI_FOCUS_LOSE_EVENT;
-        sgui_internal_window_fire_event( super, &e );
-        break;
-    case WM_PAINT:
+    case WM_PAINT:                        /* XXX: falls through to default */
         if( super->backend==SGUI_NATIVE )
         {
-            e.type = SGUI_EXPOSE_EVENT;
-            sgui_internal_window_fire_event( super, &e );
-
             ftn.BlendOp = AC_SRC_OVER;
             ftn.BlendFlags = 0;
             ftn.SourceConstantAlpha = 0xFF;
             ftn.AlphaFormat = AC_SRC_ALPHA;
 
-            r.left = r.top = 0;
-            r.right = super->w;
-            r.bottom = super->h;
+            SetRect( &r, 0, 0, super->w, super->h );
 
             hDC = BeginPaint( this->hWnd, &ps );
             FillRect( hDC, &r, this->bgbrush );
@@ -486,9 +426,15 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
             sgui_internal_window_fire_event( super, &e );
         }
     default:
-        return -1;
+        return DefWindowProcA( this->hWnd, msg, wp, lp );
     }
 
+    return 0;
+event_xy:
+    e.arg.i3.x = LOWORD( lp );
+    e.arg.i3.y = HIWORD( lp );
+send_ev:
+    sgui_internal_window_fire_event( super, &e );
     return 0;
 }
 
@@ -550,8 +496,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
     style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-    this->hWnd = CreateWindowExA(0, wndclass, "", style, 0, 0, r.right-r.left,
-                                 r.bottom-r.top, parent_hnd, 0, hInstance, 0);
+    this->hWnd = CreateWindowExA(0, w32.wndclass, "", style, 0, 0,
+                                 r.right-r.left, r.bottom-r.top,
+                                 parent_hnd, 0, w32.hInstance, 0);
 
     if( !this->hWnd )
         goto failure;
@@ -559,70 +506,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     SET_USER_PTR( this->hWnd, this );
 
     /**************************** create canvas ****************************/
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
-    {
-#ifndef SGUI_NO_OPENGL
-        sgui_gl_context* share = NULL;
-
-        if( desc->share )
-        {
-            if( desc->share->backend==SGUI_OPENGL_CORE || 
-                desc->share->backend==SGUI_OPENGL_COMPAT )
-            {
-                share = (sgui_gl_context*)desc->share->ctx.ctx;
-            }
-        }
-
-        if( !(this->hDC = GetDC( this->hWnd )) )
-            goto failure;
-
-        if( !set_pixel_format( this, desc ) )
-            goto failure;
-
-        super->backend = desc->backend;
-        super->ctx.ctx = gl_context_create( super,
-                                            desc->backend==SGUI_OPENGL_CORE,
-                                            share );
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = gl_swap_buffers;
-        super->set_vsync = gl_set_vsync;
-#endif
-    }
-    else if( desc->backend==SGUI_DIRECT3D_9 )
-    {
-#ifndef SGUI_NO_D3D9
-        sgui_d3d9_context* share = NULL;
-
-        if( desc->share && desc->share->backend==SGUI_DIRECT3D_9 )
-            share = (sgui_d3d9_context*)desc->share->ctx.ctx;
-
-        super->backend = desc->backend;
-        super->ctx.ctx = d3d9_context_create( super, desc, share );
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = d3d9_swap_buffers;
-        super->set_vsync = d3d9_set_vsync;
-#endif
-    }
-    else if( desc->backend==SGUI_DIRECT3D_11 )
-    {
-#ifndef SGUI_NO_D3D11
-        super->backend = desc->backend;
-        super->ctx.ctx = d3d11_context_create( super, desc );
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = d3d11_swap_buffers;
-        super->set_vsync = d3d11_set_vsync;
-#endif
-    }
-    else if( desc->backend==SGUI_NATIVE )
+    if( desc->backend==SGUI_NATIVE )
     {
         /* create an offscreen Device Context */
         if( !(this->hDC = CreateCompatibleDC( NULL )) )
@@ -656,7 +540,69 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         super->swap_buffers = NULL;
         super->set_vsync = NULL;
     }
+#ifndef SGUI_NO_OPENGL
+    else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
+    {
+        sgui_gl_context* share = NULL;
 
+        if( desc->share )
+        {
+            if( desc->share->backend==SGUI_OPENGL_CORE || 
+                desc->share->backend==SGUI_OPENGL_COMPAT )
+            {
+                share = (sgui_gl_context*)desc->share->ctx.ctx;
+            }
+        }
+
+        if( !(this->hDC = GetDC( this->hWnd )) )
+            goto failure;
+
+        if( !set_pixel_format( this, desc ) )
+            goto failure;
+
+        super->backend = desc->backend;
+        super->ctx.ctx = gl_context_create( super,
+                                            desc->backend==SGUI_OPENGL_CORE,
+                                            share );
+
+        if( !super->ctx.ctx )
+            goto failure;
+
+        super->swap_buffers = gl_swap_buffers;
+        super->set_vsync = gl_set_vsync;
+    }
+#endif
+#ifndef SGUI_NO_D3D9
+    else if( desc->backend==SGUI_DIRECT3D_9 )
+    {
+        sgui_d3d9_context* share = NULL;
+
+        if( desc->share && desc->share->backend==SGUI_DIRECT3D_9 )
+            share = (sgui_d3d9_context*)desc->share->ctx.ctx;
+
+        super->backend = desc->backend;
+        super->ctx.ctx = d3d9_context_create( super, desc, share );
+
+        if( !super->ctx.ctx )
+            goto failure;
+
+        super->swap_buffers = d3d9_swap_buffers;
+        super->set_vsync = d3d9_set_vsync;
+    }
+#endif
+#ifndef SGUI_NO_D3D11
+    else if( desc->backend==SGUI_DIRECT3D_11 )
+    {
+        super->backend = desc->backend;
+        super->ctx.ctx = d3d11_context_create( super, desc );
+
+        if( !super->ctx.ctx )
+            goto failure;
+
+        super->swap_buffers = d3d11_swap_buffers;
+        super->set_vsync = d3d11_set_vsync;
+    }
+#endif
     sgui_internal_window_post_init( (sgui_window*)this,
                                      desc->width, desc->height,
                                      desc->backend );

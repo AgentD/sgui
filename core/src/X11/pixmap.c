@@ -38,7 +38,7 @@ void xlib_pixmap_destroy( sgui_pixmap* super )
     else
     {
         sgui_internal_lock_mutex( );
-        XFreePixmap( dpy, this->data.xpm );
+        XFreePixmap( x11.dpy, this->data.xpm );
         sgui_internal_unlock_mutex( );
     }
 
@@ -83,8 +83,8 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
                 r = ((row[0]*a) >> 8) & 0x00FF;
                 g = ((row[1]*a) >> 8) & 0x00FF;
                 b = ((row[2]*a) >> 8) & 0x00FF;
-                XSetForeground( dpy, this->owner->gc, (r<<16) | (g<<8) | b );
-                XDrawPoint( dpy, this->data.xpm, this->owner->gc,
+                XSetForeground( x11.dpy, this->owner->gc, (r<<16)|(g<<8)|b );
+                XDrawPoint( x11.dpy, this->data.xpm, this->owner->gc,
                             dstx+i, dsty+j );
             }
         }
@@ -96,8 +96,8 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
             for( row=src, i=0; i<width; ++i, row+=3 )
             {
                 a = (row[0]<<16) | (row[1]<<8) | row[2];
-                XSetForeground( dpy, this->owner->gc, a );
-                XDrawPoint( dpy, this->data.xpm, this->owner->gc,
+                XSetForeground( x11.dpy, this->owner->gc, a );
+                XDrawPoint( x11.dpy, this->data.xpm, this->owner->gc,
                             dstx+i, dsty+j );
             }
         }
@@ -113,8 +113,8 @@ void xrender_pixmap_destroy( sgui_pixmap* super )
     xrender_pixmap* this = (xrender_pixmap*)super;
 
     sgui_internal_lock_mutex( );
-    XRenderFreePicture( dpy, this->pic );
-    XFreePixmap( dpy, this->pix );
+    XRenderFreePicture( x11.dpy, this->pic );
+    XFreePixmap( x11.dpy, this->pix );
     sgui_internal_unlock_mutex( );
     free( this );
 }
@@ -146,7 +146,7 @@ void xrender_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
                 c.blue  = row[2]*row[3];
                 c.alpha = row[3]<<8;
 
-                XRenderFillRectangle( dpy, PictOpSrc, pic, &c,
+                XRenderFillRectangle( x11.dpy, PictOpSrc, pic, &c,
                                       dstx+i, dsty+j, 1, 1 );
             }
         }
@@ -162,7 +162,7 @@ void xrender_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
                 c.blue  = row[2]<<8;
                 c.alpha = 0xFFFF;
 
-                XRenderFillRectangle( dpy, PictOpSrc, pic, &c,
+                XRenderFillRectangle( x11.dpy, PictOpSrc, pic, &c,
                                       dstx+i, dsty+j, 1, 1 );
             }
         }
@@ -175,7 +175,7 @@ void xrender_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
             {
                 c.red = c.green = c.blue = c.alpha = (*row)<<8;
 
-                XRenderFillRectangle( dpy, PictOpSrc, pic, &c,
+                XRenderFillRectangle( x11.dpy, PictOpSrc, pic, &c,
                                       dstx+i, dsty+j, 1, 1 );
             }
         }
@@ -193,6 +193,7 @@ sgui_pixmap* xrender_pixmap_create( sgui_canvas* cv, unsigned int width,
     xrender_pixmap* this = NULL;
     XRenderPictFormat* fmt;
     sgui_pixmap* super;
+    int type;
 
     /* create pixmap structure */
     this = malloc( sizeof(xrender_pixmap) ); 
@@ -209,38 +210,32 @@ sgui_pixmap* xrender_pixmap_create( sgui_canvas* cv, unsigned int width,
     sgui_internal_lock_mutex( );
 
     /* try to create an X11 Pixmap */
-    this->pix = XCreatePixmap( dpy, wnd, width, height,
+    this->pix = XCreatePixmap( x11.dpy, wnd, width, height,
                                format==SGUI_RGBA8 ? 32 :
                                format==SGUI_RGB8 ? 24 : 8 );
 
     if( !this->pix )
-    {
-        free( this );
-        sgui_internal_unlock_mutex( );
-        return NULL;
-    }
+        goto fail;
 
     /* try to create XRender picture */
-    if( format==SGUI_RGBA8 )
-        fmt = XRenderFindStandardFormat( dpy, PictStandardARGB32 );
-    else if( format==SGUI_RGB8 )
-        fmt = XRenderFindStandardFormat( dpy, PictStandardRGB24 );
-    else
-        fmt = XRenderFindStandardFormat( dpy, PictStandardA8 );
+    type = (format==SGUI_RGBA8) ? PictStandardARGB32 :
+           (format==SGUI_RGB8 ? PictStandardRGB24 : PictStandardA8);
 
-    this->pic = XRenderCreatePicture( dpy, this->pix, fmt, 0, NULL );
+    fmt = XRenderFindStandardFormat( x11.dpy, type );
+    this->pic = XRenderCreatePicture( x11.dpy, this->pix, fmt, 0, NULL );
 
     if( !this->pic )
     {
-        XFreePixmap( dpy, this->pix );
-        sgui_internal_unlock_mutex( );
-        free( this );
-        return NULL;
+        XFreePixmap( x11.dpy, this->pix );
+        goto fail;
     }
 
     sgui_internal_unlock_mutex( );
-
     return (sgui_pixmap*)this;
+fail:
+    sgui_internal_unlock_mutex( );
+    free( this );
+    return NULL;
 }
 
 sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
@@ -269,25 +264,22 @@ sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
             this->data.pixels = malloc( width*height );
 
             if( !this->data.pixels )
-            {
-                free( this );
-                this = NULL;
-            }
+                goto fail;
         }
         else
         {
             sgui_internal_lock_mutex( );
-            this->data.xpm = XCreatePixmap( dpy, wnd, width, height, 24 );
+            this->data.xpm = XCreatePixmap( x11.dpy, wnd, width, height, 24 );
             sgui_internal_unlock_mutex( );
 
             if( !this->data.xpm )
-            {
-                free( this );
-                this = NULL;
-            }
+                goto fail;
         }
     }
 
     return (sgui_pixmap*)this;
+fail:
+    free( this );
+    return NULL;
 }
 

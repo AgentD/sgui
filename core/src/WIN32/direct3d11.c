@@ -80,10 +80,7 @@ static int load_d3d11( void )
         libd3d11 = LoadLibrary( "d3d11.dll" );
 
         if( !libd3d11 )
-        {
-            sgui_internal_unlock_mutex( );
-            return 0;
-        }
+            goto fail;
 
         CreateDeviceAndSwapChain = (CREATEDEVSWAPCHAIN)
         GetProcAddress( libd3d11, "D3D11CreateDeviceAndSwapChain" );
@@ -92,8 +89,7 @@ static int load_d3d11( void )
         {
             FreeLibrary( libd3d11 );
             libd3d11 = 0;
-            sgui_internal_unlock_mutex( );
-            return 0;
+            goto fail;
         }
 
         refcount = 1;
@@ -101,6 +97,9 @@ static int load_d3d11( void )
 
     sgui_internal_unlock_mutex( );
     return 1;
+fail:
+    sgui_internal_unlock_mutex( );
+    return 0;
 }
 
 static void release_d3d11( void )

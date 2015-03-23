@@ -35,95 +35,81 @@ int glversions[][2] = { {4,5}, {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
 static void set_attributes( int* attr, int bpp, int depth, int stencil,
                             int doublebuffer, int samples )
 {
-    int i=0;
+    *(attr++) = GLX_BUFFER_SIZE;
+    *(attr++) = bpp;
+    *(attr++) = GLX_RED_SIZE;
+    *(attr++) = bpp==16 ? 5 : 8;
+    *(attr++) = GLX_GREEN_SIZE;
+    *(attr++) = bpp==16 ? 6 : 8;
+    *(attr++) = GLX_BLUE_SIZE;
+    *(attr++) = bpp==16 ? 5 : 8;
 
-    if( bpp!=16 || bpp!=24 || bpp!=32 )
-        bpp = 32;
-
-    attr[ i++ ] = GLX_BUFFER_SIZE;
-    attr[ i++ ] = bpp;
-    attr[ i++ ] = GLX_RED_SIZE;
-    attr[ i++ ] = bpp==16 ? 5 : 8;
-    attr[ i++ ] = GLX_GREEN_SIZE;
-    attr[ i++ ] = bpp==16 ? 6 : 8;
-    attr[ i++ ] = GLX_BLUE_SIZE;
-    attr[ i++ ] = bpp==16 ? 5 : 8;
-
-    if( bpp==32 )
+    if( bpp!=16 && bpp!=24 )
     {
-        attr[ i++ ] = GLX_ALPHA_SIZE;
-        attr[ i++ ] = 8;
+        *(attr++) = GLX_ALPHA_SIZE;
+        *(attr++) = 8;
     }
 
     if( depth )
     {
-        attr[ i++ ] = GLX_DEPTH_SIZE;
-        attr[ i++ ] = depth;
+        *(attr++) = GLX_DEPTH_SIZE;
+        *(attr++) = depth;
     }
 
     if( stencil )
     {
-        attr[ i++ ] = GLX_STENCIL_SIZE;
-        attr[ i++ ] = stencil;
+        *(attr++) = GLX_STENCIL_SIZE;
+        *(attr++) = stencil;
     }
 
     if( doublebuffer )
     {
-        attr[ i++ ] = GLX_DOUBLEBUFFER;
-        attr[ i++ ] = True;
+        *(attr++) = GLX_DOUBLEBUFFER;
+        *(attr++) = True;
     }
 
     if( samples )
     {
-        attr[ i++ ] = GLX_SAMPLE_BUFFERS;
-        attr[ i++ ] = 1;
-        attr[ i++ ] = GLX_SAMPLES;
-        attr[ i++ ] = samples;
+        *(attr++) = GLX_SAMPLE_BUFFERS;
+        *(attr++) = 1;
+        *(attr++) = GLX_SAMPLES;
+        *(attr++) = samples;
     }
 
-    attr[ i++ ] = None;
+    *attr = None;
 }
 
 int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
                          const sgui_window_description* desc )
 {
-    GLXFBConfig* fbl;
-    int fbcount, attr[20], samples;
+    int fbcount, attr[20], samples = desc->samples;
+    GLXFBConfig* fbl = NULL;
 
-    *fbc  = NULL;
-    *vi   = NULL;
-    *cmap = 0;
-
-    samples = desc->samples;
-
-    do
+    while( !fbl && samples>=0 )
     {
         set_attributes( attr, desc->bits_per_pixel, desc->depth_bits,
                         desc->stencil_bits, desc->flags & SGUI_DOUBLEBUFFERED,
                         samples-- );
 
-        fbl = glXChooseFBConfig( dpy, DefaultScreen(dpy), attr, &fbcount );
+        fbl = glXChooseFBConfig( x11.dpy, x11.screen, attr, &fbcount );
     }
-    while( !fbl && samples>=0 );
 
-    if( fbl && fbcount )
-    {
-        *fbc = fbl[0];
-        *vi = glXGetVisualFromFBConfig( dpy, fbl[0] );
-        XFree( fbl );
-    }
+    if( !fbl || !fbcount )
+        return 0;
+
+    *fbc = fbl[0];
+    *vi = glXGetVisualFromFBConfig( x11.dpy, fbl[0] );
+    XFree( fbl );
 
     if( !(*vi) )
         return 0;
 
-    /* get a color map for the visual */
-    *cmap = XCreateColormap( dpy, RootWindow(dpy, (*vi)->screen),
+    *cmap = XCreateColormap( x11.dpy, RootWindow(x11.dpy, (*vi)->screen),
                              (*vi)->visual, AllocNone );
 
     if( !(*cmap) )
     {
         XFree( *vi );
-        *vi = NULL;
         return 0;
     }
 
@@ -146,7 +132,7 @@ static void gl_context_destroy( sgui_context* this )
     if( this )
     {
         sgui_internal_lock_mutex( );
-        glXDestroyContext( dpy, ((sgui_context_gl*)this)->gl );
+        glXDestroyContext( x11.dpy, ((sgui_context_gl*)this)->gl );
         sgui_internal_unlock_mutex( );
 
         free( this );
@@ -158,7 +144,7 @@ static void gl_context_make_current( sgui_context* this, sgui_window* wnd )
     if( this && wnd )
     {
         sgui_internal_lock_mutex( );
-        glXMakeContextCurrent( dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
+        glXMakeContextCurrent( x11.dpy, TO_X11(wnd)->wnd, TO_X11(wnd)->wnd,
                                ((sgui_context_gl*)this)->gl );
         sgui_internal_unlock_mutex( );
     }
@@ -174,7 +160,7 @@ static void gl_context_release_current( sgui_context* this )
     if( this )
     {
         sgui_internal_lock_mutex( );
-        glXMakeContextCurrent( dpy, 0, 0, 0 );
+        glXMakeContextCurrent( x11.dpy, 0, 0, 0 );
         sgui_internal_unlock_mutex( );
     }
 }
@@ -224,15 +210,15 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
         {
             attribs[1] = glversions[i][0];
             attribs[3] = glversions[i][1];
-            this->gl = CreateContextAttribs( dpy, TO_X11(wnd)->cfg, sctx,
+            this->gl = CreateContextAttribs( x11.dpy, TO_X11(wnd)->cfg, sctx,
                                              True, attribs );
         }
     }
 
     /* fallback: old context creation function */
     if( !this->gl )
-        this->gl = glXCreateNewContext( dpy, TO_X11(wnd)->cfg, GLX_RGBA_TYPE,
-                                        sctx, GL_TRUE );
+        this->gl = glXCreateNewContext( x11.dpy, TO_X11(wnd)->cfg,
+                                        GLX_RGBA_TYPE, sctx, GL_TRUE );
 
     if( this->gl )
     {
@@ -266,7 +252,7 @@ void gl_set_vsync( sgui_window* this, int interval )
                       LOAD_GLFUN( "glXSwapIntervalEXT" );
 
     if( SwapIntervalEXT )
-        SwapIntervalEXT( dpy, TO_X11(this)->wnd, interval );
+        SwapIntervalEXT( x11.dpy, TO_X11(this)->wnd, interval );
 
     sgui_internal_unlock_mutex( );
 }
@@ -285,7 +271,7 @@ void gl_swap_buffers( sgui_window* this )
      */
     glFlush( );
 
-    glXSwapBuffers( dpy, TO_X11(this)->wnd );
+    glXSwapBuffers( x11.dpy, TO_X11(this)->wnd );
     sgui_internal_unlock_mutex( );
 }
 #endif
