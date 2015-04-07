@@ -215,6 +215,23 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     switch( e->type )
     {
     case KeyRelease:
+        /*
+            Mimic Windows(R) behaviour: Generate a sequence of keydown events
+            when a key is held down. X11 generates a sequence of KeyPress and
+            KeyRelease events. Remove the additional KeyRelease events.
+         */
+        if( XPending( e->xkey.display ) > 0 )
+        {
+            XEvent nev;
+            XPeekEvent( e->xkey.display, &nev );
+            if( (nev.type == KeyPress) &&
+                (nev.xkey.keycode == e->xkey.keycode) &&
+                (nev.xkey.time - e->xkey.time) < 2 )
+            {
+                break;
+            }
+        }
+
         sym = XLookupKeysym( &e->xkey, 0 );
         se.arg.i = key_entries_translate( sym );
         se.type = SGUI_KEY_RELEASED_EVENT;
