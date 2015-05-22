@@ -83,22 +83,42 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
     m[2] = 0.0f;   m[6] = 0.0f;   m[10] = 1.0f; m[14] = 0.0f;
     m[3] = 0.0f;   m[7] = 0.0f;   m[11] = 0.0f; m[15] = 1.0f;
 
-    glGetIntegerv( GL_CURRENT_PROGRAM, &state->program );
-    glGetIntegerv( GL_ACTIVE_TEXTURE, &state->activetex );
-    glGetIntegerv( GL_VIEWPORT, state->view );
-    glGetIntegerv( GL_BLEND, &state->blending );
-    glGetIntegerv( GL_BLEND_SRC, &state->blend_src );
-    glGetIntegerv( GL_BLEND_DST, &state->blend_dst );
-    glGetIntegerv( GL_DEPTH_TEST, &state->depth_test );
-    glGetIntegerv( GL_DEPTH_WRITEMASK, &state->depth_write );
-    glGetIntegerv( GL_CULL_FACE, &state->cull );
-    glGetIntegerv( GL_POLYGON_MODE, state->modes );
+    if( core )
+    {
+        glGetIntegerv( GL_CURRENT_PROGRAM, &state->program );
+        glGetIntegerv( GL_ACTIVE_TEXTURE, &state->activetex );
+        glGetIntegerv( GL_VIEWPORT, state->view );
+        glGetIntegerv( GL_BLEND, &state->blending );
+        glGetIntegerv( GL_BLEND_SRC, &state->blend_src );
+        glGetIntegerv( GL_BLEND_DST, &state->blend_dst );
+        glGetIntegerv( GL_DEPTH_TEST, &state->depth_test );
+        glGetIntegerv( GL_DEPTH_WRITEMASK, &state->depth_write );
+        glGetIntegerv( GL_CULL_FACE, &state->cull );
+        glGetIntegerv( GL_POLYGON_MODE, state->modes );
+    }
+    else
+    {
+        glPushAttrib( GL_ACCUM_BUFFER_BIT|GL_COLOR_BUFFER_BIT|GL_CURRENT_BIT|
+                      GL_DEPTH_BUFFER_BIT|GL_ENABLE_BIT|GL_LIGHTING_BIT|
+                      GL_SCISSOR_BIT|GL_STENCIL_BUFFER_BIT|GL_TEXTURE_BIT|
+                      GL_TRANSFORM_BIT|GL_VIEWPORT_BIT );
+
+        glMatrixMode( GL_PROJECTION );
+        glPushMatrix( );
+        glLoadIdentity( );
+        glMatrixMode( GL_MODELVIEW );
+        glPushMatrix( );
+        glLoadMatrixf( m );
+    }
 
     glEnable( GL_BLEND );
     glEnable( GL_TEXTURE_2D );
     glDisable( GL_LIGHTING );
     glDisable( GL_DEPTH_TEST );
+    glDisable( GL_ALPHA_TEST );
+    glDisable( GL_STENCIL_TEST );
     glDisable( GL_CULL_FACE );
+    glDisable( GL_SCISSOR_TEST );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glViewport( 0, 0, super->wnd->w, super->wnd->h );
     glDepthMask( GL_FALSE );
@@ -120,41 +140,29 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
 
         gl->BindVertexArray( this->vao );
     }
-    else
-    {
-        glGetIntegerv( GL_LIGHTING, &state->lighting );
-        glGetIntegerv( GL_MATRIX_MODE, &state->matrixmode );
-        glMatrixMode( GL_PROJECTION );
-        glPushMatrix( );
-        glLoadIdentity( );
-        glMatrixMode( GL_MODELVIEW );
-        glPushMatrix( );
-        glLoadMatrixf( m );
-
-        glGetIntegerv( GL_TEXTURE_BINDING_2D, &state->tex[0] );
-    }
 }
 
 static void restore_gl_state(sgui_gl_functions* gl, gl_state* state, int core)
 {
-    glViewport(state->view[0],state->view[1],state->view[2],state->view[3]);
-    glBlendFunc( state->blend_src, state->blend_dst );
-
-    if( !state->blending )
-        glDisable( GL_BLEND );
-
-    if( state->depth_test )
-        glEnable( GL_DEPTH_TEST );
-
-    if( state->cull )
-        glEnable( GL_CULL_FACE );
-
-    glDepthMask( state->depth_write );
-    glPolygonMode( GL_FRONT, state->modes[0] );
-    glPolygonMode( GL_BACK, state->modes[1] );
-
     if( core )
     {
+        glViewport( state->view[0], state->view[1],
+                    state->view[2], state->view[3] );
+        glBlendFunc( state->blend_src, state->blend_dst );
+
+        if( !state->blending )
+            glDisable( GL_BLEND );
+
+        if( state->depth_test )
+            glEnable( GL_DEPTH_TEST );
+
+        if( state->cull )
+            glEnable( GL_CULL_FACE );
+
+        glDepthMask( state->depth_write );
+        glPolygonMode( GL_FRONT, state->modes[0] );
+        glPolygonMode( GL_BACK, state->modes[1] );
+
         gl->ActiveTexture( GL_TEXTURE0 );
         glBindTexture( GL_TEXTURE_2D, state->tex[0] );
         gl->ActiveTexture( GL_TEXTURE0+1 );
@@ -170,11 +178,7 @@ static void restore_gl_state(sgui_gl_functions* gl, gl_state* state, int core)
         glMatrixMode( GL_PROJECTION );
         glPopMatrix( );
 
-        glMatrixMode( state->matrixmode );
-        glBindTexture( GL_TEXTURE_2D, state->tex[0] );
-
-        if( state->lighting )
-            glEnable( GL_LIGHTING );
+        glPopAttrib( );
     }
 }
 
