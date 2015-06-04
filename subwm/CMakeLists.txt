@@ -6,8 +6,12 @@
 
 if( WIN32 AND DIRECT3D9 )
   set( SUBWM_OS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/d3d9_canvas.c
-                    ${CMAKE_CURRENT_SOURCE_DIR}/src/d3d11_canvas.c
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/d3d9_wm.c )
+endif( )
+
+if( WIN32 AND DIRECT3D11 )
+  set( SUBWM_OS_SRC ${SUBWM_OS_SRC}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/d3d11_canvas.c )
 endif( )
 
 set( SUBWM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/tex_canvas.c
