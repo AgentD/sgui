@@ -98,11 +98,7 @@ static void set_gl_state( sgui_ctx_wm* super, gl_state* state, int core )
     }
     else
     {
-        glPushAttrib( GL_ACCUM_BUFFER_BIT|GL_COLOR_BUFFER_BIT|GL_CURRENT_BIT|
-                      GL_DEPTH_BUFFER_BIT|GL_ENABLE_BIT|GL_LIGHTING_BIT|
-                      GL_SCISSOR_BIT|GL_STENCIL_BUFFER_BIT|GL_TEXTURE_BIT|
-                      GL_TRANSFORM_BIT|GL_VIEWPORT_BIT );
-
+        glPushAttrib( GL_ALL_ATTRIB_BITS );
         glMatrixMode( GL_PROJECTION );
         glPushMatrix( );
         glLoadIdentity( );
