@@ -37,14 +37,7 @@
 #ifndef SGUI_NO_ICON_CACHE
 void sgui_icon_get_area( const sgui_icon* this, sgui_rect* out )
 {
-    if( this && out )
-    {
-        *out = this->area;
-    }
-    else if( out )
-    {
-        out->left = out->right = out->top = out->bottom = 0;
-    }
+    *out = this->area;
 }
 
 /*********************** internals of sgui_icon_cache ***********************/
@@ -52,16 +45,16 @@ void sgui_icon_get_area( const sgui_icon* this, sgui_rect* out )
 
 static void tree_destroy( sgui_icon_cache* this, sgui_icon* icon )
 {
-    if( this && icon )
+    if( icon )
     {
         tree_destroy( this, icon->left );
         tree_destroy( this, icon->right );
-
-        if( this->icon_destroy )
-            this->icon_destroy( icon );
-        else
-            free( icon );
     }
+
+    if( this->icon_destroy )
+        this->icon_destroy( icon );
+    else
+        free( icon );
 }
 
 static sgui_icon* tree_balance( sgui_icon* this )
@@ -105,26 +98,19 @@ static sgui_icon* tree_balance( sgui_icon* this )
 
 void sgui_icon_cache_destroy( sgui_icon_cache* this )
 {
-    if( this )
-    {
-        tree_destroy( this, this->root );
-        sgui_pixmap_destroy( this->pixmap );
+    tree_destroy( this, this->root );
+    sgui_pixmap_destroy( this->pixmap );
 
-        if( this->destroy )
-        {
-            this->destroy( this );
-        }
-        else
-        {
-            free( this );
-        }
-    }
+    if( this->destroy )
+        this->destroy( this );
+    else
+        free( this );
 }
 
 sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* this,
                                         sgui_icon* root, sgui_icon* new )
 {
-    if( !this || !root || !new )
+    if( !root || !new )
         return new;
 
     if( this->icon_compare( new, root ) < 0 )
@@ -139,7 +125,7 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, sgui_icon* i,
                                 const unsigned char* data, unsigned int scan,
                                 int format )
 {
-    if( !this || !i || !data || !scan )
+    if( !scan )
         return;
 
     sgui_pixmap_load( this->pixmap, i->area.left, i->area.top, data, 0, 0,
@@ -150,17 +136,16 @@ void sgui_icon_cache_load_icon( sgui_icon_cache* this, sgui_icon* i,
 void sgui_icon_cache_draw_icon( const sgui_icon_cache* this,
                                 const sgui_icon* i, int x, int y )
 {
-    if( this && i )
-        sgui_canvas_draw_pixmap( this->owner, x, y, this->pixmap,
-                                 (sgui_rect*)&(i->area),
-                                 this->format==SGUI_RGBA8 );
+    sgui_canvas_draw_pixmap( this->owner, x, y, this->pixmap,
+                             (sgui_rect*)&(i->area),
+                             this->format==SGUI_RGBA8 );
 }
 
 int sgui_icon_cache_alloc_area( sgui_icon_cache* this,
                                 unsigned int width, unsigned int height,
                                 sgui_rect* out )
 {
-    if( !this || !width || !height || !out )
+    if( !width || !height )
         return 0;
 
     sgui_internal_lock_mutex( );
@@ -199,7 +184,7 @@ fail:
 
 sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* this )
 {
-    return this ? this->pixmap : NULL;
+    return this->pixmap;
 }
 
 sgui_icon* sgui_icon_cache_find( const sgui_icon_cache* this,
@@ -207,9 +192,6 @@ sgui_icon* sgui_icon_cache_find( const sgui_icon_cache* this,
 {
     sgui_icon* node;
     int val;
-
-    if( !this || !icon )
-        return NULL;
 
     sgui_internal_lock_mutex( );
 
@@ -248,7 +230,7 @@ sgui_icon_cache* sgui_icon_map_create( sgui_canvas* canvas,
     sgui_icon_cache* this;
 
     /* sanity check */
-    if( !canvas || !width || !height )
+    if( !width || !height )
         return NULL;
 
     /* allocate structure */
@@ -283,7 +265,7 @@ int sgui_icon_map_add_icon( sgui_icon_cache* this, unsigned int id,
     sgui_map_icon* i;
 
     /* sanity check */
-    if( !this || !width || !height || sgui_icon_map_find( this, id ) )
+    if( !width || !height || sgui_icon_map_find( this, id ) )
         return 0;
 
     sgui_internal_lock_mutex( );

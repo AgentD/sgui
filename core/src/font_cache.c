@@ -107,15 +107,12 @@ static GLYPH* fetch_glyph( sgui_icon_cache* this,
 {
     GLYPH cmp, *g=NULL;
 
-    if( this && font )
-    {
-        sgui_internal_lock_mutex( );
-        cmp.font = font;
-        cmp.codepoint = codepoint;
-        g = (GLYPH*)sgui_icon_cache_find( this, (sgui_icon*)&cmp );
-        g = g ? g : create_glyph( this, font, codepoint );
-        sgui_internal_unlock_mutex( );
-    }
+    sgui_internal_lock_mutex( );
+    cmp.font = font;
+    cmp.codepoint = codepoint;
+    g = (GLYPH*)sgui_icon_cache_find( this, (sgui_icon*)&cmp );
+    g = g ? g : create_glyph( this, font, codepoint );
+    sgui_internal_unlock_mutex( );
     return g;
 }
 
@@ -140,15 +137,12 @@ int sgui_font_cache_draw_glyph( sgui_icon_cache* this, sgui_font* font,
                                 unsigned int codepoint, int x, int y,
                                 sgui_canvas* cv, const unsigned char* color )
 {
-    GLYPH* g = NULL;
+    GLYPH* g = fetch_glyph( this, font, codepoint );
 
-    if( this && font && cv && color && (g=fetch_glyph(this,font,codepoint)) )
+    if( g && g->super.area.top != g->super.area.bottom )
     {
-        if( g->super.area.top != g->super.area.bottom )
-        {
-            cv->blend_glyph( cv, x, y+g->bearing, this->pixmap,
-                             &g->super.area, color );
-        }
+        cv->blend_glyph( cv, x, y+g->bearing, this->pixmap,
+                         &g->super.area, color );
     }
 
     return g ? SGUI_RECT_WIDTH( g->super.area ) : 0;
