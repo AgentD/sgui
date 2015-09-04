@@ -90,10 +90,6 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
 sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
                                  unsigned int height );
 
-/* display a canvas on a same sized X window */
-void canvas_x11_display( sgui_canvas* cv, int x, int y,
-                         unsigned int width, unsigned int height );
-
 #ifdef __cplusplus
 }
 #endif

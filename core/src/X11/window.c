@@ -363,8 +363,9 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case Expose:
         if( super->backend==SGUI_NATIVE )
         {
-            canvas_x11_display( super->ctx.canvas, e->xexpose.x, e->xexpose.y,
-                                e->xexpose.width, e->xexpose.height );
+            sgui_canvas_x11* cv = (sgui_canvas_x11*)super->ctx.canvas;
+            cv->display( cv, e->xexpose.x, e->xexpose.y,
+                             e->xexpose.width, e->xexpose.height );
         }
         else
         {

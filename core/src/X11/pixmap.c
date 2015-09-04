@@ -52,7 +52,7 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
 {
     xlib_pixmap* this = (xlib_pixmap*)super;
     const unsigned char *src, *row;
-    unsigned char *dst, *dstrow;
+    unsigned char *dst;
     unsigned long r, g, b, a;
     unsigned int i, j;
 
@@ -65,13 +65,8 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
     {
         dst = this->data.pixels + (dsty*super->width + dstx);
 
-        for( src=data, j=0; j<height; ++j, src+=scan, dst+=super->width )
-        {
-            for( dstrow=dst, row=src, i=0; i<width; ++i )
-            {
-                *(dstrow++) = *(row++);
-            }
-        }
+        for( j=0; j<height; ++j, data+=scan, dst+=super->width )
+            memcpy( dst, data, width );
     }
     else if( format==SGUI_RGBA8 )
     {

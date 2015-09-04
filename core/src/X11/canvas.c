@@ -549,12 +549,3 @@ fail:
     return NULL;
 }
 
-void canvas_x11_display( sgui_canvas* super, int x, int y,
-                         unsigned int width, unsigned int height )
-{
-    sgui_canvas_x11* this = (sgui_canvas_x11*)super;
-
-    if( this )
-        this->display( this, x, y, width, height );
-}
-
