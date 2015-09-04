@@ -204,7 +204,7 @@ static void get_icon_bounding_box( icon_view* this, icon* i, sgui_rect* r )
 {
     int x, y;
 
-    sgui_rect_copy( r, &i->text_area );
+    *r = i->text_area;
     sgui_rect_join( r, &i->icon_area, 0 );
     sgui_widget_get_absolute_position( &(this->super), &x, &y );
     sgui_rect_add_offset( r, x, y );

@@ -270,7 +270,7 @@ void sgui_widget_get_absolute_rect( const sgui_widget* this, sgui_rect* r )
     if( this && r )
     {
         sgui_internal_lock_mutex( );
-        sgui_rect_copy( r, &this->area );
+        *r = this->area;
 
         for( i=this->parent; i!=NULL; i=i->parent )
         {

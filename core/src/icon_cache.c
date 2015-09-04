@@ -39,7 +39,7 @@ void sgui_icon_get_area( const sgui_icon* this, sgui_rect* out )
 {
     if( this && out )
     {
-        sgui_rect_copy( out, &(this->area) );
+        *out = this->area;
     }
     else if( out )
     {

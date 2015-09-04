@@ -217,19 +217,15 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     }
 
     /* add a new one if posible, join all existing if not */
-    if( this->num_dirty < SGUI_CANVAS_MAX_DIRTY )
-    {
-        sgui_rect_copy( this->dirty + (this->num_dirty++), &r0 );
-    }
-    else
+    if( this->num_dirty >= SGUI_CANVAS_MAX_DIRTY )
     {
         for( i=1; i<this->num_dirty; ++i )
             sgui_rect_join( this->dirty, this->dirty + i, 0 );
 
-        sgui_rect_copy( this->dirty + 1, &r0 );
-        this->num_dirty = 2;
+        this->num_dirty = 1;
     }
 
+    this->dirty[ this->num_dirty++ ] = r0;
     sgui_internal_unlock_mutex( );
 }
 
@@ -244,7 +240,7 @@ void sgui_canvas_get_dirty_rect( const sgui_canvas* this, sgui_rect* rect,
     sgui_internal_lock_mutex( );
 
     if( this && (i < this->num_dirty) )
-        sgui_rect_copy( rect, this->dirty + i );
+        *rect = this->dirty[ i ];
 
     sgui_internal_unlock_mutex( );
 }
@@ -484,7 +480,7 @@ sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* this,
 void sgui_canvas_get_scissor_rect( const sgui_canvas* this, sgui_rect* r )
 {
     if( this && r )
-        sgui_rect_copy( r, &this->sc );
+        *r = this->sc;
 }
 
 void sgui_canvas_get_offset( const sgui_canvas* this, int* x, int* y )
@@ -561,7 +557,7 @@ void sgui_canvas_clear( sgui_canvas* this, sgui_rect* r )
     /* if no rect is given, set to the full canvas area */
     if( r )
     {
-        sgui_rect_copy( &r1, r );
+        r1 = *r;
         sgui_rect_add_offset( &r1, this->ox, this->oy );
     }
     else
@@ -587,7 +583,7 @@ void sgui_canvas_draw_box( sgui_canvas* this, sgui_rect* r,
     if( format==SGUI_RGBA8 && color[3]==0xFF )
         format = SGUI_RGB8;
 
-    sgui_rect_copy( &r1, r );
+    r1 = *r;
     sgui_rect_add_offset( &r1, this->ox, this->oy );
 
     if( sgui_rect_get_intersection( &r1, &this->sc, &r1 ) )

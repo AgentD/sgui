@@ -146,16 +146,6 @@ SGUI_DLL void sgui_rect_add_offset( sgui_rect* r, int h, int v );
 SGUI_DLL void sgui_rect_extend( sgui_rect* r, int h, int v );
 
 /**
- * \brief Copy the data of one rectangle into another
- *
- * \memberof sgui_rect
- *
- * \param dst The rectangle to copy to
- * \param src The rectangle to copy from
- */
-SGUI_DLL void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src );
-
-/**
  * \brief Get the intersection between to rectangles
  *
  * \memberof sgui_rect

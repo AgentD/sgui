@@ -106,17 +106,6 @@ void sgui_rect_extend( sgui_rect* r, int h, int v )
     }
 }
 
-void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src )
-{
-    if( dst && src )
-    {
-        dst->left   = src->left;
-        dst->right  = src->right;
-        dst->top    = src->top;
-        dst->bottom = src->bottom;
-    }
-}
-
 int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
                                 const sgui_rect* b )
 {
