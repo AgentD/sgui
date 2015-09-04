@@ -35,18 +35,17 @@
 #ifndef SGUI_NO_MODEL
 void sgui_model_destroy( sgui_model* this )
 {
-    if( this )
-        this->destroy( this );
+    this->destroy( this );
 }
 
 sgui_icon_cache* sgui_model_get_icon_cache( const sgui_model* this )
 {
-    return this ? this->cache : NULL;
+    return this->cache;
 }
 
 unsigned int sgui_model_column_count( const sgui_model* this )
 {
-    return this ? this->cols : 0;
+    return this->cols;
 }
 
 const sgui_item* sgui_model_query_items( const sgui_model* this,
@@ -54,28 +53,25 @@ const sgui_item* sgui_model_query_items( const sgui_model* this,
                                          unsigned int start,
                                          unsigned int count )
 {
-    if( this )
-        return this->query_items( this, parent, start, count );
-
-    return NULL;
+    return this->query_items( this, parent, start, count );
 }
 
 void sgui_model_free_item_list( sgui_model* this, const sgui_item* start )
 {
-    if( this && start && this->free_item_list )
+    if( this->free_item_list )
         this->free_item_list( this, start );
 }
 
 unsigned int sgui_model_item_children_count( const sgui_model* this,
                                              const sgui_item* item )
 {
-    return this ? this->item_children_count( this, item ) : 0;
+    return this->item_children_count( this, item );
 }
 
 const char* sgui_item_text( const sgui_model* this, const sgui_item* item,
                             unsigned int column )
 {
-    if( this && item && (column < this->cols) && this->item_text )
+    if( (column < this->cols) && this->item_text )
         return this->item_text( this, item, column );
 
     return NULL;
@@ -85,7 +81,7 @@ const sgui_icon* sgui_item_icon( const sgui_model* this,
                                  const sgui_item* item,
                                  unsigned int column )
 {
-    if(this && item && this->cache && (column<this->cols) && this->item_icon)
+    if( this->cache && (column<this->cols) && this->item_icon )
         return this->item_icon( this, item, column );
 
     return NULL;
@@ -280,7 +276,7 @@ void sgui_simple_item_set_icon( sgui_model* this, sgui_item* item,
 {
     unsigned char* ptr = (unsigned char*)item;
 
-    if( ptr && this && column<this->cols && this->cache )
+    if( column<this->cols && this->cache )
     {
         sgui_internal_lock_mutex( );
 
@@ -298,7 +294,7 @@ void sgui_simple_item_set_text( sgui_model* this, sgui_item* item,
 {
     unsigned char* ptr = (unsigned char*)item;
 
-    if( ptr && this && column<this->cols )
+    if( column<this->cols )
     {
         sgui_internal_lock_mutex( );
 

@@ -170,43 +170,22 @@ int main( void )
         fail( "create simple model with valid parameters\n" );
 
     /* sgui_model_get_icon_cache */
-    if( sgui_model_get_icon_cache( NULL ) )
-        fail( "item cache for model=NULL\n" );
-
     if( sgui_model_get_icon_cache( model ) )
         fail( "simple model with no icon cache returned icon cache\n" );
 
     /* sgui_model_column_count */
-    if( sgui_model_column_count( NULL ) )
-        fail( "column count for model=NULL\n" );
-
     if( sgui_model_column_count( model )!=3 )
         fail( "wrong column count for simple model\n" );
 
-    /* sgui_model_item_children_count on empty and NULL model */
+    /* sgui_model_item_children_count on empty model */
     if( sgui_model_item_children_count( model, NULL ) )
         fail( "children count for empty model\n" );
 
-    if( sgui_model_item_children_count( NULL, NULL ) )
-        fail( "children count for model=NULL\n" );
-
-    if( sgui_model_item_children_count( NULL, BADPTR ) )
-        fail( "children count for model=NULL, parent=BADPTR\n" );
-
-    /* sgui_model_query_items on empty and NULL model */
+    /* sgui_model_query_items on empty model */
     if( sgui_model_query_items( model, NULL, 0, 10 ) )
         fail( "query items for empty model returned list != NULL\n" );
 
-    if( sgui_model_query_items( NULL, NULL, 0, 10 ) )
-        fail( "query items for model=NULL returned list != NULL\n" );
-
     /* insert and query items */
-    if( sgui_simple_model_add_item( NULL, NULL ) )
-        fail( "added item to model=NULL, parent=NULL\n" );
-
-    if( sgui_simple_model_add_item( NULL, BADPTR ) )
-        fail( "added item to model=NULL, parent=BADPTR\n" );
-
     add_items( model, NULL, 0, 0 );
     check_items( model, NULL, 0, 0 );
 
@@ -217,14 +196,6 @@ int main( void )
     add_items( model, NULL, 0, 1 );
     check_items( model, NULL, 0, 1 );
     sgui_model_destroy( model );
-
-    /* must not segfault */
-    sgui_model_query_items( NULL, NULL,   0, 0 );
-    sgui_model_query_items( NULL, BADPTR, 0, 0 );
-
-    sgui_model_free_item_list( NULL,   NULL   );
-    sgui_model_free_item_list( BADPTR, NULL   );
-    sgui_model_free_item_list( NULL,   BADPTR );
 
     sgui_deinit( );
     return EXIT_SUCCESS;
