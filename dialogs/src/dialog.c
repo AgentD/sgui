@@ -122,10 +122,11 @@ int sgui_dialog_init( sgui_dialog* this,
 
     total_width += (count-1)*5;
 
+    sgui_window_get_size( this->window, &w, &h );
+
     if( total_width > w )
         w = total_width + 20;
 
-    sgui_window_get_size( this->window, &w, &h );
     sgui_window_set_size( this->window, w, h+total_height+15 );
 
     /* compute starting positions */

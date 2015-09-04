@@ -32,7 +32,7 @@
 #include "sgui_widget.h"
 
 #include <stddef.h>
-
+#include <string.h>
 
 
 #define COPY_KEY SGUI_KC_C
@@ -148,6 +148,7 @@ sgui_window* sgui_window_create( sgui_window* parent, unsigned int width,
 {
     sgui_window_description desc;
 
+    memset( &desc, 0, sizeof(desc) );
     desc.parent         = parent;
     desc.share          = NULL;
     desc.width          = width;
