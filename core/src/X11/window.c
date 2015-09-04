@@ -84,6 +84,7 @@ static void xlib_window_set_size( sgui_window* this,
     /* adjust the fixed size for nonresizeable windows */
     if( TO_X11(this)->flags & SGUI_FIXED_SIZE )
     {
+        memset( &hints, 0, sizeof(hints) );
         hints.flags = PSize | PMinSize | PMaxSize;
         hints.min_width  = hints.base_width  = hints.max_width  = (int)width;
         hints.min_height = hints.base_height = hints.max_height = (int)height;
@@ -462,6 +463,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     /* make the window non resizeable if required */
     if( desc->flags & SGUI_FIXED_SIZE )
     {
+        memset( &hints, 0, sizeof(hints) );
         hints.flags = PSize | PMinSize | PMaxSize;
         hints.min_width = hints.max_width =
         hints.base_width = (int)desc->width;
