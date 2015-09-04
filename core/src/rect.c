@@ -32,86 +32,65 @@ void sgui_rect_repair( sgui_rect* r )
 {
     int temp;
 
-    if( r )
+    if( r->left > r->right )
     {
-        if( r->left > r->right )
-        {
-            temp = r->left;
-            r->left = r->right;
-            r->right = temp;
-        }
+        temp = r->left;
+        r->left = r->right;
+        r->right = temp;
+    }
 
-        if( r->top > r->bottom )
-        {
-            temp = r->top;
-            r->top = r->bottom;
-            r->bottom = temp;
-        }
+    if( r->top > r->bottom )
+    {
+        temp = r->top;
+        r->top = r->bottom;
+        r->bottom = temp;
     }
 }
 
 void sgui_rect_set_size( sgui_rect* r, int left, int top,
                          unsigned int width, unsigned int height )
 {
-    if( r )
-    {
-        r->left   = left;
-        r->top    = top;
-        r->right  = left + (int)width - 1;
-        r->bottom = top + (int)height - 1;
-    }
+    r->left   = left;
+    r->top    = top;
+    r->right  = left + (int)width - 1;
+    r->bottom = top + (int)height - 1;
 }
 
 void sgui_rect_set( sgui_rect* r, int left, int top, int right, int bottom )
 {
-    if( r )
-    {
-        r->left   = left;
-        r->top    = top;
-        r->right  = right;
-        r->bottom = bottom;
-    }
+    r->left   = left;
+    r->top    = top;
+    r->right  = right;
+    r->bottom = bottom;
 }
 
 void sgui_rect_set_position( sgui_rect* r, int left, int top )
 {
-    if( r )
-    {
-        r->right  = r->right  - r->left + left;
-        r->bottom = r->bottom - r->top  + top;
-        r->left   = left;
-        r->top    = top;
-    }
+    r->right  = r->right  - r->left + left;
+    r->bottom = r->bottom - r->top  + top;
+    r->left   = left;
+    r->top    = top;
 }
 
 void sgui_rect_add_offset( sgui_rect* r, int h, int v )
 {
-    if( r )
-    {
-        r->left   += h;
-        r->right  += h;
-        r->top    += v;
-        r->bottom += v;
-    }
+    r->left   += h;
+    r->right  += h;
+    r->top    += v;
+    r->bottom += v;
 }
 
 void sgui_rect_extend( sgui_rect* r, int h, int v )
 {
-    if( r )
-    {
-        r->left   -= h;
-        r->right  += h;
-        r->top    -= v;
-        r->bottom += v;
-    }
+    r->left   -= h;
+    r->right  += h;
+    r->top    -= v;
+    r->bottom += v;
 }
 
 int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
                                 const sgui_rect* b )
 {
-    if( !a || !b )  /* both must exist */
-        goto fail;
-
     /* check if a is to the right or below b */
     if( (a->left > b->right) || (a->top > b->bottom) )
         goto fail;
@@ -140,12 +119,6 @@ fail:
 
 int sgui_rect_join( sgui_rect* acc, const sgui_rect* r, int only_if_touch )
 {
-    if( !acc )      /* joining to a non-existant rectangle always fails */
-        return 0;
-
-    if( !r )        /* joining a non-existant rectangle always succeeds */
-        return 1;
-
     if( only_if_touch )
     {
         if( r->left  > acc->right || r->top    > acc->bottom ||
@@ -159,12 +132,11 @@ int sgui_rect_join( sgui_rect* acc, const sgui_rect* r, int only_if_touch )
     acc->top    = MIN( acc->top,    r->top    );
     acc->right  = MAX( acc->right,  r->right  );
     acc->bottom = MAX( acc->bottom, r->bottom );
-
     return 1;
 }
 
 int sgui_rect_is_point_inside( const sgui_rect* r, int x, int y )
 {
-    return (r && x>=r->left && x<=r->right && y>=r->top && y<=r->bottom);
+    return x>=r->left && x<=r->right && y>=r->top && y<=r->bottom;
 }
 

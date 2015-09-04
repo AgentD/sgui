@@ -156,9 +156,9 @@ SGUI_DLL void sgui_rect_extend( sgui_rect* r, int h, int v );
  * intersection test is done. If the intersection test fails, it is set to
  * zero.
  *
- * \param r If non-NULL, returns the intersection area between the rectangles.
- * \param a The first rectangle to test. Must not be NULL.
- * \param b The second rectangle to test. Must not be NULL.
+ * \param r If non-NULL, returns the intersection area between the rectangles
+ * \param a The first rectangle to test
+ * \param b The second rectangle to test
  *
  * \return Non-zero if the rectangles intersect, zero if they don't
  */

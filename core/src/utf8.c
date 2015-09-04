@@ -37,27 +37,22 @@ unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
 {
     unsigned int ch = 0, i = 0, len = 0;
 
-    if( utf8 )
+    len = 1;
+    ch = *(utf8++);
+
+         if( (ch & 0xFE) == 0xFC ) { len = 6; ch &= 0x01; }
+    else if( (ch & 0xFC) == 0xF8 ) { len = 5; ch &= 0x03; }
+    else if( (ch & 0xF8) == 0xF0 ) { len = 4; ch &= 0x07; }
+    else if( (ch & 0xF0) == 0xE0 ) { len = 3; ch &= 0x0F; }
+    else if( (ch & 0xE0) == 0xC0 ) { len = 2; ch &= 0x1F; }
+
+    for( i=1; i<len; ++i, ++utf8 )
     {
-        len = 1;
-        ch = *(utf8++);
-
-             if( (ch & 0xFE) == 0xFC ) { len = 6; ch &= 0x01; }
-        else if( (ch & 0xFC) == 0xF8 ) { len = 5; ch &= 0x03; }
-        else if( (ch & 0xF8) == 0xF0 ) { len = 4; ch &= 0x07; }
-        else if( (ch & 0xF0) == 0xE0 ) { len = 3; ch &= 0x0F; }
-        else if( (ch & 0xE0) == 0xC0 ) { len = 2; ch &= 0x1F; }
-
-        for( i=1; i<len; ++i, ++utf8 )
-        {
-            ch <<= 6;
-            ch |= (*utf8) & 0x3F;
-        }
+        ch <<= 6;
+        ch |= (*utf8) & 0x3F;
     }
 
-    if( length )
-        *length = len;
-
+    *length = len;
     return ch;
 }
 
@@ -147,14 +142,10 @@ void sgui_utf8_from_latin1( char* out, const char* in )
 
 char* sgui_strdup( const char* string )
 {
-    char* out = NULL;
+    char* out = malloc( strlen(string) + 1 );
 
-    if( string )
-    {
-        out = malloc( strlen(string) + 1 );
-        if( out )
-            strcpy( out, string );
-    }
+    if( out )
+        strcpy( out, string );
 
     return out;
 }

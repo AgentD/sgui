@@ -156,27 +156,24 @@ void sgui_event_post( const sgui_event* event )
     sgui_event* new_queue;
     int new_size;
 
-    if( event )
+    sgui_internal_lock_mutex( );
+
+    if( queue_top == queue_size )
     {
-        sgui_internal_lock_mutex( );
+        new_size = queue_size<10 ? 10 : queue_size*2;
+        new_queue = realloc( queue, sizeof(sgui_event)*new_size );
 
-        if( queue_top == queue_size )
+        if( new_queue )
         {
-            new_size = queue_size<10 ? 10 : queue_size*2;
-            new_queue = realloc( queue, sizeof(sgui_event)*new_size );
-
-            if( new_queue )
-            {
-                queue_size = new_size;
-                queue = new_queue;
-            }
+            queue_size = new_size;
+            queue = new_queue;
         }
-
-        if( queue_top < queue_size )
-            queue[ queue_top++ ] = (*event);
-
-        sgui_internal_unlock_mutex( );
     }
+
+    if( queue_top < queue_size )
+        queue[ queue_top++ ] = (*event);
+
+    sgui_internal_unlock_mutex( );
 }
 
 /****************************************************************************/

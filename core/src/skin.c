@@ -75,10 +75,6 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
     char *end, buffer[8];
     const char* subst;
 
-    /* sanity check */
-    if( !text || (draw && !canvas) || (!draw && !r) )
-        return;
-
     memcpy( col, skin->font_color, 3 );
 
     while( text && *text )
@@ -200,7 +196,8 @@ static void process_text( const char* text, sgui_canvas* canvas, int x, int y,
     Y += skin->font_height;
 
     /* HACK: Add font height/2 because characters can peek below the line */
-    sgui_rect_set_size( r, x, y, longest, Y + skin->font_height/2 );
+    if( !draw )
+        sgui_rect_set_size( r, x, y, longest, Y + skin->font_height/2 );
 }
 
 /****************************************************************************/
@@ -232,10 +229,6 @@ unsigned int sgui_skin_default_font_extents( const char* text,
     sgui_font* font_face = sgui_skin_get_default_font( bold, italic );
     unsigned int x = 0, w, len = 0, i;
     unsigned long character, previous = 0;
-
-    /* sanity check */
-    if( !text || !font_face || !length )
-        return 0;
 
     /* for each character */
     for( i=0; i<length && (*text) && (*text!='\n'); text+=len, i+=len )
