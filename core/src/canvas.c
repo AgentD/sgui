@@ -169,9 +169,12 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     }
 
     /* send events */
-    ev.src.widget = widget;
-    ev.type = SGUI_FOCUS_LOSE_EVENT;
-    sgui_widget_send_event( this->focus, &ev, 0 );
+    if( this->focus )
+    {
+        ev.src.widget = widget;
+        ev.type = SGUI_FOCUS_LOSE_EVENT;
+        sgui_widget_send_event( this->focus, &ev, 0 );
+    }
 
     if( widget && (widget->flags & SGUI_FOCUS_ACCEPT) )
     {
@@ -348,12 +351,16 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         if( this->mouse_over != i )
         {
             ev.src.window = e->src.window;
-            ev.type = SGUI_MOUSE_ENTER_EVENT;
-            sgui_widget_send_event( i, &ev, 0 );
-
-            ev.type = SGUI_MOUSE_LEAVE_EVENT;
-            sgui_widget_send_event( this->mouse_over, &ev, 0 );
-
+            if( i )
+            {
+                ev.type = SGUI_MOUSE_ENTER_EVENT;
+                sgui_widget_send_event( i, &ev, 0 );
+            }
+            if( this->mouse_over )
+            {
+                ev.type = SGUI_MOUSE_LEAVE_EVENT;
+                sgui_widget_send_event( this->mouse_over, &ev, 0 );
+            }
             this->mouse_over = i;
         }
     }
@@ -366,14 +373,17 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         break;
     case SGUI_MOUSE_PRESS_EVENT:
     case SGUI_MOUSE_RELEASE_EVENT:
-        /* transform to widget local coordinates and redirect event */
-        sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
+        if( this->mouse_over )
+        {
+            /* transform to widget local coordinates and redirect event */
+            sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
 
-        ev = *e;
-        ev.arg.i3.x -= x;
-        ev.arg.i3.y -= y;
+            ev = *e;
+            ev.arg.i3.x -= x;
+            ev.arg.i3.y -= y;
 
-        sgui_widget_send_event( this->mouse_over, &ev, 0 );
+            sgui_widget_send_event( this->mouse_over, &ev, 0 );
+        }
 
         /* give clicked widget focus */
         if( this->focus != this->mouse_over )
@@ -384,16 +394,20 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         break;
     case SGUI_MOUSE_MOVE_EVENT:
     case SGUI_DOUBLE_CLICK_EVENT:
-        /* transform to widget local coordinates and redirect event */
-        sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
-        ev = *e;
-        ev.arg.i2.x -= x;
-        ev.arg.i2.y -= y;
+        if( this->mouse_over )
+        {
+            /* transform to widget local coordinates and redirect event */
+            sgui_widget_get_absolute_position( this->mouse_over, &x, &y );
+            ev = *e;
+            ev.arg.i2.x -= x;
+            ev.arg.i2.y -= y;
 
-        sgui_widget_send_event( this->mouse_over, &ev, 0 );
+            sgui_widget_send_event( this->mouse_over, &ev, 0 );
+        }
         break;
     case SGUI_MOUSE_WHEEL_EVENT:
-        sgui_widget_send_event( this->mouse_over, e, 0 );
+        if( this->mouse_over )
+            sgui_widget_send_event( this->mouse_over, e, 0 );
         break;
     case SGUI_KEY_RELEASED_EVENT:
         if( e->arg.i==SGUI_KC_TAB && !this->focus )
@@ -407,17 +421,20 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         }
     case SGUI_KEY_PRESSED_EVENT:
     case SGUI_CHAR_EVENT:
-        sgui_widget_send_event( this->focus, e, 0 );
-
-        /* make sure the focus box gets drawn */
-        if( this->focus && !this->draw_focus )
+        if( this->focus )
         {
-            this->draw_focus = 1;
-            sgui_widget_get_absolute_rect( this->focus, &r );
-            skin = sgui_skin_get( );
-            fbw = skin->get_focus_box_width( skin );
-            sgui_rect_extend( &r, fbw, fbw );
-            sgui_canvas_add_dirty_rect( this, &r );
+            sgui_widget_send_event( this->focus, e, 0 );
+
+            /* make sure the focus box gets drawn */
+            if( !this->draw_focus )
+            {
+                this->draw_focus = 1;
+                sgui_widget_get_absolute_rect( this->focus, &r );
+                skin = sgui_skin_get( );
+                fbw = skin->get_focus_box_width( skin );
+                sgui_rect_extend( &r, fbw, fbw );
+                sgui_canvas_add_dirty_rect( this, &r );
+            }
         }
         break;
     default:

@@ -83,7 +83,7 @@ static int add_spinbox( sgui_widget** box, sgui_widget** label,
                         unsigned int width, unsigned int* height,
                         int x, int y, const char* caption )
 {
-    unsigned int fh = sgui_skin_get( )->font_height, wh;
+    unsigned int fh = sgui_skin_get( )->font_height, ww, wh;
     unsigned int textlen = strlen( caption ) * fh;
 
     *box = sgui_spin_box_create(x+textlen,y,width-textlen,0,0xFF,0,1,1);
@@ -91,7 +91,7 @@ static int add_spinbox( sgui_widget** box, sgui_widget** label,
     if( !*box )
         return 0;
 
-    sgui_widget_get_size( *box, NULL, &wh );
+    sgui_widget_get_size( *box, &ww, &wh );
 
     if( wh < fh )
     {

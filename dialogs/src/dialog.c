@@ -42,27 +42,27 @@ void sgui_dialog_destroy( sgui_dialog* this )
         {
             sgui_event_disconnect( this->b0, SGUI_BUTTON_OUT_EVENT,
                                    (sgui_function)this->handle_button, this );
+            sgui_widget_remove_from_parent( this->b0 );
+            sgui_widget_destroy( this->b0 );
         }
         if( this->b1 )
         {
             sgui_event_disconnect( this->b1, SGUI_BUTTON_OUT_EVENT,
                                    (sgui_function)this->handle_button, this );
+            sgui_widget_remove_from_parent( this->b1 );
+            sgui_widget_destroy( this->b1 );
         }
         if( this->b2 )
         {
             sgui_event_disconnect( this->b2, SGUI_BUTTON_OUT_EVENT,
                                    (sgui_function)this->handle_button, this );
+            sgui_widget_remove_from_parent( this->b2 );
+            sgui_widget_destroy( this->b2 );
         }
 
         sgui_event_disconnect( this->window, SGUI_USER_CLOSED_EVENT,
                                (sgui_function)this->handle_button, this );
 
-        sgui_widget_remove_from_parent( this->b0 );
-        sgui_widget_remove_from_parent( this->b1 );
-        sgui_widget_remove_from_parent( this->b2 );
-        sgui_widget_destroy( this->b0 );
-        sgui_widget_destroy( this->b1 );
-        sgui_widget_destroy( this->b2 );
         sgui_window_destroy( this->window );
         this->b0 = this->b1 = this->b2 = 0;
         this->window = 0;
