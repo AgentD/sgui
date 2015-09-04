@@ -131,10 +131,6 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     sgui_subview* this;
     sgui_widget* super;
 
-    /* sanity check */
-    if( !parent )
-        return NULL;
-
     /* allocate storage for the view */
     this = malloc( sizeof(sgui_subview) );
     super = (sgui_widget*)this;
@@ -185,38 +181,29 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
 
 sgui_window* sgui_subview_get_window( sgui_widget* this )
 {
-    return this ? ((sgui_subview*)this)->subwnd : NULL;
+    return ((sgui_subview*)this)->subwnd;
 }
 
 void sgui_subview_set_draw_callback( sgui_widget* this,
                                      sgui_subview_draw_fun drawcb )
 {
-    if( this )
-    {
-        ((sgui_subview*)this)->draw_fun = drawcb;
-    }
+    ((sgui_subview*)this)->draw_fun = drawcb;
 }
 
 void sgui_subview_on_window_event( sgui_widget* this,
                                    sgui_subview_window_fun windowcb )
 {
-    if( this )
-    {
-        ((sgui_subview*)this)->window_fun = windowcb;
-    }
+    ((sgui_subview*)this)->window_fun = windowcb;
 }
 
 void sgui_subview_refresh( sgui_widget* this )
 {
-    if( this )
-    {
-        sgui_rect r;
+    sgui_rect r;
 
-        sgui_rect_set_size( &r, 0, 0, SGUI_RECT_WIDTH(this->area),
-                                      SGUI_RECT_HEIGHT(this->area) );
+    sgui_rect_set_size( &r, 0, 0, SGUI_RECT_WIDTH(this->area),
+                                  SGUI_RECT_HEIGHT(this->area) );
 
-        sgui_window_force_redraw( ((sgui_subview*)this)->subwnd, &r );
-    }
+    sgui_window_force_redraw( ((sgui_subview*)this)->subwnd, &r );
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,

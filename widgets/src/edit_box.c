@@ -442,9 +442,6 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
     sgui_widget* super = (sgui_widget*)this;
     sgui_skin* skin;
 
-    if( !this )
-        return 0;
-
     this->buffer = malloc( max_chars * 6 + 1 );
 
     if( !this->buffer )
@@ -470,7 +467,7 @@ int sgui_edit_box_init( sgui_edit_box* this, int x, int y, unsigned int width,
 
 const char* sgui_edit_box_get_text( sgui_widget* this )
 {
-    return this ? ((sgui_edit_box*)this)->buffer : NULL;
+    return ((sgui_edit_box*)this)->buffer;
 }
 
 void sgui_edit_box_set_text( sgui_widget* super, const char* text )
@@ -478,36 +475,33 @@ void sgui_edit_box_set_text( sgui_widget* super, const char* text )
     sgui_edit_box* this = (sgui_edit_box*)super;
     sgui_rect r;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    if( this->num_entered )
     {
-        sgui_internal_lock_mutex( );
-
-        if( this->num_entered )
-        {
-            /* select all */
-            this->flags &= ~SGUI_EDIT_SELECTING;
-            this->cursor = 0;
-            this->selection = this->end;
-            this->sync_cursors( this );
-
-            /* clear */
-            this->remove_selection( this );
-        }
-
-        /* insert */
-        if( text )
-            this->insert( this, strlen(text), text );
-
-        /* flag area dirty */
-        this->cursor = this->offset = 0;
+        /* select all */
+        this->flags &= ~SGUI_EDIT_SELECTING;
+        this->cursor = 0;
+        this->selection = this->end;
         this->sync_cursors( this );
 
-        if( super->canvas )
-        {
-            sgui_widget_get_absolute_rect( super, &r );
-            sgui_canvas_add_dirty_rect( super->canvas, &r );
-        }
-        sgui_internal_unlock_mutex( );
+        /* clear */
+        this->remove_selection( this );
     }
+
+    /* insert */
+    if( text )
+        this->insert( this, strlen(text), text );
+
+    /* flag area dirty */
+    this->cursor = this->offset = 0;
+    this->sync_cursors( this );
+
+    if( super->canvas )
+    {
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
+    }
+    sgui_internal_unlock_mutex( );
 }
 

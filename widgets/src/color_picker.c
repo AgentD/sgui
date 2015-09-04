@@ -485,70 +485,67 @@ void sgui_color_picker_set_hsv( sgui_widget* super,
     unsigned char oldhsva[4];
     sgui_rect r;
 
-    if( this && hsva )
+    sgui_internal_lock_mutex( );
+    memcpy( oldhsva, this->hsva, 4 );
+    memcpy( this->hsva, hsva, 4 );
+
+    if( !memcmp( oldhsva, hsva, 4 ) )
     {
-        sgui_internal_lock_mutex( );
-        memcpy( oldhsva, this->hsva, 4 );
-        memcpy( this->hsva, hsva, 4 );
+        sgui_internal_unlock_mutex( );
+        return;
+    }
 
-        if( !memcmp( oldhsva, hsva, 4 ) )
+    /* regenerate slider images if neccessary */
+    if( oldhsva[0]!=hsva[0] || oldhsva[1]!=hsva[1] )
+    {
+        generate_v_bar( this );
+
+        sgui_pixmap_load( this->vbar, 0, 0, this->vbardata, 0, 0,
+                          BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
+    }
+
+    if(oldhsva[0]!=hsva[0] || oldhsva[1]!=hsva[1] || oldhsva[2]!=hsva[2])
+    {
+        generate_a_bar( this );
+
+        sgui_pixmap_load( this->abar, 0, 0, this->abardata, 0, 0,
+                          BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
+    }
+
+    /* flag dirty */
+    if( super->canvas )
+    {
+        sgui_widget_get_absolute_rect( super, &r );
+
+        if( oldhsva[0]==hsva[0] && oldhsva[1]==hsva[1] )
         {
-            sgui_internal_unlock_mutex( );
-            return;
-        }
+            r.left += IMAGE_W + BAR_W/4;
 
-        /* regenerate slider images if neccessary */
-        if( oldhsva[0]!=hsva[0] || oldhsva[1]!=hsva[1] )
-        {
-            generate_v_bar( this );
-
-            sgui_pixmap_load( this->vbar, 0, 0, this->vbardata, 0, 0,
-                              BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
-        }
-
-        if(oldhsva[0]!=hsva[0] || oldhsva[1]!=hsva[1] || oldhsva[2]!=hsva[2])
-        {
-            generate_a_bar( this );
-
-            sgui_pixmap_load( this->abar, 0, 0, this->abardata, 0, 0,
-                              BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
-        }
-
-        /* flag dirty */
-        if( super->canvas )
-        {
-            sgui_widget_get_absolute_rect( super, &r );
-
-            if( oldhsva[0]==hsva[0] && oldhsva[1]==hsva[1] )
+            if( oldhsva[2]==hsva[2] )
             {
-                r.left += IMAGE_W + BAR_W/4;
-
-                if( oldhsva[2]==hsva[2] )
-                {
-                    r.left += BAR_W + BAR_W/2;
-                    this->last_changed = CHANGED_A;
-                }
-                else
-                {
-                    this->last_changed = CHANGED_V;
-                }
-
-                sgui_canvas_add_dirty_rect( super->canvas, &r );
-
-                sgui_widget_get_absolute_rect( super, &r );
-                r.right = r.left + 2*DISP_W + DISP_GAP_H - 1;
-                r.top   = r.bottom - DISP_H - 1;
-                sgui_canvas_add_dirty_rect( super->canvas, &r );
+                r.left += BAR_W + BAR_W/2;
+                this->last_changed = CHANGED_A;
             }
             else
             {
-                this->last_changed = CHANGED_HS;
-                sgui_canvas_add_dirty_rect( super->canvas, &r );
+                this->last_changed = CHANGED_V;
             }
-        }
 
-        sgui_internal_unlock_mutex( );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+
+            sgui_widget_get_absolute_rect( super, &r );
+            r.right = r.left + 2*DISP_W + DISP_GAP_H - 1;
+            r.top   = r.bottom - DISP_H - 1;
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
+        else
+        {
+            this->last_changed = CHANGED_HS;
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_color_picker_set_rgb( sgui_widget* super,
@@ -556,9 +553,6 @@ void sgui_color_picker_set_rgb( sgui_widget* super,
 {
     unsigned char hsva[4], min, max;
     int h = 0;
-
-    if( !super || !rgba )
-        return;
 
     min = MIN(MIN(rgba[0],rgba[1]),rgba[2]);
     max = MAX(MAX(rgba[0],rgba[1]),rgba[2]);
@@ -580,9 +574,7 @@ void sgui_color_picker_get_hsv( const sgui_widget* super,
                                 unsigned char* hsva )
 {
     sgui_color_picker* this = (sgui_color_picker*)super;
-
-    if( this && hsva )
-        memcpy( hsva, this->hsva, 4 );
+    memcpy( hsva, this->hsva, 4 );
 }
 
 void sgui_color_picker_get_rgb( const sgui_widget* super,
@@ -591,13 +583,10 @@ void sgui_color_picker_get_rgb( const sgui_widget* super,
     sgui_color_picker* this = (sgui_color_picker*)super;
     unsigned char hsva[4];
 
-    if( this && rgba )
-    {
-        memcpy( hsva, this->hsva, 4 );
+    memcpy( hsva, this->hsva, 4 );
 
-        hsv_to_rgb( hsva[0], hsva[1], hsva[2], rgba );
-        rgba[3] = hsva[3];
-    }
+    hsv_to_rgb( hsva[0], hsva[1], hsva[2], rgba );
+    rgba[3] = hsva[3];
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget* sgui_color_picker_create( int x, int y )

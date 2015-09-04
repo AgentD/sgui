@@ -766,9 +766,6 @@ void sgui_icon_view_populate( sgui_widget* super, sgui_item* root )
     const sgui_icon* ic;
     unsigned int j;
 
-    if( !this )
-        return;
-
     sgui_internal_lock_mutex( );
     sgui_model_free_item_list( this->model, this->itemlist );
     this->itemlist = sgui_model_query_items( this->model, root, 0, 0 );
@@ -815,9 +812,6 @@ void sgui_icon_view_snap_to_grid( sgui_widget* super )
     unsigned int i;
     sgui_rect r;
 
-    if( !this )
-        return;
-
     sgui_internal_lock_mutex( );
     ideal_grid_size( this, &grid_w, &grid_h );
 
@@ -859,7 +853,7 @@ void sgui_icon_view_sort( sgui_widget* super, sgui_item_compare_fun fun )
     unsigned int k, n;
     icon temp, *last;
 
-    if( !this || !this->icons )
+    if( !this->icons )
         return;
 
     sgui_internal_lock_mutex( );

@@ -382,13 +382,10 @@ void sgui_frame_override_scrollbars( sgui_widget* super, int always_draw )
 {
     sgui_frame* this = (sgui_frame*)super;
 
-    if( this )
-    {
-        this->override_scrollbars = always_draw;
+    this->override_scrollbars = always_draw;
 
-        sgui_widget_set_visible( this->v_bar, 1 );
-        sgui_widget_set_visible( this->h_bar, 1 );
-    }
+    sgui_widget_set_visible( this->v_bar, 1 );
+    sgui_widget_set_visible( this->h_bar, 1 );
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,

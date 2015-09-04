@@ -195,6 +195,6 @@ sgui_widget* sgui_pass_box_create( int x, int y, unsigned int width,
 
 const char* sgui_pass_box_get_text( sgui_widget* this )
 {
-    return this ? ((sgui_pass_box*)this)->shadow : NULL;
+    return ((sgui_pass_box*)this)->shadow;
 }
 

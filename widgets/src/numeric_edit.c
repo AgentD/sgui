@@ -330,7 +330,7 @@ sgui_widget* sgui_spin_box_create( int x, int y, unsigned int width,
 
 int sgui_numeric_edit_get_value( sgui_widget* this )
 {
-    return this ? strtol( ((sgui_edit_box*)this)->buffer, NULL, 10 ) : 0;
+    return strtol( ((sgui_edit_box*)this)->buffer, NULL, 10 );
 }
 
 void sgui_numeric_edit_set_value( sgui_widget* box, int value )
@@ -339,25 +339,22 @@ void sgui_numeric_edit_set_value( sgui_widget* box, int value )
     sgui_edit_box* super = (sgui_edit_box*)box;
     sgui_rect r;
 
-    if( this )
+    value = MAX(this->min, value);
+    value = MIN(this->max, value);
+
+    sprintf( super->buffer, "%d", value );
+
+    super->end = super->num_entered = strlen( super->buffer );
+    super->flags &= ~SGUI_EDIT_SELECTING;
+    super->offset = super->selection = super->cursor = 0;
+
+    super->sync_cursors( super );
+
+    /* flag area dirty */
+    if( ((sgui_widget*)this)->canvas )
     {
-        value = MAX(this->min, value);
-        value = MIN(this->max, value);
-
-        sprintf( super->buffer, "%d", value );
-
-        super->end = super->num_entered = strlen( super->buffer );
-        super->flags &= ~SGUI_EDIT_SELECTING;
-        super->offset = super->selection = super->cursor = 0;
-
-        super->sync_cursors( super );
-
-        /* flag area dirty */
-        if( ((sgui_widget*)this)->canvas )
-        {
-            sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
-            sgui_canvas_add_dirty_rect( ((sgui_widget*)this)->canvas, &r );
-        }
+        sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
+        sgui_canvas_add_dirty_rect( ((sgui_widget*)this)->canvas, &r );
     }
 }
 
