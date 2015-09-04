@@ -196,8 +196,11 @@ static void gridify( icon_view* this )
         x += grid_w;
     }
 
-    sgui_widget_get_absolute_rect( &(this->super), &r );
-    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    if( this->super.canvas )
+    {
+        sgui_widget_get_absolute_rect( &(this->super), &r );
+        sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    }
 }
 
 static void get_icon_bounding_box( icon_view* this, icon* i, sgui_rect* r )
@@ -218,8 +221,11 @@ static void set_all_icons( icon_view* this, int state )
     for( i=0; i<this->num_icons; ++i )
         this->icons[i].selected = state;
 
-    sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
-    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    if( this->super.canvas )
+    {
+        sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
+        sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    }
 }
 
 static void view_on_scroll_v( void* userptr, int new_offset, int delta )
@@ -229,8 +235,11 @@ static void view_on_scroll_v( void* userptr, int new_offset, int delta )
     (void)new_offset;
     (void)delta;
 
-    sgui_widget_get_absolute_rect( this, &r );
-    sgui_canvas_add_dirty_rect( this->canvas, &r );
+    if( this->canvas )
+    {
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
+    }
 }
 
 static icon* icon_from_point( icon_view* this, int x, int y )
@@ -836,8 +845,11 @@ void sgui_icon_view_snap_to_grid( sgui_widget* super )
     }
 
     update_scroll_area( this );
-    sgui_widget_get_absolute_rect( super, &r );
-    sgui_canvas_add_dirty_rect( super->canvas, &r );
+    if( super->canvas )
+    {
+        sgui_widget_get_absolute_rect( super, &r );
+        sgui_canvas_add_dirty_rect( super->canvas, &r );
+    }
     sgui_internal_unlock_mutex( );
 }
 

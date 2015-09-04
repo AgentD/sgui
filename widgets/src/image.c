@@ -51,6 +51,9 @@ static void image_draw( sgui_widget* super )
 {
     sgui_image* this = (sgui_image*)super;
 
+    if( !this->pixmap )
+        return;
+
     sgui_canvas_draw_pixmap( super->canvas, super->area.left, super->area.top,
                              this->pixmap, NULL, this->blend );
 }
@@ -62,7 +65,8 @@ static void image_destroy( sgui_widget* super )
     if( !this->useptr )
         free( this->data );
 
-    sgui_pixmap_destroy( this->pixmap );
+    if( this->pixmap )
+        sgui_pixmap_destroy( this->pixmap );
     free( this );
 }
 
@@ -75,15 +79,24 @@ static void image_on_state_change( sgui_widget* super, int change )
     {
         sgui_internal_lock_mutex( );
 
-        sgui_widget_get_size( super, &w, &h );
+        if( this->pixmap )
+        {
+            sgui_pixmap_destroy( this->pixmap );
+            this->pixmap = NULL;
+        }
 
-        sgui_pixmap_destroy( this->pixmap );
+        if( super->canvas )
+        {
+            sgui_widget_get_size( super, &w, &h );
+            this->pixmap = sgui_canvas_create_pixmap( super->canvas, w, h,
+                                                      this->format );
 
-        this->pixmap = sgui_canvas_create_pixmap( super->canvas, w, h,
-                                                  this->format );
-
-        sgui_pixmap_load( this->pixmap, 0, 0, this->data, 0, 0, w, h,
-                          w, this->format );
+            if( this->pixmap )
+            {
+                sgui_pixmap_load( this->pixmap, 0, 0, this->data, 0, 0, w, h,
+                                  w, this->format );
+            }
+        }
 
         sgui_internal_unlock_mutex( );
     }

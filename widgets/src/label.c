@@ -84,9 +84,6 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
     super->destroy       = label_destroy;
     super->flags         = SGUI_WIDGET_VISIBLE;
 
-    /* copy the text */
-    strcpy( this->text, text );
-
     /* compute the text area */
     sgui_skin_get_text_extents( text, &super->area );
     sgui_rect_set_position( &super->area, x, y );

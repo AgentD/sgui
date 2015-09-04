@@ -378,9 +378,11 @@ void sgui_scroll_bar_set_offset( sgui_widget* super, unsigned int offset )
             this->p_offset = l - this->p_length;
         }
 
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-
+        if( super->canvas )
+        {
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
         sgui_internal_unlock_mutex( );
     }
 }
@@ -409,9 +411,11 @@ void sgui_scroll_bar_set_area( sgui_widget* super,
 
         this->p_length >>= 8;
 
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-
+        if( super->canvas )
+        {
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
         sgui_internal_unlock_mutex( );
     }
 }
@@ -426,7 +430,7 @@ void sgui_scroll_bar_set_length( sgui_widget* super, unsigned int length )
         sgui_internal_lock_mutex( );
 
         /* if the bar is shrinked, add old area as dirty rect */
-        if( this->length < length )
+        if( this->length < length && super->canvas )
         {
             sgui_widget_get_absolute_rect( super, &r );
             sgui_canvas_add_dirty_rect( super->canvas, &r );
@@ -451,7 +455,7 @@ void sgui_scroll_bar_set_length( sgui_widget* super, unsigned int length )
         }
 
         /* if the bar is enlarged, add new area as dirty rect */
-        if( this->length > length )
+        if( this->length > length && super->canvas )
         {
             sgui_widget_get_absolute_rect( super, &r );
             sgui_canvas_add_dirty_rect( super->canvas, &r );

@@ -353,8 +353,11 @@ void sgui_numeric_edit_set_value( sgui_widget* box, int value )
         super->sync_cursors( super );
 
         /* flag area dirty */
-        sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
-        sgui_canvas_add_dirty_rect( ((sgui_widget*)this)->canvas, &r );
+        if( ((sgui_widget*)this)->canvas )
+        {
+            sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
+            sgui_canvas_add_dirty_rect( ((sgui_widget*)this)->canvas, &r );
+        }
     }
 }
 

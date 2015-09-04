@@ -259,8 +259,11 @@ void sgui_slider_set_value( sgui_widget* super, int value )
         if( this->value != value )
         {
             this->value = value;
-            sgui_widget_get_absolute_rect( super, &r );
-            sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+            if( this->super.canvas )
+            {
+                sgui_widget_get_absolute_rect( super, &r );
+                sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+            }
         }
 
         sgui_internal_unlock_mutex( );

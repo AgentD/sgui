@@ -63,8 +63,11 @@ static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
     (void)new_offset;
 
     sgui_internal_lock_mutex( );
-    sgui_widget_get_absolute_rect( this, &r );
-    sgui_canvas_add_dirty_rect( this->canvas, &r );
+    if( this->canvas )
+    {
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
+    }
 
     for( i=this->children; i!=NULL; i=i->next )
     {
@@ -88,8 +91,11 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
     (void)new_offset;
 
     sgui_internal_lock_mutex( );
-    sgui_widget_get_absolute_rect( this, &r );
-    sgui_canvas_add_dirty_rect( this->canvas, &r );
+    if( this->canvas )
+    {
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
+    }
 
     for( i=this->children; i!=NULL; i=i->next )
     {

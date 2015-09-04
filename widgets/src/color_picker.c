@@ -154,6 +154,9 @@ static void color_picker_draw( sgui_widget* super )
     sgui_rect r, r0;
     int x, y;
 
+    if( !this->hs || !this->vbar || !this->abar )
+        return;
+
     /* background pixmaps */
     sgui_canvas_draw_pixmap( super->canvas, super->area.left, super->area.top,
                              this->hs, NULL, 1 );
@@ -231,9 +234,12 @@ static void color_picker_destroy( sgui_widget* super )
     free( this->vbardata );
     free( this->abardata );
     free( this->hsdata );
-    sgui_pixmap_destroy( this->hs );
-    sgui_pixmap_destroy( this->vbar );
-    sgui_pixmap_destroy( this->abar );
+    if( this->hs )
+        sgui_pixmap_destroy( this->hs );
+    if( this->vbar )
+        sgui_pixmap_destroy( this->vbar );
+    if( this->abar )
+        sgui_pixmap_destroy( this->abar );
     free( this );
 }
 
@@ -363,29 +369,55 @@ static void color_picker_on_state_change( sgui_widget* super, int change )
         sgui_widget_get_size( super, &w, &h );
 
         /* destroy pixmaps on old canvas */
-        sgui_pixmap_destroy( this->hs );
-        sgui_pixmap_destroy( this->vbar );
-        sgui_pixmap_destroy( this->abar );
+        if( this->hs )
+            sgui_pixmap_destroy( this->hs );
+        if( this->vbar )
+            sgui_pixmap_destroy( this->vbar );
+        if( this->abar )
+            sgui_pixmap_destroy( this->abar );
+        this->hs = NULL;
+        this->vbar = NULL;
+        this->abar = NULL;
 
         /* create pixmaps on new canvas */
-        this->hs = sgui_canvas_create_pixmap( super->canvas, IMAGE_W, IMAGE_H,
-                                              SGUI_RGB8 );
+        if( super->canvas )
+        {
+            this->hs = sgui_canvas_create_pixmap( super->canvas, IMAGE_W,
+                                                  IMAGE_H, SGUI_RGB8 );
+            if( !this->hs )
+                goto out;
 
-        this->vbar = sgui_canvas_create_pixmap( super->canvas, BAR_W, IMAGE_H,
-                                                SGUI_RGB8 );
+            this->vbar = sgui_canvas_create_pixmap( super->canvas, BAR_W,
+                                                    IMAGE_H, SGUI_RGB8 );
+            if( !this->vbar )
+            {
+                sgui_pixmap_destroy( this->hs );
+                this->hs = NULL;
+                goto out;
+            }
 
-        this->abar = sgui_canvas_create_pixmap( super->canvas, BAR_W, IMAGE_H,
-                                                SGUI_RGB8 );
+            this->abar = sgui_canvas_create_pixmap( super->canvas, BAR_W,
+                                                    IMAGE_H, SGUI_RGB8 );
+            if( !this->abar )
+            {
+                sgui_pixmap_destroy( this->hs );
+                sgui_pixmap_destroy( this->vbar );
+                this->hs = NULL;
+                this->vbar = NULL;
+                goto out;
+            }
 
-        /* upload data to new pixmaps */
-        sgui_pixmap_load( this->hs, 0, 0, this->hsdata, 0, 0,
-                          IMAGE_W, IMAGE_H, IMAGE_W, SGUI_RGB8 );
+            /* upload data to new pixmaps */
+            sgui_pixmap_load( this->hs, 0, 0, this->hsdata, 0, 0,
+                              IMAGE_W, IMAGE_H, IMAGE_W, SGUI_RGB8 );
 
-        sgui_pixmap_load( this->vbar, 0, 0, this->vbardata, 0, 0,
-                          BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
+            sgui_pixmap_load( this->vbar, 0, 0, this->vbardata, 0, 0,
+                              BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
 
-        sgui_pixmap_load( this->abar, 0, 0, this->abardata, 0, 0,
-                          BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
+            sgui_pixmap_load( this->abar, 0, 0, this->abardata, 0, 0,
+                              BAR_W, IMAGE_H, BAR_W, SGUI_RGB8 );
+        }
+    out:
         sgui_internal_unlock_mutex( );
     }
 }
@@ -483,33 +515,36 @@ void sgui_color_picker_set_hsv( sgui_widget* super,
         }
 
         /* flag dirty */
-        sgui_widget_get_absolute_rect( super, &r );
-
-        if( oldhsva[0]==hsva[0] && oldhsva[1]==hsva[1] )
+        if( super->canvas )
         {
-            r.left += IMAGE_W + BAR_W/4;
+            sgui_widget_get_absolute_rect( super, &r );
 
-            if( oldhsva[2]==hsva[2] )
+            if( oldhsva[0]==hsva[0] && oldhsva[1]==hsva[1] )
             {
-                r.left += BAR_W + BAR_W/2;
-                this->last_changed = CHANGED_A;
+                r.left += IMAGE_W + BAR_W/4;
+
+                if( oldhsva[2]==hsva[2] )
+                {
+                    r.left += BAR_W + BAR_W/2;
+                    this->last_changed = CHANGED_A;
+                }
+                else
+                {
+                    this->last_changed = CHANGED_V;
+                }
+
+                sgui_canvas_add_dirty_rect( super->canvas, &r );
+
+                sgui_widget_get_absolute_rect( super, &r );
+                r.right = r.left + 2*DISP_W + DISP_GAP_H - 1;
+                r.top   = r.bottom - DISP_H - 1;
+                sgui_canvas_add_dirty_rect( super->canvas, &r );
             }
             else
             {
-                this->last_changed = CHANGED_V;
+                this->last_changed = CHANGED_HS;
+                sgui_canvas_add_dirty_rect( super->canvas, &r );
             }
-
-            sgui_canvas_add_dirty_rect( super->canvas, &r );
-
-            sgui_widget_get_absolute_rect( super, &r );
-            r.right = r.left + 2*DISP_W + DISP_GAP_H - 1;
-            r.top   = r.bottom - DISP_H - 1;
-            sgui_canvas_add_dirty_rect( super->canvas, &r );
-        }
-        else
-        {
-            this->last_changed = CHANGED_HS;
-            sgui_canvas_add_dirty_rect( super->canvas, &r );
         }
 
         sgui_internal_unlock_mutex( );

@@ -502,9 +502,11 @@ void sgui_edit_box_set_text( sgui_widget* super, const char* text )
         this->cursor = this->offset = 0;
         this->sync_cursors( this );
 
-        sgui_widget_get_absolute_rect( super, &r );
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-
+        if( super->canvas )
+        {
+            sgui_widget_get_absolute_rect( super, &r );
+            sgui_canvas_add_dirty_rect( super->canvas, &r );
+        }
         sgui_internal_unlock_mutex( );
     }
 }

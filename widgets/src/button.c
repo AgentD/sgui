@@ -92,8 +92,11 @@ static void button_select( sgui_button* this, int selected, int postevent )
     this->flags = selected ? (this->flags | SELECTED) : 
                              (this->flags & (~SELECTED));
 
-    sgui_widget_get_absolute_rect( &(this->super), &r );
-    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    if( this->super.canvas )
+    {
+        sgui_widget_get_absolute_rect( &(this->super), &r );
+        sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    }
 
     if( postevent )
     {
@@ -112,8 +115,11 @@ static void button_select( sgui_button* this, int selected, int postevent )
         if( i->flags & SELECTED )
         {
             i->flags &= ~SELECTED;
-            sgui_widget_get_absolute_rect( &(i->super), &r );
-            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            if( i->super.canvas )
+            {
+                sgui_widget_get_absolute_rect( &(i->super), &r );
+                sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            }
             goto done;
         }
     }
@@ -124,8 +130,11 @@ static void button_select( sgui_button* this, int selected, int postevent )
         if( i->flags & SELECTED )
         {
             i->flags &= ~SELECTED;
-            sgui_widget_get_absolute_rect( &(i->super), &r );
-            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            if( i->super.canvas )
+            {
+                sgui_widget_get_absolute_rect( &(i->super), &r );
+                sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            }
             goto done;
         }
     }

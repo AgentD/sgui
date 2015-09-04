@@ -131,7 +131,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     sgui_event ev;
     sgui_rect r;
 
-    if( !this || widget==this->focus )
+    if( widget==this->focus )
         return;
 
     sgui_internal_lock_mutex( );
@@ -196,9 +196,6 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     unsigned int i;
     sgui_rect r0;
 
-    if( !this || !r )
-        return;
-
     sgui_internal_lock_mutex( );
 
     /* make sure dirty rect is inside canvase area */
@@ -234,7 +231,7 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
 
 unsigned int sgui_canvas_num_dirty_rects( const sgui_canvas* this )
 {
-    return this ? this->num_dirty : 0;
+    return this->num_dirty;
 }
 
 void sgui_canvas_get_dirty_rect( const sgui_canvas* this, sgui_rect* rect,
@@ -242,7 +239,7 @@ void sgui_canvas_get_dirty_rect( const sgui_canvas* this, sgui_rect* rect,
 {
     sgui_internal_lock_mutex( );
 
-    if( this && (i < this->num_dirty) )
+    if( i < this->num_dirty )
         *rect = this->dirty[ i ];
 
     sgui_internal_unlock_mutex( );
@@ -250,12 +247,9 @@ void sgui_canvas_get_dirty_rect( const sgui_canvas* this, sgui_rect* rect,
 
 void sgui_canvas_clear_dirty_rects( sgui_canvas* this )
 {
-    if( this )
-    {
-        sgui_internal_lock_mutex( );
-        this->num_dirty = 0;
-        sgui_internal_unlock_mutex( );
-    }
+    sgui_internal_lock_mutex( );
+    this->num_dirty = 0;
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_canvas_redraw_widgets( sgui_canvas* this, int clear )
@@ -263,32 +257,29 @@ void sgui_canvas_redraw_widgets( sgui_canvas* this, int clear )
     int need_end = 0;
     unsigned int i;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    if( !this->began )
     {
-        sgui_internal_lock_mutex( );
-
-        if( !this->began )
-        {
-            sgui_canvas_begin( this, NULL );
-            need_end = 1;
-        }
-
-        for( i=0; i<this->num_dirty; ++i )
-        {
-            if( clear )
-                this->clear( this, this->dirty + i );
-
-            if( this->root.children )
-                draw_children( this, &this->root, this->dirty + i );
-        }
-
-        if( need_end )
-            sgui_canvas_end( this );
-
-        this->num_dirty = 0;
-
-        sgui_internal_unlock_mutex( );
+        sgui_canvas_begin( this, NULL );
+        need_end = 1;
     }
+
+    for( i=0; i<this->num_dirty; ++i )
+    {
+        if( clear )
+            this->clear( this, this->dirty + i );
+
+        if( this->root.children )
+            draw_children( this, &this->root, this->dirty + i );
+    }
+
+    if( need_end )
+        sgui_canvas_end( this );
+
+    this->num_dirty = 0;
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_canvas_draw_widgets( sgui_canvas* this, int clear )
@@ -296,30 +287,27 @@ void sgui_canvas_draw_widgets( sgui_canvas* this, int clear )
     sgui_rect r1;
     int need_end = 0;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    sgui_rect_set_size( &r1, 0, 0, this->width, this->height );
+    this->num_dirty = 0;
+
+    if( !this->began )
     {
-        sgui_internal_lock_mutex( );
-
-        sgui_rect_set_size( &r1, 0, 0, this->width, this->height );
-        this->num_dirty = 0;
-
-        if( !this->began )
-        {
-            sgui_canvas_begin( this, NULL );
-            need_end = 1;
-        }
-
-        if( clear )
-            this->clear( this, &r1 );
-
-        if( this->root.children )
-            draw_children( this, &this->root, NULL );
-
-        if( need_end )
-            sgui_canvas_end( this );
-
-        sgui_internal_unlock_mutex( );
+        sgui_canvas_begin( this, NULL );
+        need_end = 1;
     }
+
+    if( clear )
+        this->clear( this, &r1 );
+
+    if( this->root.children )
+        draw_children( this, &this->root, NULL );
+
+    if( need_end )
+        sgui_canvas_end( this );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
@@ -331,7 +319,7 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
     sgui_rect r;
     int x, y;
 
-    if( !this || !this->root.children )
+    if( !this->root.children )
         return;
 
     /* don't handle events that the canvas generates */
@@ -452,33 +440,27 @@ void sgui_canvas_destroy( sgui_canvas* this )
 {
     sgui_widget* i;
 
-    if( this )
-    {
-        for( i=this->root.children; i!=NULL; i=i->next )
-            sgui_widget_remove_from_parent( i );
+    for( i=this->root.children; i!=NULL; i=i->next )
+        sgui_widget_remove_from_parent( i );
 
-        free( this->dirty );
+    free( this->dirty );
 
-        this->destroy( this );
-    }
+    this->destroy( this );
 }
 
 void sgui_canvas_resize( sgui_canvas* this, unsigned int width,
                          unsigned int height )
 {
-    if( this && (this->width!=width || this->height!=height) )
+    if( (this->width!=width || this->height!=height) && this->resize )
     {
         sgui_internal_lock_mutex( );
 
-        if( this->resize )
-        {
-            this->resize( this, width, height );
+        this->resize( this, width, height );
 
-            this->width = width;
-            this->height = height;
+        this->width = width;
+        this->height = height;
 
-            sgui_rect_set_size( &this->root.area, 0, 0, width, height );
-        }
+        sgui_rect_set_size( &this->root.area, 0, 0, width, height );
 
         sgui_internal_unlock_mutex( );
     }
@@ -488,7 +470,7 @@ sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* this,
                                         unsigned int width,
                                         unsigned int height, int format )
 {
-    if( !this || !width || !height )
+    if( !width || !height )
         return NULL;
 
     return this->create_pixmap( this, width, height, format );
@@ -496,40 +478,33 @@ sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* this,
 
 void sgui_canvas_get_scissor_rect( const sgui_canvas* this, sgui_rect* r )
 {
-    if( this && r )
-        *r = this->sc;
+    *r = this->sc;
 }
 
 void sgui_canvas_get_offset( const sgui_canvas* this, int* x, int* y )
 {
-    if( x ) *x = this ? this->ox : 0;
-    if( y ) *y = this ? this->oy : 0;
+    *x = this->ox;
+    *y = this->oy;
 }
 
 void sgui_canvas_set_offset( sgui_canvas* this, int x, int y )
 {
-    if( this )
-    {
-        this->ox = x;
-        this->oy = y;
-    }
+    this->ox = x;
+    this->oy = y;
 }
 
 void sgui_canvas_set_scissor_rect( sgui_canvas* this, const sgui_rect* r )
 {
-    if( this )
+    if( r )
     {
-        if( r )
-        {
-            this->sc.left   = MAX(0,                   r->left  );
-            this->sc.top    = MAX(0,                   r->top   );
-            this->sc.right  = MIN((int)this->width-1,  r->right );
-            this->sc.bottom = MIN((int)this->height-1, r->bottom);
-        }
-        else
-        {
-            sgui_rect_set_size( &this->sc, 0, 0, this->width, this->height );
-        }
+        this->sc.left   = MAX(0,                   r->left  );
+        this->sc.top    = MAX(0,                   r->top   );
+        this->sc.right  = MIN((int)this->width-1,  r->right );
+        this->sc.bottom = MIN((int)this->height-1, r->bottom);
+    }
+    else
+    {
+        sgui_rect_set_size( &this->sc, 0, 0, this->width, this->height );
     }
 }
 
@@ -537,7 +512,7 @@ void sgui_canvas_begin( sgui_canvas* this, const sgui_rect* r )
 {
     sgui_rect r0;
 
-    if( this && !this->began )
+    if( !this->began )
     {
         sgui_rect_set_size( &r0, 0, 0, this->width, this->height );
 
@@ -555,7 +530,7 @@ void sgui_canvas_begin( sgui_canvas* this, const sgui_rect* r )
 
 void sgui_canvas_end( sgui_canvas* this )
 {
-    if( this && this->began )
+    if( this->began )
     {
         this->began = 0;
 
@@ -568,7 +543,7 @@ void sgui_canvas_clear( sgui_canvas* this, sgui_rect* r )
 {
     sgui_rect r1;
 
-    if( !this || !this->began )
+    if( !this->began )
         return;
 
     /* if no rect is given, set to the full canvas area */
@@ -594,7 +569,7 @@ void sgui_canvas_draw_box( sgui_canvas* this, sgui_rect* r,
 {
     sgui_rect r1;
 
-    if( !this || !color || !this->began || !r )
+    if( !this->began )
         return;
 
     if( format==SGUI_RGBA8 && color[3]==0xFF )
@@ -613,7 +588,7 @@ void sgui_canvas_draw_line( sgui_canvas* this, int x, int y,
 {
     sgui_rect r;
 
-    if( !this || !this->began || !color )
+    if( !this->began )
         return;
 
     if( format==SGUI_RGBA8 && color[3]==0xFF )
@@ -635,7 +610,7 @@ void sgui_canvas_draw_pixmap( sgui_canvas* this, int x, int y,
     unsigned int w, h;
     sgui_rect src, clip;
 
-    if( !this || !pixmap || !this->began )
+    if( !this->began )
         return;
 
     sgui_pixmap_get_size( pixmap, &w, &h );
@@ -670,7 +645,7 @@ int sgui_canvas_draw_text_plain( sgui_canvas* this, int x, int y,
     sgui_font* font = sgui_skin_get_default_font( bold, italic );
 
     /* sanity check */
-    if( !this || !font || !color || !text || !this->began || !length )
+    if( !this->began || !length )
         return 0;
 
     x += this->ox;

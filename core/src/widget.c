@@ -135,7 +135,7 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
     visible = sgui_widget_is_absolute_visible( this );
 
     /* flag the old area dirty */
-    if( visible )
+    if( visible && this->canvas )
     {
         sgui_widget_get_absolute_rect( this, &r );
         sgui_canvas_add_dirty_rect( this->canvas, &r );
@@ -145,7 +145,7 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
     sgui_rect_set_position( &this->area, x, y );
 
     /* flag the new area dirty */
-    if( visible )
+    if( visible && this->canvas )
     {
         sgui_widget_get_absolute_rect( this, &r );
         sgui_canvas_add_dirty_rect( this->canvas, &r );
@@ -223,9 +223,11 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
         propagat_state_change(this->children,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
         /* flag area as dirty */ 
-        sgui_widget_get_absolute_rect( this, &r );
-        sgui_canvas_add_dirty_rect( this->canvas, &r );
-
+        if( this->canvas )
+        {
+            sgui_widget_get_absolute_rect( this, &r );
+            sgui_canvas_add_dirty_rect( this->canvas, &r );
+        }
         sgui_internal_unlock_mutex( );
     }
 }
@@ -318,7 +320,7 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
 
         SGUI_REMOVE_FROM_LIST( this->parent->children, i, this );
 
-        if( sgui_widget_is_absolute_visible( this ) )
+        if( this->canvas && sgui_widget_is_absolute_visible( this ) )
         {
             sgui_widget_get_absolute_rect( this, &r );
             sgui_canvas_add_dirty_rect( this->canvas, &r );
@@ -382,7 +384,7 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
     propagate_canvas( child->children );
 
     /* flag coresponding area as dirty */
-    if( sgui_widget_is_absolute_visible( child ) )
+    if( this->canvas && sgui_widget_is_absolute_visible( child ) )
     {
         sgui_widget_get_absolute_rect( child, &r );
         sgui_canvas_add_dirty_rect( child->canvas, &r );

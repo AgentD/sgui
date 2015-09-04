@@ -482,7 +482,7 @@ int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
 {
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
 
-    if( !this || !buffer || !width || !height )
+    if( !width || !height )
         return 0;
 
     if( format!=SGUI_RGBA8 && format!=SGUI_RGB8 )
@@ -521,10 +521,7 @@ int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
 void sgui_memory_canvas_set_buffer( sgui_canvas* this,
                                     unsigned char* buffer )
 {
-    if( this && buffer )
-    {
-        ((sgui_mem_canvas*)this)->data = buffer;
-    }
+    ((sgui_mem_canvas*)this)->data = buffer;
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,

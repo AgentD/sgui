@@ -113,8 +113,11 @@ void sgui_progress_bar_set_progress(sgui_widget* this, unsigned int progress)
     if( this )
     {
         sgui_internal_lock_mutex( );
-        sgui_widget_get_absolute_rect( this, &r );
-        sgui_canvas_add_dirty_rect( this->canvas, &r );
+        if( this->canvas )
+        {
+            sgui_widget_get_absolute_rect( this, &r );
+            sgui_canvas_add_dirty_rect( this->canvas, &r );
+        }
 
         ((sgui_progress_bar*)this)->progress = progress>100 ? 100 : progress;
         sgui_internal_unlock_mutex( );
