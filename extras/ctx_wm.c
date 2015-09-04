@@ -16,10 +16,14 @@
 #include <stdio.h>
 #include <math.h>
 
-#if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
+#if defined(SGUI_WINDOWS)
     #include <windows.h>
-
+#endif
+#ifndef SGUI_NO_D3D9
     #include "sgui_d3d9.h"
+#endif
+#ifndef SGUI_NO_D3D11
+    #include "sgui_d3d11.h"
 #endif
 #include <GL/gl.h>
 

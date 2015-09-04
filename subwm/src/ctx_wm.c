@@ -30,6 +30,7 @@
 
 #include "gl_wm.h"
 #include "d3d9_wm.h"
+#include "d3d11_wm.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -93,7 +94,7 @@ sgui_ctx_wm* sgui_ctx_wm_create( sgui_window* wnd )
 #endif
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D11)
     case SGUI_DIRECT3D_11:
-        break;
+        return d3d11_wm_create( wnd );
 #endif
     }
 
