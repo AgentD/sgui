@@ -200,6 +200,7 @@ endif( )
 include_directories( ${CMAKE_SOURCE_DIR}/core/include/
                      ${CMAKE_SOURCE_DIR}/widgets/include/
                      ${CMAKE_SOURCE_DIR}/dialogs/include/
+                     ${CMAKE_SOURCE_DIR}/subwm/include/
                    )
 
 if( WIN32 )
@@ -258,10 +259,13 @@ include_directories( ${CMAKE_BINARY_DIR}/include )
 add_subdirectory( core )
 add_subdirectory( widgets )
 add_subdirectory( dialogs )
+add_subdirectory( subwm )
 
 add_library( sgui SHARED ${CORE_SRC} ${WIDGETS_SRC} ${DIALOGS_SRC} )
+add_library( sguisubwm STATIC ${SUBWM_SRC} )
 
 target_link_libraries( sgui ${SGUI_DEP} )
+target_link_libraries( sguisubwm sgui )
 
 add_subdirectory( extras )
 
