@@ -174,7 +174,7 @@ static void tab_group_on_event( sgui_widget* super, const sgui_event* e )
                 }
             }
         }
-        else
+        else if( this->current->super.next )
         {
             sgui_widget_set_visible( this->current->super.next, 1 );
         }
