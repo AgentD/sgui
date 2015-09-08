@@ -24,6 +24,7 @@
  */
 #define SGUI_BUILDING_DLL
 #include "platform.h"
+#include "sgui_config.h"
 
 
 
@@ -101,8 +102,52 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
     sgui_internal_unlock_mutex( );
 }
 
-/****************************************************************************/
+sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
+                                 unsigned int height, int format )
+{
+    sgui_canvas_xlib* owner = (sgui_canvas_xlib*)cv;
+    Window wnd = ((sgui_canvas_x11*)cv)->wnd;
+    sgui_pixmap* super;
+    xlib_pixmap* this;
 
+    this = malloc( sizeof(xlib_pixmap) );
+    super = (sgui_pixmap*)this;
+
+    if( this )
+    {
+        super->width   = width;
+        super->height  = height;
+        super->destroy = xlib_pixmap_destroy;
+        super->load    = xlib_pixmap_load;
+
+        this->is_stencil = format==SGUI_A8;
+        this->owner      = owner;
+
+        if( format==SGUI_A8 )
+        {
+            this->data.pixels = malloc( width*height );
+
+            if( !this->data.pixels )
+                goto fail;
+        }
+        else
+        {
+            sgui_internal_lock_mutex( );
+            this->data.xpm = XCreatePixmap( x11.dpy, wnd, width, height, 24 );
+            sgui_internal_unlock_mutex( );
+
+            if( !this->data.xpm )
+                goto fail;
+        }
+    }
+
+    return (sgui_pixmap*)this;
+fail:
+    free( this );
+    return NULL;
+}
+/****************************************************************************/
+#ifndef SGUI_NO_XRENDER
 void xrender_pixmap_destroy( sgui_pixmap* super )
 {
     xrender_pixmap* this = (xrender_pixmap*)super;
@@ -179,8 +224,6 @@ void xrender_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
     sgui_internal_unlock_mutex( );
 }
 
-/****************************************************************************/
-
 sgui_pixmap* xrender_pixmap_create( sgui_canvas* cv, unsigned int width,
                                     unsigned int height, int format )
 {
@@ -232,49 +275,5 @@ fail:
     free( this );
     return NULL;
 }
-
-sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
-                                 unsigned int height, int format )
-{
-    sgui_canvas_xlib* owner = (sgui_canvas_xlib*)cv;
-    Window wnd = ((sgui_canvas_x11*)cv)->wnd;
-    sgui_pixmap* super;
-    xlib_pixmap* this;
-
-    this = malloc( sizeof(xlib_pixmap) );
-    super = (sgui_pixmap*)this;
-
-    if( this )
-    {
-        super->width   = width;
-        super->height  = height;
-        super->destroy = xlib_pixmap_destroy;
-        super->load    = xlib_pixmap_load;
-
-        this->is_stencil = format==SGUI_A8;
-        this->owner      = owner;
-
-        if( format==SGUI_A8 )
-        {
-            this->data.pixels = malloc( width*height );
-
-            if( !this->data.pixels )
-                goto fail;
-        }
-        else
-        {
-            sgui_internal_lock_mutex( );
-            this->data.xpm = XCreatePixmap( x11.dpy, wnd, width, height, 24 );
-            sgui_internal_unlock_mutex( );
-
-            if( !this->data.xpm )
-                goto fail;
-        }
-    }
-
-    return (sgui_pixmap*)this;
-fail:
-    free( this );
-    return NULL;
-}
+#endif /* !SGUI_NO_XRENDER */
 

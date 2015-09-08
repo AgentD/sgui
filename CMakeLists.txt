@@ -52,6 +52,7 @@ option( NATIVE_MB "Compile with native emergency message box function" ON )
 
 if( UNIX )
   set( ICONCACHE true )
+  option( XRENDER "Use an XRender based canvas implementation" ON )
 else( )
   option( ICONCACHE "Compile with icon and font cache implementations" ON )
 endif( )
@@ -68,6 +69,10 @@ option( NOPS "Replace disabled features with API compatible NOP functions" ON)
 
 if( NOFLOAT )
   set( SGUI_NO_FLOAT 1 )
+endif( )
+
+if( UNIX AND NOT XRENDER )
+  set( SGUI_NO_XRENDER 1 )
 endif( )
 
 if( NOT DIRECT3D9 )

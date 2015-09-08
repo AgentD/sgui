@@ -87,6 +87,9 @@
 /* set if compiling for Mac OS X */
 #cmakedefine SGUI_OSX
 
+/* set if X11 backend should not use the Xrender API */
+#cmakedefine SGUI_NO_XRENDER
+
 /* static maximum of canvas dirty rects */
 #define SGUI_CANVAS_MAX_DIRTY 10
 

@@ -25,6 +25,7 @@
 #define SGUI_BUILDING_DLL
 #include "platform.h"
 
+#include "sgui_config.h"
 #include "sgui_event.h"
 #include "sgui_context.h"
 
@@ -519,9 +520,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
     else if( desc->backend==SGUI_NATIVE )
     {
+#ifndef SGUI_NO_XRENDER
         super->ctx.canvas = canvas_xrender_create( this->wnd, attr.width,
                                                    attr.height );
-
+#endif
         if( !super->ctx.canvas )
             super->ctx.canvas = canvas_xlib_create( this->wnd, attr.width,
                                                     attr.height );
