@@ -37,73 +37,6 @@
 
 
 
-static void draw_children( sgui_canvas* this, sgui_widget* widget,
-                           sgui_rect* r )
-{
-    int old_ox, old_oy, fbw;
-    sgui_widget* i;
-    sgui_rect wr, old_sc;
-    sgui_skin* skin;
-
-    old_ox = widget->canvas->ox;
-    old_oy = widget->canvas->oy;
-
-    widget->canvas->ox += widget->area.left;
-    widget->canvas->oy += widget->area.top;
-
-    for( i=widget->children; i!=NULL; i=i->next )
-    {
-        if( !(i->flags & SGUI_WIDGET_VISIBLE) )
-            continue;
-
-        sgui_widget_get_absolute_rect( i, &wr );
-
-        /* test validity and intersection */
-        if( wr.left>=wr.right || wr.top>=wr.bottom )
-            continue;
-
-        if( r && !sgui_rect_get_intersection( &wr, r, &wr ) )
-            continue;
-
-        /* set scisor rect and draw widget & children */
-        old_sc = widget->canvas->sc;
-
-        if( !sgui_rect_get_intersection( &widget->canvas->sc,
-                                         &widget->canvas->sc, &wr ) )
-        {
-            continue;
-        }
-
-        if( i->draw )
-            i->draw( i );
-        draw_children( this, i, r ? &wr : NULL );
-
-        /* draw focus box */
-        if( i==this->focus && (i->flags & SGUI_FOCUS_DRAW) &&
-            (this->flags & SGUI_CANVAS_DRAW_FOCUS) )
-        {
-            skin = sgui_skin_get( );
-            fbw = skin->get_focus_box_width( skin );
-            sgui_widget_get_absolute_rect( i, &wr );
-            sgui_rect_extend( &wr, fbw, fbw );
-
-            if( sgui_rect_get_intersection( &widget->canvas->sc,
-                                            &old_sc, &wr ) )
-            {
-                sgui_rect_add_offset( &wr, -this->ox, -this->oy );
-                skin->draw_focus_box( skin, this, &wr );
-            }
-        }
-
-        widget->canvas->sc = old_sc;
-    }
-
-    widget->canvas->ox = old_ox;
-    widget->canvas->oy = old_oy;
-}
-
-/****************************************************************************/
-
 int sgui_canvas_init( sgui_canvas* this, unsigned int width,
                       unsigned int height )
 {
@@ -271,7 +204,11 @@ void sgui_canvas_redraw_widgets( sgui_canvas* this, int clear )
             this->clear( this, this->dirty + i );
 
         if( this->root.children )
-            draw_children( this, &this->root, this->dirty + i );
+        {
+            sgui_widget_draw( &this->root, this->dirty + i,
+                              (this->flags & SGUI_CANVAS_DRAW_FOCUS) ?
+                              this->focus : NULL );
+        }
     }
 
     if( need_end )
@@ -302,7 +239,11 @@ void sgui_canvas_draw_widgets( sgui_canvas* this, int clear )
         this->clear( this, &r1 );
 
     if( this->root.children )
-        draw_children( this, &this->root, NULL );
+    {
+        sgui_widget_draw( &this->root, NULL,
+                          (this->flags & SGUI_CANVAS_DRAW_FOCUS) ?
+                          this->focus : NULL );
+    }
 
     if( need_end )
         sgui_canvas_end( this );

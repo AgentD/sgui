@@ -498,3 +498,62 @@ sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
     return NULL;
 }
 
+void sgui_widget_draw( sgui_widget* this, sgui_rect* bounds,
+                       sgui_widget* focus )
+{
+    sgui_rect wr, old_sc;
+    sgui_skin* skin;
+    sgui_widget* i;
+    int fbw;
+
+    sgui_internal_lock_mutex( );
+
+    if( this->flags & SGUI_WIDGET_VISIBLE )
+    {
+        sgui_widget_get_absolute_rect( this, &wr );
+
+        if( wr.left>=wr.right || wr.top>=wr.bottom )
+            goto out;
+
+        if( bounds && !sgui_rect_get_intersection( &wr, bounds, &wr ) )
+            goto out;
+
+        old_sc = this->canvas->sc;
+
+        if( !sgui_rect_get_intersection( &this->canvas->sc, &old_sc, &wr ) )
+            goto out;
+
+        if( this->draw )
+            this->draw( this );
+
+        this->canvas->ox += this->area.left;
+        this->canvas->oy += this->area.top;
+
+        for( i=this->children; i!=NULL; i=i->next )
+            sgui_widget_draw( i, bounds ? &wr : NULL, focus );
+
+        this->canvas->ox -= this->area.left;
+        this->canvas->oy -= this->area.top;
+
+        if( this==focus && (this->flags & SGUI_FOCUS_DRAW) )
+        {
+            skin = sgui_skin_get( );
+            fbw = skin->get_focus_box_width( skin );
+
+            sgui_widget_get_absolute_rect( this, &wr );
+            sgui_rect_extend( &wr, fbw, fbw );
+
+            if( sgui_rect_get_intersection(&this->canvas->sc, &old_sc, &wr) )
+            {
+                sgui_rect_add_offset( &wr, -this->canvas->ox,
+                                           -this->canvas->oy );
+                skin->draw_focus_box( skin, this->canvas, &wr );
+            }
+        }
+
+        this->canvas->sc = old_sc;
+    }
+out:
+    sgui_internal_unlock_mutex( );
+}
+
