@@ -39,6 +39,13 @@
 
 
 
+typedef enum
+{
+    SGUI_CANVAS_BEGAN = 0x01,   /**< \brief Set inside a begin...end block */
+    SGUI_CANVAS_DRAW_FOCUS = 0x02   /**< \brief Set to draw the focus box */
+}
+SGUI_CANVAS_FLAGS;
+
 /**
  * \struct sgui_canvas
  *
@@ -55,8 +62,8 @@ struct sgui_canvas
     /** \brief The height of the canvas in pixels */
     unsigned int height;
 
-    sgui_rect sc;                   /**< \brief current scissor rect */
-    int began;
+    sgui_rect sc;               /**< \brief current scissor rect */
+    int flags;                  /**< \brief A set of \ref SGUI_CANVAS_FLAGS */
 
     /**
      * \brief A dummy widget that covers the entire canvas area and has all
@@ -64,12 +71,8 @@ struct sgui_canvas
      */
     sgui_widget root;
 
-    sgui_widget* mouse_over;        /**< \brief The widget under the mouse
-                                                cursor */
-    sgui_widget* focus;             /**< \brief The widget with keyboad
-                                                focus */
-
-    int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
+    sgui_widget* mouse_over;  /**< \brief The widget under the mouse cursor */
+    sgui_widget* focus;       /**< \brief The widget with keyboad focus */
 
     sgui_rect* dirty;       /**< \brief Array of dirty rectangles */
     unsigned int num_dirty; /**< \brief Number of dirty rectangles in array */

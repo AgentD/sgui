@@ -80,7 +80,7 @@ static void draw_children( sgui_canvas* this, sgui_widget* widget,
 
         /* draw focus box */
         if( i==this->focus && (i->flags & SGUI_FOCUS_DRAW) &&
-            this->draw_focus )
+            (this->flags & SGUI_CANVAS_DRAW_FOCUS) )
         {
             skin = sgui_skin_get( );
             fbw = skin->get_focus_box_width( skin );
@@ -153,7 +153,7 @@ void sgui_canvas_set_focus( sgui_canvas* this, sgui_widget* widget )
     fbw = skin->get_focus_box_width( skin );
 
     if( this->focus && (this->focus->flags & SGUI_FOCUS_DRAW) &&
-        this->draw_focus )
+        (this->flags & SGUI_CANVAS_DRAW_FOCUS) )
     {
         sgui_widget_get_absolute_rect( this->focus, &r );
         sgui_rect_extend( &r, fbw, fbw );
@@ -259,7 +259,7 @@ void sgui_canvas_redraw_widgets( sgui_canvas* this, int clear )
 
     sgui_internal_lock_mutex( );
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
     {
         sgui_canvas_begin( this, NULL );
         need_end = 1;
@@ -292,7 +292,7 @@ void sgui_canvas_draw_widgets( sgui_canvas* this, int clear )
     sgui_rect_set_size( &r1, 0, 0, this->width, this->height );
     this->num_dirty = 0;
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
     {
         sgui_canvas_begin( this, NULL );
         need_end = 1;
@@ -377,7 +377,7 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         if( this->focus != this->mouse_over )
         {
             sgui_canvas_set_focus( this, this->mouse_over );
-            this->draw_focus = 0;
+            this->flags &= ~SGUI_CANVAS_DRAW_FOCUS;
         }
         break;
     case SGUI_MOUSE_MOVE_EVENT:
@@ -403,7 +403,7 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
             if( (i = sgui_widget_find_next_focus( &this->root )) )
             {
                 sgui_canvas_set_focus( this, i );
-                this->draw_focus = 1;
+                this->flags |= SGUI_CANVAS_DRAW_FOCUS;
                 break;
             }
         }
@@ -414,9 +414,9 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
             sgui_widget_send_event( this->focus, e, 0 );
 
             /* make sure the focus box gets drawn */
-            if( !this->draw_focus )
+            if( !(this->flags & SGUI_CANVAS_DRAW_FOCUS) )
             {
-                this->draw_focus = 1;
+                this->flags |= SGUI_CANVAS_DRAW_FOCUS;
                 sgui_widget_get_absolute_rect( this->focus, &r );
                 skin = sgui_skin_get( );
                 fbw = skin->get_focus_box_width( skin );
@@ -512,7 +512,7 @@ void sgui_canvas_begin( sgui_canvas* this, const sgui_rect* r )
 {
     sgui_rect r0;
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
     {
         sgui_rect_set_size( &r0, 0, 0, this->width, this->height );
 
@@ -524,15 +524,15 @@ void sgui_canvas_begin( sgui_canvas* this, const sgui_rect* r )
             this->begin( this, &r0 );
 
         this->sc = r0;
-        this->began = 1;
+        this->flags |= SGUI_CANVAS_BEGAN;
     }
 }
 
 void sgui_canvas_end( sgui_canvas* this )
 {
-    if( this->began )
+    if( this->flags & SGUI_CANVAS_BEGAN )
     {
-        this->began = 0;
+        this->flags &= ~SGUI_CANVAS_BEGAN;
 
         if( this->end )
             this->end( this );
@@ -543,7 +543,7 @@ void sgui_canvas_clear( sgui_canvas* this, sgui_rect* r )
 {
     sgui_rect r1;
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
         return;
 
     /* if no rect is given, set to the full canvas area */
@@ -569,7 +569,7 @@ void sgui_canvas_draw_box( sgui_canvas* this, sgui_rect* r,
 {
     sgui_rect r1;
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
         return;
 
     if( format==SGUI_RGBA8 && color[3]==0xFF )
@@ -588,7 +588,7 @@ void sgui_canvas_draw_line( sgui_canvas* this, int x, int y,
 {
     sgui_rect r;
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
         return;
 
     if( format==SGUI_RGBA8 && color[3]==0xFF )
@@ -610,7 +610,7 @@ void sgui_canvas_draw_pixmap( sgui_canvas* this, int x, int y,
     unsigned int w, h;
     sgui_rect src, clip;
 
-    if( !this->began )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) )
         return;
 
     sgui_pixmap_get_size( pixmap, &w, &h );
@@ -645,7 +645,7 @@ int sgui_canvas_draw_text_plain( sgui_canvas* this, int x, int y,
     sgui_font* font = sgui_skin_get_default_font( bold, italic );
 
     /* sanity check */
-    if( !this->began || !length )
+    if( !(this->flags & SGUI_CANVAS_BEGAN) || !length )
         return 0;
 
     x += this->ox;
