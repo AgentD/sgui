@@ -49,9 +49,11 @@ static void canvas_mem_clear( sgui_canvas* super, sgui_rect* r )
     unsigned char* dst;
     int i;
 
-    dst = this->data + (r->top*super->width + r->left)*this->bpp;
     deltax = SGUI_RECT_WIDTH_V(r)*this->bpp;
-    deltay = super->width*this->bpp;
+    deltay = this->pitch ? this->pitch : super->width*this->bpp;
+
+    dst = this->data + (r->top-this->starty)*deltay +
+                       (r->left-this->startx)*this->bpp;
 
     /* clear */
     for( i=r->top; i<=r->bottom; ++i, dst+=deltay )
@@ -66,11 +68,12 @@ static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
                                      const unsigned char* color, int format )
 {
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
-    unsigned int R=0, G=0, B=0, A=0, iA=0;
+    unsigned int R=0, G=0, B=0, A=0, iA=0, pitch;
     unsigned char *dst, *row;
     int i, j;
 
-    dst = this->data + (r->top*super->width + r->left)*3;
+    pitch = this->pitch ? this->pitch : super->width*3;
+    dst = this->data + (r->top-this->starty)*pitch + (r->left-this->startx)*3;
 
     if( format==SGUI_RGBA8 || format==SGUI_RGB8 )
     {
@@ -87,7 +90,7 @@ static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
         G *= A;
         B *= A;
 
-        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*3 )
+        for( j=r->top; j<=r->bottom; ++j, dst+=pitch )
         {
             for( row=dst, i=r->left; i<=r->right; ++i, row+=3 )
             {
@@ -99,7 +102,7 @@ static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
     }
     else if( format==SGUI_RGB8 )
     {
-        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*3 )
+        for( j=r->top; j<=r->bottom; ++j, dst+=pitch )
         {
             for( row=dst, i=r->left; i<=r->right; ++i, row+=3 )
             {
@@ -111,7 +114,7 @@ static void canvas_mem_draw_box_rgb( sgui_canvas* super, sgui_rect* r,
     }
     else
     {
-        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*3 )
+        for( j=r->top; j<=r->bottom; ++j, dst+=pitch )
         {
             for( row=dst, i=r->left; i<=r->right; ++i, row+=3 )
             {
@@ -125,23 +128,26 @@ static void canvas_mem_blit_rgb( sgui_canvas* super, int x, int y,
                                  sgui_pixmap* pixmap, sgui_rect* srcrect )
 {
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
-    unsigned int w = SGUI_RECT_WIDTH_V( srcrect ) * 3;
+    unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
-    unsigned char *dst = this->data + (y*super->width + x)*3, *row;
+    unsigned char *dst, *row;
     unsigned char *src = sgui_internal_mem_pixmap_buffer( pixmap ), *srow;
     unsigned int format = sgui_internal_mem_pixmap_format( pixmap ), i, j;
-    unsigned int dy = super->width*3, scan, lines;
+    unsigned int dy = this->pitch ? this->pitch : super->width*3, scan, lines;
     sgui_pixmap_get_size( pixmap, &scan, &lines );
+
+    dst = this->data + (y-this->starty)*dy + (x-this->startx)*3;
 
     if( format==SGUI_RGBA8 )
     {
-        src += (srcrect->top*scan + srcrect->left) * 3;
-        scan <<= 2;
+        src += (srcrect->top*scan + srcrect->left) * 4;
 
-        for( j=0; j<h; ++j, src+=scan, dst+=dy )
+        for( j=0; j<h; ++j, src+=scan*4, dst+=dy )
         {
             for( srow=src, row=dst, i=0; i<w; ++i, ++srow )
             {
+                *(row++) = *(srow++);
+                *(row++) = *(srow++);
                 *(row++) = *(srow++);
             }
         }
@@ -149,9 +155,8 @@ static void canvas_mem_blit_rgb( sgui_canvas* super, int x, int y,
     else if( format==SGUI_RGB8 )
     {
         src += (srcrect->top*scan + srcrect->left) * 3;
-        scan *= 3;
 
-        for( j=0; j<h; ++j, src+=scan, dst+=dy )
+        for( j=0; j<h; ++j, src+=scan*3, dst+=dy )
         {
             memcpy( dst, src, w );
         }
@@ -173,14 +178,14 @@ static void canvas_mem_blend_rgb( sgui_canvas* super, int x, int y,
         return;
     }
 
+    dyd = this->pitch ? this->pitch : super->width*3;
+
     sgui_pixmap_get_size( pixmap, &scan, &lines );
-    dst = this->data + (y*super->width + x) * 3;
+    dst = this->data + (y-this->starty)*dyd + (x-this->startx)*3;
     src = sgui_internal_mem_pixmap_buffer( pixmap );
     src += (srcrect->top*scan + srcrect->left) * 4;
-    dyd = super->width*3;
-    scan <<= 2;
 
-    for( j=0; j<h; ++j, src+=scan, dst+=dyd )
+    for( j=0; j<h; ++j, src+=scan*4, dst+=dyd )
     {
         for( srow=src, row=dst, i=0; i<w; ++i, row+=3, srow+=4 )
         {
@@ -201,14 +206,17 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
                                           const unsigned char* color )
 {
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
-    unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*3;
-    unsigned int i, j;
+    unsigned char A, iA, *src, *row, *dst;
+    unsigned int i, j, pitch;
 
     unsigned int R = this->swaprb ? color[2] : color[0];
     unsigned int G = color[1];
     unsigned int B = this->swaprb ? color[0] : color[2];
 
-    for( j=0; j<h; ++j, buffer+=scan, dst+=super->width*3 )
+    pitch = this->pitch ? this->pitch : super->width*3;
+    dst = this->data + (y-this->starty)*pitch + (x-this->startx)*3;
+
+    for( j=0; j<h; ++j, buffer+=scan, dst+=pitch )
     {
         for( src=buffer, row=dst, i=0; i<w; ++i, row+=3, ++src )
         {
@@ -228,11 +236,12 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
                                       const unsigned char* color, int format )
 {
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
-    unsigned int R=0, G=0, B=0, A=0, iA=0;
+    unsigned int R=0, G=0, B=0, A=0, iA=0, pitch;
     unsigned char *dst, *row;
     int i, j;
 
-    dst = this->data + (r->top*super->width + r->left)*4;
+    pitch = this->pitch ? this->pitch : super->width*4;
+    dst = this->data + (r->top-this->starty)*pitch + (r->left-this->startx)*4;
 
     if( format==SGUI_RGBA8 || format==SGUI_RGB8 )
     {
@@ -250,7 +259,7 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
         B *= A;
         A = A<<8;
 
-        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*4 )
+        for( j=r->top; j<=r->bottom; ++j, dst+=pitch )
         {
             for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
             {
@@ -263,7 +272,7 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
     }
     else if( format==SGUI_RGB8 )
     {
-        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*4 )
+        for( j=r->top; j<=r->bottom; ++j, dst+=pitch )
         {
             for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
             {
@@ -276,7 +285,7 @@ static void canvas_mem_draw_box_rgba( sgui_canvas* super, sgui_rect* r,
     }
     else
     {
-        for( j=r->top; j<=r->bottom; ++j, dst+=super->width*4 )
+        for( j=r->top; j<=r->bottom; ++j, dst+=pitch )
         {
             for( row=dst, i=r->left; i<=r->right; ++i, row+=4 )
             {
@@ -293,20 +302,21 @@ static void canvas_mem_blit_rgba( sgui_canvas* super, int x, int y,
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
     unsigned int w = SGUI_RECT_WIDTH_V( srcrect );
     unsigned int h = SGUI_RECT_HEIGHT_V( srcrect );
-    unsigned char *dst = this->data + (y*super->width + x)*4, *row;
+    unsigned char *dst, *row;
     unsigned char *src = sgui_internal_mem_pixmap_buffer( pixmap ), *srow;
     unsigned int format = sgui_internal_mem_pixmap_format( pixmap ), i, j;
-    unsigned int dy = super->width*4, scan, lines;
+    unsigned int dy = this->pitch ? this->pitch : super->width*4, scan, lines;
     sgui_pixmap_get_size( pixmap, &scan, &lines );
+
+    dst = this->data + (y-this->starty)*dy + (x-this->startx)*4;
 
     if( format==SGUI_RGBA8 )
     {
-        src += (srcrect->top*scan + srcrect->left) << 2;
-        scan <<= 2;
+        src += (srcrect->top*scan + srcrect->left) * 4;
 
-        for( j=0; j<h; ++j, src+=scan, dst+=dy )
+        for( j=0; j<h; ++j, src+=scan*4, dst+=dy )
         {
-            memcpy( dst, src, w<<2 );
+            memcpy( dst, src, w*4 );
 
             for( row=dst, i=0; i<w; ++i, row+=4 )
                 row[3] = 0xFF;
@@ -315,9 +325,8 @@ static void canvas_mem_blit_rgba( sgui_canvas* super, int x, int y,
     else if( format==SGUI_RGB8 )
     {
         src += (srcrect->top*scan + srcrect->left) * 3;
-        scan *= 3;
 
-        for( j=0; j<h; ++j, src+=scan, dst+=dy )
+        for( j=0; j<h; ++j, src+=scan*3, dst+=dy )
         {
             for( srow=src, row=dst, i=0; i<w; ++i )
             {
@@ -345,14 +354,14 @@ static void canvas_mem_blend_rgba( sgui_canvas* super, int x, int y,
         return;
     }
 
+    dyd = this->pitch ? this->pitch : super->width*4;
+
     sgui_pixmap_get_size( pixmap, &scan, &lines );
-    dst = this->data + (y*super->width + x) * 4;
+    dst = this->data + (y-this->starty)*dyd + (x-this->startx)*4;
     src = sgui_internal_mem_pixmap_buffer( pixmap );
     src += (srcrect->top*scan + srcrect->left) * 4;
-    dyd = super->width*4;
-    scan <<= 2;
 
-    for( j=0; j<h; ++j, src+=scan, dst+=dyd )
+    for( j=0; j<h; ++j, src+=scan*4, dst+=dyd )
     {
         for( srow=src, row=dst, i=0; i<w; ++i, row+=4, srow+=4 )
         {
@@ -374,14 +383,17 @@ static void canvas_mem_blend_stencil_rgba( sgui_canvas* super,
                                            const unsigned char* color )
 {
     sgui_mem_canvas* this = (sgui_mem_canvas*)super;
-    unsigned char A, iA, *src, *row, *dst = this->data+(y*super->width+x)*4;
-    unsigned int i, j;
+    unsigned char A, iA, *src, *row, *dst;
+    unsigned int i, j, pitch;
 
     unsigned int R = this->swaprb ? color[2] : color[0];
     unsigned int G = color[1];
     unsigned int B = this->swaprb ? color[0] : color[2];
 
-    for( j=0; j<h; ++j, buffer+=scan, dst+=super->width*4 )
+    pitch = this->pitch ? this->pitch : super->width*4;
+    dst = this->data + (y-this->starty)*pitch + (x-this->startx)*4;
+
+    for( j=0; j<h; ++j, buffer+=scan, dst+=pitch )
     {
         for( src=buffer, row=dst, i=0; i<w; ++i, row+=4, ++src )
         {
@@ -494,6 +506,7 @@ int sgui_memory_canvas_init( sgui_canvas* super, unsigned char* buffer,
     this->data = buffer;
     this->bpp = format==SGUI_RGBA8 ? 4 : 3;
     this->swaprb = swaprb;
+    this->startx = this->starty = this->pitch = 0;
 
     if( format==SGUI_RGBA8 )
     {

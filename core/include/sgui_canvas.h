@@ -216,6 +216,21 @@ typedef struct
                              const unsigned char* );
 
     unsigned char* data;
+
+    /**
+     * \brief Pixel position of first data byte
+     *
+     * If the begin/end functions map only a region of memory to work with,
+     * this can be used together with "pitch" to specify where that region
+     * starts and how many bytes to skip to get to the next row.
+     */
+    unsigned int startx, starty;
+
+    /**
+     * \brief If not zero, a number of bytes to skip to get to the next
+     *        pixel row
+     */
+    unsigned int pitch;
     int bpp, swaprb;
 }
 sgui_mem_canvas;
