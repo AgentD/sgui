@@ -110,8 +110,10 @@ struct sgui_canvas
      *
      * \param canvas A pointer to the canvas.
      * \param r      The rectangle to redraw (already clamped to the canvas)
+     *
+     * \return Non-zero on success, zero on failure
      */
-    void(* begin )( sgui_canvas* canvas, sgui_rect* r );
+    int(* begin )( sgui_canvas* canvas, sgui_rect* r );
 
     /**
      * \brief Gets called by sgui_canvas_end

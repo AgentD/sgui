@@ -38,7 +38,7 @@ void d3d9_canvas_destroy( sgui_canvas* this )
     free( this );
 }
 
-void d3d9_canvas_begin( sgui_canvas* super, sgui_rect* r )
+int d3d9_canvas_begin( sgui_canvas* super, sgui_rect* r )
 {
     sgui_d3d9_canvas* this = (sgui_d3d9_canvas*)super;
     D3DLOCKED_RECT lr;
@@ -53,12 +53,13 @@ void d3d9_canvas_begin( sgui_canvas* super, sgui_rect* r )
     status = IDirect3DTexture9_LockRect( this->tex, 0, &lr, &wr, 0 );
 
     if( status!=D3D_OK )
-        return;
+        return 0;
 
     ((sgui_mem_canvas*)this)->data = lr.pBits;
     ((sgui_mem_canvas*)this)->startx = r->left;
     ((sgui_mem_canvas*)this)->starty = r->top;
     ((sgui_mem_canvas*)this)->pitch = lr.Pitch;
+    return 1;
 }
 
 void d3d9_canvas_end( sgui_canvas* super )

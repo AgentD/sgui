@@ -461,8 +461,8 @@ void sgui_canvas_begin( sgui_canvas* this, const sgui_rect* r )
             return;
 
         /* tell the implementation to begin drawing */
-        if( this->begin )
-            this->begin( this, &r0 );
+        if( this->begin && !this->begin( this, &r0 ) )
+            return;
 
         this->sc = r0;
         this->flags |= SGUI_CANVAS_BEGAN;
