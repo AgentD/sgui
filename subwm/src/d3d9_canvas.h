@@ -41,10 +41,6 @@
 typedef struct
 {
     sgui_tex_canvas super;
-
-    sgui_rect locked;
-    unsigned char* buffer;
-
     IDirect3DTexture9* tex;
 }
 sgui_d3d9_canvas;

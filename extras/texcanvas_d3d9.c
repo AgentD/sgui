@@ -149,11 +149,6 @@ int main( void )
     sgui_widget_add_child( &texcanvas->root, check );
     sgui_widget_add_child( &texcanvas->root, check2 );
 
-    /* clear the canvas */
-    sgui_canvas_begin( texcanvas, NULL );
-    sgui_canvas_clear( texcanvas, NULL );
-    sgui_canvas_end( texcanvas );
-
     /************** connect keyboard input to texture canvas **************/
     sgui_event_connect( wnd, SGUI_KEY_PRESSED_EVENT,
                         sgui_canvas_send_window_event, texcanvas,

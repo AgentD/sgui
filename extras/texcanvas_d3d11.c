@@ -147,7 +147,6 @@ int main( void )
     ID3D11SamplerState* sampler;
     D3D11_SAMPLER_DESC sampdesc;
     ID3DBlob *vsblob, *psblob;
-    unsigned char bgcolor[4];
     sgui_d3d11_context* ctx;
     ID3D11Buffer *vbo, *ubo;
     sgui_canvas* texcanvas;
@@ -286,13 +285,6 @@ int main( void )
     sgui_widget_add_child( &texcanvas->root, butt );
     sgui_widget_add_child( &texcanvas->root, check );
     sgui_widget_add_child( &texcanvas->root, check2 );
-
-    /* get window background color and clear canvas */
-    memcpy( bgcolor, sgui_skin_get( )->window_color, 4 );
-
-    sgui_canvas_begin( texcanvas, NULL );
-    sgui_canvas_clear( texcanvas, NULL );
-    sgui_canvas_end( texcanvas );
 
     /* redirect keyboard events to the texture canvas */
     sgui_event_connect( wnd, SGUI_KEY_PRESSED_EVENT,
