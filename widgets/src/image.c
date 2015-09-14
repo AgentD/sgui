@@ -109,7 +109,7 @@ sgui_widget* sgui_image_create( int x, int y,
                                 const void* data, int format,
                                 int blend, int useptr )
 {
-    sgui_image* this = malloc( sizeof(sgui_image) );
+    sgui_image* this = calloc( 1, sizeof(sgui_image) );
     sgui_widget* super = (sgui_widget*)this;
     unsigned int num_bytes;
 

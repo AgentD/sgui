@@ -426,7 +426,7 @@ static void color_picker_on_state_change( sgui_widget* super, int change )
 
 sgui_widget* sgui_color_picker_create( int x, int y )
 {
-    sgui_color_picker* this = malloc( sizeof(sgui_color_picker) );
+    sgui_color_picker* this = calloc( 1, sizeof(sgui_color_picker) );
     sgui_widget* super = (sgui_widget*)this;
     unsigned char* ptr;
     int i, j, h, s;
@@ -434,7 +434,6 @@ sgui_widget* sgui_color_picker_create( int x, int y )
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_color_picker) );
     sgui_widget_init( super, x, y, IMAGE_W + 3*BAR_W + BAR_W/4,
                                    IMAGE_H + DISP_H + DISP_GAP );
 

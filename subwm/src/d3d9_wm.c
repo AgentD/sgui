@@ -158,7 +158,7 @@ static void d3d9_wm_destroy( sgui_ctx_wm* super )
 
 sgui_ctx_wm* d3d9_wm_create( sgui_window* wnd )
 {
-    sgui_d3d9_wm* this = malloc( sizeof(sgui_d3d9_wm) );
+    sgui_d3d9_wm* this = calloc( 1, sizeof(sgui_d3d9_wm) );
     sgui_ctx_wm* super = (sgui_ctx_wm*)this;
     unsigned int width, height;
     sgui_d3d9_context* ctx;
@@ -171,7 +171,6 @@ sgui_ctx_wm* d3d9_wm_create( sgui_window* wnd )
         return NULL;
 
     ctx = (sgui_d3d9_context*)sgui_window_get_context( wnd );
-    memset( this, 0, sizeof(sgui_d3d9_wm) );
 
     /* create skin texture */
     skin = sgui_subwm_skin_get( );

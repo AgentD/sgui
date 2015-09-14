@@ -281,7 +281,7 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
     sgui_skin* skin;
     sgui_rect r;
 
-    this = malloc( sizeof(sgui_button) );
+    this = calloc( 1, sizeof(sgui_button) );
     super = (sgui_widget*)this;
 
     if( !this )

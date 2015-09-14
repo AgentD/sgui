@@ -81,7 +81,7 @@ sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
         progress = 100;
 
     /* allocate widget structure */
-    this = malloc( sizeof(sgui_progress_bar) );
+    this = calloc( 1, sizeof(sgui_progress_bar) );
     super = (sgui_widget*)this;
 
     if( !this )

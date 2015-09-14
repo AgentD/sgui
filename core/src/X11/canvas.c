@@ -274,7 +274,7 @@ sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
 
 
     /* allocate xlib canvas */
-    this = malloc( sizeof(sgui_canvas_xlib) );
+    this = calloc( 1, sizeof(sgui_canvas_xlib) );
     super = (sgui_canvas*)this;
 
     if( !this )
@@ -503,7 +503,7 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
     }
 
     /* allocate xlib canvas */
-    this = malloc( sizeof(sgui_canvas_xrender) );
+    this = calloc( 1, sizeof(sgui_canvas_xrender) );
     super = (sgui_canvas*)this;
 
     if( !this )

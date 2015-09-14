@@ -185,7 +185,7 @@ sgui_dialog* sgui_color_dialog_create( const char* caption,
                                        const char* accept,
                                        const char* reject )
 {
-    sgui_color_dialog* this = malloc( sizeof(sgui_color_dialog) );
+    sgui_color_dialog* this = calloc( 1, sizeof(sgui_color_dialog) );
     sgui_dialog* super = (sgui_dialog*)this;
     unsigned int x, y, w, h, ws;
     unsigned char color[4];
@@ -194,7 +194,6 @@ sgui_dialog* sgui_color_dialog_create( const char* caption,
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_color_dialog) );
     super->destroy = sgui_color_dialog_destroy;
     super->handle_button = color_dialog_handle_button;
 

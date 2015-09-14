@@ -312,12 +312,11 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
 
 sgui_ctx_wm* gl_wm_create( sgui_window* wnd )
 {
-    sgui_gl_wm* this = malloc( sizeof(sgui_gl_wm) );
+    sgui_gl_wm* this = calloc( 1, sizeof(sgui_gl_wm) );
     sgui_ctx_wm* super = (sgui_ctx_wm*)this;
 
     if( this )
     {
-        memset( this, 0, sizeof(sgui_gl_wm) );
         super->wnd = wnd;
         super->destroy = gl_wm_destroy;
         super->draw_gui = gl_wm_draw_gui;
@@ -457,13 +456,12 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
         return gl_wm_create( wnd );
 
     /* create object */
-    this = malloc( sizeof(sgui_gl_core_wm) );
+    this = calloc( 1, sizeof(sgui_gl_core_wm) );
     super = (sgui_gl_wm*)this;
 
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_gl_core_wm) );
     super->super.wnd = wnd;
 
     /* load extensions */

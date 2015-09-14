@@ -297,7 +297,7 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
                                      unsigned int scroll_area_length,
                                      unsigned int disp_area_length )
 {
-    sgui_scroll_bar* this = malloc( sizeof(sgui_scroll_bar) );
+    sgui_scroll_bar* this = calloc( 1, sizeof(sgui_scroll_bar) );
     sgui_widget* super = (sgui_widget*)this;
     sgui_skin* skin = sgui_skin_get( );
     unsigned int w=0, h=0;
@@ -306,7 +306,6 @@ sgui_widget* sgui_scroll_bar_create( int x, int y, int horizontal,
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_scroll_bar) );
     skin->get_scroll_bar_button_extents( skin, &r );
 
     this->bw = SGUI_RECT_WIDTH( r );

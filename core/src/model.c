@@ -217,13 +217,11 @@ sgui_model* sgui_simple_model_create( unsigned int columns,
     if( !columns )
         return NULL;
 
-    this = malloc( sizeof(sgui_simple_model) );
+    this = calloc( 1, sizeof(sgui_simple_model) );
     super = (sgui_model*)this;
     
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_simple_model) );
 
     super->cache               = cache;
     super->cols                = columns;
@@ -245,12 +243,10 @@ sgui_item* sgui_simple_model_add_item( sgui_model* super, sgui_item* parent )
     if( this )
     {
         size = sizeof(sgui_simple_item) + sizeof(void*)*2*super->cols;
-        item = malloc( size );
+        item = calloc( 1, size );
 
         if( item )
         {
-            memset( item, 0, size );
-
             sgui_internal_lock_mutex( );
 
             if( parent )

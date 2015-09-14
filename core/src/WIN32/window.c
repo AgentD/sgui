@@ -468,15 +468,13 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 #endif
 
     /*************** allocate space for the window structure ***************/
-    this = malloc( sizeof(sgui_window_w32) );
+    this = calloc( 1, sizeof(sgui_window_w32) );
     super = (sgui_window*)this;
 
     if( !this )
         return NULL;
 
     sgui_internal_lock_mutex( );
-    memset( this, 0, sizeof(sgui_window_w32) );
-
     add_window( this );
 
     /*************************** create a window ***************************/

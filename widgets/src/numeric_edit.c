@@ -281,17 +281,12 @@ static int numeric_edit_init( sgui_numeric_edit* this,
 sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
                                        int min, int max, int current )
 {
-    sgui_numeric_edit* this = malloc( sizeof(sgui_numeric_edit) );
+    sgui_numeric_edit* this = calloc( 1, sizeof(sgui_numeric_edit) );
 
-    if( this )
+    if( this && !numeric_edit_init( this, x, y, width, min, max, current ) )
     {
-        memset( this, 0, sizeof(sgui_numeric_edit) );
-
-        if( !numeric_edit_init( this, x, y, width, min, max, current ) )
-        {
-            free( this );
-            return NULL;
-        }
+        free( this );
+        return NULL;
     }
     return (sgui_widget*)this;
 }
@@ -300,14 +295,12 @@ sgui_widget* sgui_spin_box_create( int x, int y, unsigned int width,
                                    int min, int max, int current,
                                    unsigned int stepsize, int editable )
 {
-    sgui_spin_box* this = malloc( sizeof(sgui_spin_box) );
+    sgui_spin_box* this = calloc( 1, sizeof(sgui_spin_box) );
     sgui_numeric_edit* super = (sgui_numeric_edit*)this;
     sgui_skin* skin;
 
     if( this )
     {
-        memset( this, 0, sizeof(sgui_spin_box) );
-
         if( !numeric_edit_init( super, x, y, width, min, max, current ) )
         {
             free( this );

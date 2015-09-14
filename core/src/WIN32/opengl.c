@@ -282,7 +282,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
 {
     HGLRC temp, oldctx, src = share ? ((sgui_gl_context*)share)->hRC : 0;
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-    sgui_gl_context* this = malloc( sizeof(sgui_gl_context) );
+    sgui_gl_context* this = calloc( 1, sizeof(sgui_gl_context) );
     sgui_context* super = (sgui_context*)this;
     int attribs[20];
     unsigned int i;

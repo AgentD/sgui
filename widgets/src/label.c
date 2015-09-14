@@ -68,7 +68,7 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
     sgui_widget* super;
 
     /* create widget */
-    this = malloc( sizeof(sgui_label) );
+    this = calloc( 1, sizeof(sgui_label) );
     super = (sgui_widget*)this;
 
     if( !this || !(this->text = sgui_strdup( text )) )

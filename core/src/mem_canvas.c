@@ -473,7 +473,7 @@ sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
                                         unsigned int height,
                                         int format, int swaprb )
 {
-    sgui_mem_canvas* this = malloc( sizeof(sgui_mem_canvas) );
+    sgui_mem_canvas* this = calloc( 1, sizeof(sgui_mem_canvas) );
     sgui_canvas* super = (sgui_canvas*)this;
 
     if( !this )

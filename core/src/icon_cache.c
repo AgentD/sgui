@@ -234,14 +234,12 @@ sgui_icon_cache* sgui_icon_map_create( sgui_canvas* canvas,
         return NULL;
 
     /* allocate structure */
-    this = malloc( sizeof(sgui_icon_cache) );
+    this = calloc( 1, sizeof(sgui_icon_cache) );
 
     if( !this )
         return NULL;
 
     /* initialize */
-    memset( this, 0, sizeof(sgui_icon_cache) );
-
     this->icon_compare = compare_ids;
     this->owner = canvas;
     this->width = width;
@@ -271,10 +269,9 @@ int sgui_icon_map_add_icon( sgui_icon_cache* this, unsigned int id,
     sgui_internal_lock_mutex( );
 
     /* create icon */
-    if( !(i = malloc( sizeof(sgui_map_icon) )) )
+    if( !(i = calloc( 1, sizeof(sgui_map_icon) )) )
         goto fail;
 
-    memset( i, 0, sizeof(sgui_map_icon) );
     i->super.red = 1;
     i->id = id;
 

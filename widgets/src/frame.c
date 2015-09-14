@@ -310,7 +310,7 @@ static void frame_on_event( sgui_widget* super, const sgui_event* event )
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                 unsigned int height )
 {
-    sgui_frame* this = malloc( sizeof(sgui_frame) );
+    sgui_frame* this = calloc( 1, sizeof(sgui_frame) );
     sgui_widget* super = (sgui_widget*)this;
     sgui_skin* skin = sgui_skin_get( );
     unsigned int w, h;

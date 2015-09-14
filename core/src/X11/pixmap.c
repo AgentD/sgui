@@ -110,7 +110,7 @@ sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
     sgui_pixmap* super;
     xlib_pixmap* this;
 
-    this = malloc( sizeof(xlib_pixmap) );
+    this = calloc( 1, sizeof(xlib_pixmap) );
     super = (sgui_pixmap*)this;
 
     if( this )
@@ -234,7 +234,7 @@ sgui_pixmap* xrender_pixmap_create( sgui_canvas* cv, unsigned int width,
     int type;
 
     /* create pixmap structure */
-    this = malloc( sizeof(xrender_pixmap) ); 
+    this = calloc( 1, sizeof(xrender_pixmap) ); 
     super = (sgui_pixmap*)this;
 
     if( !this )

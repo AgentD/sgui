@@ -175,7 +175,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
                                  sgui_context_gl* share )
 {
     CREATECONTEXTATTRIBSPROC CreateContextAttribs;
-    sgui_context_gl* this = malloc( sizeof(sgui_context_gl) );
+    sgui_context_gl* this = calloc( 1, sizeof(sgui_context_gl) );
     sgui_context* super = (sgui_context*)this;
     GLXContext sctx = share ? share->gl : 0;
     int attribs[10];

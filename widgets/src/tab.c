@@ -206,14 +206,13 @@ static void tab_group_draw( sgui_widget* super )
 sgui_widget* sgui_tab_group_create( int x, int y,
                                     unsigned int width, unsigned int height )
 {
-    sgui_tab_group* this = malloc( sizeof(sgui_tab_group) );
+    sgui_tab_group* this = calloc( 1, sizeof(sgui_tab_group) );
     sgui_skin* skin = sgui_skin_get( );
     sgui_rect r;
 
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_tab_group) );
     sgui_widget_init( (sgui_widget*)this, x, y, width, height );
     skin->get_tap_caption_extents( skin, &r );
 
@@ -229,14 +228,12 @@ sgui_widget* sgui_tab_group_create( int x, int y,
 
 sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
 {
-    sgui_tab* this = malloc( sizeof(sgui_tab) );
+    sgui_tab* this = calloc( 1, sizeof(sgui_tab) );
     sgui_widget* super = (sgui_widget*)this;
     sgui_tab_group* g = (sgui_tab_group*)parent;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_tab) );
 
     if( !(this->caption = sgui_strdup( caption )) )
     {

@@ -40,9 +40,7 @@
 int sgui_canvas_init( sgui_canvas* this, unsigned int width,
                       unsigned int height )
 {
-    memset( this, 0, sizeof(sgui_canvas) );
-
-    this->dirty = malloc( sizeof(sgui_rect) * SGUI_CANVAS_MAX_DIRTY );
+    this->dirty = calloc( SGUI_CANVAS_MAX_DIRTY, sizeof(sgui_rect) );
 
     if( !this->dirty )
         return 0;

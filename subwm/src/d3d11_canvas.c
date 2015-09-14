@@ -70,7 +70,7 @@ void d3d11_canvas_end( sgui_canvas* super )
 sgui_canvas* sgui_d3d11_canvas_create( sgui_context* ctx,
                                        unsigned width, unsigned int height )
 {
-    sgui_d3d11_canvas* this = malloc( sizeof(sgui_d3d11_canvas) );
+    sgui_d3d11_canvas* this = calloc( 1, sizeof(sgui_d3d11_canvas) );
     sgui_d3d11_context* ctx11 = (sgui_d3d11_context*)ctx;
     D3D11_TEXTURE2D_DESC desc;
     HRESULT status;
@@ -79,7 +79,6 @@ sgui_canvas* sgui_d3d11_canvas_create( sgui_context* ctx,
         return NULL;
 
     /* create in-memory drawing buffer */
-    memset( this, 0, sizeof(sgui_d3d11_canvas) );
     this->buffer = malloc( width*height*4 );
 
     if( !this->buffer )

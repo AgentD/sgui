@@ -204,13 +204,12 @@ sgui_dialog* sgui_message_box_create( int icon, const char* caption,
         return NULL;
 
     /* create dialog structure */
-    this = malloc( sizeof(sgui_message_box) );
+    this = calloc( 1, sizeof(sgui_message_box) );
     super = (sgui_dialog*)this;
 
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(sgui_message_box) );
     super->destroy = sgui_message_box_destroy;
     super->handle_button = message_box_button_pressed;
 

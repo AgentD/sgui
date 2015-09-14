@@ -149,13 +149,11 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
         return NULL;
 
     /* create structure */
-    this = malloc( sizeof(sgui_ctx_window) );
+    this = calloc( 1, sizeof(sgui_ctx_window) );
     super = (sgui_window*)this;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_ctx_window) );
 
     /* create canvas */
     super->ctx.canvas = sgui_tex_canvas_create( parent, parent->ctx.ctx,

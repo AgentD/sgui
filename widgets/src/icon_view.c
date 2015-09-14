@@ -710,13 +710,12 @@ sgui_widget* sgui_icon_view_create( int x, int y, unsigned width,
     if( !model )
         return NULL;
 
-    this = malloc( sizeof(icon_view) );
+    this = calloc( 1, sizeof(icon_view) );
     super = (sgui_widget*)this;
 
     if( !this )
         return NULL;
 
-    memset( this, 0, sizeof(icon_view) );
     sgui_widget_init( super, x, y, width, height );
 
     this->model    = model;

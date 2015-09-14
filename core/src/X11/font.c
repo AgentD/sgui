@@ -139,7 +139,7 @@ static sgui_x11_font* sgui_font_load_common( unsigned int pixel_height )
     sgui_font* super;
 
     /* allocate font structure */
-    this = malloc( sizeof(sgui_x11_font) );
+    this = calloc( 1, sizeof(sgui_x11_font) );
     super = (sgui_font*)this;
 
     if( !this )

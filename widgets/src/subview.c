@@ -132,7 +132,7 @@ sgui_widget* sgui_subview_create( sgui_window* parent, int x, int y,
     sgui_widget* super;
 
     /* allocate storage for the view */
-    this = malloc( sizeof(sgui_subview) );
+    this = calloc( 1, sizeof(sgui_subview) );
     super = (sgui_widget*)this;
 
     if( !this )

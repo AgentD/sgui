@@ -80,7 +80,7 @@ void sgui_event_connect( void* sender, int eventtype, ... )
     va_start( va, eventtype );
     callback = va_arg( va, sgui_function );
 
-    if( !callback || !(l = malloc( sizeof(listener) )) )
+    if( !callback || !(l = calloc( 1, sizeof(listener) )) )
         goto done;
 
     l->event    = eventtype;

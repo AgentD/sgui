@@ -69,10 +69,9 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
     src = font->get_glyph( font );
 
     /* create glyph */
-    if( !(g = malloc( sizeof(GLYPH) )) )
+    if( !(g = calloc( 1, sizeof(GLYPH) )) )
         return NULL;
 
-    memset( g, 0, sizeof(GLYPH) );
     g->super.red = 1;
     g->codepoint = codepoint;
     g->bearing = b;
@@ -120,11 +119,10 @@ static GLYPH* fetch_glyph( sgui_icon_cache* this,
 
 sgui_icon_cache* sgui_font_cache_create( sgui_pixmap* map )
 {
-    sgui_icon_cache* this = malloc( sizeof(sgui_icon_cache) );
+    sgui_icon_cache* this = calloc( 1, sizeof(sgui_icon_cache) );
 
     if( this )
     {
-        memset( this, 0, sizeof(sgui_icon_cache) );
         sgui_pixmap_get_size( map, &this->width, &this->height );
 
         this->pixmap = map;

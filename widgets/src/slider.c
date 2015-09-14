@@ -194,13 +194,11 @@ sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
         return NULL;
 
     /* create object */
-    this = malloc( sizeof(sgui_slider) );
+    this = calloc( 1, sizeof(sgui_slider) );
     super = (sgui_widget*)this;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_slider) );
 
     /* initialize */
     skin->get_slider_extents( skin, &r, vertical );

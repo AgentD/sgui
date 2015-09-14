@@ -419,13 +419,11 @@ static void edit_box_destroy( sgui_widget* this )
 sgui_widget* sgui_edit_box_create( int x, int y, unsigned int width,
                                    unsigned int max_chars )
 {
-    sgui_edit_box* this = malloc( sizeof(sgui_edit_box) );
+    sgui_edit_box* this = calloc( 1, sizeof(sgui_edit_box) );
     sgui_widget* super = (sgui_widget*)this;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_edit_box) );
 
     if( !sgui_edit_box_init( this, x, y, width, max_chars ) )
     {

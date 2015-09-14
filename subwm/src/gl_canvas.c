@@ -86,13 +86,12 @@ sgui_canvas* sgui_gl_canvas_create( unsigned width, unsigned int height )
     sgui_gl_canvas* this;
     GLuint old;
 
-    this = malloc( sizeof(sgui_gl_canvas) );
+    this = calloc( 1, sizeof(sgui_gl_canvas) );
 
     if( !this )
         return NULL;
 
     /* create in-memory drawing buffer */
-    memset( this, 0, sizeof(sgui_gl_canvas) );
     this->buffer = malloc( width*height*4 );
 
     if( !this->buffer )

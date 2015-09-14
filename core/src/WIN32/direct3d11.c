@@ -272,7 +272,7 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
         return NULL;
 
     /* allocate memory for the context object */
-    this = malloc( sizeof(sgui_d3d11_context) );
+    this = calloc( 1, sizeof(sgui_d3d11_context) );
     super = (sgui_context*)this;
 
     if( !this )
@@ -280,8 +280,6 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
         release_d3d11( );
         return NULL;
     }
-
-    memset( this, 0, sizeof(sgui_d3d11_context) );
 
     /* setup swap chain parameters */
     memset( &scd, 0, sizeof(scd) );

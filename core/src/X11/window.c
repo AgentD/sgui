@@ -411,13 +411,11 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         return NULL;
 
     /********* allocate space for the window structure *********/
-    this = malloc( sizeof(sgui_window_xlib) );
+    this = calloc( 1, sizeof(sgui_window_xlib) );
     super = (sgui_window*)this;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_window_xlib) );
 
     sgui_internal_lock_mutex( );
     add_window( this );

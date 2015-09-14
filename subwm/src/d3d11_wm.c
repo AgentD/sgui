@@ -65,13 +65,12 @@ sgui_ctx_wm* d3d11_wm_create( sgui_window* wnd )
     if( !ctx )
         return NULL;
 
-    this = malloc( sizeof(sgui_d3d11_wm) );
+    this = calloc( 1, sizeof(sgui_d3d11_wm) );
     super = (sgui_ctx_wm*)this;
 
     if( !this )
         return NULL;
 
-    memset( this,      0, sizeof(*this)    );
     memset( &desc,     0, sizeof(desc)     );
     memset( &data,     0, sizeof(data)     );
     memset( &rvdesc,   0, sizeof(rvdesc)   );

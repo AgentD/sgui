@@ -186,15 +186,13 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
 
     sgui_internal_lock_mutex( );
 
-    this = malloc( sizeof(sgui_d3d9_context) );
+    this = calloc( 1, sizeof(sgui_d3d9_context) );
     super = (sgui_context*)this;
     devtype = D3DDEVTYPE_HAL;
     adapter = 0;
 
     if( !this )
         goto fail;
-
-    memset( this, 0, sizeof(sgui_d3d9_context) );
 
     /* intialize present parameters */
     if( IDirect3D9_GetAdapterDisplayMode( d3d9, adapter, &d3ddm ) < 0 )

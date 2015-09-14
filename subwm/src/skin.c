@@ -118,7 +118,6 @@ static sgui_subwm_skin* suwbm_skin_default( void )
     defaultskin.draw_title_bar = default_draw_title_bar;
     defaultskin.get_titlebar_height = default_get_titlebar_height;
 
-    memset( defaultctxtex, 0, sizeof(defaultctxtex) );
     memcpy( color, sgui_skin_get( )->window_color, 4 );
 
     for( y=0; y<16; ++y )
