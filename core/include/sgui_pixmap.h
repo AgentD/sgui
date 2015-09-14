@@ -110,16 +110,23 @@ SGUI_DLL void sgui_pixmap_load( sgui_pixmap* pixmap, int dstx, int dsty,
  * \param width  Returns the width of the pixmap
  * \param height Returns the height of the pixmap
  */
-SGUI_DLL void sgui_pixmap_get_size( const sgui_pixmap* pixmap,
-                                    unsigned int* width,
-                                    unsigned int* height );
+static SGUI_INLINE void sgui_pixmap_get_size( const sgui_pixmap* pixmap,
+                                              unsigned int* width,
+                                              unsigned int* height )
+{
+    *width  = pixmap->width;
+    *height = pixmap->height;
+}
 
 /**
  * \brief Destroy a pixmap
  *
  * \memberof sgui_pixmap
  */
-SGUI_DLL void sgui_pixmap_destroy( sgui_pixmap* pixmap );
+static SGUI_INLINE void sgui_pixmap_destroy( sgui_pixmap* pixmap )
+{
+    pixmap->destroy( pixmap );
+}
 
 #ifdef __cplusplus
 }

@@ -34,6 +34,7 @@
 
 
 #include "sgui_config.h"
+#include <stddef.h>
 
 
 
@@ -45,6 +46,12 @@
     #endif
 #else
     #define SGUI_DLL
+#endif
+
+#ifdef _MSC_VER
+    #define SGUI_INLINE __forceinline
+#else
+    #define SGUI_INLINE __inline__ __attribute__((always_inline))
 #endif
 
 

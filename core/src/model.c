@@ -33,41 +33,6 @@
 
 
 #ifndef SGUI_NO_MODEL
-void sgui_model_destroy( sgui_model* this )
-{
-    this->destroy( this );
-}
-
-sgui_icon_cache* sgui_model_get_icon_cache( const sgui_model* this )
-{
-    return this->cache;
-}
-
-unsigned int sgui_model_column_count( const sgui_model* this )
-{
-    return this->cols;
-}
-
-const sgui_item* sgui_model_query_items( const sgui_model* this,
-                                         const sgui_item* parent,
-                                         unsigned int start,
-                                         unsigned int count )
-{
-    return this->query_items( this, parent, start, count );
-}
-
-void sgui_model_free_item_list( sgui_model* this, const sgui_item* start )
-{
-    if( this->free_item_list )
-        this->free_item_list( this, start );
-}
-
-unsigned int sgui_model_item_children_count( const sgui_model* this,
-                                             const sgui_item* item )
-{
-    return this->item_children_count( this, item );
-}
-
 const char* sgui_item_text( const sgui_model* this, const sgui_item* item,
                             unsigned int column )
 {
@@ -306,38 +271,6 @@ void sgui_simple_item_set_text( sgui_model* this, sgui_item* item,
     }
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-void sgui_model_destroy( sgui_model* model )
-{
-    (void)model;
-}
-sgui_icon_cache* sgui_model_get_icon_cache( const sgui_model* model )
-{
-    (void)model;
-    return NULL;
-}
-unsigned int sgui_model_column_count( const sgui_model* model )
-{
-    (void)model;
-    return 0;
-}
-const sgui_item* sgui_model_query_items( const sgui_model* model,
-                                         const sgui_item* parent,
-                                         unsigned int start,
-                                         unsigned int count )
-{
-    (void)model; (void)parent; (void)start; (void)count;
-    return NULL;
-}
-void sgui_model_free_item_list( sgui_model* model, const sgui_item* start )
-{
-    (void)model; (void)start;
-}
-unsigned int sgui_model_item_children_count( const sgui_model* model,
-                                             const sgui_item* item )
-{
-    (void)model; (void)item;
-    return 0;
-}
 const char* sgui_item_text( const sgui_model* model, const sgui_item* item,
                             unsigned int column )
 {

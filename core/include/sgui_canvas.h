@@ -300,7 +300,11 @@ SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r );
  *
  * \return The number of dirty rectangles
  */
-SGUI_DLL unsigned int sgui_canvas_num_dirty_rects(const sgui_canvas* canvas);
+static SGUI_INLINE
+unsigned int sgui_canvas_num_dirty_rects(const sgui_canvas* canvas)
+{
+    return canvas->num_dirty;
+}
 
 /**
  * \brief Get a dirty rectangle from a canvas by index
@@ -411,8 +415,11 @@ SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
  * \param canvas The canvas to get the scissor rectangle from
  * \param r      Returns the scissor rectangle
  */
-SGUI_DLL void sgui_canvas_get_scissor_rect( const sgui_canvas* canvas,
-                                            sgui_rect* r );
+static SGUI_INLINE
+void sgui_canvas_get_scissor_rect( const sgui_canvas* canvas, sgui_rect* r )
+{
+    *r = canvas->sc;
+}
 
 /**
  * \brief Set the currently used drawing scissor rectangle of a canvas
@@ -434,8 +441,12 @@ SGUI_DLL void sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
  * \param x      Returns the horizontal offset
  * \param y      Returns the vertical offset
  */
-SGUI_DLL void sgui_canvas_get_offset( const sgui_canvas* canvas,
-                                      int* x, int* y );
+static SGUI_INLINE void sgui_canvas_get_offset( const sgui_canvas* canvas,
+                                                int* x, int* y )
+{
+    *x = canvas->ox;
+    *y = canvas->oy;
+}
 
 /**
  * \brief Set an offset added to all positions of canvas drawing functions
@@ -446,7 +457,12 @@ SGUI_DLL void sgui_canvas_get_offset( const sgui_canvas* canvas,
  * \param x      The horizontal offset
  * \param y      The vertical offset
  */
-SGUI_DLL void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
+static SGUI_INLINE
+void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )
+{
+    canvas->ox = x;
+    canvas->oy = y;
+}
 
 /**
  * \brief Call to start drawing to an area on the canvas

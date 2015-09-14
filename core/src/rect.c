@@ -56,38 +56,6 @@ void sgui_rect_set_size( sgui_rect* r, int left, int top,
     r->bottom = top + (int)height - 1;
 }
 
-void sgui_rect_set( sgui_rect* r, int left, int top, int right, int bottom )
-{
-    r->left   = left;
-    r->top    = top;
-    r->right  = right;
-    r->bottom = bottom;
-}
-
-void sgui_rect_set_position( sgui_rect* r, int left, int top )
-{
-    r->right  = r->right  - r->left + left;
-    r->bottom = r->bottom - r->top  + top;
-    r->left   = left;
-    r->top    = top;
-}
-
-void sgui_rect_add_offset( sgui_rect* r, int h, int v )
-{
-    r->left   += h;
-    r->right  += h;
-    r->top    += v;
-    r->bottom += v;
-}
-
-void sgui_rect_extend( sgui_rect* r, int h, int v )
-{
-    r->left   -= h;
-    r->right  += h;
-    r->top    -= v;
-    r->bottom += v;
-}
-
 int sgui_rect_get_intersection( sgui_rect* r, const sgui_rect* a,
                                 const sgui_rect* b )
 {

@@ -160,11 +160,6 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     sgui_internal_unlock_mutex( );
 }
 
-unsigned int sgui_canvas_num_dirty_rects( const sgui_canvas* this )
-{
-    return this->num_dirty;
-}
-
 void sgui_canvas_get_dirty_rect( const sgui_canvas* this, sgui_rect* rect,
                                  unsigned int i )
 {
@@ -413,23 +408,6 @@ sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* this,
         return NULL;
 
     return this->create_pixmap( this, width, height, format );
-}
-
-void sgui_canvas_get_scissor_rect( const sgui_canvas* this, sgui_rect* r )
-{
-    *r = this->sc;
-}
-
-void sgui_canvas_get_offset( const sgui_canvas* this, int* x, int* y )
-{
-    *x = this->ox;
-    *y = this->oy;
-}
-
-void sgui_canvas_set_offset( sgui_canvas* this, int x, int y )
-{
-    this->ox = x;
-    this->oy = y;
 }
 
 void sgui_canvas_set_scissor_rect( sgui_canvas* this, const sgui_rect* r )

@@ -210,11 +210,6 @@ void sgui_window_set_visible( sgui_window* this, int visible )
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_window_set_title( sgui_window* this, const char* title )
-{
-    this->set_title( this, title );
-}
-
 void sgui_window_set_size( sgui_window* this,
                            unsigned int width, unsigned int height )
 {
@@ -229,11 +224,6 @@ void sgui_window_set_size( sgui_window* this,
             sgui_canvas_draw_widgets( this->ctx.canvas, 1 );
         }
     }
-}
-
-void sgui_window_move_center( sgui_window* this )
-{
-    this->move_center( this );
 }
 
 void sgui_window_move( sgui_window* this, int x, int y )
@@ -255,18 +245,6 @@ void sgui_window_release_current( sgui_window* this )
 {
     if( this->backend!=SGUI_NATIVE && this->ctx.ctx->release_current )
         this->ctx.ctx->release_current( this->ctx.ctx );
-}
-
-void sgui_window_swap_buffers( sgui_window* this )
-{
-    if( this->swap_buffers )
-        this->swap_buffers( this );
-}
-
-void sgui_window_set_vsync( sgui_window* this, int vsync_on )
-{
-    if( this->set_vsync )
-        this->set_vsync( this, vsync_on ? 1 : 0 );
 }
 
 void sgui_window_destroy( sgui_window* this )
@@ -292,77 +270,12 @@ void sgui_window_force_redraw( sgui_window* this, sgui_rect* r )
     this->force_redraw( this, &r0 );
 }
 
-void sgui_window_write_clipboard( sgui_window* this, const char* text,
-                                  unsigned int length )
-{
-    if( this->write_clipboard )
-        this->write_clipboard( this, text, length );
-}
-
-const char* sgui_window_read_clipboard( sgui_window* this )
-{
-    return this->read_clipboard ? this->read_clipboard( this ) : 0;
-}
-
-void sgui_window_get_platform_data( const sgui_window* this, void* window )
-{
-    this->get_platform_data( this, window );
-}
-
 /****************************************************************************/
-
-int sgui_window_get_modifyer_mask( const sgui_window* this )
-{
-    return this->modmask;
-}
-
-int sgui_window_is_visible( const sgui_window* this )
-{
-    return this->visible;
-}
-
-void sgui_window_get_position( const sgui_window* this, int* x, int* y )
-{
-    *x = this->x;
-    *y = this->y;
-}
-
-void sgui_window_get_size( const sgui_window* this, unsigned int* width,
-                           unsigned int* height )
-{
-    *width  = this->w;
-    *height = this->h;
-}
 
 void sgui_window_add_widget( sgui_window* this, sgui_widget* widget )
 {
     if( this->backend==SGUI_NATIVE )
         sgui_widget_add_child( &this->ctx.canvas->root, widget );
-}
-
-void sgui_window_on_event( sgui_window* this, sgui_window_callback fun )
-{
-    this->event_fun = fun;
-}
-
-sgui_canvas* sgui_window_get_canvas( const sgui_window* this )
-{
-    return this->backend==SGUI_NATIVE ? this->ctx.canvas : NULL;
-}
-
-void sgui_window_set_userptr( sgui_window* this, void* ptr )
-{
-    this->userptr = ptr;
-}
-
-void* sgui_window_get_userptr( const sgui_window* this )
-{
-    return this->userptr;
-}
-
-sgui_context* sgui_window_get_context( const sgui_window* this )
-{
-    return this->backend!=SGUI_NATIVE ? this->ctx.ctx : NULL;
 }
 
 void sgui_window_pack( sgui_window* this )

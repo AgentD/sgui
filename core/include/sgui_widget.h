@@ -153,7 +153,10 @@ SGUI_DLL void sgui_widget_init( sgui_widget* widget, int x, int y,
  *
  * \param widget A pointer to the widget to destroy
  */
-SGUI_DLL void sgui_widget_destroy( sgui_widget* widget );
+static SGUI_INLINE void sgui_widget_destroy( sgui_widget* widget )
+{
+    widget->destroy( widget );
+}
 
 /**
  * \brief Destroy the children of a widget
@@ -193,8 +196,12 @@ SGUI_DLL void sgui_widget_set_position( sgui_widget* w, int x, int y );
  * \param x Returns the x component of the position
  * \param y Returns the y component of the position
  */
-SGUI_DLL void sgui_widget_get_position( const sgui_widget* w,
-                                        int* x, int* y );
+static SGUI_INLINE void sgui_widget_get_position( const sgui_widget* w,
+                                                  int* x, int* y )
+{
+    *x = w->area.left;
+    *y = w->area.top;
+}
 
 /**
  * \brief Get the absolute position of a widget (i.e. not parent relative

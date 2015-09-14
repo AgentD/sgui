@@ -458,7 +458,11 @@ SGUI_DLL void sgui_window_release_current( sgui_window* window );
  * (see sgui_window_create), this function swappes the back buffer of the
  * context with the front buffer.
  */
-SGUI_DLL void sgui_window_swap_buffers( sgui_window* window );
+static SGUI_INLINE void sgui_window_swap_buffers( sgui_window* wnd )
+{
+    if( wnd->swap_buffers )
+        wnd->swap_buffers( wnd );
+}
 
 /**
  * \brief Force synchronisation of buffer swapping with vertical rectrace
@@ -469,10 +473,15 @@ SGUI_DLL void sgui_window_swap_buffers( sgui_window* window );
  * synchronisation of buffer swapping with vertical rectrace of the monitor
  * on or off.
  *
- * \param window   A pointer to a window
+ * \param wnd      A pointer to a window
  * \param vsync_on Non-zero to turn vsync on, zero to turn it off
  */
-SGUI_DLL void sgui_window_set_vsync( sgui_window* window, int vsync_on );
+static SGUI_INLINE void sgui_window_set_vsync( sgui_window* wnd,
+                                               int vsync_on )
+{
+    if( wnd->set_vsync )
+        wnd->set_vsync( wnd, vsync_on );
+}
 
 /**
  * \brief Destroy a previously created window
@@ -542,7 +551,10 @@ SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
  *
  * \return Non-zero if the window is visible, zero if not
  */
-SGUI_DLL int sgui_window_is_visible( const sgui_window* wnd );
+static SGUI_INLINE int sgui_window_is_visible( const sgui_window* wnd )
+{
+    return wnd->visible;
+}
 
 /**
  * \brief Change the title of a window
@@ -556,7 +568,11 @@ SGUI_DLL int sgui_window_is_visible( const sgui_window* wnd );
  * \param wnd   A pointer to a window
  * \param title The new title as a NULL terminated ASCII string
  */
-SGUI_DLL void sgui_window_set_title( sgui_window* wnd, const char* title );
+static SGUI_INLINE void sgui_window_set_title( sgui_window* wnd,
+                                               const char* title )
+{
+    wnd->set_title( wnd, title );
+}
 
 /**
  * \brief Change the size of a window
@@ -579,21 +595,26 @@ SGUI_DLL void sgui_window_set_size( sgui_window* wnd,
  *
  * \memberof sgui_window
  *
- * \param width  Returns width of the window. Pass NULL if you're not
- *               iteressted in it.
- * \param height Returns height of the window. Pass NULL if you're not
- *               iteressted in it.
+ * \param width  Returns width of the window
+ * \param height Returns height of the window
  */
-SGUI_DLL void sgui_window_get_size( const sgui_window* wnd,
-                                    unsigned int* width,
-                                    unsigned int* height );
+static SGUI_INLINE void sgui_window_get_size( const sgui_window* wnd,
+                                              unsigned int* width,
+                                              unsigned int* height )
+{
+    *width  = wnd->w;
+    *height = wnd->h;
+}
 
 /**
  * \brief Relocate a window to the center of the screen
  *
  * \memberof sgui_window
  */
-SGUI_DLL void sgui_window_move_center( sgui_window* wnd );
+static SGUI_INLINE void sgui_window_move_center( sgui_window* wnd )
+{
+    wnd->move_center( wnd );
+}
 
 /**
  * \brief Move a window to a specified position
@@ -617,8 +638,12 @@ SGUI_DLL void sgui_window_move( sgui_window* wnd, int x, int y );
  * \param y   The distance to the top of the window to the top of the screen.
  *            Pass NULL if you're not interessted in it.
  */
-SGUI_DLL void sgui_window_get_position( const sgui_window* wnd,
-                                        int* x, int* y );
+static SGUI_INLINE void sgui_window_get_position( const sgui_window* wnd,
+                                                  int* x, int* y )
+{
+    *x = wnd->x;
+    *y = wnd->y;
+}
 
 /**
  * \brief Force redrawing of a portion of a window
@@ -643,8 +668,11 @@ SGUI_DLL void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r );
  * \param wnd A pointer to a window
  * \param fun The callback function, or NULL to unset
  */
-SGUI_DLL void sgui_window_on_event( sgui_window* wnd,
-                                    sgui_window_callback fun );
+static SGUI_INLINE void sgui_window_on_event( sgui_window* wnd,
+                                              sgui_window_callback fun )
+{
+    wnd->event_fun = fun;
+}
 
 /**
  * \brief Store a user supplied pointer along with a window
@@ -658,7 +686,10 @@ SGUI_DLL void sgui_window_on_event( sgui_window* wnd,
  * \param wnd A pointer to a window
  * \param ptr The user supplied pointer to store
  */
-SGUI_DLL void sgui_window_set_userptr( sgui_window* wnd, void* ptr );
+static SGUI_INLINE void sgui_window_set_userptr( sgui_window* wnd, void* ptr )
+{
+    wnd->userptr = ptr;
+}
 
 /**
  * \brief Obtain a user supplied pointer from a window
@@ -671,7 +702,10 @@ SGUI_DLL void sgui_window_set_userptr( sgui_window* wnd, void* ptr );
  *
  * \return The user supplied pointer stored in the window structure
  */
-SGUI_DLL void* sgui_window_get_userptr( const sgui_window* wnd );
+static SGUI_INLINE void* sgui_window_get_userptr( const sgui_window* wnd )
+{
+    return wnd->userptr;
+}
 
 /**
  * \brief Add a widget to a window
@@ -694,9 +728,13 @@ SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
  * \param text   A pointer to a text to write to the clipboard
  * \param length The number of bytes to read from the text buffer
  */
-SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
-                                           const char* text,
-                                           unsigned int length );
+static SGUI_INLINE void sgui_window_write_clipboard( sgui_window* wnd,
+                                                     const char* text,
+                                                     unsigned int length )
+{
+    if( wnd->write_clipboard )
+        wnd->write_clipboard( wnd, text, length );
+}
 
 /**
  * \brief Read a text string from the system clipboard
@@ -708,14 +746,20 @@ SGUI_DLL void sgui_window_write_clipboard( sgui_window* wnd,
  * \return A pointer to a global text buffer. DO NOT FREE THIS POINTER OR
  *         ALTER THE UNDERLYING DATA
  */
-SGUI_DLL const char* sgui_window_read_clipboard( sgui_window* wnd );
+static SGUI_INLINE const char* sgui_window_read_clipboard( sgui_window* wnd )
+{
+    return wnd->read_clipboard ? wnd->read_clipboard( wnd ) : NULL;
+}
 
 /**
  * \brief Get a pointer to the back buffer canvas object of the window
  *
  * \memberof sgui_window
  */
-SGUI_DLL sgui_canvas* sgui_window_get_canvas( const sgui_window* wnd );
+static SGUI_INLINE sgui_canvas* sgui_window_get_canvas(const sgui_window* wnd)
+{
+    return wnd->backend==SGUI_NATIVE ? wnd->ctx.canvas : NULL;
+}
 
 /**
  * \brief Get the currently set keyboard modifiers
@@ -724,7 +768,10 @@ SGUI_DLL sgui_canvas* sgui_window_get_canvas( const sgui_window* wnd );
  *
  * \return A combination of \ref SGUI_MODIFYER_FLAG
  */
-SGUI_DLL int sgui_window_get_modifyer_mask( const sgui_window* wnd );
+static SGUI_INLINE int sgui_window_get_modifyer_mask( const sgui_window* wnd )
+{
+    return wnd->modmask;
+}
 
 /**
  * \brief This function returns the platform specific objects of a window
@@ -740,8 +787,11 @@ SGUI_DLL int sgui_window_get_modifyer_mask( const sgui_window* wnd );
  *                and receives the value of the windows HWND. When using the
  *                Xlib backend, this is assumed to be a pointer to a "Window".
  */
-SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
-                                             void* window );
+static SGUI_INLINE void sgui_window_get_platform_data( const sgui_window* wnd,
+                                                       void* window )
+{
+    wnd->get_platform_data( wnd, window );
+}
 
 /**
  * \brief If a window has a rendering context, get a pointer to the
@@ -749,7 +799,11 @@ SGUI_DLL void sgui_window_get_platform_data( const sgui_window* wnd,
  *
  * \memberof sgui_window
  */
-SGUI_DLL sgui_context* sgui_window_get_context( const sgui_window* wnd );
+static SGUI_INLINE
+sgui_context* sgui_window_get_context( const sgui_window* wnd )
+{
+    return wnd->backend!=SGUI_NATIVE ? wnd->ctx.ctx : NULL;
+}
 
 /**
  * \brief Adjust the size of a window to fit the widgets inside

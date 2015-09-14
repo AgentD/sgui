@@ -89,11 +89,6 @@ void sgui_widget_init( sgui_widget* this, int x, int y,
                                SGUI_WIDGET_VISIBLE;
 }
 
-void sgui_widget_destroy( sgui_widget* this )
-{
-    this->destroy( this );
-}
-
 void sgui_widget_destroy_children( sgui_widget* this )
 {
     sgui_widget *i, *old;
@@ -156,12 +151,6 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
         this->state_change_event( this, SGUI_WIDGET_POSITION_CHANGED );
 
     sgui_internal_unlock_mutex( );
-}
-
-void sgui_widget_get_position( const sgui_widget* this, int* x, int* y )
-{
-    *x = this->area.left;
-    *y = this->area.top;
 }
 
 void sgui_widget_get_absolute_position( const sgui_widget* this,

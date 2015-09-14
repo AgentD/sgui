@@ -28,13 +28,6 @@
 
 
 
-void sgui_pixmap_get_size( const sgui_pixmap* this, unsigned int* width,
-                           unsigned int* height )
-{
-    *width  = this->width;
-    *height = this->height;
-}
-
 void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
                        const unsigned char* data, int srcx, int srcy,
                        unsigned int width, unsigned int height,
@@ -60,10 +53,5 @@ void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
 
     data += (srcy*scan + srcx) * bpp;
     this->load( this, dstx, dsty, data, scan, width, height, format );
-}
-
-void sgui_pixmap_destroy( sgui_pixmap* this )
-{
-    this->destroy( this );
 }
 
