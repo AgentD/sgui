@@ -50,42 +50,28 @@
 
 #ifdef _MSC_VER
     #define SGUI_INLINE __forceinline
+    #define sgui_strdup _strdup
 #else
     #define SGUI_INLINE __inline__ __attribute__((always_inline))
+    #define sgui_strdup strdup
 #endif
 
 
 
 typedef struct sgui_icon sgui_icon;
-
 typedef struct sgui_icon_cache sgui_icon_cache;
-
 typedef struct sgui_font sgui_font;
-
 typedef struct sgui_rect sgui_rect;
-
 typedef struct sgui_canvas sgui_canvas;
-
 typedef struct sgui_widget sgui_widget;
-
 typedef struct sgui_window sgui_window;
-
 typedef struct sgui_pixmap sgui_pixmap;
-
 typedef struct sgui_skin sgui_skin;
-
-typedef struct sgui_filesystem sgui_filesystem;
-
 typedef struct sgui_context sgui_context;
-
 typedef struct sgui_event sgui_event;
-
 typedef struct sgui_window_description sgui_window_description;
-
 typedef struct sgui_model sgui_model;
-
 typedef struct sgui_item sgui_item;
-
 typedef struct sgui_dialog sgui_dialog;
 
 typedef void(* sgui_funptr )( );

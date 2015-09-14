@@ -172,6 +172,36 @@ void remove_window( sgui_window_xlib* this )
 
 /****************************************************************************/
 
+static unsigned int sgui_utf8_from_latin1_length( const char* in )
+{
+    unsigned int length = 0;
+
+    while( *in )
+    {
+        length += (*(in++) & 0x80) ? 2 : 1;
+    }
+
+    return length;
+}
+
+static void sgui_utf8_from_latin1( char* out, const char* in )
+{
+    for( ; *in; ++in )
+    {
+        if( *in & 0x80 )
+        {
+            *out++ = 0xC2 + ((unsigned char)*in > 0xBF);
+            *out++ = 0x80 + (*in & 0x3F);
+        }
+        else
+        {
+            *out++ = *in;
+        }
+    }
+
+    *out = '\0';
+}
+
 void xlib_window_clipboard_write( sgui_window* this, const char* text,
                                   unsigned int length )
 {
