@@ -72,7 +72,7 @@ extern "C" {
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
 
 /* generate expose events for dirty rectangles */
-void update_window( sgui_window_xlib* wnd );
+void update_window( sgui_window* wnd );
 
 #ifdef __cplusplus
 }

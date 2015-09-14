@@ -34,6 +34,18 @@
 #include <ctype.h>
 
 
+static void xlib_window_size_hints(Window wnd, unsigned int w, unsigned int h)
+{
+    XSizeHints hints;
+
+    memset( &hints, 0, sizeof(hints) );
+    hints.flags = PSize | PMinSize | PMaxSize;
+    hints.min_width = hints.base_width = hints.max_width = (int)w;
+    hints.min_height = hints.base_height = hints.max_height = (int)h;
+
+    XSetWMNormalHints( x11.dpy, wnd, &hints );
+}
+
 static void xlib_window_get_mouse_position(sgui_window* this, int* x, int* y)
 {
     Window t1, t2;   /* values we are not interested */
@@ -51,7 +63,7 @@ static void xlib_window_set_mouse_position( sgui_window* this, int x, int y )
     XWarpPointer(x11.dpy,None,TO_X11(this)->wnd,0,0,this->w,this->h,x,y);
     XFlush( x11.dpy );
 
-    ++(TO_X11(this)->mouse_warped);  /* increment warp counter */
+    ++(TO_X11(this)->mouse_warped);
     sgui_internal_unlock_mutex( );
 }
 
@@ -77,23 +89,13 @@ static void xlib_window_set_title( sgui_window* this, const char* title )
 static void xlib_window_set_size( sgui_window* this,
                                   unsigned int width, unsigned int height )
 {
-    XSizeHints hints;
     XWindowAttributes attr;
 
     sgui_internal_lock_mutex( );
 
-    /* adjust the fixed size for nonresizeable windows */
     if( TO_X11(this)->flags & SGUI_FIXED_SIZE )
-    {
-        memset( &hints, 0, sizeof(hints) );
-        hints.flags = PSize | PMinSize | PMaxSize;
-        hints.min_width  = hints.base_width  = hints.max_width  = (int)width;
-        hints.min_height = hints.base_height = hints.max_height = (int)height;
+        xlib_window_size_hints( TO_X11(this)->wnd, width, height );
 
-        XSetWMNormalHints( x11.dpy, TO_X11(this)->wnd, &hints );
-    }
-
-    /* resize the window */
     XResizeWindow( x11.dpy, TO_X11(this)->wnd, width, height );
     XFlush( x11.dpy );
 
@@ -126,16 +128,15 @@ static void xlib_window_force_redraw( sgui_window* this, sgui_rect* r )
 {
     XExposeEvent exp;
 
+    memset( &exp, 0, sizeof(exp) );
     exp.type       = Expose;
-    exp.serial     = 0;
     exp.send_event = 1;
     exp.display    = x11.dpy;
     exp.window     = TO_X11(this)->wnd;
-    exp.count      = 0;
     exp.x          = r->left;
     exp.y          = r->top;
-    exp.width      = r->right  - r->left + 1;
-    exp.height     = r->bottom - r->top  + 1;
+    exp.width      = SGUI_RECT_WIDTH_V(r);
+    exp.height     = SGUI_RECT_HEIGHT_V(r);
 
     sgui_internal_lock_mutex( );
     XSendEvent(x11.dpy,TO_X11(this)->wnd,False,ExposureMask,(XEvent*)&exp);
@@ -171,37 +172,21 @@ static void xlib_window_get_platform_data( const sgui_window* this,
 
 /****************************************************************************/
 
-void update_window( sgui_window_xlib* this )
+void update_window( sgui_window* this )
 {
-    sgui_window* super = (sgui_window*)this;
     unsigned int i, num;
-    XExposeEvent exp;
     sgui_rect r;
 
-    if( super->backend==SGUI_NATIVE )
+    if( this->backend==SGUI_NATIVE )
     {
-        num = sgui_canvas_num_dirty_rects( super->ctx.canvas );
-
-        exp.type       = Expose;
-        exp.serial     = 0;
-        exp.send_event = 1;
-        exp.display    = x11.dpy;
-        exp.window     = this->wnd;
-        exp.count      = 0;
+        num = sgui_canvas_num_dirty_rects( this->ctx.canvas );
 
         for( i=0; i<num; ++i )
         {
-            sgui_canvas_get_dirty_rect( super->ctx.canvas, &r, i );
-
-            exp.x      = r.left;
-            exp.y      = r.top;
-            exp.width  = r.right  - r.left + 1;
-            exp.height = r.bottom - r.top  + 1;
-
-            XSendEvent(x11.dpy,this->wnd,False,ExposureMask,(XEvent*)&exp);
+            sgui_canvas_get_dirty_rect( this->ctx.canvas, &r, i );
+            xlib_window_force_redraw( this, &r );
         }
-
-        sgui_canvas_redraw_widgets( super->ctx.canvas, 1 );
+        sgui_canvas_redraw_widgets( this->ctx.canvas, 1 );
     }
 }
 
@@ -225,22 +210,16 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case KeyPress:
         memset( se.arg.utf8, 0, sizeof(se.arg.utf8) );
 
-        /* try to convert composed character to UTF8 string */
-        Xutf8LookupString( this->ic, &e->xkey,
-                           (char*)se.arg.utf8, sizeof(se.arg.utf8),
-                           &sym, &stat );
+        Xutf8LookupString( this->ic, &e->xkey, (char*)se.arg.utf8,
+                           sizeof(se.arg.utf8), &sym, &stat );
 
-        /* send a char event if it worked */
-        if( stat==XLookupChars || stat==XLookupBoth )
+        if( (stat==XLookupChars || stat==XLookupBoth) &&
+            ((se.arg.utf8[0] & 0x80) || !iscntrl( se.arg.utf8[0] )) )
         {
-            if( (se.arg.utf8[0] & 0x80) || !iscntrl( se.arg.utf8[0] ) )
-            {
-                se.type = SGUI_CHAR_EVENT;
-                sgui_internal_window_fire_event( super, &se );
-            }
+            se.type = SGUI_CHAR_EVENT;
+            sgui_internal_window_fire_event( super, &se );
         }
 
-        /* send a key pressed event if we have a key sym */
         if( stat==XLookupKeySym || stat==XLookupBoth )
         {
             se.arg.i = key_entries_translate( sym );
@@ -287,10 +266,9 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case MotionNotify:
         interrupt_double_click( );
 
-        /* ignore mouse move event when the warp counter is positive */
         if( this->mouse_warped )
         {
-            --(this->mouse_warped);  /* decrement warp counter */
+            --(this->mouse_warped);
         }
         else
         {
@@ -305,30 +283,23 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         se.arg.ui2.y = e->xconfigure.height;
         se.type = SGUI_SIZE_CHANGE_EVENT;
 
-        /* store the new position */
         super->x = e->xconfigure.x;
         super->y = e->xconfigure.y;
 
-        /* do not accept zero size window */
         if( !se.arg.ui2.x || !se.arg.ui2.y )
             break;
 
-        /* ignore if the size didn't change at all */
         if( se.arg.ui2.x==super->w && se.arg.ui2.y==super->h )
             break;
 
-        /* store the new size */
         super->w = (unsigned int)e->xconfigure.width;
         super->h = (unsigned int)e->xconfigure.height;
 
-        /* resize the back buffer image */
         if( super->backend==SGUI_NATIVE )
             sgui_canvas_resize( super->ctx.canvas, super->w, super->h );
 
-        /* send a size change event */
         sgui_internal_window_fire_event( super, &se );
 
-        /* redraw everything */
         if( super->backend==SGUI_NATIVE )
             sgui_canvas_draw_widgets( super->ctx.canvas, 1 );
         break;
@@ -393,7 +364,6 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 {
     sgui_window_xlib* this;
     sgui_window* super;
-    XSizeHints hints;
     XWindowAttributes attr;
     unsigned long color = 0;
     unsigned char rgb[3];
@@ -434,14 +404,11 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         if( !get_fbc_visual_cmap( &this->cfg, &vi, &swa.colormap, desc ) )
             goto failure;
 
-        /* create the window */
         swa.border_pixel = 0;
-
         this->wnd = XCreateWindow( x11.dpy, x_parent, 0, 0,
                                    desc->width, desc->height, 0,
                                    vi->depth, InputOutput, vi->visual,
                                    CWBorderPixel|CWColormap, &swa );
-
         XFree( vi );
 #endif
     }
@@ -459,18 +426,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( !this->wnd )
         goto failure;
 
-    /* make the window non resizeable if required */
     if( desc->flags & SGUI_FIXED_SIZE )
-    {
-        memset( &hints, 0, sizeof(hints) );
-        hints.flags = PSize | PMinSize | PMaxSize;
-        hints.min_width = hints.max_width =
-        hints.base_width = (int)desc->width;
-        hints.min_height = hints.max_height =
-        hints.base_height = (int)desc->height;
-
-        XSetWMNormalHints( x11.dpy, this->wnd, &hints );
-    }
+        xlib_window_size_hints( this->wnd, desc->width, desc->height );
 
     /* tell X11 what events we will handle */
     XSelectInput( x11.dpy, this->wnd, ExposureMask | StructureNotifyMask |
@@ -485,23 +442,34 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
     /* get the real geometry as the window manager is free to change it */
     XGetWindowAttributes( x11.dpy, this->wnd, &attr );
-
+    super->w = attr.width;
+    super->h = attr.height;
     super->x = attr.x;
     super->y = attr.y;
 
     /********************** create canvas **********************/
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
+    if( desc->backend==SGUI_NATIVE )
     {
+#ifndef SGUI_NO_XRENDER
+        super->ctx.canvas = canvas_xrender_create( this->wnd, attr.width,
+                                                   attr.height );
+#endif
+        if( !super->ctx.canvas )
+            super->ctx.canvas = canvas_xlib_create( this->wnd, attr.width,
+                                                    attr.height );
+
+        if( !super->ctx.canvas )
+            goto failure;
+    }
 #ifndef SGUI_NO_OPENGL
+    else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
+    {
         sgui_context_gl* share = NULL;
 
-        if( desc->share )
+        if( desc->share && (desc->share->backend==SGUI_OPENGL_CORE ||
+                            desc->share->backend==SGUI_OPENGL_COMPAT) )
         {
-            if( desc->share->backend==SGUI_OPENGL_CORE ||
-                desc->share->backend==SGUI_OPENGL_COMPAT )
-            {
-                share = (sgui_context_gl*)desc->share->ctx.ctx;
-            }
+            share = (sgui_context_gl*)desc->share->ctx.ctx;
         }
 
         super->backend = desc->backend;
@@ -514,25 +482,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         super->swap_buffers = gl_swap_buffers;
         super->set_vsync = gl_set_vsync;
-#endif
     }
-    else if( desc->backend==SGUI_NATIVE )
-    {
-#ifndef SGUI_NO_XRENDER
-        super->ctx.canvas = canvas_xrender_create( this->wnd, attr.width,
-                                                   attr.height );
 #endif
-        if( !super->ctx.canvas )
-            super->ctx.canvas = canvas_xlib_create( this->wnd, attr.width,
-                                                    attr.height );
-
-        if( !super->ctx.canvas )
-            goto failure;
-
-        super->swap_buffers = NULL;
-        super->set_vsync = NULL;
-    }
-
     /*********** Create an input context ************/
     this->ic = XCreateIC( x11.im, XNInputStyle,
                           XIMPreeditNothing|XIMStatusNothing, XNClientWindow,

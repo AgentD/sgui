@@ -153,7 +153,7 @@ static void update_windows( void )
     sgui_window_xlib* i;
 
     for( i=x11.list; i!=NULL; i=i->next )
-        update_window( i );
+        update_window( (sgui_window*)i );
 }
 
 /****************************************************************************/
