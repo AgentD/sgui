@@ -464,18 +464,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 #ifndef SGUI_NO_OPENGL
     else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
     {
-        sgui_context_gl* share = NULL;
-
-        if( desc->share && (desc->share->backend==SGUI_OPENGL_CORE ||
-                            desc->share->backend==SGUI_OPENGL_COMPAT) )
-        {
-            share = (sgui_context_gl*)desc->share->ctx.ctx;
-        }
-
         super->backend = desc->backend;
         super->ctx.ctx = gl_context_create( super,
                                             desc->backend==SGUI_OPENGL_CORE,
-                                            share );
+                                            (sgui_context_gl*)desc->share );
 
         if( !super->ctx.ctx )
             goto failure;

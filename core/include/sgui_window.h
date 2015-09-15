@@ -319,13 +319,13 @@ struct sgui_window_description
     sgui_window* parent;
 
     /**
-     * \brief A pointer to a window with a context to share resources with
+     * \brief A pointer to a rendering context to share resources with
      *
      * If a new window is to be created with a rendering context
-     * (e.g. OpenGL), this can point to an existing window with a context to
-     * share resources with.
+     * (e.g. OpenGL), this can point to an existing context to share
+     * resources with.
      */
-    sgui_window* share;
+    sgui_context* share;
 
     /** \brief The width of the window (without borders and decoration) */
     unsigned int width;

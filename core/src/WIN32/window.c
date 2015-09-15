@@ -534,24 +534,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
         if( !super->ctx.canvas )
             goto failure;
-
-        super->swap_buffers = NULL;
-        super->set_vsync = NULL;
     }
 #ifndef SGUI_NO_OPENGL
     else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
     {
-        sgui_gl_context* share = NULL;
-
-        if( desc->share )
-        {
-            if( desc->share->backend==SGUI_OPENGL_CORE || 
-                desc->share->backend==SGUI_OPENGL_COMPAT )
-            {
-                share = (sgui_gl_context*)desc->share->ctx.ctx;
-            }
-        }
-
         if( !(this->hDC = GetDC( this->hWnd )) )
             goto failure;
 
@@ -561,7 +547,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         super->backend = desc->backend;
         super->ctx.ctx = gl_context_create( super,
                                             desc->backend==SGUI_OPENGL_CORE,
-                                            share );
+                                            (sgui_gl_context*)desc->share );
 
         if( !super->ctx.ctx )
             goto failure;
@@ -573,13 +559,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 #ifndef SGUI_NO_D3D9
     else if( desc->backend==SGUI_DIRECT3D_9 )
     {
-        sgui_d3d9_context* share = NULL;
-
-        if( desc->share && desc->share->backend==SGUI_DIRECT3D_9 )
-            share = (sgui_d3d9_context*)desc->share->ctx.ctx;
-
         super->backend = desc->backend;
-        super->ctx.ctx = d3d9_context_create( super, desc, share );
+        super->ctx.ctx = d3d9_context_create(super, desc,
+                                             (sgui_d3d9_context*)desc->share);
 
         if( !super->ctx.ctx )
             goto failure;
