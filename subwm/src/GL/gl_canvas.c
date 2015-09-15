@@ -50,8 +50,8 @@ static void gl_canvas_end( sgui_canvas* super )
 {
     sgui_gl_canvas* this = (sgui_gl_canvas*)super;
     unsigned int x, y, w, h;
+    GLint len, allign;
     GLuint old;
-    GLint len;
 
     x = this->locked.left;
     y = this->locked.top;
@@ -60,18 +60,21 @@ static void gl_canvas_end( sgui_canvas* super )
 
     /* make current & get state */
     glGetIntegerv( GL_TEXTURE_BINDING_2D, (GLint*)&old );
-    glGetIntegerv( GL_PACK_ROW_LENGTH, &len );
+    glGetIntegerv( GL_UNPACK_ROW_LENGTH, &len );
+    glGetIntegerv( GL_UNPACK_ALIGNMENT, &allign );
 
     /* bind & upload */
     glBindTexture( GL_TEXTURE_2D, this->tex );
-    glPixelStorei( GL_PACK_ROW_LENGTH, super->width );
+    glPixelStorei( GL_UNPACK_ROW_LENGTH, super->width );
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 
     glTexSubImage2D( GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
                      this->buffer + (y*super->width + x)*4 );
 
     /* restore state & release */
     glBindTexture( GL_TEXTURE_2D, old );
-    glPixelStorei( GL_PACK_ROW_LENGTH, len );
+    glPixelStorei( GL_UNPACK_ROW_LENGTH, len );
+    glPixelStorei( GL_UNPACK_ALIGNMENT, allign );
 }
 
 void* gl_canvas_get_texture( sgui_canvas* this )
