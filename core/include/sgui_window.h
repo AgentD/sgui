@@ -148,6 +148,23 @@ typedef enum
 }
 SGUI_WINDOW_BACKEND;
 
+/**
+ * \enum SGUI_WINDOW_FLAG
+ *
+ * \brief Flag values for the sgui_window_description flags field
+ */
+typedef enum
+{
+    /** \brief If set, do not allow the user to change the window size */
+    SGUI_FIXED_SIZE = 0x01,
+
+    /**
+     * \brief If set, create OpenGL or Direct3D contexts with a double
+     *        buffered framebuffer
+     */
+    SGUI_DOUBLEBUFFERED = 0x02
+}
+SGUI_WINDOW_FLAG;
 
 
 /**
@@ -316,16 +333,7 @@ struct sgui_window_description
     /** \brief The height of the window (without borders and decoration) */
     unsigned int height;
 
-    /**
-     * \brief Misc. window flags
-     *
-     * The flag SGUI_FIXED_SIZE is set, the window is forced to a fixed size
-     * that the user cannot change. If not set, the window can be resized.
-     *
-     * If the flag SGUI_DOUBLEBUFFERED is set, a window with a graphics
-     * rendering context (OpenGL or Direct3D) is created with a double
-     * buffered frame buffer.
-     */
+    /** \brief Misc. window flags, see \ref SGUI_WINDOW_FLAG */
     int flags;
 
     /**
@@ -360,9 +368,6 @@ struct sgui_window_description
 };
 
 
-
-#define SGUI_FIXED_SIZE 0x01
-#define SGUI_DOUBLEBUFFERED 0x02
 
 #define SGUI_VISIBLE   1
 #define SGUI_INVISIBLE 0
