@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "d3d11_wm.h"
-#include "ctx_mesh.h"
+#include "../ctx_mesh.h"
 #include "sgui_subwm_skin.h"
 
 

@@ -28,9 +28,9 @@
 #include "sgui_internal.h"
 #include "sgui_ctx_window.h"
 
-#include "gl_wm.h"
-#include "d3d9_wm.h"
-#include "d3d11_wm.h"
+#include "GL/gl_wm.h"
+#include "D3D9/d3d9_wm.h"
+#include "D3D11/d3d11_wm.h"
 
 #include <stdlib.h>
 #include <string.h>

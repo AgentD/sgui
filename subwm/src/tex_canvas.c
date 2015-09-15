@@ -26,9 +26,9 @@
 #include "sgui_context.h"
 #include "sgui_window.h"
 
-#include "gl_canvas.h"
-#include "d3d9_canvas.h"
-#include "d3d11_canvas.h"
+#include "GL/gl_canvas.h"
+#include "D3D9/d3d9_canvas.h"
+#include "D3D11/d3d11_canvas.h"
 
 #include <stddef.h>
 

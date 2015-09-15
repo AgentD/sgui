@@ -24,7 +24,7 @@
  */
 #include "sgui_subwm_skin.h"
 #include "sgui_context.h"
-#include "ctx_mesh.h"
+#include "../ctx_mesh.h"
 #include "gl_wm.h"
 
 #include <stdlib.h>
