@@ -33,13 +33,11 @@
 
 
 
-static void get_mouse_position( sgui_window* super, int* x, int* y )
+static void get_mouse_position( sgui_window* this, int* x, int* y )
 {
-    sgui_ctx_window* this = (sgui_ctx_window*)super;
-
-    sgui_window_get_mouse_position( this->parent, x, y );
-    *x -= super->x;
-    *y -= super->y;
+    sgui_window_get_mouse_position( ((sgui_ctx_window*)this)->parent, x, y );
+    *x -= this->x;
+    *y -= this->y;
 }
 
 static void set_mouse_position( sgui_window* this, int x, int y )
@@ -198,42 +196,24 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
     return super;
 }
 
-void sgui_ctx_window_update_canvas( sgui_window* this )
-{
-    if( this )
-        sgui_canvas_redraw_widgets( this->ctx.canvas, 1 );
-}
-
-void* sgui_ctx_window_get_texture( sgui_window* this )
-{
-    return this ? sgui_tex_canvas_get_texture( this->ctx.canvas ) : NULL;
-}
-
 void sgui_ctx_window_inject_event( sgui_window* this, const sgui_event* ev )
 {
-    sgui_event copy;
+    sgui_event copy = *ev;
 
-    if( this && ev )
+    copy.src.window = this;
+
+    if( copy.type == SGUI_MOUSE_MOVE_EVENT )
     {
-        /* copy event, change source window */
-        copy = *ev;
-        copy.src.window = this;
-
-        /* reposition mouse events */
-        if( copy.type == SGUI_MOUSE_MOVE_EVENT )
-        {
-            copy.arg.i2.x -= this->x;
-            copy.arg.i2.y -= this->y;
-        }
-        else if( copy.type == SGUI_MOUSE_PRESS_EVENT ||
-                 copy.type == SGUI_MOUSE_RELEASE_EVENT )
-        {
-            copy.arg.i3.x -= this->x;
-            copy.arg.i3.y -= this->y;
-        }
-
-        /* send to canvas */
-        sgui_canvas_send_window_event( this->ctx.canvas, &copy );
+        copy.arg.i2.x -= this->x;
+        copy.arg.i2.y -= this->y;
     }
+    else if( copy.type == SGUI_MOUSE_PRESS_EVENT ||
+             copy.type == SGUI_MOUSE_RELEASE_EVENT )
+    {
+        copy.arg.i3.x -= this->x;
+        copy.arg.i3.y -= this->y;
+    }
+
+    sgui_canvas_send_window_event( this->ctx.canvas, &copy );
 }
 

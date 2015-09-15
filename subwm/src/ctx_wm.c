@@ -105,17 +105,11 @@ void sgui_ctx_wm_destroy( sgui_ctx_wm* this )
 {
     sgui_ctx_window* w;
 
-    if( this )
-    {
-        /* destroy all the windows */
-        for( w=this->list; w!=NULL; w=w->next )
-            sgui_window_destroy( (sgui_window*)w );
+    for( w=this->list; w!=NULL; w=w->next )
+        sgui_window_destroy( (sgui_window*)w );
 
-        this->list = NULL;
-
-        /* destroy the object */
-        this->destroy( this );
-    }
+    this->list = NULL;
+    this->destroy( this );
 }
 
 sgui_window* sgui_ctx_wm_create_window( sgui_ctx_wm* this,
@@ -125,44 +119,30 @@ sgui_window* sgui_ctx_wm_create_window( sgui_ctx_wm* this,
 {
     sgui_ctx_window* wnd = NULL;
 
-    if( this )
+    wnd = (sgui_ctx_window*)sgui_ctx_window_create( this->wnd, width, height,
+                                                    flags );
+
+    if( wnd )
     {
-        wnd = (sgui_ctx_window*)sgui_ctx_window_create( this->wnd,
-                                                        width, height,
-                                                        flags );
-
-        if( wnd )
-        {
-            wnd->wm = this;
-            wnd->next = this->list;
-            this->list = wnd;
-        }
+        wnd->wm = this;
+        wnd->next = this->list;
+        this->list = wnd;
     }
-
     return (sgui_window*)wnd;
 }
 
 void sgui_ctx_wm_remove_window( sgui_ctx_wm* this, sgui_window* wnd )
 {
     sgui_ctx_window* it;
-
-    if( this )
-    {
-        SGUI_REMOVE_FROM_LIST( this->list, it, (sgui_ctx_window*)wnd );
-    }
+    SGUI_REMOVE_FROM_LIST( this->list, it, (sgui_ctx_window*)wnd );
 }
 
 void sgui_ctx_wm_draw_gui( sgui_ctx_wm* this )
 {
     sgui_ctx_window* wnd;
 
-    if( !this )
-        return;
-
     for( wnd=this->list; wnd!=NULL; wnd=wnd->next )
-    {
         sgui_ctx_window_update_canvas( (sgui_window*)wnd );
-    }
 
     this->draw_gui( this );
 }
@@ -174,24 +154,21 @@ sgui_ctx_window* sgui_ctx_wm_window_from_point( sgui_ctx_wm* this,
     unsigned int ww, wh;
     int wx, wy;
 
-    if( this )
+    for( wnd=this->list; wnd!=NULL; wnd=wnd->next )
     {
-        for( wnd=this->list; wnd!=NULL; wnd=wnd->next )
-        {
-            sgui_window_get_position( (sgui_window*)wnd, &wx, &wy );
+        sgui_window_get_position( (sgui_window*)wnd, &wx, &wy );
 
-            if( x<wx || y<wy )
-                continue;
+        if( x<wx || y<wy )
+            continue;
 
-            sgui_window_get_size( (sgui_window*)wnd, &ww, &wh );
-            wx += ww;
-            wy += wh;
+        sgui_window_get_size( (sgui_window*)wnd, &ww, &wh );
+        wx += ww;
+        wy += wh;
 
-            if( x>=wx || y>=wy )
-                continue;
+        if( x>=wx || y>=wy )
+            continue;
 
-            result = wnd;
-        }
+        result = wnd;
     }
     return result;
 }
@@ -201,9 +178,6 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
     sgui_ctx_window* wnd;
     sgui_event ev;
     int x, y;
-
-    if( !this || !event )
-        return;
 
     switch( event->type )
     {
@@ -225,7 +199,9 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
                                                  event->arg.i2.x,
                                                  event->arg.i2.y );
             this->mouseover = wnd;
-            sgui_ctx_window_inject_event((sgui_window*)this->mouseover,event);
+            if( this->mouseover )
+                sgui_ctx_window_inject_event( (sgui_window*)this->mouseover,
+                                              event );
         }
         break;
     case SGUI_MOUSE_PRESS_EVENT:
@@ -248,39 +224,38 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
         break;
     case SGUI_MOUSE_RELEASE_EVENT:
         if( this->draging )
-        {
             this->draging = 0;
-        }
-        else
-        {
+        else if( this->mouseover )
             sgui_ctx_window_inject_event((sgui_window*)this->mouseover,event);
-        }
 
         if( this->focus != this->mouseover )
         {
-            ev.type = SGUI_FOCUS_LOSE_EVENT;
-            sgui_ctx_window_inject_event((sgui_window*)this->focus,&ev);
-
+            if( this->focus )
+            {
+                ev.type = SGUI_FOCUS_LOSE_EVENT;
+                sgui_ctx_window_inject_event((sgui_window*)this->focus,&ev);
+            }
             this->focus = this->mouseover;
-            ev.type = SGUI_FOCUS_EVENT;
-            sgui_ctx_window_inject_event((sgui_window*)this->focus,&ev);
+            if( this->focus )
+            {
+                ev.type = SGUI_FOCUS_EVENT;
+                sgui_ctx_window_inject_event((sgui_window*)this->focus,&ev);
+            }
         }
         break;
     case SGUI_MOUSE_WHEEL_EVENT:
-        sgui_ctx_window_inject_event( (sgui_window*)this->mouseover, event );
+        if( this->mouseover )
+            sgui_ctx_window_inject_event((sgui_window*)this->mouseover,event);
         break;
-
     case SGUI_KEY_PRESSED_EVENT:
     case SGUI_KEY_RELEASED_EVENT:
     case SGUI_CHAR_EVENT:
-        sgui_ctx_window_inject_event( (sgui_window*)this->focus, event );
+        if( this->focus )
+            sgui_ctx_window_inject_event( (sgui_window*)this->focus, event );
         break;
-
     case SGUI_D3D9_DEVICE_LOST:
         for( wnd=this->list; wnd!=NULL; wnd=wnd->next )
-        {
             sgui_ctx_window_inject_event( (sgui_window*)wnd, event );
-        }
         break;
     }
 }

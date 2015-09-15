@@ -33,6 +33,7 @@
 
 
 #include "sgui_subwm_predef.h"
+#include "sgui_tex_canvas.h"
 #include "sgui_window.h"
 
 
@@ -100,7 +101,10 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
  *
  * \param wnd A pointer to an sgui_ctx_window
  */
-void sgui_ctx_window_update_canvas( sgui_window* wnd );
+static SGUI_INLINE void sgui_ctx_window_update_canvas( sgui_window* wnd )
+{
+    sgui_canvas_redraw_widgets( wnd->ctx.canvas, 1 );
+}
 
 /**
  * \brief Get the texture of the texture canvas of an sgui_ctx_window
@@ -113,13 +117,16 @@ void sgui_ctx_window_update_canvas( sgui_window* wnd );
  *
  * \return A pointer to the underlying texture object
  */
-void* sgui_ctx_window_get_texture( sgui_window* wnd );
+static SGUI_INLINE void* sgui_ctx_window_get_texture( sgui_window* wnd )
+{
+    return sgui_tex_canvas_get_texture( wnd->ctx.canvas );
+}
 
 /**
  * \brief Inject an event to a window
  *
- * \param wnd
- * \param ev
+ * \param wnd A pointer to an sgui_ctx_window
+ * \param ev  A pointer to an event received from the parent window
  */
 void sgui_ctx_window_inject_event( sgui_window* wnd, const sgui_event* ev );
 
