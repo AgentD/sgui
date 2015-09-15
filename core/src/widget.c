@@ -77,33 +77,22 @@ void sgui_widget_init( sgui_widget* this, int x, int y,
 {
     sgui_rect_set_size( &this->area, x, y, width, height );
 
-    this->next               = NULL;
-    this->children           = NULL;
-    this->parent             = NULL;
-    this->canvas             = NULL;
-    this->draw               = NULL;
-    this->window_event       = NULL;
-    this->state_change_event = NULL;
-    this->flags              = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
-                               SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB|
-                               SGUI_WIDGET_VISIBLE;
+    this->flags = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
+                  SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB|SGUI_WIDGET_VISIBLE;
 }
 
 void sgui_widget_destroy_children( sgui_widget* this )
 {
-    sgui_widget *i, *old;
+    sgui_widget* old;
 
     sgui_internal_lock_mutex( );
 
-    i = this->children;
-    while( i!=NULL )
+    while( this->children!=NULL )
     {
-        old = i;
-        i = i->next;
+        old = this->children;
+        this->children = this->children->next;
         old->destroy( old );
     }
-
-    this->children = NULL;
 
     sgui_internal_unlock_mutex( );
 }
@@ -129,24 +118,20 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
 
     visible = sgui_widget_is_absolute_visible( this );
 
-    /* flag the old area dirty */
     if( visible && this->canvas )
     {
         sgui_widget_get_absolute_rect( this, &r );
         sgui_canvas_add_dirty_rect( this->canvas, &r );
     }
 
-    /* move the widget area */
     sgui_rect_set_position( &this->area, x, y );
 
-    /* flag the new area dirty */
     if( visible && this->canvas )
     {
         sgui_widget_get_absolute_rect( this, &r );
         sgui_canvas_add_dirty_rect( this->canvas, &r );
     }
 
-    /* call the state change callback if there is one */
     if( this->state_change_event )
         this->state_change_event( this, SGUI_WIDGET_POSITION_CHANGED );
 
@@ -183,24 +168,21 @@ int sgui_widget_is_absolute_visible( const sgui_widget* this )
     for( ; this!=NULL; this=this->parent )
     {
         if( !(this->flags & SGUI_WIDGET_VISIBLE) )
-        {
-            sgui_internal_unlock_mutex( );
-            return 0;
-        }
+            break;
     }
 
     sgui_internal_unlock_mutex( );
-    return 1;
+    return (this == NULL);
 }
 
 void sgui_widget_set_visible( sgui_widget* this, int visible )
 {
     sgui_rect r;
 
+    sgui_internal_lock_mutex( );
+
     if( ((this->flags & SGUI_WIDGET_VISIBLE)!=0) ^ (visible!=0) )
     {
-        sgui_internal_lock_mutex( );
-
         if( visible )
             this->flags |= SGUI_WIDGET_VISIBLE;
         else
@@ -211,14 +193,13 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
 
         propagat_state_change(this->children,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
-        /* flag area as dirty */ 
         if( this->canvas )
         {
             sgui_widget_get_absolute_rect( this, &r );
             sgui_canvas_add_dirty_rect( this->canvas, &r );
         }
-        sgui_internal_unlock_mutex( );
     }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_get_absolute_rect( const sgui_widget* this, sgui_rect* r )
@@ -230,13 +211,8 @@ void sgui_widget_get_absolute_rect( const sgui_widget* this, sgui_rect* r )
 
     for( i=this->parent; i!=NULL; i=i->parent )
     {
-        /* transform to parent local */
-        r->left   += i->area.left;
-        r->right  += i->area.left;
-        r->top    += i->area.top;
-        r->bottom += i->area.top;
+        sgui_rect_add_offset( r, i->area.left, i->area.top );
 
-        /* clip against the parent rectangle */
         if( !sgui_rect_get_intersection( r, r, &i->area ) )
             break;
     }
@@ -299,14 +275,11 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
 {
     sgui_rect r;
     sgui_widget* i = NULL;
-    int change = SGUI_WIDGET_PARENT_CHANGED;
+
+    sgui_internal_lock_mutex( );
 
     if( this->parent )
     {
-        sgui_internal_lock_mutex( );
-
-        i = this->parent->children;
-
         SGUI_REMOVE_FROM_LIST( this->parent->children, i, this );
 
         if( this->canvas && sgui_widget_is_absolute_visible( this ) )
@@ -315,32 +288,27 @@ void sgui_widget_remove_from_parent( sgui_widget* this )
             sgui_canvas_add_dirty_rect( this->canvas, &r );
         }
 
-        /* add canvas change flag if the widget had a canvas before */
-        if( this->canvas )
-            change |= SGUI_WIDGET_CANVAS_CHANGED;
-
-        /* store a pointer to the old parent */
+        /* tell old parent */
         i = this->parent;
 
-        /* update links and canvas */
-        this->parent = NULL;
-        this->next = NULL;
-        this->canvas = NULL;
-
-        propagate_canvas( this->children );
-
-        /* call state change callbacks */
         if( i && i->state_change_event )
             i->state_change_event( i, SGUI_WIDGET_CHILD_REMOVED );
 
+        /* update links, canvas and tell widget */
+        this->parent = NULL;
+        this->next = NULL;
+
+        if( this->canvas )
+        {
+            this->canvas = NULL;
+            propagate_canvas( this->children );
+            propagat_state_change( this, SGUI_WIDGET_CANVAS_CHANGED );
+        }
+
         if( this->state_change_event )
-            this->state_change_event( this, change );
-
-        if( change & SGUI_WIDGET_CANVAS_CHANGED )
-            propagat_state_change(this->children, SGUI_WIDGET_CANVAS_CHANGED);
-
-        sgui_internal_unlock_mutex( );
+            this->state_change_event( this, SGUI_WIDGET_PARENT_CHANGED );
     }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
@@ -349,21 +317,21 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
     sgui_widget* i;
     int change = SGUI_WIDGET_PARENT_CHANGED;
 
+    sgui_internal_lock_mutex( );
+
     /* add canvas change flag if the widget had a different canvas before */
     if( child->canvas != this->canvas )
         change |= SGUI_WIDGET_CANVAS_CHANGED;
 
-    sgui_internal_lock_mutex( );
-
     /* add widget */
     child->parent = this;
+    child->next = NULL;
     child->canvas = this->canvas;
 
     if( this->children )
     {
-        for( i=this->children; i->next; i=i->next );
+        for( i=this->children; i->next; i=i->next ) { } /* find end of list */
         i->next = child;
-        child->next = NULL;
     }
     else
     {
@@ -395,96 +363,76 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
 sgui_widget* sgui_widget_get_child_from_point( const sgui_widget* this,
                                                int x, int y )
 {
-    const sgui_widget* candidate = this;
+    const sgui_widget* old = NULL;
     sgui_widget* it;
-
-    /* check if the given widget exists and the point is inside */
-    if( !sgui_rect_is_point_inside( &this->area, x, y ) )
-        return NULL;
 
     sgui_internal_lock_mutex( );
 
-    do
+    if( sgui_rect_is_point_inside( &this->area, x, y ) )
     {
-        /* continue searching last candidate, clear candidate */
-        this = candidate;
-        candidate = NULL;
-
-        /* transform to widget local coordinates */
-        x -= this->area.left;
-        y -= this->area.top;
-
-        /* find last child at position */
-        for( it=this->children; it!=NULL; it=it->next )
+        while( this->children && old!=this )
         {
-            if( (it->flags & SGUI_WIDGET_VISIBLE) &&
-                sgui_rect_is_point_inside( &it->area, x, y ) )
+            x -= this->area.left;
+            y -= this->area.top;
+
+            /* find last child at position */
+            for( old=this, it=this->children; it!=NULL; it=it->next )
             {
-                candidate = it;
+                if( (it->flags & SGUI_WIDGET_VISIBLE) &&
+                    sgui_rect_is_point_inside( &it->area, x, y ) )
+                {
+                    this = it;
+                }
             }
         }
     }
-    while( candidate );
-
+    else
+    {
+        this = NULL;
+    }
     sgui_internal_unlock_mutex( );
-
     return (sgui_widget*)this;
 }
 
 sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
 {
-    sgui_widget* w;
-    sgui_widget* v;
+    sgui_widget *w, *v;
 
     sgui_internal_lock_mutex( );
 
-    while( this )
+    do
     {
-        /* try to find a child of the current widget that accepts focus */
+        /* check own children */
         if( (w = find_child_focus( this )) )
-        {
-            sgui_internal_unlock_mutex( );
-            return w;
-        }
+            goto outw;
 
-        /*
-            try to find a right neightbour that accepts focus or has a child
-            that accepts focus.
-         */
+        /* check right neighbours and their children */
         for( w=this->next; w!=NULL; w=w->next )
         {
-            if( !(w->flags & SGUI_WIDGET_VISIBLE) )
-                continue;
-
-            if( w && (w->flags & SGUI_FOCUS_ACCEPT) )
+            if( w->flags & SGUI_WIDGET_VISIBLE )
             {
-                sgui_internal_unlock_mutex( );
-                return w;
-            }
-
-            if( (v = find_child_focus( w )) )
-            {
-                sgui_internal_unlock_mutex( );
-                return v;
+                if( w->flags & SGUI_FOCUS_ACCEPT )
+                    goto outw;
+                if( (v = find_child_focus( w )) )
+                    goto outv;
             }
         }
 
-        /* go to the right uncle, check if it accepts focus, reiterate */
+        /* find first visible right uncle */
         this = this->parent ? this->parent->next : NULL;
 
         while( this && !(this->flags & SGUI_WIDGET_VISIBLE) )
             this = this->next;
-
-        if( this && (this->flags & SGUI_FOCUS_ACCEPT) )
-        {
-            sgui_internal_unlock_mutex( );
-            return (sgui_widget*)this;
-        }
     }
+    while( this && !(this->flags & SGUI_FOCUS_ACCEPT) );
 
     sgui_internal_unlock_mutex( );
-
-    return NULL;
+    return (sgui_widget*)this;
+outv:
+    w = v;
+outw:
+    sgui_internal_unlock_mutex( );
+    return w;
 }
 
 void sgui_widget_draw( sgui_widget* this, sgui_rect* bounds,
