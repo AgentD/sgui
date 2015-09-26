@@ -186,7 +186,6 @@ void update_window( sgui_window* this )
             sgui_canvas_get_dirty_rect( this->ctx.canvas, &r, i );
             xlib_window_force_redraw( this, &r );
         }
-        sgui_canvas_redraw_widgets( this->ctx.canvas, 1 );
     }
 }
 
@@ -299,9 +298,6 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
             sgui_canvas_resize( super->ctx.canvas, super->w, super->h );
 
         sgui_internal_window_fire_event( super, &se );
-
-        if( super->backend==SGUI_NATIVE )
-            sgui_canvas_draw_widgets( super->ctx.canvas, 1 );
         break;
     case DestroyNotify:
         super->visible = 0;
@@ -336,9 +332,10 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
     case Expose:
         if( super->backend==SGUI_NATIVE )
         {
-            sgui_canvas_x11* cv = (sgui_canvas_x11*)super->ctx.canvas;
-            cv->display( cv, e->xexpose.x, e->xexpose.y,
-                             e->xexpose.width, e->xexpose.height );
+            sgui_rect r;
+            sgui_rect_set_size( &r, e->xexpose.x, e->xexpose.y,
+                                    e->xexpose.width, e->xexpose.height );
+            sgui_canvas_redraw_area( super->ctx.canvas, &r, 1 );
         }
         else
         {

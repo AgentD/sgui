@@ -195,13 +195,16 @@ void sgui_canvas_redraw_widgets( sgui_canvas* this, int clear )
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_canvas_draw_widgets( sgui_canvas* this, int clear )
+void sgui_canvas_redraw_area(sgui_canvas* this, const sgui_rect* r, int clear)
 {
     sgui_rect r1;
 
     sgui_internal_lock_mutex( );
 
     sgui_rect_set_size( &r1, 0, 0, this->width, this->height );
+    if( r && !sgui_rect_get_intersection( &r1, &r1, r ) )
+        goto done;
+
     sgui_canvas_begin( this, NULL );
     this->num_dirty = 0;
 
@@ -210,12 +213,13 @@ void sgui_canvas_draw_widgets( sgui_canvas* this, int clear )
 
     if( this->root.children )
     {
-        sgui_widget_draw( &this->root, NULL,
+        sgui_widget_draw( &this->root, &r1,
                           (this->flags & SGUI_CANVAS_DRAW_FOCUS) ?
                           this->focus : NULL );
     }
 
     sgui_canvas_end( this );
+done:
     sgui_internal_unlock_mutex( );
 }
 

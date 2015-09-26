@@ -48,9 +48,6 @@ typedef struct sgui_canvas_x11
 
     sgui_icon_cache* cache; /* a font cache by the canvas */
 
-    void(* display )( struct sgui_canvas_x11* cv, int x, int y,
-                      unsigned int width, unsigned int height );
-
     void(* set_clip_rect )( struct sgui_canvas_x11* cv,
                             int left, int top, int width, int height );
 }
@@ -59,20 +56,16 @@ sgui_canvas_x11;
 typedef struct
 {
     sgui_canvas_x11 super;
-    Picture wndpic;
+    Picture pic;
 
     Picture pen;
     Pixmap penmap;
-
-    Picture pic;
-    Pixmap pixmap;
 }
 sgui_canvas_xrender;
 
 typedef struct
 {
     sgui_canvas_x11 super;
-    Pixmap pixmap;
     GC gc;
     unsigned char bg[4];
 }
