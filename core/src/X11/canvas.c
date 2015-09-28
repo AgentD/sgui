@@ -235,44 +235,6 @@ static void canvas_xlib_blend_glyph( sgui_canvas* super, int x, int y,
     }
     sgui_internal_unlock_mutex( );
 }
-
-sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
-                                 unsigned int height )
-{
-    sgui_canvas_xlib* this = calloc( 1, sizeof(sgui_canvas_xlib) );
-    sgui_canvas* super = (sgui_canvas*)this;
-
-    if( !this )
-        return NULL;
-
-    sgui_internal_lock_mutex( );
-
-    if( !(this->gc = XCreateGC( x11.dpy, wnd, 0, NULL )) )
-        goto fail;
-
-    if( !sgui_canvas_init( super, width, height ) )
-        goto fail;
-
-    memcpy( this->bg, sgui_skin_get( )->window_color, 4 );
-
-    sgui_internal_unlock_mutex( );
-
-    super->destroy       = canvas_xlib_destroy;
-    super->blit          = canvas_xlib_blit;
-    super->blend         = canvas_xlib_blit;
-    super->blend_glyph   = canvas_xlib_blend_glyph;
-    super->create_pixmap = xlib_pixmap_create;
-    super->draw_box      = canvas_xlib_draw_box;
-
-    canvas_x11_init( super, wnd, canvas_xlib_set_clip_rect );
-    return (sgui_canvas*)this;
-fail:
-    if( this->gc ) XFreeGC( x11.dpy, this->gc );
-    sgui_internal_unlock_mutex( );
-    free( this );
-    return NULL;
-}
-
 /*********************** xrender based implementation ***********************/
 #ifndef SGUI_NO_XRENDER
 static void canvas_xrender_destroy( sgui_canvas* super )
@@ -387,54 +349,40 @@ static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
     sgui_internal_unlock_mutex( );
 }
 
-sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
-                                    unsigned int height )
+static sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
+                                           unsigned int height )
 {
     sgui_canvas_xrender* this;
-    sgui_canvas* super;
+    sgui_canvas* super = NULL;
     XRenderPictFormat* fmt;
     XRenderPictureAttributes attr;
     int base, error;
 
     sgui_internal_lock_mutex( );
-
-    /* make sure that the XRender extension is present */
     if( !XRenderQueryExtension( x11.dpy, &base, &error ) )
-    {
-        sgui_internal_unlock_mutex( );
-        return NULL;
-    }
+        goto fail;
 
-    /* allocate xlib canvas */
+    fmt = XRenderFindStandardFormat( x11.dpy, PictStandardRGB24 );
+    if( !fmt )
+        goto fail;
+
     this = calloc( 1, sizeof(sgui_canvas_xrender) );
     super = (sgui_canvas*)this;
 
     if( !this )
-    {
-        sgui_internal_unlock_mutex( );
-        return NULL;
-    }
-
-    /* create pixmaps */
+        goto fail;
     if( !(this->penmap = XCreatePixmap( x11.dpy, wnd, 1, 1, 24 )) )
-        goto fail;
-
-    /* crate Xrender pictures */
-    fmt = XRenderFindStandardFormat( x11.dpy, PictStandardRGB24 );
-    this->pic = XRenderCreatePicture( x11.dpy, wnd, fmt, 0, NULL );
-
-    if( !this->pic )
-        goto fail;
+        goto failfree;
+    if( !(this->pic = XRenderCreatePicture( x11.dpy, wnd, fmt, 0, NULL )) )
+        goto failfree;
 
     attr.repeat = RepeatNormal;
     this->pen = XRenderCreatePicture(x11.dpy,this->penmap,fmt,CPRepeat,&attr);
-
     if( !this->pen )
-        goto fail;
+        goto failfree;
 
-    /* finish initialisation */
     if( !sgui_canvas_init( super, width, height ) )
-        goto fail;
+        goto failfree;
     sgui_internal_unlock_mutex( );
 
     super->destroy       = canvas_xrender_destroy;
@@ -446,10 +394,57 @@ sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
 
     canvas_x11_init( super, wnd, canvas_xrender_set_clip_rect );
     return (sgui_canvas*)this;
-fail:
+failfree:
     sgui_internal_unlock_mutex( );
+fail:
     canvas_xrender_destroy( super );
     return NULL;
 }
 #endif /* !SGUI_NO_XRENDER */
+
+sgui_canvas* canvas_x11_create( Window wnd, unsigned int width,
+                                unsigned int height )
+{
+    sgui_canvas_xlib* this;
+    sgui_canvas* super;
+
+#ifndef SGUI_NO_XRENDER
+    super = canvas_xrender_create( wnd, width, height );
+    if( super )
+        return super;
+#endif
+
+    this = calloc( 1, sizeof(sgui_canvas_xlib) );
+    super = (sgui_canvas*)this;
+
+    if( !this )
+        return NULL;
+
+    sgui_internal_lock_mutex( );
+
+    if( !(this->gc = XCreateGC( x11.dpy, wnd, 0, NULL )) )
+        goto fail;
+
+    if( !sgui_canvas_init( super, width, height ) )
+        goto fail;
+
+    memcpy( this->bg, sgui_skin_get( )->window_color, 4 );
+
+    sgui_internal_unlock_mutex( );
+
+    super->destroy       = canvas_xlib_destroy;
+    super->blit          = canvas_xlib_blit;
+    super->blend         = canvas_xlib_blit;
+    super->blend_glyph   = canvas_xlib_blend_glyph;
+    super->create_pixmap = xlib_pixmap_create;
+    super->draw_box      = canvas_xlib_draw_box;
+
+    canvas_x11_init( super, wnd, canvas_xlib_set_clip_rect );
+    return (sgui_canvas*)this;
+fail:
+    if( this->gc ) XFreeGC( x11.dpy, this->gc );
+    sgui_internal_unlock_mutex( );
+    free( this );
+    return NULL;
+}
 

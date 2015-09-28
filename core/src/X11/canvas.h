@@ -75,13 +75,8 @@ sgui_canvas_xlib;
 extern "C" {
 #endif
 
-/* create an xrender based canvas */
-sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
-                                    unsigned int height );
-
-/* create an xlib drawing function based canvas */
-sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
-                                 unsigned int height );
+sgui_canvas* canvas_x11_create( Window wnd, unsigned int width,
+                                unsigned int height );
 
 #ifdef __cplusplus
 }

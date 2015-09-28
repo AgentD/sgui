@@ -447,14 +447,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     /********************** create canvas **********************/
     if( desc->backend==SGUI_NATIVE )
     {
-#ifndef SGUI_NO_XRENDER
-        super->ctx.canvas = canvas_xrender_create( this->wnd, attr.width,
-                                                   attr.height );
-#endif
-        if( !super->ctx.canvas )
-            super->ctx.canvas = canvas_xlib_create( this->wnd, attr.width,
-                                                    attr.height );
-
+        super->ctx.canvas = canvas_x11_create(this->wnd, super->w, super->h);
         if( !super->ctx.canvas )
             goto failure;
     }
