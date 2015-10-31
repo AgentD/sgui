@@ -397,7 +397,8 @@ static sgui_canvas* canvas_xrender_create( Drawable wnd, unsigned int width,
 failfree:
     sgui_internal_unlock_mutex( );
 fail:
-    canvas_xrender_destroy( super );
+    if( super )
+        canvas_xrender_destroy( super );
     return NULL;
 }
 #endif /* !SGUI_NO_XRENDER */

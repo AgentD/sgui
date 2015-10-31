@@ -219,7 +219,7 @@ static void w32_window_destroy( sgui_window* this )
 
     sgui_internal_lock_mutex( );
 
-    if( this->backend==SGUI_NATIVE )
+    if( this->backend==SGUI_NATIVE && this->ctx.canvas )
     {
         sgui_canvas_destroy( this->ctx.canvas );
 
@@ -228,7 +228,7 @@ static void w32_window_destroy( sgui_window* this )
         if( TO_W32(this)->bitmap )
             DeleteObject( TO_W32(this)->bitmap );
     }
-    else
+    else if( this->backend!=SGUI_NATIVE && this->ctx.ctx )
     {
         this->ctx.ctx->destroy( this->ctx.ctx );
     }
