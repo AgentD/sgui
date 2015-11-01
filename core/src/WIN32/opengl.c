@@ -30,10 +30,17 @@
 #ifndef SGUI_NO_OPENGL
 #include <GL/gl.h>
 
+typedef struct
+{
+    sgui_context super;
+
+    sgui_window* wnd;
+    HGLRC hRC;
+}
+sgui_gl_context;
 
 static int glversions[][2] = { {4,5}, {4,4}, {4,3}, {4,2}, {4,1}, {4,0},
                                              {3,3}, {3,2}, {3,1}, {3,0} };
-
 
 /* transform a pixel attribute array into a pixelformat descriptor */
 static int get_descriptor_from_array( PIXELFORMATDESCRIPTOR* pfd,
@@ -115,65 +122,50 @@ static int get_descriptor_from_array( PIXELFORMATDESCRIPTOR* pfd,
 static int determine_pixel_format( int* pixel_attribs, int only_new )
 {
     WGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-    int pixelformat, format, need_new = 0;
+    int pixelformat = 0, format, need_new = 0;
     PIXELFORMATDESCRIPTOR pfd;
     HGLRC temprc, oldctx;
     HDC tempdc, olddc;
     UINT numFormats;
     HWND tempwnd;
 
-    /* Generate an old style pixel format descriptor */
     need_new = get_descriptor_from_array( &pfd, pixel_attribs );
 
-
-    /* Create a dummy window */
     tempwnd = CreateWindow(w32.wndclass,"",0,0,0,100,100,0,0,w32.hInstance,0);
-    tempdc = GetWindowDC( tempwnd );
-    pixelformat = ChoosePixelFormat( tempdc, &pfd );
-    SetPixelFormat( tempdc, pixelformat, NULL );
-
-    /* try to get a pixel format descriptor from the array if required */
-    if( need_new )
-    {
-        /* Create a dummy OpenGL context */
-        oldctx = wglGetCurrentContext( );
-        olddc = wglGetCurrentDC( );
-        temprc = wglCreateContext( tempdc );
-        wglMakeCurrent( tempdc, temprc );
-
-        /* Try to use the extension to determine the format from the array */
-        wglChoosePixelFormatARB = (WGLCHOOSEPIXELFORMATARBPROC)
-        wglGetProcAddress( "wglChoosePixelFormatARB" );
-
-        pixelformat = only_new ? 0 : pixelformat;
-
-        if( wglChoosePixelFormatARB )
-        {
-            wglChoosePixelFormatARB( tempdc, pixel_attribs, NULL,
-                                     1, &format, &numFormats );
-
-            pixelformat = numFormats>=1 ? format : pixelformat;
-        }
-
-        /* reset and destroy dummy context */
-        wglMakeCurrent( olddc, oldctx );
-        wglDeleteContext( temprc );
-    }
-
-    /* Clean up */
-    ReleaseDC( tempwnd, tempdc );
-    DestroyWindow( tempwnd );
-
-    return pixelformat;
+    if( !tempwnd )
+        goto out;
+    if( !(tempdc = GetWindowDC( tempwnd )) )
+        goto outwnd;
+    if( !(pixelformat = ChoosePixelFormat( tempdc, &pfd )) || !need_new )
+        goto outdc;
+    format = pixelformat;
+    if( only_new )
+        pixelformat = 0;
+    if( !SetPixelFormat( tempdc, format, NULL ) )
+        goto outdc;
+    oldctx = wglGetCurrentContext( );
+    olddc = wglGetCurrentDC( );
+    if( !(temprc = wglCreateContext( tempdc )) )
+        goto outdc;
+    if( !wglMakeCurrent( tempdc, temprc ) )
+        goto outrc;
+    wglChoosePixelFormatARB = (WGLCHOOSEPIXELFORMATARBPROC)
+    wglGetProcAddress( "wglChoosePixelFormatARB" );
+    if( !wglChoosePixelFormatARB )
+        goto outreset;
+    wglChoosePixelFormatARB(tempdc,pixel_attribs,NULL,1,&format,&numFormats);
+    pixelformat = numFormats>=1 ? format : pixelformat;
+    /* cleanup */
+outreset: wglMakeCurrent( olddc, oldctx );
+outrc:    wglDeleteContext( temprc );
+outdc:    ReleaseDC( tempwnd, tempdc );
+outwnd:   DestroyWindow( tempwnd );
+out:      return pixelformat;
 }
 
 static void set_attributes( int* attr, int bpp, int depth, int stencil,
                             int doublebuffer, int samples )
 {
-    bpp = (bpp!=16 && bpp!=24 && bpp!=32) ? 32 : bpp;
-    depth = (depth!=0 && depth!=16 && depth!=24 && depth!=32) ? 24 : depth;
-    stencil = (stencil!=0 && stencil!=8) ? 8 : stencil;
-
 #define ATTRIB( name, value ) *(attr++) = (name); *(attr++) = (value)
     ATTRIB( WGL_DRAW_TO_WINDOW_ARB, GL_TRUE         );
     ATTRIB( WGL_SUPPORT_OPENGL_ARB, GL_TRUE         );
@@ -202,7 +194,7 @@ int set_pixel_format( sgui_window_w32* this,
 {
     int attribs[20], format = 0, samples = desc->samples;
 
-    while( samples>=0 && format<1 )
+    while( samples && !format )
     {
         set_attributes( attribs, desc->bits_per_pixel, desc->depth_bits,
                         desc->stencil_bits,
@@ -211,60 +203,71 @@ int set_pixel_format( sgui_window_w32* this,
         format = determine_pixel_format( attribs, 1 );
     }
 
-    if( !format )
-    {
-        if( !(format = determine_pixel_format( attribs, 0 )) )
-            return 0;
-    }
+    if( !format && !(format = determine_pixel_format( attribs, 0 )) )
+        return 0;
 
     SetPixelFormat( this->hDC, format, NULL );
     return 1;
 }
-
 /****************************************************************************/
+static void gl_swap_buffers( sgui_window* this )
+{
+    sgui_internal_lock_mutex( );
+    glFlush( );
+    SwapBuffers( ((sgui_window_w32*)this)->hDC );
+    sgui_internal_unlock_mutex( );
+}
 
+static void gl_set_vsync( sgui_window* this, int interval )
+{
+    WGLSWAPINTERVALEXT wglSwapIntervalEXT;
+    (void)this;
+
+    sgui_internal_lock_mutex( );
+
+    wglSwapIntervalEXT = (WGLSWAPINTERVALEXT)
+                         wglGetProcAddress( "wglSwapIntervalEXT" );
+
+    if( wglSwapIntervalEXT )
+        wglSwapIntervalEXT( interval );
+
+    sgui_internal_unlock_mutex( );
+}
+/****************************************************************************/
 static sgui_context* context_gl_create_share( sgui_context* super )
 {
     sgui_gl_context* this = (sgui_gl_context*)super;
 
-    if( !this )
-        return NULL;
-
-    return gl_context_create( this->wnd, this->wnd->backend==SGUI_OPENGL_CORE,
-                              (sgui_gl_context*)this->wnd->ctx.ctx );
+    return gl_context_create( this->wnd, this->wnd->backend,
+                              this->wnd->ctx.ctx );
 }
 
 static void context_gl_destroy( sgui_context* this )
 {
-    if( this )
-    {
-        sgui_internal_lock_mutex( );
-        if( wglGetCurrentContext( )==((sgui_gl_context*)this)->hRC )
-            wglMakeCurrent( NULL, NULL );
+    sgui_internal_lock_mutex( );
+    if( wglGetCurrentContext( )==((sgui_gl_context*)this)->hRC )
+        wglMakeCurrent( NULL, NULL );
 
-        wglDeleteContext( ((sgui_gl_context*)this)->hRC );
-        sgui_internal_unlock_mutex( );
-    }
+    wglDeleteContext( ((sgui_gl_context*)this)->hRC );
+    sgui_internal_unlock_mutex( );
 }
 
 static void context_gl_make_current( sgui_context* this, sgui_window* wnd )
 {
-    if( this && wnd )
-    {
-        sgui_internal_lock_mutex( );
-        wglMakeCurrent( TO_W32(wnd)->hDC, ((sgui_gl_context*)this)->hRC );
-        sgui_internal_unlock_mutex( );
-    }
+    HGLRC gl = ((sgui_gl_context*)this)->hRC;
+    HDC dc = wnd ? TO_W32(wnd)->hDC : 0;
+
+    sgui_internal_lock_mutex( );
+    wglMakeCurrent( dc, gl );
+    sgui_internal_unlock_mutex( );
 }
 
 static void context_gl_release_current( sgui_context* this )
 {
-    if( this )
-    {
-        sgui_internal_lock_mutex( );
-        wglMakeCurrent( NULL, NULL );
-        sgui_internal_unlock_mutex( );
-    }
+    (void)this;
+    sgui_internal_lock_mutex( );
+    wglMakeCurrent( NULL, NULL );
+    sgui_internal_unlock_mutex( );
 }
 
 static sgui_funptr context_gl_load( sgui_context* this, const char* name )
@@ -274,11 +277,11 @@ static sgui_funptr context_gl_load( sgui_context* this, const char* name )
 
 static void* context_gl_get_internal( sgui_context* this )
 {
-    return this ? &(((sgui_gl_context*)this)->hRC) : NULL;
+    return &(((sgui_gl_context*)this)->hRC);
 }
 
-sgui_context* gl_context_create( sgui_window* wnd, int core,
-                                 sgui_gl_context* share )
+sgui_context* gl_context_create( sgui_window* wnd, int backend,
+                                 sgui_context* share )
 {
     HGLRC temp, oldctx, src = share ? ((sgui_gl_context*)share)->hRC : 0;
     WGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
@@ -311,7 +314,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
     wglCreateContextAttribsARB = (WGLCREATECONTEXTATTRIBSARBPROC)
     wglGetProcAddress( "wglCreateContextAttribsARB" );
 
-    if( core && wglCreateContextAttribsARB )
+    if( backend==SGUI_OPENGL_CORE && wglCreateContextAttribsARB )
     {
         /* fill attrib array */
         attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
@@ -350,6 +353,9 @@ sgui_context* gl_context_create( sgui_window* wnd, int core,
     /* finish initialization */
     this->wnd = wnd;
 
+    wnd->swap_buffers = gl_swap_buffers;
+    wnd->set_vsync = gl_set_vsync;
+
     super->create_share    = context_gl_create_share;
     super->destroy         = context_gl_destroy;
     super->make_current    = context_gl_make_current;
@@ -366,29 +372,19 @@ fail:
     sgui_internal_unlock_mutex( );
     return NULL;
 }
-
-void gl_swap_buffers( sgui_window* this )
+#else
+int set_pixel_format( sgui_window_w32* wnd,
+                      const sgui_window_description* desc )
 {
-    sgui_internal_lock_mutex( );
-    glFlush( );
-    SwapBuffers( ((sgui_window_w32*)this)->hDC );
-    sgui_internal_unlock_mutex( );
+    (void)wnd; (void)desc;
+    return 0;
 }
 
-void gl_set_vsync( sgui_window* this, int interval )
+sgui_context* gl_context_create( sgui_window* wnd, int backend,
+                                 sgui_context* share )
 {
-    WGLSWAPINTERVALEXT wglSwapIntervalEXT;
-    (void)this;
-
-    sgui_internal_lock_mutex( );
-
-    wglSwapIntervalEXT = (WGLSWAPINTERVALEXT)
-                         wglGetProcAddress( "wglSwapIntervalEXT" );
-
-    if( wglSwapIntervalEXT )
-        wglSwapIntervalEXT( interval );
-
-    sgui_internal_unlock_mutex( );
+    (void)wnd; (void)backend; (void)share;
+    return NULL;
 }
 #endif
 

@@ -372,14 +372,6 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( !desc || !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
         return NULL;
 
-#ifdef SGUI_NO_OPENGL
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
-        return NULL;
-#endif
-
-    if( desc->backend==SGUI_DIRECT3D_9 || desc->backend==SGUI_DIRECT3D_11 )
-        return NULL;
-
     /********* allocate space for the window structure *********/
     this = calloc( 1, sizeof(sgui_window_xlib) );
     super = (sgui_window*)this;
@@ -396,23 +388,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
-#ifndef SGUI_NO_OPENGL
-        XSetWindowAttributes swa;
-        XVisualInfo* vi = NULL;
-
-        /* Get an fbc, a visual and a Colormap */
-        if( !get_fbc_visual_cmap( &this->cfg, &vi, &swa.colormap, desc ) )
-            goto failure;
-
-        swa.border_pixel = 0;
-        this->wnd = XCreateWindow( x11.dpy, x_parent, 0, 0,
-                                   desc->width, desc->height, 0,
-                                   vi->depth, InputOutput, vi->visual,
-                                   CWBorderPixel|CWColormap, &swa );
-        XFree( vi );
-#endif
+        this->wnd = create_glx_window( super, desc, x_parent );
     }
-    else
+    else if( desc->backend==SGUI_NATIVE || desc->backend==SGUI_CUSTOM )
     {
         memcpy( rgb, sgui_skin_get( )->window_color, 3 );
 
@@ -451,24 +429,15 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( desc->backend==SGUI_NATIVE )
     {
         super->ctx.canvas = canvas_x11_create(this->wnd, super->w, super->h);
-        if( !super->ctx.canvas )
-            goto failure;
     }
-#ifndef SGUI_NO_OPENGL
     else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
     {
-        super->backend = desc->backend;
-        super->ctx.ctx = gl_context_create( super,
-                                            desc->backend==SGUI_OPENGL_CORE,
-                                            (sgui_context_gl*)desc->share );
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = gl_swap_buffers;
-        super->set_vsync = gl_set_vsync;
+        super->ctx.ctx = gl_context_create(super,desc->backend,desc->share);
     }
-#endif
+
+    if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
+        goto failure;
+
     /*********** Create an input context ************/
     this->ic = XCreateIC( x11.im, XNInputStyle,
                           XIMPreeditNothing|XIMStatusNothing, XNClientWindow,

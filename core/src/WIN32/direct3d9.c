@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
+#include "sgui_event.h"
 #include "direct3d9.h"
 #include "window.h"
 
@@ -136,20 +137,17 @@ static const int d_formats[] =
 
 static void context_d3d9_destroy( sgui_context* this )
 {
-    if( this )
-    {
-        IDirect3DDevice9_Release( ((sgui_d3d9_context*)this)->device );
-        free( this );
-        release_d3d9( );
-    }
+    IDirect3DDevice9_Release( ((sgui_d3d9_context*)this)->device );
+    free( this );
+    release_d3d9( );
 }
 
 static void* context_d3d9_get_internal( sgui_context* this )
 {
-    return this ? ((sgui_d3d9_context*)this)->device : NULL;
+    return ((sgui_d3d9_context*)this)->device;
 }
 
-void d3d9_swap_buffers( sgui_window* this )
+static void d3d9_swap_buffers( sgui_window* this )
 {
     sgui_internal_lock_mutex( );
     IDirect3DDevice9_Present( ((sgui_d3d9_context*)this->ctx.ctx)->device,
@@ -157,7 +155,7 @@ void d3d9_swap_buffers( sgui_window* this )
     sgui_internal_unlock_mutex( );
 }
 
-void d3d9_set_vsync( sgui_window* this, int interval )
+static void d3d9_set_vsync( sgui_window* this, int interval )
 {
     sgui_d3d9_context* ctx = (sgui_d3d9_context*)this->ctx.ctx;
 
@@ -168,8 +166,7 @@ void d3d9_set_vsync( sgui_window* this, int interval )
 }
 
 sgui_context* d3d9_context_create( sgui_window* wnd,
-                                   const sgui_window_description* desc,
-                                   sgui_d3d9_context* share )
+                                   const sgui_window_description* desc )
 {
     int samp, devtype, adapter, formatfound;
     sgui_d3d9_context* this;
@@ -178,8 +175,6 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
     sgui_context* super;
     unsigned int i;
     HRESULT hr;
-
-    (void)share;
 
     if( !load_d3d9( ) )
         return NULL;
@@ -289,6 +284,9 @@ sgui_context* d3d9_context_create( sgui_window* wnd,
     super->get_internal    = context_d3d9_get_internal;
     this->wnd = wnd;
 
+    wnd->swap_buffers = d3d9_swap_buffers;
+    wnd->set_vsync = d3d9_set_vsync;
+
     sgui_internal_unlock_mutex( );
     return super;
 fail:
@@ -296,6 +294,31 @@ fail:
     release_d3d9( );
     sgui_internal_unlock_mutex( );
     return NULL;
+}
+
+void send_event_if_d3d9_lost( sgui_window* wnd )
+{
+    IDirect3DDevice9* dev = ((sgui_d3d9_context*)wnd->ctx.ctx)->device;
+    sgui_event e;
+
+    if( IDirect3DDevice9_TestCooperativeLevel( dev )==D3DERR_DEVICELOST )
+    {
+        e.type       = SGUI_D3D9_DEVICE_LOST;
+        e.src.window = wnd;
+        sgui_internal_window_fire_event( wnd, &e );
+    }
+}
+#else
+sgui_context* d3d9_context_create( sgui_window* wnd,
+                                   const sgui_window_description* desc )
+{
+    (void)wnd; (void)desc;
+    return NULL;
+}
+
+void send_event_if_d3d9_lost( sgui_window* wnd )
+{
+    (void)wnd;
 }
 #endif /* SGUI_NO_D3D9 */
 

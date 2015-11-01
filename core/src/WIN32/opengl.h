@@ -112,15 +112,6 @@ typedef BOOL  (__stdcall * WGLSWAPINTERVALEXT )( int );
 #define WGL_TYPE_RGBA_ARB                       0x202B
 #define WGL_TYPE_COLORINDEX_ARB                 0x202C
 
-typedef struct
-{
-    sgui_context super;
-
-    sgui_window* wnd;
-    HGLRC hRC;
-}
-sgui_gl_context;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -129,15 +120,9 @@ extern "C" {
 int set_pixel_format( sgui_window_w32* wnd,
                       const sgui_window_description* desc );
 
-/* swap buffers of an OpenGL context of a window */
-void gl_swap_buffers( sgui_window* wnd );
-
-/* turn vsync on or off for a window with an OpenGL context */
-void gl_set_vsync( sgui_window* wnd, int interval );
-
 /* create an OpenGL context */
-sgui_context* gl_context_create( sgui_window* wnd, int core,
-                                 sgui_gl_context* share );
+sgui_context* gl_context_create( sgui_window* wnd, int backend,
+                                 sgui_context* share );
 
 #ifdef __cplusplus
 }

@@ -152,12 +152,10 @@ static void w32_window_set_size( sgui_window* this,
         resize_pixmap( TO_W32(this) );
         sgui_canvas_resize( this->ctx.canvas, width, height );
     }
-#ifndef SGUI_NO_D3D11
     else if( this->backend == SGUI_DIRECT3D_11 )
     {
         d3d11_resize( this->ctx.ctx );
     }
-#endif
 
     sgui_internal_unlock_mutex( );
 }
@@ -233,6 +231,8 @@ static void w32_window_destroy( sgui_window* this )
         this->ctx.ctx->destroy( this->ctx.ctx );
     }
 
+    if( TO_W32(this)->bgbrush )
+        DeleteObject( TO_W32(this)->bgbrush );
     if( TO_W32(this)->hDC )
         DeleteDC( TO_W32(this)->hDC );
 
@@ -244,8 +244,6 @@ static void w32_window_destroy( sgui_window* this )
         DestroyWindow( TO_W32(this)->hWnd );
         PeekMessageA( &msg, TO_W32(this)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
     }
-
-    DeleteObject( TO_W32(this)->bgbrush );
 
     remove_window( (sgui_window_w32*)this );
     sgui_internal_unlock_mutex( );
@@ -276,20 +274,10 @@ void update_window( sgui_window_w32* this )
 
         sgui_canvas_redraw_widgets( super->ctx.canvas, 1 );
     }
-#ifndef SGUI_NO_D3D9
     else if( super->backend == SGUI_DIRECT3D_9 )
     {
-        IDirect3DDevice9* dev = ((sgui_d3d9_context*)super->ctx.ctx)->device;
-        sgui_event e;
-
-        if( IDirect3DDevice9_TestCooperativeLevel( dev )==D3DERR_DEVICELOST )
-        {
-            e.type       = SGUI_D3D9_DEVICE_LOST;
-            e.src.window = (sgui_window*)this;
-            sgui_internal_window_fire_event( super, &e );
-        }
+        send_event_if_d3d9_lost( super );
     }
-#endif
 }
 
 int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
@@ -388,12 +376,11 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
             resize_pixmap( this );
             sgui_canvas_resize( super->ctx.canvas, super->w, super->h );
         }
-#ifndef SGUI_NO_D3D11
         else if( super->backend==SGUI_DIRECT3D_11 )
         {
             d3d11_resize( super->ctx.ctx );
         }
-#endif
+
         sgui_internal_window_fire_event( super, &e );
 
         if( super->backend==SGUI_NATIVE )
@@ -452,21 +439,6 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( !desc || !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
         return NULL;
 
-#ifdef SGUI_NO_OPENGL
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
-        return NULL;
-#endif
-
-#ifdef SGUI_NO_D3D9
-    if( desc->backend==SGUI_DIRECT3D_9 )
-        return NULL;
-#endif
-
-#ifdef SGUI_NO_D3D11
-    if( desc->backend==SGUI_DIRECT3D_11 )
-        return NULL;
-#endif
-
     /*************** allocate space for the window structure ***************/
     this = calloc( 1, sizeof(sgui_window_w32) );
     super = (sgui_window*)this;
@@ -504,8 +476,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     SET_USER_PTR( this->hWnd, this );
 
     /**************************** create canvas ****************************/
-    if( desc->backend==SGUI_NATIVE )
+    switch( desc->backend )
     {
+    case SGUI_NATIVE:
         /* create an offscreen Device Context */
         if( !(this->hDC = CreateCompatibleDC( NULL )) )
             goto failure;
@@ -532,63 +505,30 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
                                                       desc->height,
                                                       SGUI_RGBA8, 1 );
 
-        if( !super->ctx.canvas )
-            goto failure;
-    }
-#ifndef SGUI_NO_OPENGL
-    else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
-    {
-        if( !(this->hDC = GetDC( this->hWnd )) )
-            goto failure;
-
-        if( !set_pixel_format( this, desc ) )
+        memcpy( color, sgui_skin_get( )->window_color, 3 );
+        this->bgbrush = CreateSolidBrush(RGB(color[0],color[1],color[2]));
+        break;
+    case SGUI_OPENGL_CORE:
+    case SGUI_OPENGL_COMPAT:
+        if( !(this->hDC=GetDC(this->hWnd)) || !set_pixel_format(this,desc) )
             goto failure;
 
-        super->backend = desc->backend;
-        super->ctx.ctx = gl_context_create( super,
-                                            desc->backend==SGUI_OPENGL_CORE,
-                                            (sgui_gl_context*)desc->share );
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = gl_swap_buffers;
-        super->set_vsync = gl_set_vsync;
-    }
-#endif
-#ifndef SGUI_NO_D3D9
-    else if( desc->backend==SGUI_DIRECT3D_9 )
-    {
-        super->backend = desc->backend;
-        super->ctx.ctx = d3d9_context_create(super, desc,
-                                             (sgui_d3d9_context*)desc->share);
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = d3d9_swap_buffers;
-        super->set_vsync = d3d9_set_vsync;
-    }
-#endif
-#ifndef SGUI_NO_D3D11
-    else if( desc->backend==SGUI_DIRECT3D_11 )
-    {
-        super->backend = desc->backend;
+        super->ctx.ctx = gl_context_create(super, desc->backend, desc->share);
+        break;
+    case SGUI_DIRECT3D_9:
+        super->ctx.ctx = d3d9_context_create( super, desc );
+        break;
+    case SGUI_DIRECT3D_11:
         super->ctx.ctx = d3d11_context_create( super, desc );
-
-        if( !super->ctx.ctx )
-            goto failure;
-
-        super->swap_buffers = d3d11_swap_buffers;
-        super->set_vsync = d3d11_set_vsync;
+        break;
     }
-#endif
+
+    if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
+        goto failure;
+
     sgui_internal_window_post_init( (sgui_window*)this,
                                      desc->width, desc->height,
                                      desc->backend );
-
-    memcpy( color, sgui_skin_get( )->window_color, 3 );
-    this->bgbrush = CreateSolidBrush( RGB(color[0],color[1],color[2]) );
 
     /* store entry points */
     super->get_mouse_position = w32_window_get_mouse_position;
