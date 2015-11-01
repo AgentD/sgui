@@ -44,7 +44,7 @@
 typedef struct sgui_canvas_x11
 {
     sgui_canvas super;
-    Window wnd;
+    Drawable wnd;
 
     sgui_icon_cache* cache; /* a font cache by the canvas */
 
@@ -75,7 +75,7 @@ sgui_canvas_xlib;
 extern "C" {
 #endif
 
-sgui_canvas* canvas_x11_create( Window wnd, unsigned int width,
+sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
                                 unsigned int height );
 
 #ifdef __cplusplus

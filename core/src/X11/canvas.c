@@ -103,7 +103,7 @@ static void canvas_x11_clear( sgui_canvas* super, sgui_rect* r )
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_x11_init(sgui_canvas* super, Window wnd, sgui_funptr clip)
+static void canvas_x11_init(sgui_canvas* super, Drawable wnd, sgui_funptr clip)
 {
     sgui_canvas_x11* this = (sgui_canvas_x11*)super;
     super->resize       = canvas_x11_resize;
@@ -349,7 +349,7 @@ static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
     sgui_internal_unlock_mutex( );
 }
 
-static sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
+static sgui_canvas* canvas_xrender_create( Drawable wnd, unsigned int width,
                                            unsigned int height )
 {
     sgui_canvas_xrender* this;
@@ -402,7 +402,7 @@ fail:
 }
 #endif /* !SGUI_NO_XRENDER */
 
-sgui_canvas* canvas_x11_create( Window wnd, unsigned int width,
+sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
                                 unsigned int height )
 {
     sgui_canvas_xlib* this;

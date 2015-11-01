@@ -106,7 +106,7 @@ sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
                                  unsigned int height, int format )
 {
     sgui_canvas_xlib* owner = (sgui_canvas_xlib*)cv;
-    Window wnd = ((sgui_canvas_x11*)cv)->wnd;
+    Drawable wnd = ((sgui_canvas_x11*)cv)->wnd;
     sgui_pixmap* super;
     xlib_pixmap* this;
 
@@ -227,7 +227,7 @@ void xrender_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
 sgui_pixmap* xrender_pixmap_create( sgui_canvas* cv, unsigned int width,
                                     unsigned int height, int format )
 {
-    Window wnd = ((sgui_canvas_x11*)cv)->wnd;
+    Drawable wnd = ((sgui_canvas_x11*)cv)->wnd;
     xrender_pixmap* this = NULL;
     XRenderPictFormat* fmt;
     sgui_pixmap* super;
