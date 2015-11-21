@@ -34,7 +34,7 @@ typedef struct
 {
     sgui_context super;
 
-    sgui_window* wnd;
+    sgui_window_w32* wnd;
     HGLRC hRC;
 }
 sgui_gl_context;
@@ -194,6 +194,9 @@ int set_pixel_format( sgui_window_w32* this,
 {
     int attribs[20], format = 0, samples = desc->samples;
 
+    if( !(this->hDC = GetDC(this->hWnd)) )
+        return 0;
+
     while( samples && !format )
     {
         set_attributes( attribs, desc->bits_per_pixel, desc->depth_bits,
@@ -204,10 +207,12 @@ int set_pixel_format( sgui_window_w32* this,
     }
 
     if( !format && !(format = determine_pixel_format( attribs, 0 )) )
-        return 0;
-
+        goto fail;
     SetPixelFormat( this->hDC, format, NULL );
     return 1;
+fail:
+    ReleaseDC( this->hWnd, this->hDC );
+    return 0;
 }
 /****************************************************************************/
 static void gl_swap_buffers( sgui_window* this )
@@ -238,8 +243,8 @@ static sgui_context* context_gl_create_share( sgui_context* super )
 {
     sgui_gl_context* this = (sgui_gl_context*)super;
 
-    return gl_context_create( this->wnd, this->wnd->backend,
-                              this->wnd->ctx.ctx );
+    return gl_context_create( this->wnd, this->wnd->super.backend,
+                              this->wnd->super.ctx.ctx );
 }
 
 static void context_gl_destroy( sgui_context* this )
@@ -254,20 +259,16 @@ static void context_gl_destroy( sgui_context* this )
 
 static void context_gl_make_current( sgui_context* this, sgui_window* wnd )
 {
-    HGLRC gl = ((sgui_gl_context*)this)->hRC;
-    HDC dc = wnd ? TO_W32(wnd)->hDC : 0;
-
     sgui_internal_lock_mutex( );
-    wglMakeCurrent( dc, gl );
+    wglMakeCurrent( wnd ? TO_W32(wnd)->hDC : 0,
+                    ((sgui_gl_context*)this)->hRC );
     sgui_internal_unlock_mutex( );
 }
 
 static void context_gl_release_current( sgui_context* this )
 {
     (void)this;
-    sgui_internal_lock_mutex( );
     wglMakeCurrent( NULL, NULL );
-    sgui_internal_unlock_mutex( );
 }
 
 static sgui_funptr context_gl_load( sgui_context* this, const char* name )
@@ -280,7 +281,7 @@ static void* context_gl_get_internal( sgui_context* this )
     return &(((sgui_gl_context*)this)->hRC);
 }
 
-sgui_context* gl_context_create( sgui_window* wnd, int backend,
+sgui_context* gl_context_create( sgui_window_w32* wnd, int backend,
                                  sgui_context* share )
 {
     HGLRC temp, oldctx, src = share ? ((sgui_gl_context*)share)->hRC : 0;
@@ -298,13 +299,13 @@ sgui_context* gl_context_create( sgui_window* wnd, int backend,
     this->hRC = 0;
 
     /********** create a trampoline context **********/
-    if( !(temp = wglCreateContext( TO_W32(wnd)->hDC )) )
+    if( !(temp = wglCreateContext( wnd->hDC )) )
         goto fail;
 
     oldctx = wglGetCurrentContext( );
     olddc = wglGetCurrentDC( );
 
-    if( !wglMakeCurrent( TO_W32(wnd)->hDC, temp ) )
+    if( !wglMakeCurrent( wnd->hDC, temp ) )
     {
         wglDeleteContext( temp );
         goto fail;
@@ -332,8 +333,7 @@ sgui_context* gl_context_create( sgui_window* wnd, int backend,
         {
             attribs[1] = glversions[i][0];
             attribs[3] = glversions[i][1];
-            this->hRC = wglCreateContextAttribsARB( TO_W32(wnd)->hDC, src,
-                                                    attribs );
+            this->hRC = wglCreateContextAttribsARB( wnd->hDC, src, attribs );
         }
     }
 
@@ -353,8 +353,8 @@ sgui_context* gl_context_create( sgui_window* wnd, int backend,
     /* finish initialization */
     this->wnd = wnd;
 
-    wnd->swap_buffers = gl_swap_buffers;
-    wnd->set_vsync = gl_set_vsync;
+    ((sgui_window*)wnd)->swap_buffers = gl_swap_buffers;
+    ((sgui_window*)wnd)->set_vsync = gl_set_vsync;
 
     super->create_share    = context_gl_create_share;
     super->destroy         = context_gl_destroy;
@@ -380,7 +380,7 @@ int set_pixel_format( sgui_window_w32* wnd,
     return 0;
 }
 
-sgui_context* gl_context_create( sgui_window* wnd, int backend,
+sgui_context* gl_context_create( sgui_window_w32* wnd, int backend,
                                  sgui_context* share )
 {
     (void)wnd; (void)backend; (void)share;

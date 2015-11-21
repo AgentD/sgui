@@ -157,8 +157,10 @@ void sgui_widget_get_absolute_position( const sgui_widget* this,
 void sgui_widget_get_size( const sgui_widget* this,
                            unsigned int* width, unsigned int* height )
 {
+    sgui_internal_lock_mutex( );
     *width  = SGUI_RECT_WIDTH( this->area );
     *height = SGUI_RECT_HEIGHT( this->area );
+    sgui_internal_unlock_mutex( );
 }
 
 int sgui_widget_is_absolute_visible( const sgui_widget* this )
@@ -225,6 +227,8 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
 {
     sgui_widget* i;
 
+    sgui_internal_lock_mutex( );
+
     /* XXX: Keyboard events are only sent to widget that has focus */
     if( event->type==SGUI_KEY_PRESSED_EVENT ||
         event->type==SGUI_KEY_RELEASED_EVENT )
@@ -234,7 +238,7 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
             (this->flags & SGUI_FOCUS_DROP_ESC) )
         {
             sgui_canvas_set_focus( this->canvas, NULL );
-            return;
+            goto out;
         }
 
         /* tab key pressed -> advance focus if policy says so. */
@@ -253,7 +257,7 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
 
             if( i )
                 sgui_canvas_set_focus( this->canvas, i );
-            return;
+            goto out;
         }
     }
 
@@ -262,13 +266,11 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
 
     if( propagate )
     {
-        sgui_internal_lock_mutex( );
-
         for( i=this->children; i!=NULL; i=i->next )
             sgui_widget_send_event( i, event, 1 );
-
-        sgui_internal_unlock_mutex( );
     }
+out:
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_remove_from_parent( sgui_widget* this )

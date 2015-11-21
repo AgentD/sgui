@@ -105,13 +105,10 @@ void xlib_pixmap_load( sgui_pixmap* super, int dstx, int dsty,
 sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
                                  unsigned int height, int format )
 {
+    xlib_pixmap* this = calloc( 1, sizeof(xlib_pixmap) );
     sgui_canvas_xlib* owner = (sgui_canvas_xlib*)cv;
     Drawable wnd = ((sgui_canvas_x11*)cv)->wnd;
-    sgui_pixmap* super;
-    xlib_pixmap* this;
-
-    this = calloc( 1, sizeof(xlib_pixmap) );
-    super = (sgui_pixmap*)this;
+    sgui_pixmap* super = (sgui_pixmap*)this;
 
     if( this )
     {
@@ -126,19 +123,16 @@ sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
         if( format==SGUI_A8 )
         {
             this->data.pixels = malloc( width*height );
-
-            if( !this->data.pixels )
-                goto fail;
         }
         else
         {
             sgui_internal_lock_mutex( );
             this->data.xpm = XCreatePixmap( x11.dpy, wnd, width, height, 24 );
             sgui_internal_unlock_mutex( );
-
-            if( !this->data.xpm )
-                goto fail;
         }
+
+        if( !this->data.pixels || !this->data.xpm )
+            goto fail;
     }
 
     return (sgui_pixmap*)this;

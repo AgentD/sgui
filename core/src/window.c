@@ -169,9 +169,9 @@ void sgui_window_set_mouse_position( sgui_window* this, int x, int y,
 {
     sgui_event e;
 
+    sgui_internal_lock_mutex( );
     if( this->visible )
     {
-        sgui_internal_lock_mutex( );
         x = x<0 ? 0 : (x>=(int)this->w ? ((int)this->w-1) : x);
         y = y<0 ? 0 : (y>=(int)this->h ? ((int)this->h-1) : y);
 
@@ -185,18 +185,18 @@ void sgui_window_set_mouse_position( sgui_window* this, int x, int y,
             e.type = SGUI_MOUSE_MOVE_EVENT;
             sgui_internal_window_fire_event( this, &e );
         }
-        sgui_internal_unlock_mutex( );
     }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_window_set_visible( sgui_window* this, int visible )
 {
     sgui_event ev;
- 
-    if( this->visible==visible )
-        return;
 
-    sgui_internal_lock_mutex( );
+    sgui_internal_lock_mutex( ); 
+    if( this->visible==visible )
+        goto out;
+
     this->set_visible( this, visible );
     this->visible = visible;
 
@@ -206,24 +206,25 @@ void sgui_window_set_visible( sgui_window* this, int visible )
         ev.type = SGUI_API_INVISIBLE_EVENT;
         sgui_internal_window_fire_event( this, &ev );
     }
-
+out:
     sgui_internal_unlock_mutex( );
 }
 
 void sgui_window_set_size( sgui_window* this,
                            unsigned int width, unsigned int height )
 {
+    sgui_internal_lock_mutex( );
     if( width && height && (width!=this->w || height!=this->h) )
     {
         this->set_size( this, width, height );
 
-        /* resize the canvas */
         if( this->backend == SGUI_NATIVE )
         {
             sgui_canvas_resize( this->ctx.canvas, this->w, this->h );
             sgui_canvas_draw_widgets( this->ctx.canvas, 1 );
         }
     }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_window_move( sgui_window* this, int x, int y )

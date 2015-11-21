@@ -51,6 +51,47 @@ static void resize_pixmap( sgui_window_w32* this )
     sgui_memory_canvas_set_buffer( super->ctx.canvas, TO_W32(this)->data );
 }
 
+static void create_canvas( sgui_window_w32* this,
+                           const sgui_window_description* desc )
+{
+    sgui_window* super = (sgui_window*)this;
+    unsigned char color[4];
+
+    this->info.bmiHeader.biSize        = sizeof(this->info.bmiHeader);
+    this->info.bmiHeader.biBitCount    = 32;
+    this->info.bmiHeader.biCompression = BI_RGB;
+    this->info.bmiHeader.biPlanes      = 1;
+    this->info.bmiHeader.biWidth       = desc->width;
+    this->info.bmiHeader.biHeight      = -((int)desc->height);
+
+    memcpy( color, sgui_skin_get( )->window_color, 3 );
+
+    if( !(this->hDC = CreateCompatibleDC( NULL )) )
+        return;
+
+    this->bitmap = CreateDIBSection( this->hDC, &this->info,
+                                     DIB_RGB_COLORS, &this->data, 0, 0 );
+
+    if( !this->bitmap )
+        goto faildc;
+
+    this->bgbrush = CreateSolidBrush(RGB(color[0],color[1],color[2]));
+
+    if( !this->bgbrush )
+        goto faildib;
+
+    super->ctx.canvas = sgui_memory_canvas_create(this->data,desc->width,
+                                                  desc->height,SGUI_RGBA8,1);
+    if( !super->ctx.canvas )
+        goto failbrush;
+
+    SelectObject( this->hDC, this->bitmap );
+    return;
+failbrush: DeleteObject( this->bgbrush );
+faildib:   DeleteObject( this->bitmap );
+faildc:    DeleteDC( this->hDC );
+}
+
 /****************************************************************************/
 
 static void w32_window_get_mouse_position( sgui_window* this, int* x, int* y )
@@ -92,33 +133,18 @@ static void w32_window_set_title( sgui_window* this, const char* title )
     int isascii = 1;
     unsigned int i;
 
-    /* check if the title contains non-ascii characters */
     for( i=0; isascii && title[i]; ++i )
-    {
-        if( title[i] & 0x80 )
-            isascii = 0;
-    }
+        isascii &= (title[i] & 0x80)>>7;
 
-    /* if so, try to convert to utf16 */
-    if( !isascii )
-    {
-        utf16 = utf8_to_utf16( title, -1 );
+    if( !isascii && !(utf16 = utf8_to_utf16( title, -1 )) )
+        return;
 
-        if( !utf16 )
-            return;
-    }
-
-    /* change title */
     sgui_internal_lock_mutex( );
 
     if( isascii )
-    {
         SetWindowTextA( TO_W32(this)->hWnd, title );
-    }
     else
-    {
         SetWindowTextW( TO_W32(this)->hWnd, utf16 );
-    }
 
     sgui_internal_unlock_mutex( );
 
@@ -213,39 +239,27 @@ static void w32_window_get_platform_data( const sgui_window* this,
 
 static void w32_window_destroy( sgui_window* this )
 {
-    MSG msg;
-
     sgui_internal_lock_mutex( );
+    remove_window( TO_W32(this) );
+    SET_USER_PTR( TO_W32(this)->hWnd, NULL );
 
-    if( this->backend==SGUI_NATIVE && this->ctx.canvas )
+    if( this->backend==SGUI_NATIVE )
     {
         sgui_canvas_destroy( this->ctx.canvas );
-
         SelectObject( TO_W32(this)->hDC, 0 );
-
-        if( TO_W32(this)->bitmap )
-            DeleteObject( TO_W32(this)->bitmap );
+        DeleteObject( TO_W32(this)->bitmap );
+        DeleteObject( TO_W32(this)->bgbrush );
+        DeleteDC( TO_W32(this)->hDC );
     }
-    else if( this->backend!=SGUI_NATIVE && this->ctx.ctx )
+    else if( this->backend!=SGUI_CUSTOM )
     {
         this->ctx.ctx->destroy( this->ctx.ctx );
     }
 
-    if( TO_W32(this)->bgbrush )
-        DeleteObject( TO_W32(this)->bgbrush );
-    if( TO_W32(this)->hDC )
-        DeleteDC( TO_W32(this)->hDC );
+    if( this->backend==SGUI_OPENGL_CORE||this->backend==SGUI_OPENGL_COMPAT )
+        ReleaseDC( TO_W32(this)->hWnd, TO_W32(this)->hDC );
 
-    if( TO_W32(this)->hWnd )
-    {
-        this->ctx.canvas = NULL; /* XXX: DestroyWindow calls message proc */
-        this->ctx.ctx    = NULL;
-
-        DestroyWindow( TO_W32(this)->hWnd );
-        PeekMessageA( &msg, TO_W32(this)->hWnd, WM_QUIT, WM_QUIT, PM_REMOVE );
-    }
-
-    remove_window( (sgui_window_w32*)this );
+    DestroyWindow( TO_W32(this)->hWnd );
     sgui_internal_unlock_mutex( );
 
     free( this );
@@ -429,17 +443,15 @@ send_ev:
 
 sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 {
+    HWND parent_hnd = desc->parent ? TO_W32(desc->parent)->hWnd : 0;
+    DWORD style = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
     sgui_window_w32* this;
     sgui_window* super;
-    unsigned char color[4];
-    HWND parent_hnd = 0;
-    DWORD style;
     RECT r;
 
-    if( !desc || !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
+    if( !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
         return NULL;
 
-    /*************** allocate space for the window structure ***************/
     this = calloc( 1, sizeof(sgui_window_w32) );
     super = (sgui_window*)this;
 
@@ -447,73 +459,41 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         return NULL;
 
     sgui_internal_lock_mutex( );
-    add_window( this );
 
     /*************************** create a window ***************************/
     SetRect( &r, 0, 0, desc->width, desc->height );
 
     if( desc->parent )
     {
-        parent_hnd = TO_W32(desc->parent)->hWnd;
-        style = WS_CHILD;
+        style |= WS_CHILD;
     }
     else
     {
-        style = (desc->flags & SGUI_FIXED_SIZE) ? (WS_CAPTION | WS_SYSMENU) :
-                                                  WS_OVERLAPPEDWINDOW;
+        style |= (desc->flags & SGUI_FIXED_SIZE) ? (WS_CAPTION | WS_SYSMENU) :
+                                                   WS_OVERLAPPEDWINDOW;
         AdjustWindowRect( &r, style, FALSE );
     }
-
-    style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
     this->hWnd = CreateWindowExA(0, w32.wndclass, "", style, 0, 0,
                                  r.right-r.left, r.bottom-r.top,
                                  parent_hnd, 0, w32.hInstance, 0);
 
     if( !this->hWnd )
-        goto failure;
-
-    SET_USER_PTR( this->hWnd, this );
+        goto failwnd;
 
     /**************************** create canvas ****************************/
     switch( desc->backend )
     {
     case SGUI_NATIVE:
-        /* create an offscreen Device Context */
-        if( !(this->hDC = CreateCompatibleDC( NULL )) )
-            goto failure;
-
-        /*fill the bitmap header */
-        this->info.bmiHeader.biSize        = sizeof(this->info.bmiHeader);
-        this->info.bmiHeader.biBitCount    = 32;
-        this->info.bmiHeader.biCompression = BI_RGB;
-        this->info.bmiHeader.biPlanes      = 1;
-        this->info.bmiHeader.biWidth       = desc->width;
-        this->info.bmiHeader.biHeight      = -((int)desc->height);
-
-        /* create a DIB section = bitmap with accessable data pointer */
-        this->bitmap = CreateDIBSection( this->hDC, &this->info,
-                                         DIB_RGB_COLORS, &this->data, 0, 0 );
-
-        if( !this->bitmap )
-            goto failure;
-
-        /* bind the dib section to the offscreen context */
-        SelectObject( this->hDC, this->bitmap );
-
-        super->ctx.canvas = sgui_memory_canvas_create(this->data, desc->width,
-                                                      desc->height,
-                                                      SGUI_RGBA8, 1 );
-
-        memcpy( color, sgui_skin_get( )->window_color, 3 );
-        this->bgbrush = CreateSolidBrush(RGB(color[0],color[1],color[2]));
+        create_canvas( this, desc );
         break;
     case SGUI_OPENGL_CORE:
     case SGUI_OPENGL_COMPAT:
-        if( !(this->hDC=GetDC(this->hWnd)) || !set_pixel_format(this,desc) )
-            goto failure;
-
-        super->ctx.ctx = gl_context_create(super, desc->backend, desc->share);
+        if( !set_pixel_format(this,desc) )
+            break;
+        super->ctx.ctx = gl_context_create(this, desc->backend, desc->share);
+        if( !super->ctx.ctx )
+            goto faildc;
         break;
     case SGUI_DIRECT3D_9:
         super->ctx.ctx = d3d9_context_create( super, desc );
@@ -524,13 +504,14 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
 
     if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
-        goto failure;
+        goto failcv;
 
+    /* finish initialization */
+    SET_USER_PTR( this->hWnd, this );
     sgui_internal_window_post_init( (sgui_window*)this,
                                      desc->width, desc->height,
                                      desc->backend );
 
-    /* store entry points */
     super->get_mouse_position = w32_window_get_mouse_position;
     super->set_mouse_position = w32_window_set_mouse_position;
     super->set_visible        = w32_window_set_visible;
@@ -544,11 +525,13 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     super->write_clipboard    = w32_window_write_clipboard;
     super->read_clipboard     = w32_window_read_clipboard;
 
+    add_window( this );
     sgui_internal_unlock_mutex( );
     return (sgui_window*)this;
-failure:
+faildc:  ReleaseDC(this->hWnd, this->hDC);
+failcv:  DestroyWindow( this->hWnd );
+failwnd: free( this );
     sgui_internal_unlock_mutex( );
-    w32_window_destroy( (sgui_window*)this );
     return NULL;
 }
 

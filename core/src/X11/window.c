@@ -109,10 +109,10 @@ static void xlib_window_set_size( sgui_window* this,
 
 static void xlib_window_move_center( sgui_window* this )
 {
+    sgui_internal_lock_mutex( );
     this->x = (DPY_WIDTH  >> 1) - (int)(this->w >> 1);
     this->y = (DPY_HEIGHT >> 1) - (int)(this->h >> 1);
 
-    sgui_internal_lock_mutex( );
     XMoveWindow( x11.dpy, TO_X11(this)->wnd, this->x, this->y );
     sgui_internal_unlock_mutex( );
 }
@@ -146,22 +146,15 @@ static void xlib_window_force_redraw( sgui_window* this, sgui_rect* r )
 static void xlib_window_destroy( sgui_window* this )
 {
     sgui_internal_lock_mutex( );
-
-    if( TO_X11(this)->ic )
-        XDestroyIC( TO_X11(this)->ic );
-
-    if( this->ctx.canvas || this->ctx.ctx )
-    {
-        if( this->backend==SGUI_NATIVE )
-            sgui_canvas_destroy( this->ctx.canvas );
-        else
-            this->ctx.ctx->destroy( this->ctx.ctx );
-    }
-
-    if( TO_X11(this)->wnd )
-        XDestroyWindow( x11.dpy, TO_X11(this)->wnd );
-
     remove_window( TO_X11(this) );
+
+    if( this->backend==SGUI_NATIVE )
+        sgui_canvas_destroy( this->ctx.canvas );
+    else if( this->backend!=SGUI_CUSTOM )
+        this->ctx.ctx->destroy( this->ctx.ctx );
+
+    XDestroyIC( TO_X11(this)->ic );
+    XDestroyWindow( x11.dpy, TO_X11(this)->wnd );
     sgui_internal_unlock_mutex( );
 
     free( this );
@@ -315,7 +308,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         break;
     case UnmapNotify:
-        if( e->xunmap.window==this->wnd && this->is_child )
+        if( e->xunmap.window==this->wnd && (this->flags & IS_CHILD) )
         {
             se.type = SGUI_USER_CLOSED_EVENT;
             super->visible = 0;
@@ -362,17 +355,16 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
 
 sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
 {
+    Window x_parent = desc->parent ? TO_X11(desc->parent)->wnd : x11.root;
     sgui_window_xlib* this;
     sgui_window* super;
     XWindowAttributes attr;
     unsigned long color = 0;
     unsigned char rgb[3];
-    Window x_parent;
 
-    if( !desc || !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
+    if( !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
         return NULL;
 
-    /********* allocate space for the window structure *********/
     this = calloc( 1, sizeof(sgui_window_xlib) );
     super = (sgui_window*)this;
 
@@ -380,12 +372,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         return NULL;
 
     sgui_internal_lock_mutex( );
-    add_window( this );
 
     /******************** create the window ********************/
-    x_parent = desc->parent ? TO_X11(desc->parent)->wnd : x11.root;
-    this->is_child = (desc->parent!=NULL);
-
     if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
     {
         this->wnd = create_glx_window( super, desc, x_parent );
@@ -402,41 +390,15 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     }
 
     if( !this->wnd )
-        goto failure;
+        goto fail;
 
     if( desc->flags & SGUI_FIXED_SIZE )
         xlib_window_size_hints( this->wnd, desc->width, desc->height );
 
     /* tell X11 what events we will handle */
-    XSelectInput( x11.dpy, this->wnd, ExposureMask | StructureNotifyMask |
-                                      KeyPressMask | KeyReleaseMask |
-                                      PointerMotionMask | PropertyChangeMask |
-                                      ButtonPressMask | ButtonReleaseMask |
-                                      FocusChangeMask );
-
+    XSelectInput( x11.dpy, this->wnd, X11_EVENT_MASK );
     XSetWMProtocols( x11.dpy, this->wnd, &x11.atom_wm_delete, 1 );
-
     XFlush( x11.dpy );
-
-    /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( x11.dpy, this->wnd, &attr );
-    super->w = attr.width;
-    super->h = attr.height;
-    super->x = attr.x;
-    super->y = attr.y;
-
-    /********************** create canvas **********************/
-    if( desc->backend==SGUI_NATIVE )
-    {
-        super->ctx.canvas = canvas_x11_create(this->wnd, super->w, super->h);
-    }
-    else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
-    {
-        super->ctx.ctx = gl_context_create(super,desc->backend,desc->share);
-    }
-
-    if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
-        goto failure;
 
     /*********** Create an input context ************/
     this->ic = XCreateIC( x11.im, XNInputStyle,
@@ -444,14 +406,30 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
                           this->wnd, XNFocusWindow, this->wnd, NULL );
 
     if( !this->ic )
-        goto failure;
+        goto failic;
 
+    /********************** create canvas **********************/
+    if( desc->backend==SGUI_NATIVE )
+    {
+        super->ctx.canvas=canvas_x11_create(this->wnd,attr.width,attr.height);
+    }
+    else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
+    {
+        super->ctx.ctx = gl_context_create(super,desc->backend,desc->share);
+    }
+
+    if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
+        goto failcv;
+
+    /* get the real geometry as the window manager is free to change it */
+    XGetWindowAttributes( x11.dpy, this->wnd, &attr );
+    super->x = attr.x;
+    super->y = attr.y;
+
+    this->flags = desc->flags | (desc->parent!=NULL ? IS_CHILD : 0);
     sgui_internal_window_post_init( super, attr.width, attr.height,
                                     desc->backend );
 
-    this->flags = desc->flags;
-
-    /* store entry points */
     super->get_mouse_position = xlib_window_get_mouse_position;
     super->set_mouse_position = xlib_window_set_mouse_position;
     super->set_visible        = xlib_window_set_visible;
@@ -465,11 +443,14 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     super->read_clipboard     = xlib_window_clipboard_read;
     super->destroy            = xlib_window_destroy;
 
+    add_window( this );
     sgui_internal_unlock_mutex( );
     return (sgui_window*)this;
-failure:
+    /* failure cleanup */
+failcv: XDestroyIC( this->ic );
+failic: XDestroyWindow( x11.dpy, this->wnd );
+fail:   free( this );
     sgui_internal_unlock_mutex( );
-    xlib_window_destroy( super );
     return NULL;
 }
 

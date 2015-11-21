@@ -121,7 +121,7 @@ int set_pixel_format( sgui_window_w32* wnd,
                       const sgui_window_description* desc );
 
 /* create an OpenGL context */
-sgui_context* gl_context_create( sgui_window* wnd, int backend,
+sgui_context* gl_context_create( sgui_window_w32* wnd, int backend,
                                  sgui_context* share );
 
 #ifdef __cplusplus
