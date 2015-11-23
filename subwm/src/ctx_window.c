@@ -114,6 +114,13 @@ static void get_platform_data( const sgui_window* super, void* ptr )
     (void)super; (void)ptr;
 }
 
+static void make_topmost( sgui_window* super )
+{
+    sgui_ctx_window* this = (sgui_ctx_window*)super;
+
+    sgui_ctx_wm_make_topmost( this->wm, this );
+}
+
 static void write_clipboard( sgui_window* this, const char* text,
                              unsigned int length )
 {
@@ -189,6 +196,7 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
     super->move               = move;
     super->force_redraw       = force_redraw;
     super->get_platform_data  = get_platform_data;
+    super->make_topmost       = make_topmost;
     super->write_clipboard    = write_clipboard;
     super->read_clipboard     = read_clipboard;
     super->destroy            = destroy;

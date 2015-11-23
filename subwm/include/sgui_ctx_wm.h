@@ -220,6 +220,16 @@ sgui_ctx_window* sgui_ctx_wm_window_from_point( sgui_ctx_wm* wm,
  */
 void sgui_ctx_wm_inject_event( sgui_ctx_wm* wm, const sgui_event* event );
 
+/**
+ * \brief Make sure a specific window is rendered on top of all others
+ *
+ * \memberof sgui_ctx_wm
+ *
+ * \param wm  A pointer to an sgui_ctx_wm object
+ * \param wnd A pointer to a window managed by the sgui_ctx_wm
+ */
+void sgui_ctx_wm_make_topmost( sgui_ctx_wm* wm, sgui_ctx_window* wnd );
+
 #ifdef __cplusplus
 }
 #endif

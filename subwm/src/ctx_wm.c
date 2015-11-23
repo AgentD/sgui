@@ -61,18 +61,6 @@ static void window_move_delta( sgui_window* wnd, int dx, int dy )
     sgui_window_move( wnd, x+dx, y+dy );
 }
 
-static void bring_to_front( sgui_ctx_wm* this, sgui_ctx_window* wnd )
-{
-    sgui_ctx_window* it;
-
-    SGUI_REMOVE_FROM_LIST( this->list, it, wnd );
-
-    for( it=this->list; it->next!=NULL; it=it->next ) { }
-
-    it->next = wnd;
-    wnd->next = NULL;
-}
-
 /****************************************************************************/
 
 sgui_ctx_wm* sgui_ctx_wm_create( sgui_window* wnd )
@@ -208,7 +196,7 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
         if( this->mouseover )
         {
             if( this->mouseover->next )
-                bring_to_front( this, this->mouseover );
+                sgui_ctx_wm_make_topmost( this, this->mouseover );
 
             sgui_window_get_position( (sgui_window*)this->mouseover, &x, &y );
             this->grabx = event->arg.i3.x;
@@ -258,5 +246,17 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
             sgui_ctx_window_inject_event( (sgui_window*)wnd, event );
         break;
     }
+}
+
+void sgui_ctx_wm_make_topmost( sgui_ctx_wm* this, sgui_ctx_window* wnd )
+{
+    sgui_ctx_window* it;
+
+    SGUI_REMOVE_FROM_LIST( this->list, it, wnd );
+
+    for( it=this->list; it->next!=NULL; it=it->next ) { }
+
+    it->next = wnd;
+    wnd->next = NULL;
 }
 

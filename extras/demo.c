@@ -398,6 +398,9 @@ int main( int argc, char** argv )
     sgui_event_connect( item3, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 3 selected", SGUI_VOID );
 
+    sgui_event_connect( b, SGUI_MOUSE_MOVE_EVENT,
+                        sgui_window_make_topmost, b, SGUI_VOID );
+
     /* enter main loop */
     sgui_main_loop( );
 

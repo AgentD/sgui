@@ -237,6 +237,17 @@ static void w32_window_get_platform_data( const sgui_window* this,
     *((HWND*)window) = TO_W32(this)->hWnd;
 }
 
+static void w32_window_make_topmost( sgui_window* this )
+{
+    sgui_internal_lock_mutex( );
+    if( this->visible )
+    {
+        SetWindowPos( TO_W32(this)->hWnd, HWND_TOP, 0, 0, 0, 0,
+                      SWP_NOSIZE|SWP_NOMOVE );
+    }
+    sgui_internal_unlock_mutex( );
+}
+
 static void w32_window_destroy( sgui_window* this )
 {
     sgui_internal_lock_mutex( );
@@ -521,6 +532,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     super->move               = w32_window_move;
     super->force_redraw       = w32_window_force_redraw;
     super->get_platform_data  = w32_window_get_platform_data;
+    super->make_topmost       = w32_window_make_topmost;
     super->destroy            = w32_window_destroy;
     super->write_clipboard    = w32_window_write_clipboard;
     super->read_clipboard     = w32_window_read_clipboard;

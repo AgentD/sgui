@@ -166,6 +166,14 @@ static void xlib_window_get_platform_data( const sgui_window* this,
     *((Window*)window) = TO_X11(this)->wnd;
 }
 
+static void xlib_window_make_topmost( sgui_window* this )
+{
+    sgui_internal_lock_mutex( );
+    if( this->visible )
+        XRaiseWindow( x11.dpy, TO_X11(this)->wnd );
+    sgui_internal_unlock_mutex( );
+}
+
 /****************************************************************************/
 
 void update_window( sgui_window* this )
@@ -441,6 +449,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     super->get_platform_data  = xlib_window_get_platform_data;
     super->write_clipboard    = xlib_window_clipboard_write;
     super->read_clipboard     = xlib_window_clipboard_read;
+    super->make_topmost       = xlib_window_make_topmost;
     super->destroy            = xlib_window_destroy;
 
     add_window( this );

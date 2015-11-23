@@ -298,6 +298,9 @@ struct sgui_window
      * \note May be NULL if not implemented
      */
     const char* (* read_clipboard )( sgui_window* wnd );
+
+    /** \copydoc sgui_window_make_topmost */
+    void (* make_topmost )( sgui_window* wnd );
 };
 
 
@@ -808,6 +811,16 @@ static SGUI_INLINE
 sgui_context* sgui_window_get_context( const sgui_window* wnd )
 {
     return wnd->backend!=SGUI_NATIVE ? wnd->ctx.ctx : NULL;
+}
+
+/**
+ * \brief Make sure a specific window is shown on top of all its sibblings
+ *
+ * \memberof sgui_window
+ */
+static SGUI_INLINE void sgui_window_make_topmost( sgui_window* wnd )
+{
+    wnd->make_topmost(wnd);
 }
 
 /**
