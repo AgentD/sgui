@@ -261,7 +261,7 @@ static void gl_wm_draw_gui( sgui_ctx_wm* super )
 
     for( wnd=super->list; wnd!=NULL; wnd=wnd->next )
     {
-        if( !wnd->super.visible )
+        if( !(wnd->super.flags & SGUI_VISIBLE) )
             continue;
 
         /* detemine window transparency */
@@ -372,7 +372,7 @@ static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
 
     for( j=0, wnd=super->list; wnd && j<GLWM_CORE_MAX_WINDOWS; wnd=wnd->next )
     {
-        if( !wnd->super.visible )
+        if( !(wnd->super.flags & SGUI_VISIBLE) )
             continue;
 
         ctx_get_window_vertices( wnd->super.w, wnd->super.h, vb, skin, 0 );
@@ -395,7 +395,7 @@ static void gl_wm_core_draw_gui( sgui_ctx_wm* super )
 
     for( j=0, wnd=super->list; wnd && j<GLWM_CORE_MAX_WINDOWS; wnd=wnd->next )
     {
-        if( !wnd->super.visible )
+        if( !(wnd->super.flags & SGUI_VISIBLE) )
             continue;
         if( !(tex = sgui_ctx_window_get_texture( (sgui_window*)wnd )) )
             continue;

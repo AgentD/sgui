@@ -240,7 +240,7 @@ static void w32_window_get_platform_data( const sgui_window* this,
 static void w32_window_make_topmost( sgui_window* this )
 {
     sgui_internal_lock_mutex( );
-    if( this->visible )
+    if( this->flags & SGUI_VISIBLE )
     {
         SetWindowPos( TO_W32(this)->hWnd, HWND_TOP, 0, 0, 0, 0,
                       SWP_NOSIZE|SWP_NOMOVE );
@@ -326,7 +326,7 @@ int handle_window_events( sgui_window_w32* this, UINT msg, WPARAM wp,
     case WM_LBUTTONDBLCLK:  e.type = SGUI_DOUBLE_CLICK_EVENT; goto event_xy;
     case WM_MOUSEMOVE:      e.type = SGUI_MOUSE_MOVE_EVENT;   goto event_xy;
     case WM_DESTROY:
-        super->visible = 0;
+        super->flags &= ~SGUI_VISIBLE;
         e.type = SGUI_USER_CLOSED_EVENT;
         goto send_ev;
     case WM_MOUSEWHEEL:
@@ -460,7 +460,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     sgui_window* super;
     RECT r;
 
-    if( !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
+    if( !desc->width || !desc->height )
+        return NULL;
+
+    if( desc->flags & ~SGUI_ALL_WINDOW_FLAGS )
         return NULL;
 
     this = calloc( 1, sizeof(sgui_window_w32) );
@@ -517,12 +520,16 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
         goto failcv;
 
+    if( desc->flags & SGUI_VISIBLE )
+        ShowWindow( this->hWnd, SW_SHOWNORMAL );
+
     /* finish initialization */
     SET_USER_PTR( this->hWnd, this );
     sgui_internal_window_post_init( (sgui_window*)this,
                                      desc->width, desc->height,
                                      desc->backend );
 
+    super->flags              = desc->flags;
     super->get_mouse_position = w32_window_get_mouse_position;
     super->set_mouse_position = w32_window_set_mouse_position;
     super->set_visible        = w32_window_set_visible;

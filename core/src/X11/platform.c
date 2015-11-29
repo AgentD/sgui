@@ -142,7 +142,7 @@ static int have_active_windows( void )
     sgui_window_xlib* i;
 
     sgui_internal_lock_mutex( );
-    for( i=x11.list; i!=NULL && !i->super.visible; i=i->next );
+    for( i=x11.list; i!=NULL && !(i->super.flags & SGUI_VISIBLE); i=i->next );
     sgui_internal_unlock_mutex( );
 
     return i!=NULL;

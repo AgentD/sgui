@@ -162,10 +162,26 @@ typedef enum
      * \brief If set, create OpenGL or Direct3D contexts with a double
      *        buffered framebuffer
      */
-    SGUI_DOUBLEBUFFERED = 0x02
+    SGUI_DOUBLEBUFFERED = 0x02,
+
+    /**
+     * \brief If set as a window flag, the window is initially visible
+     *
+     * Can also be passed to sgui_window_set_visible for improoved
+     * readability.
+     */
+    SGUI_VISIBLE = 0x04,
+
+    /** \brief A bit mask to mask out all valid flags for cearing windows */
+    SGUI_ALL_WINDOW_FLAGS = 0x07,
+
+    /**
+     * \brief Provided as an opposite of SGUI_VISIBLE to explictly make clear
+     *        that a window is not visible
+     */
+    SGUI_INVISIBLE = 0x00
 }
 SGUI_WINDOW_FLAG;
-
 
 /**
  * \struct sgui_window
@@ -192,7 +208,7 @@ struct sgui_window
     unsigned int w; /**< \brief The horizontal extents of the window */
     unsigned int h; /**< \brief The vertical extents of the window */
 
-    int visible;    /**< \brief Window visibility */
+    int flags;      /**< \brief Window flags. See \ref SGUI_WINDOW_FLAG */
     int modmask;    /**< \brief Set of \ref SGUI_MODIFYER_FLAG flags */
 
     /**
@@ -370,13 +386,6 @@ struct sgui_window_description
     int samples;    /**< \brief Desired number of multisampling samples */
 };
 
-
-
-#define SGUI_VISIBLE   1
-#define SGUI_INVISIBLE 0
-
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -394,7 +403,7 @@ extern "C" {
  * calls sgui_window_create_desc( ).
  *
  * \note The window is created invisible and has to be made visible by calling
- *       sgui_window_set_visible( ).
+ *       sgui_window_set_visible( ) unless the SGUI_VISIBLE flag is set.
  *
  * \param parent A pointer to the parent window, or NULL for root window.
  *               If a window has a parent, it is not decorted by the systems
@@ -402,8 +411,7 @@ extern "C" {
  *               visible within its parent.
  * \param width  The width of the window(without borders and decoration).
  * \param height The height of the window(without borders and decoration)
- * \param flags  Misc. window flas. If SGUI_FIXED_SIZE is set, the window
- *               cannot be resized by the user.
+ * \param flags  Misc. window flas. See \ref SGUI_WINDOW_FLAG
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
@@ -422,7 +430,7 @@ SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
  * resources.
  *
  * \note The window is created invisible and has to be made visible by calling
- *       sgui_window_set_visible( ).
+ *       sgui_window_set_visible( ) unless the SGUI_VISIBLE flag is set.
  *
  * \param desc A pointer to a structure holding a description of the window
  *             that is to be created.
@@ -561,7 +569,7 @@ SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
  */
 static SGUI_INLINE int sgui_window_is_visible( const sgui_window* wnd )
 {
-    return wnd->visible;
+    return (wnd->flags & SGUI_VISIBLE)!=0;
 }
 
 /**

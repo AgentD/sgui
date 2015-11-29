@@ -48,7 +48,7 @@ static void set_mouse_position( sgui_window* this, int x, int y )
 
 static void set_visible( sgui_window* this, int visible )
 {
-    this->visible = visible;
+    (void)this; (void)visible;
 }
 
 static void set_title( sgui_window* this, const char* title )

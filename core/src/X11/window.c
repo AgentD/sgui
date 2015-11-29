@@ -93,7 +93,7 @@ static void xlib_window_set_size( sgui_window* this,
 
     sgui_internal_lock_mutex( );
 
-    if( TO_X11(this)->flags & SGUI_FIXED_SIZE )
+    if( this->flags & SGUI_FIXED_SIZE )
         xlib_window_size_hints( TO_X11(this)->wnd, width, height );
 
     XResizeWindow( x11.dpy, TO_X11(this)->wnd, width, height );
@@ -169,7 +169,7 @@ static void xlib_window_get_platform_data( const sgui_window* this,
 static void xlib_window_make_topmost( sgui_window* this )
 {
     sgui_internal_lock_mutex( );
-    if( this->visible )
+    if( this->flags & SGUI_VISIBLE )
         XRaiseWindow( x11.dpy, TO_X11(this)->wnd );
     sgui_internal_unlock_mutex( );
 }
@@ -304,7 +304,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         sgui_internal_window_fire_event( super, &se );
         break;
     case DestroyNotify:
-        super->visible = 0;
+        super->flags &= ~SGUI_VISIBLE;
         this->wnd = 0;
         break;
     case MapNotify:
@@ -316,10 +316,10 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         }
         break;
     case UnmapNotify:
-        if( e->xunmap.window==this->wnd && (this->flags & IS_CHILD) )
+        if( e->xunmap.window==this->wnd && (super->flags & IS_CHILD) )
         {
             se.type = SGUI_USER_CLOSED_EVENT;
-            super->visible = 0;
+            super->flags &= ~SGUI_VISIBLE;
             sgui_internal_window_fire_event( super, &se );
         }
         break;
@@ -327,7 +327,7 @@ void handle_window_events( sgui_window_xlib* this, XEvent* e )
         if( e->xclient.data.l[0] == (long)x11.atom_wm_delete )
         {
             se.type = SGUI_USER_CLOSED_EVENT;
-            super->visible = 0;
+            super->flags &= ~SGUI_VISIBLE;
             XUnmapWindow( x11.dpy, this->wnd );
             XUnmapSubwindows( x11.dpy, this->wnd );
             sgui_internal_window_fire_event( super, &se );
@@ -370,7 +370,10 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     unsigned long color = 0;
     unsigned char rgb[3];
 
-    if( !desc->width || !desc->height || (desc->flags&(~ALL_FLAGS)) )
+    if( !desc->width || !desc->height )
+        return NULL;
+
+    if( desc->flags & (~SGUI_ALL_WINDOW_FLAGS) )
         return NULL;
 
     this = calloc( 1, sizeof(sgui_window_xlib) );
@@ -429,12 +432,15 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
         goto failcv;
 
+    if( desc->flags & SGUI_VISIBLE )
+        XMapWindow( x11.dpy, this->wnd );
+
     /* get the real geometry as the window manager is free to change it */
     XGetWindowAttributes( x11.dpy, this->wnd, &attr );
     super->x = attr.x;
     super->y = attr.y;
+    super->flags = desc->flags | (desc->parent!=NULL ? IS_CHILD : 0);
 
-    this->flags = desc->flags | (desc->parent!=NULL ? IS_CHILD : 0);
     sgui_internal_window_post_init( super, attr.width, attr.height,
                                     desc->backend );
 

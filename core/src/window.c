@@ -170,7 +170,7 @@ void sgui_window_set_mouse_position( sgui_window* this, int x, int y,
     sgui_event e;
 
     sgui_internal_lock_mutex( );
-    if( this->visible )
+    if( this->flags & SGUI_VISIBLE )
     {
         x = x<0 ? 0 : (x>=(int)this->w ? ((int)this->w-1) : x);
         y = y<0 ? 0 : (y>=(int)this->h ? ((int)this->h-1) : y);
@@ -194,11 +194,11 @@ void sgui_window_set_visible( sgui_window* this, int visible )
     sgui_event ev;
 
     sgui_internal_lock_mutex( ); 
-    if( this->visible==visible )
+    if( !(((this->flags & SGUI_VISIBLE)!=0) ^ (visible!=0)) )
         goto out;
 
     this->set_visible( this, visible );
-    this->visible = visible;
+    this->flags ^= SGUI_VISIBLE;
 
     if( !visible )
     {

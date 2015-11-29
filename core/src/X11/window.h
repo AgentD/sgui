@@ -40,7 +40,6 @@
 
 
 #define TO_X11( window ) ((sgui_window_xlib*)window)
-#define ALL_FLAGS (SGUI_FIXED_SIZE|SGUI_DOUBLEBUFFERED)
 #define IS_CHILD 0x8000
 #define X11_EVENT_MASK (ExposureMask|StructureNotifyMask|PointerMotionMask|\
                         KeyPressMask|FocusChangeMask|ButtonReleaseMask|\
@@ -55,7 +54,6 @@ typedef struct _sgui_window_xlib
     Window wnd;
     XIC ic;
 
-    int flags;
     unsigned int mouse_warped;/* mouse warp counter */
 
 #ifndef SGUI_NO_OPENGL
