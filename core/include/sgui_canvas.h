@@ -55,13 +55,8 @@ struct sgui_canvas
 {
     int ox;                     /**< \brief Drawing offset from the left */
     int oy;                     /**< \brief Drawing offset from the top */
-
-    /** \brief The width of the canvas in pixels */
-    unsigned int width;
-    
-    /** \brief The height of the canvas in pixels */
-    unsigned int height;
-
+    unsigned int width;         /**< \brief Width of the canvas in pixels */
+    unsigned int height;        /**< \brief Height of the canvas in pixels */
     sgui_rect sc;               /**< \brief current scissor rect */
     int flags;                  /**< \brief A set of \ref SGUI_CANVAS_FLAGS */
 
@@ -123,6 +118,16 @@ struct sgui_canvas
      * \param canvas A pointer to the canvas.
      */
     void(* end )( sgui_canvas* canvas );
+
+    /**
+     * \brief If not NULL, gets called by sgui_canvas_add_dirty_rect
+     *
+     * \param canvas A pointer to the canvas.
+     * \param r      The dirty rect, clamped to the canvas area.
+     *
+     * \return Non-zero to add the dirty rect, zero to ignore it
+     */
+    int(* dirty_rect_hook )( sgui_canvas* canvas, const sgui_rect* r );
 
     /**
      * \brief Clear a portion of a canvas

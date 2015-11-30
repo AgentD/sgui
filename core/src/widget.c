@@ -182,13 +182,9 @@ void sgui_widget_set_visible( sgui_widget* this, int visible )
     sgui_rect r;
 
     sgui_internal_lock_mutex( );
-
     if( ((this->flags & SGUI_WIDGET_VISIBLE)!=0) ^ (visible!=0) )
     {
-        if( visible )
-            this->flags |= SGUI_WIDGET_VISIBLE;
-        else
-            this->flags &= ~SGUI_WIDGET_VISIBLE;
+        this->flags ^= SGUI_WIDGET_VISIBLE;
 
         if( this->state_change_event )
             this->state_change_event(this,SGUI_WIDGET_VISIBILLITY_CHANGED);

@@ -128,6 +128,9 @@ void sgui_canvas_add_dirty_rect( sgui_canvas* this, sgui_rect* r )
     if( !sgui_rect_get_intersection( &r0, &r0, r ) )
         goto out;
 
+    if( this->dirty_rect_hook && !this->dirty_rect_hook( this, &r0 ) )
+        goto out;
+
     /* try to find an existing diry rect it touches */
     for( i=0; i<this->num_dirty; ++i )
     {

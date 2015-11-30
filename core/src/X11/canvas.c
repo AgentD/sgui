@@ -30,6 +30,27 @@
 
 
 
+static int canvas_x11_dirty_hook( sgui_canvas* super, const sgui_rect* r )
+{
+    sgui_canvas_x11* this = (sgui_canvas_x11*)super;
+    XExposeEvent exp;
+
+    memset( &exp, 0, sizeof(exp) );
+    exp.type       = Expose;
+    exp.send_event = 1;
+    exp.display    = x11.dpy;
+    exp.window     = (Window)this->wnd;
+    exp.x          = r->left;
+    exp.y          = r->top;
+    exp.width      = SGUI_RECT_WIDTH_V(r);
+    exp.height     = SGUI_RECT_HEIGHT_V(r);
+
+    sgui_internal_lock_mutex( );
+    XSendEvent(x11.dpy,(Window)this->wnd,False,ExposureMask,(XEvent*)&exp);
+    sgui_internal_unlock_mutex( );
+    return 0;
+}
+
 static int canvas_x11_draw_string( sgui_canvas* super, int x, int y,
                                    sgui_font* font,
                                    const unsigned char* color,
@@ -103,7 +124,8 @@ static void canvas_x11_clear( sgui_canvas* super, sgui_rect* r )
     sgui_internal_unlock_mutex( );
 }
 
-static void canvas_x11_init(sgui_canvas* super, Drawable wnd, sgui_funptr clip)
+static void canvas_x11_init( sgui_canvas* super, Drawable wnd,
+                             sgui_funptr clip, int sendexpose )
 {
     sgui_canvas_x11* this = (sgui_canvas_x11*)super;
     super->resize       = canvas_x11_resize;
@@ -111,6 +133,7 @@ static void canvas_x11_init(sgui_canvas* super, Drawable wnd, sgui_funptr clip)
     super->draw_string  = canvas_x11_draw_string;
     this->wnd           = wnd;
     this->set_clip_rect = clip;
+    super->dirty_rect_hook = sendexpose ? canvas_x11_dirty_hook : NULL;
 }
 
 /************************ xlib based implementation ************************/
@@ -349,8 +372,8 @@ static void canvas_xrender_blend_glyph( sgui_canvas* super, int x, int y,
     sgui_internal_unlock_mutex( );
 }
 
-static sgui_canvas* canvas_xrender_create( Drawable wnd, unsigned int width,
-                                           unsigned int height )
+static sgui_canvas* canvas_xrender_create(Drawable wnd, unsigned int width,
+                                          unsigned int height, int sendexpose)
 {
     sgui_canvas_xrender* this;
     sgui_canvas* super = NULL;
@@ -392,7 +415,7 @@ static sgui_canvas* canvas_xrender_create( Drawable wnd, unsigned int width,
     super->create_pixmap = xrender_pixmap_create;
     super->draw_box      = canvas_xrender_draw_box;
 
-    canvas_x11_init( super, wnd, canvas_xrender_set_clip_rect );
+    canvas_x11_init( super, wnd, canvas_xrender_set_clip_rect, sendexpose );
     return (sgui_canvas*)this;
 failfree:
     sgui_internal_unlock_mutex( );
@@ -404,13 +427,13 @@ fail:
 #endif /* !SGUI_NO_XRENDER */
 
 sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
-                                unsigned int height )
+                                unsigned int height, int sendexpose )
 {
     sgui_canvas_xlib* this;
     sgui_canvas* super;
 
 #ifndef SGUI_NO_XRENDER
-    super = canvas_xrender_create( wnd, width, height );
+    super = canvas_xrender_create( wnd, width, height, sendexpose );
     if( super )
         return super;
 #endif
@@ -440,7 +463,7 @@ sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
     super->create_pixmap = xlib_pixmap_create;
     super->draw_box      = canvas_xlib_draw_box;
 
-    canvas_x11_init( super, wnd, canvas_xlib_set_clip_rect );
+    canvas_x11_init( super, wnd, canvas_xlib_set_clip_rect, sendexpose );
     return (sgui_canvas*)this;
 fail:
     if( this->gc ) XFreeGC( x11.dpy, this->gc );

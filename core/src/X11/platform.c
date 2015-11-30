@@ -148,14 +148,6 @@ static int have_active_windows( void )
     return i!=NULL;
 }
 
-static void update_windows( void )
-{
-    sgui_window_xlib* i;
-
-    for( i=x11.list; i!=NULL; i=i->next )
-        update_window( (sgui_window*)i );
-}
-
 /****************************************************************************/
 
 void add_window( sgui_window_xlib* this )
@@ -489,7 +481,6 @@ int sgui_main_loop_step( void )
 {
     sgui_internal_lock_mutex( );
     handle_events( );
-    update_windows( );
     XFlush( x11.dpy );
     sgui_internal_unlock_mutex( );
 
@@ -508,7 +499,6 @@ void sgui_main_loop( void )
     {
         sgui_internal_lock_mutex( );
         handle_events( );
-        update_windows( );
         XFlush( x11.dpy );
         sgui_internal_unlock_mutex( );
 

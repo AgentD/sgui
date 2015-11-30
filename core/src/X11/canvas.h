@@ -76,7 +76,7 @@ extern "C" {
 #endif
 
 sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
-                                unsigned int height );
+                                unsigned int height, int sendexpose );
 
 #ifdef __cplusplus
 }

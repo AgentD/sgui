@@ -176,23 +176,6 @@ static void xlib_window_make_topmost( sgui_window* this )
 
 /****************************************************************************/
 
-void update_window( sgui_window* this )
-{
-    unsigned int i, num;
-    sgui_rect r;
-
-    if( this->backend==SGUI_NATIVE )
-    {
-        num = sgui_canvas_num_dirty_rects( this->ctx.canvas );
-
-        for( i=0; i<num; ++i )
-        {
-            sgui_canvas_get_dirty_rect( this->ctx.canvas, &r, i );
-            xlib_window_force_redraw( this, &r );
-        }
-    }
-}
-
 void handle_window_events( sgui_window_xlib* this, XEvent* e )
 {
     sgui_window* super = (sgui_window*)this;
@@ -422,7 +405,8 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     /********************** create canvas **********************/
     if( desc->backend==SGUI_NATIVE )
     {
-        super->ctx.canvas=canvas_x11_create(this->wnd,attr.width,attr.height);
+        super->ctx.canvas = canvas_x11_create( this->wnd,
+                                               attr.width, attr.height, 1 );
     }
     else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
     {
