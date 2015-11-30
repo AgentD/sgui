@@ -389,6 +389,9 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( desc->flags & SGUI_FIXED_SIZE )
         xlib_window_size_hints( this->wnd, desc->width, desc->height );
 
+    /* Get the actual geometry after the window manager changed it */
+    XGetWindowAttributes( x11.dpy, this->wnd, &attr );
+
     /* tell X11 what events we will handle */
     XSelectInput( x11.dpy, this->wnd, X11_EVENT_MASK );
     XSetWMProtocols( x11.dpy, this->wnd, &x11.atom_wm_delete, 1 );
@@ -419,8 +422,6 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( desc->flags & SGUI_VISIBLE )
         XMapWindow( x11.dpy, this->wnd );
 
-    /* get the real geometry as the window manager is free to change it */
-    XGetWindowAttributes( x11.dpy, this->wnd, &attr );
     super->x = attr.x;
     super->y = attr.y;
     super->flags = desc->flags | (desc->parent!=NULL ? IS_CHILD : 0);
