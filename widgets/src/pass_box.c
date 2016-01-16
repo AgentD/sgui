@@ -159,13 +159,11 @@ static void pass_box_destroy( sgui_widget* this )
 sgui_widget* sgui_pass_box_create( int x, int y, unsigned int width,
                                    unsigned int max_chars )
 {
-    sgui_pass_box* this = malloc( sizeof(sgui_pass_box) );
+    sgui_pass_box* this = calloc( 1, sizeof(sgui_pass_box) );
     sgui_edit_box* super = (sgui_edit_box*)this;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_pass_box) );
 
     /* allocate storage for the text buffer */
     if( !sgui_edit_box_init( super, x, y, width, max_chars ) )
@@ -195,6 +193,6 @@ sgui_widget* sgui_pass_box_create( int x, int y, unsigned int width,
 
 const char* sgui_pass_box_get_text( sgui_widget* this )
 {
-    return this ? ((sgui_pass_box*)this)->shadow : NULL;
+    return ((sgui_pass_box*)this)->shadow;
 }
 

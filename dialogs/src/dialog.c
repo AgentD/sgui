@@ -36,47 +36,41 @@
 
 void sgui_dialog_destroy( sgui_dialog* this )
 {
-    if( this )
+    if( this->b0 )
     {
-        if( this->b0 )
-        {
-            sgui_event_disconnect( this->b0, SGUI_BUTTON_OUT_EVENT,
-                                   (sgui_function)this->handle_button, this );
-        }
-        if( this->b1 )
-        {
-            sgui_event_disconnect( this->b1, SGUI_BUTTON_OUT_EVENT,
-                                   (sgui_function)this->handle_button, this );
-        }
-        if( this->b2 )
-        {
-            sgui_event_disconnect( this->b2, SGUI_BUTTON_OUT_EVENT,
-                                   (sgui_function)this->handle_button, this );
-        }
-
-        sgui_event_disconnect( this->window, SGUI_USER_CLOSED_EVENT,
+        sgui_event_disconnect( this->b0, SGUI_BUTTON_OUT_EVENT,
                                (sgui_function)this->handle_button, this );
-
         sgui_widget_remove_from_parent( this->b0 );
-        sgui_widget_remove_from_parent( this->b1 );
-        sgui_widget_remove_from_parent( this->b2 );
         sgui_widget_destroy( this->b0 );
-        sgui_widget_destroy( this->b1 );
-        sgui_widget_destroy( this->b2 );
-        sgui_window_destroy( this->window );
-        this->b0 = this->b1 = this->b2 = 0;
-        this->window = 0;
-        this->destroy( this );
     }
+    if( this->b1 )
+    {
+        sgui_event_disconnect( this->b1, SGUI_BUTTON_OUT_EVENT,
+                               (sgui_function)this->handle_button, this );
+        sgui_widget_remove_from_parent( this->b1 );
+        sgui_widget_destroy( this->b1 );
+    }
+    if( this->b2 )
+    {
+        sgui_event_disconnect( this->b2, SGUI_BUTTON_OUT_EVENT,
+                               (sgui_function)this->handle_button, this );
+        sgui_widget_remove_from_parent( this->b2 );
+        sgui_widget_destroy( this->b2 );
+    }
+
+    sgui_event_disconnect( this->window, SGUI_USER_CLOSED_EVENT,
+                           (sgui_function)this->handle_button, this );
+
+    sgui_window_destroy( this->window );
+    this->b0 = this->b1 = this->b2 = 0;
+    this->window = 0;
+    this->destroy( this );
 }
 
 void sgui_dialog_display( sgui_dialog* this )
 {
-    if( this )
-    {
-        sgui_window_set_visible( this->window, SGUI_VISIBLE );
-        sgui_window_move_center( this->window );
-    }
+    sgui_window_set_visible( this->window, SGUI_VISIBLE );
+    sgui_window_move_center( this->window );
 }
 
 int sgui_dialog_init( sgui_dialog* this,
@@ -85,12 +79,6 @@ int sgui_dialog_init( sgui_dialog* this,
 {
     unsigned int total_width=0, total_height=0, height, w, h, x, y, count=0;
     sgui_rect r0, r1, r2;
-
-    if( !this || !(button0 || button1 || button2) )
-        return 0;
-
-    if( this->b0 || this->b1 || this->b2 )
-        return 0;
 
     /* compute text dimensions, adjust window size */
     if( button0 )
@@ -122,10 +110,11 @@ int sgui_dialog_init( sgui_dialog* this,
 
     total_width += (count-1)*5;
 
+    sgui_window_get_size( this->window, &w, &h );
+
     if( total_width > w )
         w = total_width + 20;
 
-    sgui_window_get_size( this->window, &w, &h );
     sgui_window_set_size( this->window, w, h+total_height+15 );
 
     /* compute starting positions */

@@ -63,8 +63,11 @@ static void frame_on_scroll_v( void* userptr, int new_offset, int delta )
     (void)new_offset;
 
     sgui_internal_lock_mutex( );
-    sgui_widget_get_absolute_rect( this, &r );
-    sgui_canvas_add_dirty_rect( this->canvas, &r );
+    if( this->canvas )
+    {
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
+    }
 
     for( i=this->children; i!=NULL; i=i->next )
     {
@@ -88,8 +91,11 @@ static void frame_on_scroll_h( void* userptr, int new_offset, int delta )
     (void)new_offset;
 
     sgui_internal_lock_mutex( );
-    sgui_widget_get_absolute_rect( this, &r );
-    sgui_canvas_add_dirty_rect( this->canvas, &r );
+    if( this->canvas )
+    {
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
+    }
 
     for( i=this->children; i!=NULL; i=i->next )
     {
@@ -304,7 +310,7 @@ static void frame_on_event( sgui_widget* super, const sgui_event* event )
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,
                                 unsigned int height )
 {
-    sgui_frame* this = malloc( sizeof(sgui_frame) );
+    sgui_frame* this = calloc( 1, sizeof(sgui_frame) );
     sgui_widget* super = (sgui_widget*)this;
     sgui_skin* skin = sgui_skin_get( );
     unsigned int w, h;
@@ -376,13 +382,10 @@ void sgui_frame_override_scrollbars( sgui_widget* super, int always_draw )
 {
     sgui_frame* this = (sgui_frame*)super;
 
-    if( this )
-    {
-        this->override_scrollbars = always_draw;
+    this->override_scrollbars = always_draw;
 
-        sgui_widget_set_visible( this->v_bar, 1 );
-        sgui_widget_set_visible( this->h_bar, 1 );
-    }
+    sgui_widget_set_visible( this->v_bar, 1 );
+    sgui_widget_set_visible( this->h_bar, 1 );
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget* sgui_frame_create( int x, int y, unsigned int width,

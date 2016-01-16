@@ -25,16 +25,15 @@
 #ifndef X11_OPENGL_H
 #define X11_OPENGL_H
 
-
-
-#ifndef SGUI_NO_OPENGL
 #include "sgui_window.h"
 #include "sgui_context.h"
 #include "sgui_internal.h"
 
-#include <GL/glx.h>
+#include <X11/X.h>
 
-
+#ifndef SGUI_NO_OPENGL
+    #include <GL/glx.h>
+#endif
 
 #define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
 
@@ -53,47 +52,22 @@
     #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
 
-
-typedef GLXContext (* CREATECONTEXTATTRIBSPROC )( Display*, GLXFBConfig,
-                                                  GLXContext, Bool,
-                                                  const int* );
-
-typedef struct
-{
-    sgui_context super;
-
-    sgui_window* wnd;
-    GLXContext gl;
-}
-sgui_context_gl;
-
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* get a framebuffer configuration, visual and colormap creating a
-   framebuffer configuration may fail, returns non-zero on success,
-   zero if creating a visual or colormap failed */
-int get_fbc_visual_cmap( GLXFBConfig* fbc, XVisualInfo** vi, Colormap* cmap,
-                         const sgui_window_description* desc );
-
-/* sgui_window_swap_buffers implementation for window with glx context */
-void gl_swap_buffers( sgui_window* wnd );
-
-/* sgui_window_set_vsync implementation for window with glx context */
-void gl_set_vsync( sgui_window* wnd, int interval );
+/* set the GLXFBConfig of an sgui_xlib_window and create a window */
+Window create_glx_window( sgui_window* wnd,
+                          const sgui_window_description* desc,
+                          Window parent );
 
 /* create an OpenGL context for an Xlib window */
-sgui_context* gl_context_create( sgui_window* wnd, int core,
-                                 sgui_context_gl* share );
+sgui_context* gl_context_create( sgui_window* wnd, int backend,
+                                 sgui_context* share );
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* SGUI_NO_OPENGL */
 
 #endif /* X11_OPENGL_H */
 

@@ -39,6 +39,13 @@
 
 
 
+typedef enum
+{
+    SGUI_CANVAS_BEGAN = 0x01,   /**< \brief Set inside a begin...end block */
+    SGUI_CANVAS_DRAW_FOCUS = 0x02   /**< \brief Set to draw the focus box */
+}
+SGUI_CANVAS_FLAGS;
+
 /**
  * \struct sgui_canvas
  *
@@ -48,15 +55,10 @@ struct sgui_canvas
 {
     int ox;                     /**< \brief Drawing offset from the left */
     int oy;                     /**< \brief Drawing offset from the top */
-
-    /** \brief The width of the canvas in pixels */
-    unsigned int width;
-    
-    /** \brief The height of the canvas in pixels */
-    unsigned int height;
-
-    sgui_rect sc;                   /**< \brief current scissor rect */
-    int began;
+    unsigned int width;         /**< \brief Width of the canvas in pixels */
+    unsigned int height;        /**< \brief Height of the canvas in pixels */
+    sgui_rect sc;               /**< \brief current scissor rect */
+    int flags;                  /**< \brief A set of \ref SGUI_CANVAS_FLAGS */
 
     /**
      * \brief A dummy widget that covers the entire canvas area and has all
@@ -64,12 +66,8 @@ struct sgui_canvas
      */
     sgui_widget root;
 
-    sgui_widget* mouse_over;        /**< \brief The widget under the mouse
-                                                cursor */
-    sgui_widget* focus;             /**< \brief The widget with keyboad
-                                                focus */
-
-    int draw_focus;     /**< \brief Non-zero if focus box should be drawn */
+    sgui_widget* mouse_over;  /**< \brief The widget under the mouse cursor */
+    sgui_widget* focus;       /**< \brief The widget with keyboad focus */
 
     sgui_rect* dirty;       /**< \brief Array of dirty rectangles */
     unsigned int num_dirty; /**< \brief Number of dirty rectangles in array */
@@ -107,8 +105,10 @@ struct sgui_canvas
      *
      * \param canvas A pointer to the canvas.
      * \param r      The rectangle to redraw (already clamped to the canvas)
+     *
+     * \return Non-zero on success, zero on failure
      */
-    void(* begin )( sgui_canvas* canvas, sgui_rect* r );
+    int(* begin )( sgui_canvas* canvas, sgui_rect* r );
 
     /**
      * \brief Gets called by sgui_canvas_end
@@ -118,6 +118,16 @@ struct sgui_canvas
      * \param canvas A pointer to the canvas.
      */
     void(* end )( sgui_canvas* canvas );
+
+    /**
+     * \brief If not NULL, gets called by sgui_canvas_add_dirty_rect
+     *
+     * \param canvas A pointer to the canvas.
+     * \param r      The dirty rect, clamped to the canvas area.
+     *
+     * \return Non-zero to add the dirty rect, zero to ignore it
+     */
+    int(* dirty_rect_hook )( sgui_canvas* canvas, const sgui_rect* r );
 
     /**
      * \brief Clear a portion of a canvas
@@ -213,6 +223,21 @@ typedef struct
                              const unsigned char* );
 
     unsigned char* data;
+
+    /**
+     * \brief Pixel position of first data byte
+     *
+     * If the begin/end functions map only a region of memory to work with,
+     * this can be used together with "pitch" to specify where that region
+     * starts and how many bytes to skip to get to the next row.
+     */
+    unsigned int startx, starty;
+
+    /**
+     * \brief If not zero, a number of bytes to skip to get to the next
+     *        pixel row
+     */
+    unsigned int pitch;
     int bpp, swaprb;
 }
 sgui_mem_canvas;
@@ -280,7 +305,11 @@ SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r );
  *
  * \return The number of dirty rectangles
  */
-SGUI_DLL unsigned int sgui_canvas_num_dirty_rects(const sgui_canvas* canvas);
+static SGUI_INLINE
+unsigned int sgui_canvas_num_dirty_rects(const sgui_canvas* canvas)
+{
+    return canvas->num_dirty;
+}
 
 /**
  * \brief Get a dirty rectangle from a canvas by index
@@ -308,9 +337,9 @@ SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
  *        as dirty.
  *
  * \memberof sgui_canvas
+ * \note This function must no be called inside a begin-end block.
  *
- * The dirty areas are cleared after a call to this function. The function can
- * be called outside a begin-end block and calls begin-end itself if required.
+ * The dirty areas are cleared after a call to this function.
  *
  * \param canvas The canvas
  * \param clear  If non-zero the given area is cleared before redrawing
@@ -318,18 +347,36 @@ SGUI_DLL void sgui_canvas_clear_dirty_rects( sgui_canvas* canvas );
 SGUI_DLL void sgui_canvas_redraw_widgets( sgui_canvas* canvas, int clear );
 
 /**
+ * \brief Redraw the visible widgets that are inside a specific area.
+ *
+ * \memberof sgui_canvas
+ * \note This function must no be called inside a begin-end block.
+ *
+ * The dirty areas are cleared after a call to this function.
+ *
+ * \param canvas The canvas
+ * \param r      A specific region to redraw, or NULL for the entire canvas
+ * \param clear  If non-zero the canvas is cleared before drawing
+ */
+SGUI_DLL void sgui_canvas_redraw_area( sgui_canvas* canvas,
+                                       const sgui_rect* r, int clear );
+
+/**
  * \brief Redraw all visible widgets of a canvas.
  *
  * \memberof sgui_canvas
+ * \note This function must no be called inside a begin-end block.
  *
- * The dirty areas are cleared after a call to this function. The function can
- * calls be called outside a begin-end block and calls begin-end itself if
- * required.
+ * The dirty areas are cleared after a call to this function.
  *
  * \param canvas The canvas
  * \param clear  If non-zero the canvas is cleared before drawing
  */
-SGUI_DLL void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear );
+static SGUI_INLINE
+void sgui_canvas_draw_widgets( sgui_canvas* canvas, int clear )
+{
+    sgui_canvas_redraw_area( canvas, NULL, clear );
+}
 
 /**
  * \brief Send a window event to all widgets held by a canvas
@@ -391,8 +438,11 @@ SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
  * \param canvas The canvas to get the scissor rectangle from
  * \param r      Returns the scissor rectangle
  */
-SGUI_DLL void sgui_canvas_get_scissor_rect( const sgui_canvas* canvas,
-                                            sgui_rect* r );
+static SGUI_INLINE
+void sgui_canvas_get_scissor_rect( const sgui_canvas* canvas, sgui_rect* r )
+{
+    *r = canvas->sc;
+}
 
 /**
  * \brief Set the currently used drawing scissor rectangle of a canvas
@@ -414,8 +464,12 @@ SGUI_DLL void sgui_canvas_set_scissor_rect( sgui_canvas* canvas,
  * \param x      Returns the horizontal offset
  * \param y      Returns the vertical offset
  */
-SGUI_DLL void sgui_canvas_get_offset( const sgui_canvas* canvas,
-                                      int* x, int* y );
+static SGUI_INLINE void sgui_canvas_get_offset( const sgui_canvas* canvas,
+                                                int* x, int* y )
+{
+    *x = canvas->ox;
+    *y = canvas->oy;
+}
 
 /**
  * \brief Set an offset added to all positions of canvas drawing functions
@@ -426,7 +480,12 @@ SGUI_DLL void sgui_canvas_get_offset( const sgui_canvas* canvas,
  * \param x      The horizontal offset
  * \param y      The vertical offset
  */
-SGUI_DLL void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y );
+static SGUI_INLINE
+void sgui_canvas_set_offset( sgui_canvas* canvas, int x, int y )
+{
+    canvas->ox = x;
+    canvas->oy = y;
+}
 
 /**
  * \brief Call to start drawing to an area on the canvas

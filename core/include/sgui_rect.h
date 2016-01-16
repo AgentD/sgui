@@ -112,8 +112,14 @@ SGUI_DLL void sgui_rect_set_size( sgui_rect* r, int left, int top,
  * \param right  The horizontal distance of the right edge from the origin
  * \param bottom The vertical distance of the bottom edge from the origin
  */
-SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
-                             int bottom );
+static SGUI_INLINE void sgui_rect_set( sgui_rect* r, int left, int top,
+                                       int right, int bottom )
+{
+    r->left   = left;
+    r->top    = top;
+    r->right  = right;
+    r->bottom = bottom;
+}
 
 /**
  * \brief Reposition a given rect
@@ -123,7 +129,14 @@ SGUI_DLL void sgui_rect_set( sgui_rect* r, int left, int top, int right,
  * \param left The horizontal distance of the left edge from the origin
  * \param top  The vertical distance of the top edge from the origin
  */
-SGUI_DLL void sgui_rect_set_position( sgui_rect* r, int left, int top );
+static SGUI_INLINE
+void sgui_rect_set_position( sgui_rect* r, int left, int top )
+{
+    r->right  = r->right  - r->left + left;
+    r->bottom = r->bottom - r->top  + top;
+    r->left   = left;
+    r->top    = top;
+}
 
 /**
  * \brief Add an offset to a rect
@@ -133,7 +146,13 @@ SGUI_DLL void sgui_rect_set_position( sgui_rect* r, int left, int top );
  * \param h A horizontal offset, added to left and right
  * \param v A vertical offset, added to top and bottom
  */
-SGUI_DLL void sgui_rect_add_offset( sgui_rect* r, int h, int v );
+static SGUI_INLINE void sgui_rect_add_offset( sgui_rect* r, int h, int v )
+{
+    r->left   += h;
+    r->right  += h;
+    r->top    += v;
+    r->bottom += v;
+}
 
 /**
  * \brief Extend a rect
@@ -143,17 +162,13 @@ SGUI_DLL void sgui_rect_add_offset( sgui_rect* r, int h, int v );
  * \param h A horizontal extension, added to right and subtracted from left
  * \param v A vertical extension, added to bottom and subtracted from top
  */
-SGUI_DLL void sgui_rect_extend( sgui_rect* r, int h, int v );
-
-/**
- * \brief Copy the data of one rectangle into another
- *
- * \memberof sgui_rect
- *
- * \param dst The rectangle to copy to
- * \param src The rectangle to copy from
- */
-SGUI_DLL void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src );
+static SGUI_INLINE void sgui_rect_extend( sgui_rect* r, int h, int v )
+{
+    r->left   -= h;
+    r->right  += h;
+    r->top    -= v;
+    r->bottom += v;
+}
 
 /**
  * \brief Get the intersection between to rectangles
@@ -166,9 +181,9 @@ SGUI_DLL void sgui_rect_copy( sgui_rect* dst, const sgui_rect* src );
  * intersection test is done. If the intersection test fails, it is set to
  * zero.
  *
- * \param r If non-NULL, returns the intersection area between the rectangles.
- * \param a The first rectangle to test. Must not be NULL.
- * \param b The second rectangle to test. Must not be NULL.
+ * \param r If non-NULL, returns the intersection area between the rectangles
+ * \param a The first rectangle to test
+ * \param b The second rectangle to test
  *
  * \return Non-zero if the rectangles intersect, zero if they don't
  */

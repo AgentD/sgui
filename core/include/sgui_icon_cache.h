@@ -136,9 +136,11 @@ extern "C" {
  * \param icon A pointer to an icon
  * \param out  Returns the area of the icon on the pixmap
  */
-SGUI_DLL void sgui_icon_get_area( const sgui_icon* icon, sgui_rect* out );
-
-
+static SGUI_INLINE
+void sgui_icon_get_area( const sgui_icon* icon, sgui_rect* out )
+{
+    *out = icon->area;
+}
 
 /**
  * \brief Destroy an icon cache object
@@ -229,7 +231,11 @@ SGUI_DLL int sgui_icon_cache_alloc_area( sgui_icon_cache* cache,
  *
  * \return A pointer to a pixmap object on success, NULL otherwise.
  */
-SGUI_DLL sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* cache );
+static SGUI_INLINE
+sgui_pixmap* sgui_icon_cache_get_pixmap( sgui_icon_cache* cache )
+{
+    return cache->pixmap;
+}
 
 /**
  * \brief Search for an icon in an icon cache

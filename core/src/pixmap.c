@@ -28,21 +28,6 @@
 
 
 
-void sgui_pixmap_get_size( const sgui_pixmap* this, unsigned int* width,
-                           unsigned int* height )
-{
-    if( this )
-    {
-        if( width  ) *width  = this->width;
-        if( height ) *height = this->height;
-    }
-    else
-    {
-        if( width  ) *width  = 0;
-        if( height ) *height = 0;
-    }
-}
-
 void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
                        const unsigned char* data, int srcx, int srcy,
                        unsigned int width, unsigned int height,
@@ -51,7 +36,7 @@ void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
     int bpp =  format==SGUI_RGBA8 ? 4 :
               (format==SGUI_RGB8  ? 3 : 1);
 
-    if( !this || !width || !height || !data || srcx>=(int)scan )
+    if( !width || !height || srcx>=(int)scan )
         return;
 
     if( dstx>=(int)this->width || dsty>=(int)this->height )
@@ -66,15 +51,7 @@ void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
     if( (dsty+height)>=this->height )
         height = this->height - dsty;
 
-    if( data )
-        data += (srcy*scan + srcx) * bpp;
-
+    data += (srcy*scan + srcx) * bpp;
     this->load( this, dstx, dsty, data, scan, width, height, format );
-}
-
-void sgui_pixmap_destroy( sgui_pixmap* this )
-{
-    if( this )
-        this->destroy( this );
 }
 

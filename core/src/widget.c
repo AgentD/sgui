@@ -75,64 +75,38 @@ static sgui_widget* find_child_focus( const sgui_widget* this )
 void sgui_widget_init( sgui_widget* this, int x, int y,
                        unsigned int width, unsigned int height )
 {
-    if( !this )
-        return;
-
     sgui_rect_set_size( &this->area, x, y, width, height );
 
-    this->next               = NULL;
-    this->children           = NULL;
-    this->parent             = NULL;
-    this->canvas             = NULL;
-    this->draw               = NULL;
-    this->window_event       = NULL;
-    this->state_change_event = NULL;
-    this->flags              = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
-                               SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB|
-                               SGUI_WIDGET_VISIBLE;
-}
-
-void sgui_widget_destroy( sgui_widget* this )
-{
-    if( this )
-        this->destroy( this );
+    this->flags = SGUI_FOCUS_ACCEPT|SGUI_FOCUS_DRAW|
+                  SGUI_FOCUS_DROP_ESC|SGUI_FOCUS_DROP_TAB|SGUI_WIDGET_VISIBLE;
 }
 
 void sgui_widget_destroy_children( sgui_widget* this )
 {
-    sgui_widget *i, *old;
+    sgui_widget* old;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    while( this->children!=NULL )
     {
-        sgui_internal_lock_mutex( );
-
-        i = this->children;
-        while( i!=NULL )
-        {
-            old = i;
-            i = i->next;
-            old->destroy( old );
-        }
-
-        this->children = NULL;
-
-        sgui_internal_unlock_mutex( );
+        old = this->children;
+        this->children = this->children->next;
+        old->destroy( old );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_destroy_all_children( sgui_widget* this )
 {
     sgui_widget* i;
 
-    if( this )
-    {
-        sgui_internal_lock_mutex( );
-        for( i=this->children; i!=NULL; i=i->next )
-            sgui_widget_destroy_all_children( i );
+    sgui_internal_lock_mutex( );
+    for( i=this->children; i!=NULL; i=i->next )
+        sgui_widget_destroy_all_children( i );
 
-        sgui_widget_destroy_children( this );
-        sgui_internal_unlock_mutex( );
-    }
+    sgui_widget_destroy_children( this );
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_set_position( sgui_widget* this, int x, int y )
@@ -140,84 +114,53 @@ void sgui_widget_set_position( sgui_widget* this, int x, int y )
     sgui_rect r;
     int visible;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    visible = sgui_widget_is_absolute_visible( this );
+
+    if( visible && this->canvas )
     {
-        sgui_internal_lock_mutex( );
-
-        visible = sgui_widget_is_absolute_visible( this );
-
-        /* flag the old area dirty */
-        if( visible )
-        {
-            sgui_widget_get_absolute_rect( this, &r );
-            sgui_canvas_add_dirty_rect( this->canvas, &r );
-        }
-
-        /* move the widget area */
-        sgui_rect_set_position( &this->area, x, y );
-
-        /* flag the new area dirty */
-        if( visible )
-        {
-            sgui_widget_get_absolute_rect( this, &r );
-            sgui_canvas_add_dirty_rect( this->canvas, &r );
-        }
-
-        /* call the state change callback if there is one */
-        if( this->state_change_event )
-            this->state_change_event( this, SGUI_WIDGET_POSITION_CHANGED );
-
-        sgui_internal_unlock_mutex( );
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
     }
-}
 
-void sgui_widget_get_position( const sgui_widget* this, int* x, int* y )
-{
-    if( this )
+    sgui_rect_set_position( &this->area, x, y );
+
+    if( visible && this->canvas )
     {
-        if( x ) *x = this->area.left;
-        if( y ) *y = this->area.top;
+        sgui_widget_get_absolute_rect( this, &r );
+        sgui_canvas_add_dirty_rect( this->canvas, &r );
     }
-    else
-    {
-        if( x ) *x = 0;
-        if( y ) *y = 0;
-    }
+
+    if( this->state_change_event )
+        this->state_change_event( this, SGUI_WIDGET_POSITION_CHANGED );
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_get_absolute_position( const sgui_widget* this,
                                         int* x, int* y )
 {
     const sgui_widget* i;
-    int X, Y;
 
     sgui_internal_lock_mutex( );
 
-    for( X=0, Y=0, i=this; i!=NULL; i=i->parent )
+    for( *x=0, *y=0, i=this; i!=NULL; i=i->parent )
     {
-        X += i->area.left;
-        Y += i->area.top;
+        *x += i->area.left;
+        *y += i->area.top;
     }
 
     sgui_internal_unlock_mutex( );
-
-    if( x ) *x = X;
-    if( y ) *y = Y;
 }
 
 void sgui_widget_get_size( const sgui_widget* this,
                            unsigned int* width, unsigned int* height )
 {
-    if( this )
-    {
-        if( width  ) *width  = SGUI_RECT_WIDTH( this->area );
-        if( height ) *height = SGUI_RECT_HEIGHT( this->area );
-    }
-    else
-    {
-        if( width  ) *width  = 0;
-        if( height ) *height = 0;
-    }
+    sgui_internal_lock_mutex( );
+    *width  = SGUI_RECT_WIDTH( this->area );
+    *height = SGUI_RECT_HEIGHT( this->area );
+    sgui_internal_unlock_mutex( );
 }
 
 int sgui_widget_is_absolute_visible( const sgui_widget* this )
@@ -227,66 +170,52 @@ int sgui_widget_is_absolute_visible( const sgui_widget* this )
     for( ; this!=NULL; this=this->parent )
     {
         if( !(this->flags & SGUI_WIDGET_VISIBLE) )
-        {
-            sgui_internal_unlock_mutex( );
-            return 0;
-        }
+            break;
     }
 
     sgui_internal_unlock_mutex( );
-    return 1;
+    return (this == NULL);
 }
 
 void sgui_widget_set_visible( sgui_widget* this, int visible )
 {
     sgui_rect r;
 
-    if( this && (((this->flags & SGUI_WIDGET_VISIBLE)!=0) ^ (visible!=0)) )
+    sgui_internal_lock_mutex( );
+    if( ((this->flags & SGUI_WIDGET_VISIBLE)!=0) ^ (visible!=0) )
     {
-        sgui_internal_lock_mutex( );
-
-        if( visible )
-            this->flags |= SGUI_WIDGET_VISIBLE;
-        else
-            this->flags &= ~SGUI_WIDGET_VISIBLE;
+        this->flags ^= SGUI_WIDGET_VISIBLE;
 
         if( this->state_change_event )
             this->state_change_event(this,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
         propagat_state_change(this->children,SGUI_WIDGET_VISIBILLITY_CHANGED);
 
-        /* flag area as dirty */ 
-        sgui_widget_get_absolute_rect( this, &r );
-        sgui_canvas_add_dirty_rect( this->canvas, &r );
-
-        sgui_internal_unlock_mutex( );
+        if( this->canvas )
+        {
+            sgui_widget_get_absolute_rect( this, &r );
+            sgui_canvas_add_dirty_rect( this->canvas, &r );
+        }
     }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_get_absolute_rect( const sgui_widget* this, sgui_rect* r )
 {
     sgui_widget* i;
 
-    if( this && r )
+    sgui_internal_lock_mutex( );
+    *r = this->area;
+
+    for( i=this->parent; i!=NULL; i=i->parent )
     {
-        sgui_internal_lock_mutex( );
-        sgui_rect_copy( r, &this->area );
+        sgui_rect_add_offset( r, i->area.left, i->area.top );
 
-        for( i=this->parent; i!=NULL; i=i->parent )
-        {
-            /* transform to parent local */
-            r->left   += i->area.left;
-            r->right  += i->area.left;
-            r->top    += i->area.top;
-            r->bottom += i->area.top;
-
-            /* clip against the parent rectangle */
-            if( !sgui_rect_get_intersection( r, r, &i->area ) )
-                break;
-        }
-
-        sgui_internal_unlock_mutex( );
+        if( !sgui_rect_get_intersection( r, r, &i->area ) )
+            break;
     }
+
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
@@ -294,105 +223,90 @@ void sgui_widget_send_event( sgui_widget* this, const sgui_event* event,
 {
     sgui_widget* i;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    /* XXX: Keyboard events are only sent to widget that has focus */
+    if( event->type==SGUI_KEY_PRESSED_EVENT ||
+        event->type==SGUI_KEY_RELEASED_EVENT )
     {
-        /*
-           Don't worry! Keyboard events are only sent to widget that has focus
-         */
-        if( event->type==SGUI_KEY_PRESSED_EVENT ||
-            event->type==SGUI_KEY_RELEASED_EVENT )
+        /* escape key pressed -> lose focus if policy says so. */
+        if( event->arg.i==SGUI_KC_ESCAPE && 
+            (this->flags & SGUI_FOCUS_DROP_ESC) )
         {
-            /* escape key pressed -> lose focus if policy says so. */
-            if( event->arg.i==SGUI_KC_ESCAPE && 
-                (this->flags & SGUI_FOCUS_DROP_ESC) )
-            {
-                sgui_canvas_set_focus( this->canvas, NULL );
-                return;
-            }
-
-            /* tab key pressed -> advance focus if policy says so. */
-            if( event->type==SGUI_KEY_RELEASED_EVENT &&
-                event->arg.i==SGUI_KC_TAB &&
-                (this->flags & SGUI_FOCUS_DROP_TAB) )
-            {
-                i = sgui_widget_find_next_focus( this );
-
-                /* no successor? try to restart at root widget */
-                if( !i )
-                {
-                    for( i=this; i->parent!=NULL; i=i->parent ) { }
-                    i = sgui_widget_find_next_focus( i );
-                }
-
-                if( i )
-                    sgui_canvas_set_focus( this->canvas, i );
-                return;
-            }
+            sgui_canvas_set_focus( this->canvas, NULL );
+            goto out;
         }
 
-        if( this->window_event )
-            this->window_event( this, event );
-
-        if( propagate )
+        /* tab key pressed -> advance focus if policy says so. */
+        if( event->type==SGUI_KEY_RELEASED_EVENT &&
+            event->arg.i==SGUI_KC_TAB &&
+            (this->flags & SGUI_FOCUS_DROP_TAB) )
         {
-            sgui_internal_lock_mutex( );
+            i = sgui_widget_find_next_focus( this );
 
-            for( i=this->children; i!=NULL; i=i->next )
+            /* no successor? try to restart at root widget */
+            if( !i )
             {
-                sgui_widget_send_event( i, event, 1 );
+                for( i=this; i->parent!=NULL; i=i->parent ) { }
+                i = sgui_widget_find_next_focus( i );
             }
 
-            sgui_internal_unlock_mutex( );
+            if( i )
+                sgui_canvas_set_focus( this->canvas, i );
+            goto out;
         }
     }
+
+    if( this->window_event )
+        this->window_event( this, event );
+
+    if( propagate )
+    {
+        for( i=this->children; i!=NULL; i=i->next )
+            sgui_widget_send_event( i, event, 1 );
+    }
+out:
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_remove_from_parent( sgui_widget* this )
 {
     sgui_rect r;
     sgui_widget* i = NULL;
-    int change = SGUI_WIDGET_PARENT_CHANGED;
 
-    if( this && this->parent )
+    sgui_internal_lock_mutex( );
+
+    if( this->parent )
     {
-        sgui_internal_lock_mutex( );
-
-        i = this->parent->children;
-
         SGUI_REMOVE_FROM_LIST( this->parent->children, i, this );
 
-        if( sgui_widget_is_absolute_visible( this ) )
+        if( this->canvas && sgui_widget_is_absolute_visible( this ) )
         {
             sgui_widget_get_absolute_rect( this, &r );
             sgui_canvas_add_dirty_rect( this->canvas, &r );
         }
 
-        /* add canvas change flag if the widget had a canvas before */
-        if( this->canvas )
-            change |= SGUI_WIDGET_CANVAS_CHANGED;
-
-        /* store a pointer to the old parent */
+        /* tell old parent */
         i = this->parent;
 
-        /* update links and canvas */
-        this->parent = NULL;
-        this->next = NULL;
-        this->canvas = NULL;
-
-        propagate_canvas( this->children );
-
-        /* call state change callbacks */
         if( i && i->state_change_event )
             i->state_change_event( i, SGUI_WIDGET_CHILD_REMOVED );
 
+        /* update links, canvas and tell widget */
+        this->parent = NULL;
+        this->next = NULL;
+
+        if( this->canvas )
+        {
+            this->canvas = NULL;
+            propagate_canvas( this->children );
+            propagat_state_change( this, SGUI_WIDGET_CANVAS_CHANGED );
+        }
+
         if( this->state_change_event )
-            this->state_change_event( this, change );
-
-        if( change & SGUI_WIDGET_CANVAS_CHANGED )
-            propagat_state_change(this->children, SGUI_WIDGET_CANVAS_CHANGED);
-
-        sgui_internal_unlock_mutex( );
+            this->state_change_event( this, SGUI_WIDGET_PARENT_CHANGED );
     }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
@@ -401,24 +315,21 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
     sgui_widget* i;
     int change = SGUI_WIDGET_PARENT_CHANGED;
 
-    if( !child || !this )
-        return;
+    sgui_internal_lock_mutex( );
 
     /* add canvas change flag if the widget had a different canvas before */
     if( child->canvas != this->canvas )
         change |= SGUI_WIDGET_CANVAS_CHANGED;
 
-    sgui_internal_lock_mutex( );
-
     /* add widget */
     child->parent = this;
+    child->next = NULL;
     child->canvas = this->canvas;
 
     if( this->children )
     {
-        for( i=this->children; i->next; i=i->next );
+        for( i=this->children; i->next; i=i->next ) { } /* find end of list */
         i->next = child;
-        child->next = NULL;
     }
     else
     {
@@ -428,7 +339,7 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
     propagate_canvas( child->children );
 
     /* flag coresponding area as dirty */
-    if( sgui_widget_is_absolute_visible( child ) )
+    if( this->canvas && sgui_widget_is_absolute_visible( child ) )
     {
         sgui_widget_get_absolute_rect( child, &r );
         sgui_canvas_add_dirty_rect( child->canvas, &r );
@@ -450,95 +361,134 @@ void sgui_widget_add_child( sgui_widget* this, sgui_widget* child )
 sgui_widget* sgui_widget_get_child_from_point( const sgui_widget* this,
                                                int x, int y )
 {
-    const sgui_widget* candidate = this;
+    const sgui_widget* old = NULL;
     sgui_widget* it;
-
-    /* check if the given widget exists and the point is inside */
-    if( !this || !sgui_rect_is_point_inside( &this->area, x, y ) )
-        return NULL;
 
     sgui_internal_lock_mutex( );
 
-    do
+    if( sgui_rect_is_point_inside( &this->area, x, y ) )
     {
-        /* continue searching last candidate, clear candidate */
-        this = candidate;
-        candidate = NULL;
-
-        /* transform to widget local coordinates */
-        x -= this->area.left;
-        y -= this->area.top;
-
-        /* find last child at position */
-        for( it=this->children; it!=NULL; it=it->next )
+        while( this->children && old!=this )
         {
-            if( (it->flags & SGUI_WIDGET_VISIBLE) &&
-                sgui_rect_is_point_inside( &it->area, x, y ) )
+            x -= this->area.left;
+            y -= this->area.top;
+
+            /* find last child at position */
+            for( old=this, it=this->children; it!=NULL; it=it->next )
             {
-                candidate = it;
+                if( (it->flags & SGUI_WIDGET_VISIBLE) &&
+                    sgui_rect_is_point_inside( &it->area, x, y ) )
+                {
+                    this = it;
+                }
             }
         }
     }
-    while( candidate );
-
+    else
+    {
+        this = NULL;
+    }
     sgui_internal_unlock_mutex( );
-
     return (sgui_widget*)this;
 }
 
 sgui_widget* sgui_widget_find_next_focus( const sgui_widget* this )
 {
-    sgui_widget* w;
-    sgui_widget* v;
+    sgui_widget *w, *v;
 
     sgui_internal_lock_mutex( );
 
-    while( this )
+    do
     {
-        /* try to find a child of the current widget that accepts focus */
+        /* check own children */
         if( (w = find_child_focus( this )) )
-        {
-            sgui_internal_unlock_mutex( );
-            return w;
-        }
+            goto outw;
 
-        /*
-            try to find a right neightbour that accepts focus or has a child
-            that accepts focus.
-         */
+        /* check right neighbours and their children */
         for( w=this->next; w!=NULL; w=w->next )
         {
-            if( !(w->flags & SGUI_WIDGET_VISIBLE) )
-                continue;
-
-            if( w && (w->flags & SGUI_FOCUS_ACCEPT) )
+            if( w->flags & SGUI_WIDGET_VISIBLE )
             {
-                sgui_internal_unlock_mutex( );
-                return w;
-            }
-
-            if( (v = find_child_focus( w )) )
-            {
-                sgui_internal_unlock_mutex( );
-                return v;
+                if( w->flags & SGUI_FOCUS_ACCEPT )
+                    goto outw;
+                if( (v = find_child_focus( w )) )
+                    goto outv;
             }
         }
 
-        /* go to the right uncle, check if it accepts focus, reiterate */
+        /* find first visible right uncle */
         this = this->parent ? this->parent->next : NULL;
 
         while( this && !(this->flags & SGUI_WIDGET_VISIBLE) )
             this = this->next;
-
-        if( this && (this->flags & SGUI_FOCUS_ACCEPT) )
-        {
-            sgui_internal_unlock_mutex( );
-            return (sgui_widget*)this;
-        }
     }
+    while( this && !(this->flags & SGUI_FOCUS_ACCEPT) );
 
     sgui_internal_unlock_mutex( );
+    return (sgui_widget*)this;
+outv:
+    w = v;
+outw:
+    sgui_internal_unlock_mutex( );
+    return w;
+}
 
-    return NULL;
+void sgui_widget_draw( sgui_widget* this, sgui_rect* bounds,
+                       sgui_widget* focus )
+{
+    sgui_rect wr, old_sc;
+    sgui_skin* skin;
+    sgui_widget* i;
+    int fbw;
+
+    sgui_internal_lock_mutex( );
+
+    if( this->flags & SGUI_WIDGET_VISIBLE )
+    {
+        sgui_widget_get_absolute_rect( this, &wr );
+
+        if( wr.left>=wr.right || wr.top>=wr.bottom )
+            goto out;
+
+        if( bounds && !sgui_rect_get_intersection( &wr, bounds, &wr ) )
+            goto out;
+
+        old_sc = this->canvas->sc;
+
+        if( !sgui_rect_get_intersection( &this->canvas->sc, &old_sc, &wr ) )
+            goto out;
+
+        if( this->draw )
+            this->draw( this );
+
+        this->canvas->ox += this->area.left;
+        this->canvas->oy += this->area.top;
+
+        for( i=this->children; i!=NULL; i=i->next )
+            sgui_widget_draw( i, bounds ? &wr : NULL, focus );
+
+        this->canvas->ox -= this->area.left;
+        this->canvas->oy -= this->area.top;
+
+        if( this==focus && (this->flags & SGUI_FOCUS_DRAW) )
+        {
+            skin = sgui_skin_get( );
+            fbw = skin->get_focus_box_width( skin );
+
+            sgui_widget_get_absolute_rect( this, &wr );
+            sgui_rect_extend( &wr, fbw, fbw );
+
+            if( sgui_rect_get_intersection(&this->canvas->sc, &old_sc, &wr) )
+            {
+                sgui_rect_add_offset( &wr, -this->canvas->ox,
+                                           -this->canvas->oy );
+                skin->draw_focus_box( skin, this->canvas, &wr );
+            }
+        }
+
+        this->canvas->sc = old_sc;
+    }
+out:
+    sgui_internal_unlock_mutex( );
 }
 

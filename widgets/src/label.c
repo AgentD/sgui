@@ -68,7 +68,7 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
     sgui_widget* super;
 
     /* create widget */
-    this = malloc( sizeof(sgui_label) );
+    this = calloc( 1, sizeof(sgui_label) );
     super = (sgui_widget*)this;
 
     if( !this || !(this->text = sgui_strdup( text )) )
@@ -83,9 +83,6 @@ sgui_widget* sgui_label_create( int x, int y, const char* text )
     super->draw          = label_draw;
     super->destroy       = label_destroy;
     super->flags         = SGUI_WIDGET_VISIBLE;
-
-    /* copy the text */
-    strcpy( this->text, text );
 
     /* compute the text area */
     sgui_skin_get_text_extents( text, &super->area );

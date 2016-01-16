@@ -144,7 +144,7 @@ sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
         return NULL;
 
     /* allocate font structure */
-    this = malloc( sizeof(sgui_w32_font) );
+    this = calloc( 1, sizeof(sgui_w32_font) );
     super = (sgui_font*)this;
 
     if( !this )
@@ -190,7 +190,7 @@ sgui_font* sgui_font_load_memory( const void* data, unsigned long size,
         return NULL;
 
     /* allocate font structure */
-    this = malloc( sizeof(sgui_w32_font) );
+    this = calloc( 1, sizeof(sgui_w32_font) );
     super = (sgui_font*)this;
 
     if( !this )

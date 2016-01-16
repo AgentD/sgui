@@ -234,7 +234,7 @@ sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
     if( !width || !height )
         return NULL;
 
-    this = malloc( sizeof(mem_pixmap) );
+    this = calloc( 1, sizeof(mem_pixmap) );
     super = (sgui_pixmap*)this;
 
     if( !this )
@@ -263,12 +263,12 @@ sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
 
 unsigned char* sgui_internal_mem_pixmap_buffer( sgui_pixmap* this )
 {
-    return this ? ((mem_pixmap*)this)->buffer : NULL;
+    return ((mem_pixmap*)this)->buffer;
 }
 
 int sgui_internal_mem_pixmap_format( sgui_pixmap* this )
 {
-    return this ? ((mem_pixmap*)this)->format : 0;
+    return ((mem_pixmap*)this)->format;
 }
 #endif
 

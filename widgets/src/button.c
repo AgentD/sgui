@@ -92,8 +92,11 @@ static void button_select( sgui_button* this, int selected, int postevent )
     this->flags = selected ? (this->flags | SELECTED) : 
                              (this->flags & (~SELECTED));
 
-    sgui_widget_get_absolute_rect( &(this->super), &r );
-    sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    if( this->super.canvas )
+    {
+        sgui_widget_get_absolute_rect( &(this->super), &r );
+        sgui_canvas_add_dirty_rect( this->super.canvas, &r );
+    }
 
     if( postevent )
     {
@@ -112,8 +115,11 @@ static void button_select( sgui_button* this, int selected, int postevent )
         if( i->flags & SELECTED )
         {
             i->flags &= ~SELECTED;
-            sgui_widget_get_absolute_rect( &(i->super), &r );
-            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            if( i->super.canvas )
+            {
+                sgui_widget_get_absolute_rect( &(i->super), &r );
+                sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            }
             goto done;
         }
     }
@@ -124,8 +130,11 @@ static void button_select( sgui_button* this, int selected, int postevent )
         if( i->flags & SELECTED )
         {
             i->flags &= ~SELECTED;
-            sgui_widget_get_absolute_rect( &(i->super), &r );
-            sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            if( i->super.canvas )
+            {
+                sgui_widget_get_absolute_rect( &(i->super), &r );
+                sgui_canvas_add_dirty_rect( i->super.canvas, &r );
+            }
             goto done;
         }
     }
@@ -266,22 +275,13 @@ static sgui_widget* button_create_common( int x, int y, unsigned int width,
                                           sgui_icon_cache* cache,
                                           const char* text, int flags )
 {
-    unsigned int text_width, text_height, haveicon = (flags & HAVE_ICON);
+    unsigned int text_width, text_height;
     sgui_widget* super;
     sgui_button* this;
     sgui_skin* skin;
     sgui_rect r;
 
-    /* sanity check */
-    if( (haveicon && (!cache||!icon)) || (!haveicon && !text) )
-        return NULL;
-#ifdef SGUI_NO_ICON_CACHE
-    if( !text )
-        return NULL;
-#endif
-
-    /* allocate button */
-    this = malloc( sizeof(sgui_button) );
+    this = calloc( 1, sizeof(sgui_button) );
     super = (sgui_widget*)this;
 
     if( !this )
@@ -387,34 +387,31 @@ void sgui_button_group_connect( sgui_widget* super, sgui_widget* previous,
 {
     sgui_button* this = (sgui_button*)super;
 
-    if( this )
-    {
-        sgui_internal_lock_mutex( );
+    sgui_internal_lock_mutex( );
 
-        /* disconnect from existing linked list */
-        if( this->prev ) this->prev->next = this->next;
-        if( this->next ) this->next->prev = this->prev;
+    /* disconnect from existing linked list */
+    if( this->prev ) this->prev->next = this->next;
+    if( this->next ) this->next->prev = this->prev;
 
-        /* connect to new list */
-        this->prev = (sgui_button*)previous;
-        this->next = (sgui_button*)next;
+    /* connect to new list */
+    this->prev = (sgui_button*)previous;
+    this->next = (sgui_button*)next;
 
-        if( this->prev ) this->prev->next = this;
-        if( this->next ) this->next->prev = this;
+    if( this->prev ) this->prev->next = this;
+    if( this->next ) this->next->prev = this;
 
-        sgui_internal_unlock_mutex( );
-    }
+    sgui_internal_unlock_mutex( );
 }
 
 void sgui_button_set_state( sgui_widget* this, int state )
 {
-    if( this && (((sgui_button*)this)->flags & 0x03)!=BUTTON )
+    if( (((sgui_button*)this)->flags & 0x03)!=BUTTON )
         button_select( (sgui_button*)this, state, 0 );
 }
 
 int sgui_button_get_state( sgui_widget* this )
 {
-    return this && (((sgui_button*)this)->flags & SELECTED)!=0;
+    return (((sgui_button*)this)->flags & SELECTED)!=0;
 }
 
 void sgui_button_set_text( sgui_widget* super, const char* text )
@@ -422,10 +419,6 @@ void sgui_button_set_text( sgui_widget* super, const char* text )
     unsigned int text_width, text_height;
     sgui_button* this = (sgui_button*)super;
     sgui_rect r;
-
-    /* sanity check */
-    if( !this || !text )
-        return;
 
     sgui_skin_get_text_extents( text, &r );
     text_width = SGUI_RECT_WIDTH( r );
@@ -462,10 +455,6 @@ void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
     sgui_button* this = (sgui_button*)super;
     sgui_skin* skin;
     sgui_rect r;
-
-    /* sanity check */
-    if( !this || !cache || !icon )
-        return;
 
     sgui_icon_get_area( icon, &r );
     sgui_internal_lock_mutex( );

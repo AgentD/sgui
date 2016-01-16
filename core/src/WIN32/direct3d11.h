@@ -29,17 +29,12 @@
 #include "sgui_internal.h"
 
 #ifndef SGUI_NO_D3D11
-#include "sgui_d3d11.h"
+    #include "sgui_d3d11.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* swap buffers of a Direct3D 11 window */
-void d3d11_swap_buffers( sgui_window* wnd );
-
-/* turn vsync on or off for a Direct3D 11 window */
-void d3d11_set_vsync( sgui_window* wnd, int interval );
 
 /* resize swapchain and depth/stencil buffer after window resize */
 void d3d11_resize( sgui_context* ctx );
@@ -51,8 +46,6 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* SGUI_NO_D3D11 */
 
 #endif /* SGUI_DIRECT3D11_H */
 

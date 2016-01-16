@@ -52,6 +52,7 @@ option( NATIVE_MB "Compile with native emergency message box function" ON )
 
 if( UNIX )
   set( ICONCACHE true )
+  option( XRENDER "Use an XRender based canvas implementation" ON )
 else( )
   option( ICONCACHE "Compile with icon and font cache implementations" ON )
 endif( )
@@ -68,6 +69,10 @@ option( NOPS "Replace disabled features with API compatible NOP functions" ON)
 
 if( NOFLOAT )
   set( SGUI_NO_FLOAT 1 )
+endif( )
+
+if( UNIX AND NOT XRENDER )
+  set( SGUI_NO_XRENDER 1 )
 endif( )
 
 if( NOT DIRECT3D9 )
@@ -200,6 +205,7 @@ endif( )
 include_directories( ${CMAKE_SOURCE_DIR}/core/include/
                      ${CMAKE_SOURCE_DIR}/widgets/include/
                      ${CMAKE_SOURCE_DIR}/dialogs/include/
+                     ${CMAKE_SOURCE_DIR}/subwm/include/
                    )
 
 if( WIN32 )
@@ -258,10 +264,13 @@ include_directories( ${CMAKE_BINARY_DIR}/include )
 add_subdirectory( core )
 add_subdirectory( widgets )
 add_subdirectory( dialogs )
+add_subdirectory( subwm )
 
 add_library( sgui SHARED ${CORE_SRC} ${WIDGETS_SRC} ${DIALOGS_SRC} )
+add_library( sguisubwm STATIC ${SUBWM_SRC} )
 
 target_link_libraries( sgui ${SGUI_DEP} )
+target_link_libraries( sguisubwm sgui )
 
 add_subdirectory( extras )
 

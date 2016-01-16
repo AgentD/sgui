@@ -69,10 +69,9 @@ static GLYPH* create_glyph( sgui_icon_cache* this, sgui_font* font,
     src = font->get_glyph( font );
 
     /* create glyph */
-    if( !(g = malloc( sizeof(GLYPH) )) )
+    if( !(g = calloc( 1, sizeof(GLYPH) )) )
         return NULL;
 
-    memset( g, 0, sizeof(GLYPH) );
     g->super.red = 1;
     g->codepoint = codepoint;
     g->bearing = b;
@@ -107,15 +106,12 @@ static GLYPH* fetch_glyph( sgui_icon_cache* this,
 {
     GLYPH cmp, *g=NULL;
 
-    if( this && font )
-    {
-        sgui_internal_lock_mutex( );
-        cmp.font = font;
-        cmp.codepoint = codepoint;
-        g = (GLYPH*)sgui_icon_cache_find( this, (sgui_icon*)&cmp );
-        g = g ? g : create_glyph( this, font, codepoint );
-        sgui_internal_unlock_mutex( );
-    }
+    sgui_internal_lock_mutex( );
+    cmp.font = font;
+    cmp.codepoint = codepoint;
+    g = (GLYPH*)sgui_icon_cache_find( this, (sgui_icon*)&cmp );
+    g = g ? g : create_glyph( this, font, codepoint );
+    sgui_internal_unlock_mutex( );
     return g;
 }
 
@@ -123,11 +119,10 @@ static GLYPH* fetch_glyph( sgui_icon_cache* this,
 
 sgui_icon_cache* sgui_font_cache_create( sgui_pixmap* map )
 {
-    sgui_icon_cache* this = malloc( sizeof(sgui_icon_cache) );
+    sgui_icon_cache* this = calloc( 1, sizeof(sgui_icon_cache) );
 
     if( this )
     {
-        memset( this, 0, sizeof(sgui_icon_cache) );
         sgui_pixmap_get_size( map, &this->width, &this->height );
 
         this->pixmap = map;
@@ -140,15 +135,12 @@ int sgui_font_cache_draw_glyph( sgui_icon_cache* this, sgui_font* font,
                                 unsigned int codepoint, int x, int y,
                                 sgui_canvas* cv, const unsigned char* color )
 {
-    GLYPH* g = NULL;
+    GLYPH* g = fetch_glyph( this, font, codepoint );
 
-    if( this && font && cv && color && (g=fetch_glyph(this,font,codepoint)) )
+    if( g && g->super.area.top != g->super.area.bottom )
     {
-        if( g->super.area.top != g->super.area.bottom )
-        {
-            cv->blend_glyph( cv, x, y+g->bearing, this->pixmap,
-                             &g->super.area, color );
-        }
+        cv->blend_glyph( cv, x, y+g->bearing, this->pixmap,
+                         &g->super.area, color );
     }
 
     return g ? SGUI_RECT_WIDTH( g->super.area ) : 0;

@@ -67,7 +67,7 @@ sgui_widget* sgui_group_box_create( int x, int y,
                                     unsigned int width, unsigned int height,
                                     const char* caption )
 {
-    sgui_group_box* this = malloc( sizeof(sgui_group_box) );
+    sgui_group_box* this = calloc( 1, sizeof(sgui_group_box) );
     sgui_widget* super = (sgui_widget*)this;
 
     if( !this )

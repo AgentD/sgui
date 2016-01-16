@@ -79,40 +79,6 @@ SGUI_DLL unsigned int sgui_utf8_encode( unsigned int cp, char* str );
  */
 SGUI_DLL unsigned int sgui_utf8_strlen( const char* utf8 );
 
-/**
- * \brief Precompute the number of bytes required by a latin-1 string, after
- *        conversion to UTF8
- *
- * \param in A pointer to a latin-1 encoded string
- *
- * \return The number of bytes required to store the equivalent UTF8 string,
- *         excluding 0 terminator
- */
-SGUI_DLL unsigned int sgui_utf8_from_latin1_length( const char* in );
-
-/**
- * \brief Convert a latin-1 encoded string into UTF8 encoding
- *
- * \note Make sure that the destination buffer is large enought. Either use
- *       sgui_utf8_from_latin1_length do determine the exact length, or use
- *       twice the input size (maximum)
- *
- * \param out A pointer to the destination buffer
- * \param in A pointer to the input buffer
- */
-SGUI_DLL void sgui_utf8_from_latin1( char* out, const char* in );
-
-/**
- * \brief Copy a null-terimated string
- *
- * \note We use this because strdup( ) is not available on all platforms
- *
- * \param string A pointer to a string
- *
- * \return A copy of the string that can be free'd using free( )
- */
-SGUI_DLL char* sgui_strdup( const char* string );
-
 #ifdef __cplusplus
 }
 #endif

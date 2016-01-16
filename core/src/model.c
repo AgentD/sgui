@@ -33,49 +33,10 @@
 
 
 #ifndef SGUI_NO_MODEL
-void sgui_model_destroy( sgui_model* this )
-{
-    if( this )
-        this->destroy( this );
-}
-
-sgui_icon_cache* sgui_model_get_icon_cache( const sgui_model* this )
-{
-    return this ? this->cache : NULL;
-}
-
-unsigned int sgui_model_column_count( const sgui_model* this )
-{
-    return this ? this->cols : 0;
-}
-
-const sgui_item* sgui_model_query_items( const sgui_model* this,
-                                         const sgui_item* parent,
-                                         unsigned int start,
-                                         unsigned int count )
-{
-    if( this )
-        return this->query_items( this, parent, start, count );
-
-    return NULL;
-}
-
-void sgui_model_free_item_list( sgui_model* this, const sgui_item* start )
-{
-    if( this && start && this->free_item_list )
-        this->free_item_list( this, start );
-}
-
-unsigned int sgui_model_item_children_count( const sgui_model* this,
-                                             const sgui_item* item )
-{
-    return this ? this->item_children_count( this, item ) : 0;
-}
-
 const char* sgui_item_text( const sgui_model* this, const sgui_item* item,
                             unsigned int column )
 {
-    if( this && item && (column < this->cols) && this->item_text )
+    if( (column < this->cols) && this->item_text )
         return this->item_text( this, item, column );
 
     return NULL;
@@ -85,7 +46,7 @@ const sgui_icon* sgui_item_icon( const sgui_model* this,
                                  const sgui_item* item,
                                  unsigned int column )
 {
-    if(this && item && this->cache && (column<this->cols) && this->item_icon)
+    if( this->cache && (column<this->cols) && this->item_icon )
         return this->item_icon( this, item, column );
 
     return NULL;
@@ -221,13 +182,11 @@ sgui_model* sgui_simple_model_create( unsigned int columns,
     if( !columns )
         return NULL;
 
-    this = malloc( sizeof(sgui_simple_model) );
+    this = calloc( 1, sizeof(sgui_simple_model) );
     super = (sgui_model*)this;
     
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_simple_model) );
 
     super->cache               = cache;
     super->cols                = columns;
@@ -249,12 +208,10 @@ sgui_item* sgui_simple_model_add_item( sgui_model* super, sgui_item* parent )
     if( this )
     {
         size = sizeof(sgui_simple_item) + sizeof(void*)*2*super->cols;
-        item = malloc( size );
+        item = calloc( 1, size );
 
         if( item )
         {
-            memset( item, 0, size );
-
             sgui_internal_lock_mutex( );
 
             if( parent )
@@ -280,7 +237,7 @@ void sgui_simple_item_set_icon( sgui_model* this, sgui_item* item,
 {
     unsigned char* ptr = (unsigned char*)item;
 
-    if( ptr && this && column<this->cols && this->cache )
+    if( column<this->cols && this->cache )
     {
         sgui_internal_lock_mutex( );
 
@@ -298,7 +255,7 @@ void sgui_simple_item_set_text( sgui_model* this, sgui_item* item,
 {
     unsigned char* ptr = (unsigned char*)item;
 
-    if( ptr && this && column<this->cols )
+    if( column<this->cols )
     {
         sgui_internal_lock_mutex( );
 
@@ -314,38 +271,6 @@ void sgui_simple_item_set_text( sgui_model* this, sgui_item* item,
     }
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-void sgui_model_destroy( sgui_model* model )
-{
-    (void)model;
-}
-sgui_icon_cache* sgui_model_get_icon_cache( const sgui_model* model )
-{
-    (void)model;
-    return NULL;
-}
-unsigned int sgui_model_column_count( const sgui_model* model )
-{
-    (void)model;
-    return 0;
-}
-const sgui_item* sgui_model_query_items( const sgui_model* model,
-                                         const sgui_item* parent,
-                                         unsigned int start,
-                                         unsigned int count )
-{
-    (void)model; (void)parent; (void)start; (void)count;
-    return NULL;
-}
-void sgui_model_free_item_list( sgui_model* model, const sgui_item* start )
-{
-    (void)model; (void)start;
-}
-unsigned int sgui_model_item_children_count( const sgui_model* model,
-                                             const sgui_item* item )
-{
-    (void)model; (void)item;
-    return 0;
-}
 const char* sgui_item_text( const sgui_model* model, const sgui_item* item,
                             unsigned int column )
 {

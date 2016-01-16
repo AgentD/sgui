@@ -122,44 +122,41 @@ static void context_d3d11_destroy( sgui_context* super )
 {
     sgui_d3d11_context* this = (sgui_d3d11_context*)super;
 
-    if( this )
-    {
-        if( this->dsv )
-            ID3D11DepthStencilView_Release( this->dsv );
+    if( this->dsv )
+        ID3D11DepthStencilView_Release( this->dsv );
 
-        if( this->ds_texture )
-            ID3D11Texture2D_Release( this->ds_texture );
+    if( this->ds_texture )
+        ID3D11Texture2D_Release( this->ds_texture );
 
-        if( this->backbuffer )
-            ID3D11RenderTargetView_Release( this->backbuffer );
+    if( this->backbuffer )
+        ID3D11RenderTargetView_Release( this->backbuffer );
 
-        if( this->ctx )
-            ID3D11DeviceContext_Release( this->ctx );
+    if( this->ctx )
+        ID3D11DeviceContext_Release( this->ctx );
 
-        if( this->dev )
-            ID3D11Device_Release( this->dev );
+    if( this->dev )
+        ID3D11Device_Release( this->dev );
 
-        if( this->swapchain )
-            IDXGISwapChain_Release( this->swapchain );
+    if( this->swapchain )
+        IDXGISwapChain_Release( this->swapchain );
 
-        free( this );
-        release_d3d11( );
-    }
+    free( this );
+    release_d3d11( );
 }
 
 static void* context_d3d11_get_internal( sgui_context* this )
 {
-    return this ? ((sgui_d3d11_context*)this)->dev : NULL;
+    return ((sgui_d3d11_context*)this)->dev;
 }
 
-void d3d11_swap_buffers( sgui_window* wnd )
+static void d3d11_swap_buffers( sgui_window* wnd )
 {
     sgui_d3d11_context* this = (sgui_d3d11_context*)wnd->ctx.ctx;
 
     IDXGISwapChain_Present( this->swapchain, this->syncrate ? 1 : 0, 0 );
 }
 
-void d3d11_set_vsync( sgui_window* wnd, int interval )
+static void d3d11_set_vsync( sgui_window* wnd, int interval )
 {
     sgui_d3d11_context* this = (sgui_d3d11_context*)wnd->ctx.ctx;
 
@@ -272,7 +269,7 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
         return NULL;
 
     /* allocate memory for the context object */
-    this = malloc( sizeof(sgui_d3d11_context) );
+    this = calloc( 1, sizeof(sgui_d3d11_context) );
     super = (sgui_context*)this;
 
     if( !this )
@@ -280,8 +277,6 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
         release_d3d11( );
         return NULL;
     }
-
-    memset( this, 0, sizeof(sgui_d3d11_context) );
 
     /* setup swap chain parameters */
     memset( &scd, 0, sizeof(scd) );
@@ -395,12 +390,27 @@ sgui_context* d3d11_context_create( sgui_window* wnd,
     /* finish initialisation */
     this->wnd = wnd;
 
+    wnd->swap_buffers = d3d11_swap_buffers;
+    wnd->set_vsync = d3d11_set_vsync;
+
     super->destroy      = context_d3d11_destroy;
     super->get_internal = context_d3d11_get_internal;
 
     return super;
 fail:
     context_d3d11_destroy( super );
+    return NULL;
+}
+#else
+void d3d11_resize( sgui_context* ctx )
+{
+    (void)ctx;
+}
+
+sgui_context* d3d11_context_create( sgui_window* wnd,
+                                    const sgui_window_description* desc )
+{
+    (void)wnd; (void)desc;
     return NULL;
 }
 #endif /* SGUI_NO_D3D11 */

@@ -142,18 +142,10 @@ static int have_active_windows( void )
     sgui_window_xlib* i;
 
     sgui_internal_lock_mutex( );
-    for( i=x11.list; i!=NULL && !i->super.visible; i=i->next );
+    for( i=x11.list; i!=NULL && !(i->super.flags & SGUI_VISIBLE); i=i->next );
     sgui_internal_unlock_mutex( );
 
     return i!=NULL;
-}
-
-static void update_windows( void )
-{
-    sgui_window_xlib* i;
-
-    for( i=x11.list; i!=NULL; i=i->next )
-        update_window( i );
 }
 
 /****************************************************************************/
@@ -171,6 +163,36 @@ void remove_window( sgui_window_xlib* this )
 }
 
 /****************************************************************************/
+
+static unsigned int sgui_utf8_from_latin1_length( const char* in )
+{
+    unsigned int length = 0;
+
+    while( *in )
+    {
+        length += (*(in++) & 0x80) ? 2 : 1;
+    }
+
+    return length;
+}
+
+static void sgui_utf8_from_latin1( char* out, const char* in )
+{
+    for( ; *in; ++in )
+    {
+        if( *in & 0x80 )
+        {
+            *out++ = 0xC2 + ((unsigned char)*in > 0xBF);
+            *out++ = 0x80 + (*in & 0x3F);
+        }
+        else
+        {
+            *out++ = *in;
+        }
+    }
+
+    *out = '\0';
+}
 
 void xlib_window_clipboard_write( sgui_window* this, const char* text,
                                   unsigned int length )
@@ -459,7 +481,6 @@ int sgui_main_loop_step( void )
 {
     sgui_internal_lock_mutex( );
     handle_events( );
-    update_windows( );
     XFlush( x11.dpy );
     sgui_internal_unlock_mutex( );
 
@@ -478,7 +499,6 @@ void sgui_main_loop( void )
     {
         sgui_internal_lock_mutex( );
         handle_events( );
-        update_windows( );
         XFlush( x11.dpy );
         sgui_internal_unlock_mutex( );
 

@@ -194,13 +194,11 @@ sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
         return NULL;
 
     /* create object */
-    this = malloc( sizeof(sgui_slider) );
+    this = calloc( 1, sizeof(sgui_slider) );
     super = (sgui_widget*)this;
 
     if( !this )
         return NULL;
-
-    memset( this, 0, sizeof(sgui_slider) );
 
     /* initialize */
     skin->get_slider_extents( skin, &r, vertical );
@@ -227,7 +225,7 @@ sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
 
 int sgui_slider_get_value( sgui_widget* this )
 {
-    return this ? ((sgui_slider*)this)->value : 0;
+    return ((sgui_slider*)this)->value;
 }
 
 void sgui_slider_set_value( sgui_widget* super, int value )
@@ -236,34 +234,34 @@ void sgui_slider_set_value( sgui_widget* super, int value )
     int delta, reminder;
     sgui_rect r;
 
-    if( this )
+    sgui_internal_lock_mutex( );
+
+    /* sanitize value */
+    if( this->steps )
     {
-        sgui_internal_lock_mutex( );
+        delta = (this->max - this->min) / (this->steps - 1);
+        reminder = value % delta;
 
-        /* sanitize value */
-        if( this->steps )
+        if( reminder < (delta/2) )
+            value -= reminder;
+        else
+            value += delta - reminder;
+    }
+
+    value = MIN(value, this->max);
+    value = MAX(value, this->min);
+
+    /* if changed, set and request redraw */
+    if( this->value != value )
+    {
+        this->value = value;
+        if( this->super.canvas )
         {
-            delta = (this->max - this->min) / (this->steps - 1);
-            reminder = value % delta;
-
-            if( reminder < (delta/2) )
-                value -= reminder;
-            else
-                value += delta - reminder;
-        }
-
-        value = MIN(value, this->max);
-        value = MAX(value, this->min);
-
-        /* if changed, set and request redraw */
-        if( this->value != value )
-        {
-            this->value = value;
             sgui_widget_get_absolute_rect( super, &r );
             sgui_canvas_add_dirty_rect( this->super.canvas, &r );
         }
-
-        sgui_internal_unlock_mutex( );
     }
+
+    sgui_internal_unlock_mutex( );
 }
 

@@ -34,17 +34,18 @@ static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
                                        LPARAM lp )
 {
     sgui_window_w32* wnd;
-    int result;
+    int result = 0;
 
     sgui_internal_lock_mutex( );
-
     wnd = (sgui_window_w32*)GET_USER_PTR( hWnd );
+
+    if( !wnd && (msg==WM_DESTROY || msg==WM_NCDESTROY) )
+        goto out;
 
     result = wnd ? handle_window_events( wnd, msg, wp, lp ) :
                    DefWindowProcA( hWnd, msg, wp, lp );
-
+out:
     sgui_internal_unlock_mutex( );
-
     return result;
 }
 
@@ -53,7 +54,7 @@ static int is_window_active( void )
     sgui_window_w32* i;
 
     sgui_internal_lock_mutex( );
-    for( i=w32.list; i!=NULL && !i->super.visible; i=i->next );
+    for( i=w32.list; i!=NULL && !(i->super.flags & SGUI_VISIBLE); i=i->next );
     sgui_internal_unlock_mutex( );
 
     return (i!=NULL);

@@ -29,6 +29,7 @@
 #ifdef SGUI_UNIX
 #ifndef SGUI_NO_NATIVE_MESSAGEBOX
 #include <stdio.h>
+#include <string.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -105,6 +106,7 @@ void sgui_message_box_emergency( const char* caption, const char* text )
     X = DisplayWidth (dpy, screen)/2 - W/2;
     Y = DisplayHeight(dpy, screen)/2 - H/2;
 
+    memset( &hints, 0, sizeof(hints) );
     hints.flags      = PSize | PMinSize | PMaxSize;
     hints.min_width  = hints.max_width  = hints.base_width  = W;
     hints.min_height = hints.max_height = hints.base_height = H;

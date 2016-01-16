@@ -44,12 +44,9 @@
 typedef struct sgui_canvas_x11
 {
     sgui_canvas super;
-    Window wnd;
+    Drawable wnd;
 
     sgui_icon_cache* cache; /* a font cache by the canvas */
-
-    void(* display )( struct sgui_canvas_x11* cv, int x, int y,
-                      unsigned int width, unsigned int height );
 
     void(* set_clip_rect )( struct sgui_canvas_x11* cv,
                             int left, int top, int width, int height );
@@ -59,20 +56,16 @@ sgui_canvas_x11;
 typedef struct
 {
     sgui_canvas_x11 super;
-    Picture wndpic;
+    Picture pic;
 
     Picture pen;
     Pixmap penmap;
-
-    Picture pic;
-    Pixmap pixmap;
 }
 sgui_canvas_xrender;
 
 typedef struct
 {
     sgui_canvas_x11 super;
-    Pixmap pixmap;
     GC gc;
     unsigned char bg[4];
 }
@@ -82,17 +75,8 @@ sgui_canvas_xlib;
 extern "C" {
 #endif
 
-/* create an xrender based canvas */
-sgui_canvas* canvas_xrender_create( Window wnd, unsigned int width,
-                                    unsigned int height );
-
-/* create an xlib drawing function based canvas */
-sgui_canvas* canvas_xlib_create( Window wnd, unsigned int width,
-                                 unsigned int height );
-
-/* display a canvas on a same sized X window */
-void canvas_x11_display( sgui_canvas* cv, int x, int y,
-                         unsigned int width, unsigned int height );
+sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
+                                unsigned int height, int sendexpose );
 
 #ifdef __cplusplus
 }

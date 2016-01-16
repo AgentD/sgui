@@ -1,3 +1,4 @@
+
 /*
  * window.h
  * This file is part of sgui
@@ -40,7 +41,10 @@
 
 
 #define TO_X11( window ) ((sgui_window_xlib*)window)
-#define ALL_FLAGS (SGUI_FIXED_SIZE|SGUI_DOUBLEBUFFERED)
+#define IS_CHILD 0x8000
+#define X11_EVENT_MASK (ExposureMask|StructureNotifyMask|PointerMotionMask|\
+                        KeyPressMask|FocusChangeMask|ButtonReleaseMask|\
+                        KeyReleaseMask|PropertyChangeMask|ButtonPressMask)
 
 
 
@@ -51,8 +55,6 @@ typedef struct _sgui_window_xlib
     Window wnd;
     XIC ic;
 
-    int is_child;             /* Non-zero for child windows */
-    int flags;                /* remembers the initial window flags */
     unsigned int mouse_warped;/* mouse warp counter */
 
 #ifndef SGUI_NO_OPENGL
@@ -70,9 +72,6 @@ extern "C" {
 
 /* process an XEvent */
 void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
-
-/* generate expose events for dirty rectangles */
-void update_window( sgui_window_xlib* wnd );
 
 #ifdef __cplusplus
 }

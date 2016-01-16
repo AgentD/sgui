@@ -165,7 +165,10 @@ extern "C" {
  *
  * \param model A pointer to an item model
  */
-SGUI_DLL void sgui_model_destroy( sgui_model* model );
+static SGUI_INLINE void sgui_model_destroy( sgui_model* model )
+{
+    model->destroy( model );
+}
 
 /**
  * \brief Get the sgui_icon_cache used for item icons
@@ -176,7 +179,11 @@ SGUI_DLL void sgui_model_destroy( sgui_model* model );
  *
  * \return The icon cache used for item icons, or NULL if none
  */
-SGUI_DLL sgui_icon_cache* sgui_model_get_icon_cache(const sgui_model* model);
+static SGUI_INLINE
+sgui_icon_cache* sgui_model_get_icon_cache(const sgui_model* model)
+{
+    return model->cache;
+}
 
 /**
  * \brief Get the total number of data entries (columns) for each item
@@ -187,7 +194,11 @@ SGUI_DLL sgui_icon_cache* sgui_model_get_icon_cache(const sgui_model* model);
  *
  * \return The number of data columns per item
  */
-SGUI_DLL unsigned int sgui_model_column_count( const sgui_model* model );
+static SGUI_INLINE
+unsigned int sgui_model_column_count( const sgui_model* model )
+{
+    return model->cols;
+}
 
 /**
  * \brief Get a list of items from an sgui_model
@@ -206,10 +217,15 @@ SGUI_DLL unsigned int sgui_model_column_count( const sgui_model* model );
  *
  * \return A pointer to the first item in the list, or NULL if empty
  */
-SGUI_DLL const sgui_item* sgui_model_query_items( const sgui_model* model,
-                                                  const sgui_item* parent,
-                                                  unsigned int start,
-                                                  unsigned int count );
+static SGUI_INLINE
+const sgui_item* sgui_model_query_items( const sgui_model* model,
+                                         const sgui_item* parent,
+                                         unsigned int start,
+                                         unsigned int count )
+{
+    return model->query_items( model, parent, start, count );
+}
+
 /**
  * \brief Free a list of items obtained from sgui_model_query_items
  *
@@ -218,8 +234,12 @@ SGUI_DLL const sgui_item* sgui_model_query_items( const sgui_model* model,
  * \param model A pointer to a model object
  * \param start A pointer to the start of the list
  */
-SGUI_DLL void sgui_model_free_item_list( sgui_model* model,
-                                         const sgui_item* start );
+static SGUI_INLINE void sgui_model_free_item_list( sgui_model* model,
+                                                   const sgui_item* start )
+{
+    if( model->free_item_list )
+        model->free_item_list( model, start );
+}
 
 /**
  * \brief Get the number of children an item has
@@ -232,8 +252,12 @@ SGUI_DLL void sgui_model_free_item_list( sgui_model* model,
  *
  * \return The number of children a given item has
  */
-SGUI_DLL unsigned int sgui_model_item_children_count( const sgui_model* model,
-                                                      const sgui_item* item );
+static SGUI_INLINE
+unsigned int sgui_model_item_children_count( const sgui_model* model,
+                                             const sgui_item* item )
+{
+    return model->item_children_count( model, item );
+}
 
 /**
  * \brief Get the text of an item column

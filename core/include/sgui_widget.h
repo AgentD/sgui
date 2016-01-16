@@ -153,7 +153,10 @@ SGUI_DLL void sgui_widget_init( sgui_widget* widget, int x, int y,
  *
  * \param widget A pointer to the widget to destroy
  */
-SGUI_DLL void sgui_widget_destroy( sgui_widget* widget );
+static SGUI_INLINE void sgui_widget_destroy( sgui_widget* widget )
+{
+    widget->destroy( widget );
+}
 
 /**
  * \brief Destroy the children of a widget
@@ -193,8 +196,12 @@ SGUI_DLL void sgui_widget_set_position( sgui_widget* w, int x, int y );
  * \param x Returns the x component of the position
  * \param y Returns the y component of the position
  */
-SGUI_DLL void sgui_widget_get_position( const sgui_widget* w,
-                                        int* x, int* y );
+static SGUI_INLINE void sgui_widget_get_position( const sgui_widget* w,
+                                                  int* x, int* y )
+{
+    *x = w->area.left;
+    *y = w->area.top;
+}
 
 /**
  * \brief Get the absolute position of a widget (i.e. not parent relative
@@ -334,6 +341,33 @@ SGUI_DLL sgui_widget* sgui_widget_get_child_from_point(
  * \return A pointer to the next widget in the tab order
  */
 SGUI_DLL sgui_widget* sgui_widget_find_next_focus( const sgui_widget* w );
+
+/**
+ * \brief Recursively draw a widget and all its children
+ *
+ * \memberof sgui_widget
+ *
+ * This function calls the draw function on the given widget (if not NULL)
+ * and then recursively calls the draw functions on all children of the
+ * given widget. Drawing is done to the canvas set in the widget. The clipping
+ * rect and offset of the canvas are adjusted and restored to the bounds of
+ * the widget being drawn. A top level rect can be specified to further
+ * restrict drawing. If any widget encountered is flaged as not visible, the
+ * widget and the entire subtree are skipped. If the starting widget is
+ * visible, it is assumed that all parents are visible as well. If the given
+ * focus widget is encountered on the way and it has the SGUI_FOCUS_DRAW flag
+ * set, a focus box is drawn around it (i.e. set it to NULL to surpress
+ * drawing of the focus box).
+ *
+ * \param w      A pointer to a widget to draw
+ * \param bounds If not NULL, a bounding rectangle to clip all drawing
+ *               against
+ * \param focus  If this widget is encountered along the way and it wishes
+ *               wishes a focus box to be drawn, a focus box is drawn
+ *               around it
+ */
+SGUI_DLL void sgui_widget_draw( sgui_widget* w, sgui_rect* bounds,
+                                sgui_widget* focus );
 
 #ifdef __cplusplus
 }
