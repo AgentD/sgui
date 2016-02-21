@@ -38,7 +38,7 @@
 
 
 
-#ifdef SGUI_WINDOWS
+#if defined(SGUI_WINDOWS) && !defined(__TINYC__)
     #ifdef SGUI_BUILDING_DLL
         #define SGUI_DLL __declspec(dllexport)
     #else
