@@ -1,0 +1,7 @@
+/**
+\page hacking
+
+This chapter is intended to provide an overview and details of the
+architecture and internal workings of SGUI for people who intend to make
+changes or additions to SGUI.
+*/

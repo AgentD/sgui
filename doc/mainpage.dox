@@ -1,0 +1,133 @@
+/**
+\mainpage SGUI pre alpha reference manual
+
+\section intro Introduction
+
+\image html shot1.png
+
+SGUI is a small, simple, cross platform GUI library, written in plain
+ANSI C (C89), with the aim to create a simple, easy to use "just-works" GUI
+library for small applications and test programs that just need a simple GUI.
+
+Major design goals are simplicity, small code size and correctness
+(concerning the standards involved and memory leaks).
+
+Above you can see screenshots of the SGUI test program.
+
+The idea of creating a small GUI library emerged after being unsatisfied
+with the existing GUI libraries that tend to be extremely bloated, resource
+hungry, complicated and very slow on older systems.
+
+The project originally emerged from an Xlib play pen written out of plain
+boredomness in school.
+
+The library offers a range of features:
+ - Lightweight
+   - Comparatively small size
+   - Comparatively small memory footprint
+ - Easy to use aplication programming interface
+   - Object-oriented desing
+   - Written entirely in ANSI C89
+ - Cross platform
+   - Tested on various GNU/Linux distributions, 32 and 64 bit x86
+   - Tested on Mircrosoft Windows(R) 98, XP and 7 (32 bit and 64 bit)
+ - Threadsafe
+ - Interacts with OS clipboard (copy/cut & paste)
+ - Supports keyboard only user interaction
+ - Handwritten manual with examples in addition to doxygen reference
+ - OpenGL(R) support
+    - can create a window with OpenGL(R) context
+    - core profile as well as compatibillity profile
+    - OpenGL(R) widget for rendering inside a normal GUI application
+ - Direct3D(R) support, verions 9 and 11 (feature level 9.0 to 11.0)
+ - Addon library can manage and render sub-windows inside OpenGL(R) or
+   Direct3D(R) window.
+ - Permissive Free Software (aka "Open Source") license
+    - X11, aka MIT license (License text added below)
+    - Allows you to do whatever you want, as long as credit is given
+
+\section example A simple example
+
+The code below creates a 400*300 pixel window with a text label in it and a
+button that closes the window when pressed:
+
+\code
+#include "sgui.h"
+#include <stdio.h>
+
+int main( )
+{
+    sgui_window* wnd;
+    sgui_widget* text;
+    sgui_widget* button;
+
+    sgui_init( );
+
+    wnd = sgui_window_create( NULL, 400, 300, SGUI_RESIZEABLE );
+
+    sgui_window_set_title( wnd, "Simple Sample" );
+    sgui_window_move_center( wnd );
+    sgui_window_set_visible( wnd, SGUI_VISIBLE );
+
+    text = sgui_label_create( 10, 10, "To close the window,\n"
+                                      "press <color=\"#FF0000\">close");
+
+    button = sgui_button_create( 30, 60, 75, 30, "Close", 0 );
+
+    sgui_window_add_widget( wnd, text );
+    sgui_window_add_widget( wnd, button );
+
+    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
+                        sgui_window_set_visible, wnd,
+                        SGUI_INT, SGUI_INVISIBLE );
+
+    sgui_main_loop( );
+
+    sgui_window_destroy( wnd );
+    sgui_widget_destroy( text );
+    sgui_widget_destroy( button );
+    sgui_deinit( );
+
+    return 0;
+}
+\endcode
+
+\section platforms Supported platforms
+
+So far, SGUI has a Windows&reg; and an Xlib back end. The demo application
+has been successfully compiled and run under Wine, Windows&reg; 98, XP, 7
+(32bit and 64 bit), Ubuntu 32 bit, Arch 64 bit, CentOS 6 32 bit and 64 bit.
+
+The OpenGL&reg; support of the library has been successfully used with
+variuous ATI and nVidia cards (proprietary implementation) as well an
+integrated Intel GPU (via Mesa and proprietary implementation).
+
+\section people People involved
+
+Currently, I, David Oberhollenzer, do everything around here. Suggestions
+for improvements, forks, pull requests, bug reports or other help are very
+welcome.
+
+\section copying Licensing
+
+The SGUI library is made available under the following terms and
+conditions:
+
+Permission is hereby granted, free of charge, to any person obtaining a \n
+copy of this software and associated documentation files (the "Software"), \n
+to deal in the Software without restriction, including without limitation \n
+the rights to use, copy, modify, merge, publish, distribute, sublicense, \n
+and/or sell copies of the Software, and to permit persons to whom the \n
+Software is furnished to do so, subject to the following conditions: \n
+\n
+The above copyright notice and this permission notice shall be included in \n
+all copies or substantial portions of the Software. \n
+\n
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR \n
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \n
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE \n
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \n
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING \n
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER \n
+DEALINGS IN THE SOFTWARE. \n
+*/

@@ -1,0 +1,28 @@
+/**
+\page hacking
+\section event The event system internals
+
+The file \ref sgui_event.h contains the declaration of the \ref sgui_event
+data structure wich encapsulates every possible kind of event by specifying
+event \b source (window and widget), event \b type (integer ID) and
+an optional argument supplied by the source.
+
+The integer IDs specifying different event types are also declared in the same
+file (including widget events).
+
+Through the functions \ref sgui_event_connect and \ref sgui_event_disconnect
+it is possible to create signals-and-slots like event-action connections. The
+connections are internally stored in a linked list. The \ref sgui_event_post
+function is used by widgets, canvases and the windows to post events to a
+global queue.
+
+The backend implementations use functions declared in \ref sgui_internal.h
+to control the event queue:
+ - \ref sgui_internal_reset_events is used to reset the entire event system
+   to an initial state. It is used by both \ref sgui_init and \ref sgui_deinit
+   to initialize and cleanup the event system.
+ - \ref sgui_internal_process_events is called by the main loop functions
+   \ref sgui_mail_loop and \ref sgui_main_loop_step to fetch all events from
+   the queue, look up matching connections from the list and call the
+   registered callbacks.
+*/

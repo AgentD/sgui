@@ -247,10 +247,10 @@ struct sgui_window
      */
     void (* set_mouse_position )( sgui_window* wnd, int x, int y );
 
-    /** \copydoc Called by sgui_window_set_visible */
+    /** Called by \ref sgui_window_set_visible */
     void (* set_visible )( sgui_window* wnd, int visible );
 
-    /** \copydoc Called by sgui_window_set_visible */
+    /** Called by \ref sgui_window_set_visible */
     void (* set_title )( sgui_window* wnd, const char* title );
 
     /**
@@ -291,7 +291,7 @@ struct sgui_window
     void (* force_redraw )( sgui_window* wnd, sgui_rect* r );
 
     /**
-     * \copydoc sgui_window_set_vsync.
+     * \copydoc sgui_window_set_vsync
      *
      * \note May be NULL if not implemented
      */

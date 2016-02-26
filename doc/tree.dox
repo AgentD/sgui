@@ -1,0 +1,77 @@
+/**
+\page tree
+
+\section coord The Widget Coordinate System
+
+The coordinate system used by widgets has its origin in the upper left corner,
+with increasing X coordiantes going to the right and increasing Y coordinates
+going downwards. The image below tries to illustrate this.
+
+In the image, you can see a button, placed inside a window. The button has
+been placed at coordinates (10,10), what means that it is 10 pixels away from
+the left border of the window drawing area and 10 pixels from the top border
+of the window drawing area.
+
+\image html coords.png
+
+The button widget itself, however, has a \a local coordinate system that
+starts at the upper left hand corner \a of \a the \a widget (Indicated by the
+green coordinate axes alligned to the button borders). If, for instance, the
+window detects a mouse move in the button area, the internal event sent to
+the button will use \a widget \a local \a coordinates, i.e. the mouse position
+is specified \a relative \a to the upper left hand corner of the widget.
+\n
+\n
+Every widget has a bounding box; a rectangular area with its sides parallel to
+the coordinate axes and guaranteed to contain the maximum outlines of the
+entire widget. To represent such rectangles, SGUI internally uses the
+\ref sgui_rect data structure that offers functions to check if, for instance,
+a point lies within the box or if two boxes overlap each other (and get the
+intersecting area if they do).
+
+\section hirarchy The widget hirarchy
+
+\image html children.png
+\diafile tree.dia
+
+The screenshot above shows a button inside an image widget, inside a tab
+widget, which is part of a tab group which is inside a window. The widgets
+are actually are actually aranged in a hirarchy as outlined in the image
+underneath.
+
+There is a root widget that all widgets are added to when they are attached
+to a window (i.e. the root widget is their \a parent and all other widgets
+attached to the window are the \a children of the root widget). In this
+example, the tab group is a child of the root widget.
+
+Since the point of a tab widget is to attach widgets to it, there is a tab
+widget attached to the tab group and an image widget is a child of to the tab
+widget. And for the fun of it, a button widget has been added as a child of
+the static image widget.
+
+Adding children to an existing widget is quite easy. To make any widget a
+child of any other arbitrary widget, simply use the
+\ref sgui_widget_add_child function. To remove it, use the
+\ref sgui_widget_remove_from_parent function.
+
+There are three important things concerning the behaviour of child widgets:
+ - Child widgets are positioned relative to their parent widget (i.e. in
+   the parents \b local coordinate system). If the parent moves, the child
+   moves along without changing its local position.
+ - If a widget is flaged invisible (to disable drawing), none of its
+   children are drawn either, even if they are visible (and none of \a their
+   children and so on).
+ - A child widget is only visible inside its parents bounding box. If the
+   child is outside its parents bounding box, it is klipped.
+
+Let's get some examples. In the picture above, the button is at position
+(10,10), but since the button is a child of the static image widget, (10,10)
+means 10 pixels away from the left border \a of \a the \a image and 10 pixels
+from the top \a of \a the \a image. If the image would move, the button would
+stay at the same position inside the image. If the image would be turned
+invisible, the button would no longer be drawn either. If the entire tab was
+turned invisible, neither the image nor the button would be drawn anymore. If
+the button was positioned so far at the right that half of it would stick out
+over the image, it would be clipped and only the part inside the image would
+be visible.
+*/

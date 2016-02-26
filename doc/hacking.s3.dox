@@ -1,0 +1,168 @@
+/**
+\page hacking
+\section typclass A typicall SGUI data structure
+
+Lets take a look at how the structure \a sgui_foo would be implemented.
+
+\subsection fwd Forward declarations
+
+In the sgui core \a include directory, there is a header called
+\ref sgui_predef.h that contains all neccessary forward declartions,
+including the \a sgui_foo forward declaration:
+
+\code
+...
+typedef struct sgui_foo sgui_foo;
+...
+\endcode
+
+All SGUI headers are included by \ref sgui.h in the core module:
+
+\code
+...
+#include "sgui_foo.h"
+...
+\endcode
+
+\subsection hdr The header
+
+In the coresponding module \a include directory, there is a header called
+\a sgui_foo.h. It contains the declarations of the functions of \a sgui_foo,
+as well as the \a sgui_foo struct definition.
+
+The strcture of a header is as follows:
+ - License text
+ - include guard
+ - Neccessary header inclusions
+ - Structure declartion (if the structure is not supposed to be inherited,
+   this is in the source file)
+ - C++ guard, so the library can link propperly to a C++ program
+ - Functions that can be used on the object
+
+Here is a full blown example of what the typicall sgui header looks like
+(minus doxygen comments and license text):
+\code
+#ifndef SGUI_FOO
+#define SGUI_FOO
+
+#include "sgui_predef.h"
+
+struct sgui_foo
+{
+    int bar;
+
+    void (* destroy )( sgui_foo* foo );
+
+    void (* do_the_thing )( sgui_foo* foo, int i );
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+SGUI_DLL sgui_foo* sgui_foo_create( int bar );
+
+static SGUI_INLINE void sgui_foo_destroy( sgui_foo* foo )
+{
+    this->destroy( this );
+}
+
+SGUI_DLL void sgui_foo_set_bar( sgui_foo* foo, int bar );
+
+SGUI_DLL int sgui_foo_get_bar( sgui_foo* foo );
+
+SGUI_DLL void sgui_foo_do_the_thing( sgui_foo* foo, int i );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+\endcode
+
+
+There are a few things to note here, regarding the style rules of SGUI
+"classes":
+ - There is a function called \a structname_create that is used
+   to create (allocate and initialize) an instance of \a structname.
+ - There is a function called \a structname_destroy that is used
+   to uninitialize and deallocate an instance of \a structname.
+ - All other functions that operate on \a structname have a
+   \a structname_ prefix.
+ - For every function pointer stored in the structure, there is also a
+   same-named function which may or may not be simple \b inline wrappers
+   that call the function pointers, but could also be bigger functions that
+   do some sanity checking. Generally speaking (ignoring some exceptions),
+   the function pointers shouldn't be called directly.
+
+You may have noticed that in contrast to the previous examples, the "this"
+pointer is named "foo" after the struct itself and not "this". The reason
+behind this is to not confuse C++ compilers.
+
+\subsection impl The implementation
+
+In the \a src directory of the coresponding module, there is a file called
+\a foo.c that implements the functions declared in the above header and looks
+something like this:
+
+\code
+#define SGUI_BUILDING_DLL
+#include "sgui_foo.h"
+
+#include <stdlib.h>
+
+static void foo_destroy( sgui_foo* this )
+{
+    free( this );
+}
+
+sgui_foo* sgui_foo_create( int bar )
+{
+    sgui_foo* this;
+
+    this = calloc( 1, sizeof(*this) );
+
+    if( !this )
+        return NULL;
+
+    this->destroy = foo_destroy;
+    this->do_the_thing = NULL;
+    this->bar = bar < -10 ? -10 : (bar > 10 ? 10 : bar);
+    return this;
+}
+
+void sgui_foo_set_bar( sgui_foo* this, int bar )
+{
+    this->bar = bar < -10 ? -10 : (bar > 10 ? 10 : bar);
+}
+
+int sgui_foo_get_bar( sgui_foo* this )
+{
+    return this ? this->bar : 0xDEADBEAF;
+}
+
+void sgui_foo_do_the_thing( sgui_foo* this, int i )
+{
+    if( this->do_the_thing && i <= 1000 )
+    {
+        i = i < -10 ? -i : i;
+        i += 42;
+        this->do_the_thing( i );
+    }
+}
+\endcode
+
+Functions that redirect calls to struct \a callbacks, almost always do
+\a sanity checks and required \a input \a transformation, so the callback
+can rely on correct arguments. Which is why a function pointer shouldn't be
+called directly. If no pre-processing is required, an inline wrapper in the
+header will suffice.
+
+The \a this pointer is never checked. If that pointer is NULL, something is
+completely bonkers with your program and you should be happy about a
+segfault telling you about the error early on, rather than SGUI silently
+swallowing it.
+
+If base struct initialization is of some complexity, an init function should
+be provided by the base struct implementation.
+*/

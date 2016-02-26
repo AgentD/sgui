@@ -1,0 +1,25 @@
+/**
+\page hacking
+
+\section skin The skinning system
+
+The SGUI widget implementations use the \ref sgui_skin interface declared in
+\ref sgui_skin.h to actually draw the widgets or to get outlines of a typical
+widget type in order to determine their own geometry in the constructor. The
+gui skin is actually a set of hard coded functions that use the canvas drawing
+functions.
+
+The default skin is implemented in \b skin_default.c and exposed as a
+global variable.
+
+A new skin can be implemented fairly easily by simply implementing the skin
+structure callbacks. One could theoretically also extend the skin structure,
+and add a lua state object, so skin callbacks could be redirected to
+Lua code, dynamically loaded and compiled at runtime.
+
+In order to set a certain skin implementation, the function \ref sgui_skin_set
+is used. If given a \b NULL argument, it resets the skin to default.
+
+Changing skins while widgets are still existing is generally bad, as widgets
+use skin information in their constructor to compute their outlines.
+*/

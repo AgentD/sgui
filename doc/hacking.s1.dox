@@ -1,0 +1,51 @@
+/**
+\page hacking
+\section arch Architectural overview
+
+The SGUI library is split into a \b core component (the directory 'core' in
+the source tree), the \b widget code (the directory 'widgets') and the
+\b dialog window code (the directory 'dialogs').
+
+The core component contains all basic data structures and the platform
+dependend implementations. It consists basically of the following subsystems:
+ - The \b initialization and \b mainloop functions are declared inside
+   \ref sgui.h. They are directly implemented in the backend, usually in a
+   file called \b platform.c in the backend source directory.
+ - The \b event \b management subsystem takes care of an event queue and the
+   event-action-connections. The declarations are in \ref sgui_event.h and the
+   implementation in \b event.c in the source directory. The keyboard codes
+   are defined in \ref sgui_keycodes.h.
+ - There is an \ref sgui_rect data structure for handling rectangles.
+   Declarations are in \ref sgui_rect.h and implementation in \b rect.c.
+ - There are UTF8 string handling functions declared in \ref sgui_utf8.h and
+   implemented in \b utf8.c.
+ - \b Window \b abstraction: The function \ref sgui_window_create_desc is
+   the only function directly implemented by the backend. It creates an
+   \ref sgui_window implementation with the neccessary function pointers set.
+    - A window may have either a \ref sgui_context implementation that
+      abstracts context data type for hardware accelerated rendering.
+    - Or an \ref sgui_canvas implementation that abstracts drawing to the
+      window.
+ - An abstract \ref sgui_widget data type implementing the basic
+   functionallity and also the entire widget hirarchy management. The canvas
+   code simply provides a dummy root window that it attaches widgets to,
+   redirects events to and asks to redraw.
+ - The \ref sgui_icon_cache can be used to map arbitrary integer IDs to
+   \ref sgui_rect elements aranged on an \ref sgui_pixmap. The implementation
+   uses an RB-tree to find elements and aranges them from top left to bottom
+   right when allocating rects.
+ - \b Font \b rendering abstraction is handled by the \ref sgui_font
+   structure, implementation directly in the backend.
+ - Based on the icon cache, the <b>sgui_font_cache</b> provides
+   font rasterization that caches glyphs on an \ref sgui_pixmap created by an
+   \ref sgui_canvas implementation.
+ - An abstract \ref sgui_model for MVC widgets is provided in
+   \ref sgui_model.h, together with a simple in-memory implementation
+   \ref sgui_simple_model.
+ - Actually rendering a widget onto an \ref sgui_canvas is done using an
+   implementation of an \ref sgui_skin structure. There is a default
+   implementation in \b skin_default.c, exported via \ref sgui_internal.h.
+   The UI skin is hard coded. Somebody who is sufficiently bored might, for
+   instance, implement a loadable skin by loading a Lua file and calling into
+   that for drawing widgets.
+*/

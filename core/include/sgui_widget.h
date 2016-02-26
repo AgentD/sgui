@@ -39,7 +39,7 @@
 
 
 /**
- * \enum SGUI_WIDGET_STATE_CHANGE
+ * \enum SGUI_WIDGET_STATE_CHANGE_FLAG
  *
  * \brief Flags for the widget state change callback
  */

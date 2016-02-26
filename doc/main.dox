@@ -1,0 +1,30 @@
+/**
+\page compiling Compiling the SGUI library
+\page using Using the SGUI library
+\page tree Position and Geometry of Widgets
+\page dialog Using Dialog Windows
+\page ogl SGUI & OpenGL&reg;
+\page d3d SGUI & Direct3D&reg;
+\page thread Using SGUI in Multithreaded Programs
+\page widgets Different Types of Widgets
+\page dialogs Different Types of Dialog Windows
+\page hacking Hacking SGUI
+
+\example clipboard.c
+\example d3d9_0.c
+\example d3d9_1.c
+\example d3d9_2.c
+\example d3d9_3.c
+\example d3d11_0.c
+\example d3d11_1.c
+\example d3d11_2.c
+\example d3d11_3.c
+\example dialogs.c
+\example events.c
+\example gl0.c
+\example gl1.c
+\example gl2.c
+\example gl3.c
+\example simple.c
+\example widget.c
+ */

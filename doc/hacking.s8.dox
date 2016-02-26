@@ -1,0 +1,27 @@
+/**
+\page hacking
+
+\section fontrast Font rasterization
+
+The backend also has to supply an implementation of the \ref sgui_font data
+structure. There are two functions in \ref sgui_font.h that are implemented
+directly in the backend. One for loading an abstract font data structure from
+a file and one for loading it from memory.
+
+The implementations in the Windows&reg; and X11 backends use the FreeType
+library to rasterize true type fonts, but one could also implement a simple,
+static font bitmap.
+
+The \ref sgui_font abstract data structure supports the following operations:
+ - Resolve a unicode code point to a glyph from the in-memory representation.
+ - Get the dimensions of a previously loaded glyph.
+ - Get a pointer to a buffer containing the previously loaded,
+   rasterized glyph.
+
+The font data structure is used by a canvas implementations to rasterize text.
+However, a canvas might also use an \ref sgui_font_cache that caches glyph in
+an \ref sgui_pixmap to minimize glyph loading and rasterizing and instead
+blend the already loaded glyphs. The font cache uses an RB-Tree internally to
+store loaded glyphs and their area on the cache pixmap. It only loads glyphs
+if they cannot be found in the tree.
+*/

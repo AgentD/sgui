@@ -1,0 +1,57 @@
+/*
+\page hacking
+
+\section winsys The backend window system abstraction
+
+In the source directory of the core module, there is one subdirectory for each
+backend implementation. There is no backend loading; the library is compiled
+with exactely one active backend implementation.
+
+The functions \ref sgui_init, \ref sgui_deinit, \ref sgui_main_loop and
+\ref sgui_main_loop_step are implemented directly in the backend. The
+currently existing X11 and Windows&reg; backend implement the functions in
+a file called \b platform.c.
+
+The init and deinit functions have to at least reset the event queue and the
+skinning system:
+\code
+sgui_skin_set( NULL );
+sgui_interal_skin_deinit_default( );
+sgui_internal_reset_events( );
+\endcode
+
+The platform file typically also implements the functions
+\ref sgui_internal_lock_mutex and \ref sgui_internal_unlock_mutex that
+lock and unlock the global mutex.
+
+\subsection winimpl The window implementation
+
+To create a window, the backend provides the function
+\ref sgui_window_create_desc that creates a structure derived from
+\ref sgui_window with the appropriate super callbacks set.
+
+If the backend supports hardware accelerated rendering contexts, there is at
+least one implementation of the \ref sgui_context structure, declared in
+\ref sgui_context.h. The different kinds of rendering contexts are 
+enumerated in \ref sgui_window.h.
+
+For convenience, the function \ref sgui_internal_window_post_init can be
+used at the end of the window creation function to do typcial tasks like
+storing the window size and clearing the window canvas.
+
+When the window receives an event in the backend event processing function,
+the event has to be translated to an \ref sgui_event (if possible) and sent
+to the \ref sgui_internal_window_fire_event function that takes care of
+sending the event to the canvas, adding it to the event queue and tracking
+keyboard modifyers.
+
+As already mentioned, every window has an instance of an \ref sgui_canvas
+implementation that manages widgets and supplies 2D rendering functions.
+
+If a backend doesn't have special drawing functions, it can use the memory
+canvas reference implementation that draws to a memory buffer. It can be
+created using \ref sgui_memory_canvas_create.
+
+When creating a new implementation of a backend, it is adviseable to look at
+another existing backend implementation for details and hints.
+*/

@@ -1,0 +1,96 @@
+/**
+\page dialog
+
+The sample program \ref dialogs.c illustrates the usage of dialog
+windows.
+
+All dialogs structures inherit the common base structure \ref sgui_dialog.
+
+\section msgbox Message Box
+
+\image html messagebox.png
+
+As can be seen above, a message box dialog has a multi line text, a caption,
+a set of buttons and an icon displayed next to the text.
+
+A messagebox can be created using the \ref sgui_message_box_create function.
+
+The following symbolic constants can be used to specify the type of icon to
+display:
+ - \ref SGUI_MB_INFO
+ - \ref SGUI_MB_WARNING
+ - \ref SGUI_MB_CRITICAL
+ - \ref SGUI_MB_QUESTION
+
+Along with the icon type, the caption, the text and up to 3 button captions
+can be specified.
+
+The function \ref sgui_dialog_display makes the window of a message box
+visible and moves it into the center of the screen. Unlike some operating
+system message box functions, this function returns immediately. The message
+box window is a normal window and needs event processing by the SGUI main
+loop.
+
+When a button gets pressed, the message box window is made invisible and one
+of the following events is generated:
+ - \ref SGUI_MESSAGE_BOX_BUTTON1_EVENT if the first button got clicked
+ - \ref SGUI_MESSAGE_BOX_BUTTON2_EVENT if the second button got clicked
+ - \ref SGUI_MESSAGE_BOX_BUTTON3_EVENT if the third button got clicked
+ - \ref SGUI_DIALOG_REJECTED The window got closed without clicking any button
+
+When a message box is no longer needed, the \ref sgui_dialog_destroy
+function has to be used to free the resources allocated by
+\ref sgui_message_box_create .
+\n
+\n
+\n
+In some critical sitations (e.g. \ref sgui_init fails), a kind of
+"\a emergency \a message \a box" is required. A message box that always works
+even if the entire SGUI library is in an undefined state.
+
+For this purpose, the \ref sgui_message_box_emergency function can be used
+that creates a message box by directly using the underlying window system
+functions (e.g. \a MessageBox on windows, or a minature Xlib based
+implementation on X11 with its own event loop).
+
+The \ref sgui_message_box_emergency only takes two parameters, the caption
+and the text to display. The function displays a simple message box with a
+button labeled \b OK.
+
+\note The function \ref sgui_message_box_emergency does not return until the
+      message box window has been closed.
+
+
+\section colorpick Color Picker Dialog
+
+\image html colorpicker.png
+
+The color picker dialog can be used to let a user select a 32 bit color value,
+either in \b RGBA or \b HSVA color space.
+
+The top half of the image above shows the \ref sgui_color_picker widget,
+specifically designed for the color dialog, but it may also be used
+otherwise.
+
+The function \ref sgui_color_dialog_create is used to create a color-picker
+dialog. It takes three arguments:
+ - The caption of the dialog window
+ - The caption of the accept button
+ - The caption of the reject button
+
+Similar to the message box, the function \ref sgui_dialog_destroy destroys the
+color-picker dialog and the function \ref sgui_dialog_display is used make the
+dialog window visible.
+
+The color currently selected by the dialog can be changed using the functions
+\ref sgui_color_dialog_set_rgba for RGBA color space and
+\ref sgui_color_dialog_set_hsva for HSVA color space.
+
+The color-picker dialog can fire the following events:
+ - \ref SGUI_DIALOG_REJECTED when the dialog window got closed or the reject
+   button got pressed.
+ - \ref SGUI_COLOR_SELECTED_RGBA_EVENT when the accept button gets pressed.
+   The RGBA color gets sent along in the color argument of the event structure.
+ - \ref SGUI_COLOR_SELECTED_HSVA_EVENT when the accept button gets pressed.
+   The HSVA color gets sent along in the color argument of the event
+*/

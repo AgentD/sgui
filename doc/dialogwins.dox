@@ -1,0 +1,30 @@
+/**
+\page dialogs
+
+This page is supposed to give a short overview over the different kinds of
+dialog windows available in SGUI.
+
+<table>
+<tr><th>Screenshot</th><th>Description</th></tr>
+<tr>
+<td>
+\image html messagebox.png
+</td>
+<td>
+A simple \ref sgui_message_box that can display text, an icon and multiple
+buttons. The window is closed and an event is generated when one of the
+buttons gets pressed.
+</td>
+</tr>
+<tr>
+<td>
+\image html colorpicker.png
+</td>
+<td>
+An \ref sgui_color_dialog that can be used to select a color in RGBA or
+HSVA color space. Events with the specified color are generated when the
+user presses the accept button.
+</td>
+</tr>
+</table>
+*/

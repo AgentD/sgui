@@ -1,0 +1,56 @@
+/**
+\page hacking
+
+\section wid The widget data structure
+
+A widget has an area that it occupies (parent relative), pointers to the
+parent widget and to the first child widget. Children are stored in a linked
+list, as there can be a variable numer of children, thus there is also a
+pointer to the next child on the current level.
+
+Other than that, a widget has a pointer to the canvas that it is currently
+attached to, a flag field on how the widget handles keyboard focus and a
+visibillity flag (non-zero if the widget should be drawn, zero if not).
+
+The widget structure has four interesting callback functions:
+ - A \b destroy callback holding a pointer to the destructor function
+ - A \b draw callback that is used for rendering the widget
+ - An \b event callback that is used to send an event to the widget
+ - A \b state \b change callback that is called, when the widget visibillity
+   or position changes, or when children get attached/removed, when the
+   parent changes or when the canvas attachment changes.
+
+The child-parent tree handling, event propagation, etc is already implemented
+by the basic interface functions. To initialize the super structure, a derived
+data type can use the \ref sgui_widget_init function.
+
+What a dervied widget has to do at minimum is to implement the beforementioned
+callbacks. Please note that in the \b draw \b callback, widgets normaly don't
+use the canvas drawing functions directly, but instead use the functions of
+the skinning subsystem.
+
+The focus flag field of the widget can contain the following flags:
+ - \ref SGUI_FOCUS_ACCEPT The widget accepts keyboard focus.
+ - \ref SGUI_FOCUS_DRAW The canvas is allowed to draw a border around
+   the widgets bounding box to indicate keyboard focus.
+ - \ref SGUI_FOCUS_DROP_ESC When the escape key is pressed, the canvas is
+   allowed to remove keyboard focus from the widget.
+ - \ref SGUI_FOCUS_DROP_TAB When the tab key is pressed, the canvas is
+   allowd to move focus to the next widget in focus order, which is
+   determined using \ref sgui_widget_find_next_focus
+ - \ref SGUI_WIDGET_VISIBLE This flag is set when the widget is visible.
+
+The focus order that the \ref sgui_widget_find_next_focus function dictates
+depends on the order in which widgets are attached to their parent widget.
+The function tries to find a visible child widget which accepts focus. If it
+can't find any, it it moves on to the next widget on the current level of the
+hirarchy and repeates the process. If this is still unsuccessful, it goes to
+the next neightbour widget of the parent and repeates the entire process. If
+it reaches the root window without finding a widget that acceps focus, it
+gives up, in which case the canvas gives it another try by calling the
+function on the root window in order to find the first widget in the focus
+order.
+
+An \b example \b implementation of a small custum widget is given in the
+file \ref widget.c.
+*/

@@ -1,0 +1,307 @@
+/**
+\page hacking
+\section oop Object orientated programming for C++ and Java programmers
+
+In my personal experience, people with backgrounds in languages like C++ or
+Java tend to be rather puzzled when talking to them about object oriented
+programing in languages (like C or assembly) that don't have syntactic sugar
+for that (unlike Java or C++). The main reason behind this seems to be that
+said people tend to think that object orientation is tied to the syntactical
+concept of class datatypes and that object oriented programming is something
+opposed to imperative programming (this last thing makes \a no \a sense
+\a whatsoever).
+
+Object orientation is a \a semantic concept, not something \a syntactical.
+Object orientation is a \a programming \a style (style, paradigm, horse or
+whatever you call it). Java is an imperative language with syntax features
+for object oriented programming.
+
+Object orientation does not require special syntax constructus and can be done
+in a broad variety of programming languages (including assembly; what did you
+think a C++ compiler does?). It basically boils down to the fact that there
+are objects (structs, records, data capsules, table rows or whatever you
+call it) which encapsulate logically related data. Objects are instances
+of some pre-agreed upon memory layout. Objects can process messages. In C,
+C++ or Java that means that there are functions specifically crafted for being
+used on a objects of a certain type.
+
+What so called programming languages with object oriented syntax features
+(like C++ or Java) provide in is syntactic sugar for designing and using
+memory layouts for records with stricter type checking enforced by the
+compiler.
+
+\subsection class Classes, methods and objects
+
+The equivalent of the following C++ code:
+
+\code
+class my_class
+{
+public:
+    int i;
+    float f;
+
+    void do_something( int foo, float bar );
+
+    void do_something_else( int hugo );
+};
+
+my_class x;
+
+x.do_something( 42, 13.37 );
+\endcode
+
+can be implemented in C using like this:
+
+\code
+typedef struct
+{
+    int i;
+    float f;
+}
+my_class;
+
+void my_class_do_something( my_class* this, int foo, float bar );
+
+void my_class_do_something_else( my_class* this, int hugo );
+
+my_class x;
+
+my_class_do_something( &x, 42, 13.37 );
+\endcode
+
+The difference is mainly syntactical. In the C implementation, the pointer
+to the object is an explicit function argument, in the C++ implementation it
+is implicit. The C++ version writes the function declarations inside the class
+to tell the compiler that they receive an implict \a this pointer of that
+class type.
+
+The only \a semantic feature that can't be directly implement in C is access
+restrictions on object fields. The C++ compiler can use the keywords
+\a public, \a protected and \a private to check for access restrictions rather
+than relying on the programmer to be a sane person.
+
+\subsection inhr Inheritance
+
+Single inheritance (like in Java) can be implemented by declaring another
+struct with the first field of the base type. A pointer to that new struct
+can be passed to the new methods, but it can also be safely casted to a base
+pointer and passed to the base methods.
+
+The following C++ code:
+
+\code
+class another_class : public my_class
+{
+public:
+    double d;
+
+    void _do( double precision );
+};
+
+my_class foo;
+another_class bar;
+
+foo.do_something( 42, 13.37f );
+bar._do( 9000.01 );
+bar.do_something( 42, 13.37f );
+\endcode
+
+is equivalent to the following C implementation:
+
+\code
+typedef struct
+{
+    my_class super;
+    double d;
+}
+another_class;
+
+void another_class_do( another_class* this, double precision );
+
+my_class foo;
+another_class bar;
+
+my_class_do_something( &foo, 42, 13.37f );
+another_class_do( &bar, 9000.01 );
+my_class_do_something( (my_class*)&bar, 42, 13.37f );
+\endcode
+
+As you can see, the pointer to the new struct can be casted down to the
+inherited structure, as the members of the \a super structure are directly
+in front of the additional \a extended members in memory.
+
+The obvious restriction here is that this only allows for single inheritance.
+There is no \a clean way of inheriting multiple base structures or to do
+upcasting of base pointers or cast to one of multiple base structures. One
+could theoretically provide macros for adjusting and casting a pointer
+to one of many base structures and do up-casting the other way around.
+
+But both multiple inheritance and upcasting are considered bad practice
+anyway, which is also part of the reason Java used to not support multiple
+inheritance initially.
+
+\subsection poly Polymorphism and Interfaces
+
+With inheritance and down casting to inherited structures, we already have a
+corner stone of polymorphic data types.
+
+What we haven't seen yet is what C++ programmers know as \a virtual methods,
+functions of the base class that can be overriden by an inherited class, thus
+a pointer to the base class datatype might behave completely differently when
+issuing the same functions, depending on what the underlying data structure
+actually is.
+
+A typical C++ example often found in literature might look like this:
+
+\code
+class shape
+{
+public:
+    virtual double area( ) const = 0;
+};
+
+class square : public shape
+{
+public:
+    double length;
+
+    square( double length );
+
+    virtual double area( ) const;
+};
+
+class circle : public shape
+{
+public:
+    double radius;
+
+    circle( double radius );
+
+    virtual double area( ) const;
+};
+
+square::square( double length )
+{
+    this->length = length;
+}
+
+double square::area( ) const
+{
+    return length * length;
+}
+
+circle::circle( double radius )
+{
+    this->radius = radius;
+}
+
+double circle::area( ) const
+{
+    return radius * radius * PI;
+}
+
+shape* first = new square( 2.0 );
+shape* second = new circle( 2.0 );
+
+first->area( );
+second->area( );
+\endcode
+
+The first call to the area method actually calls the square area
+implementation, while the second one calls the circle area implementation.
+
+
+Implementing polymorphic methods in C can by done by simply storing
+\b function \b pointers in the super structure. When a derived structure is
+instantiated, it stores its own implementation inside the base object. Which
+is also basically what the C++ compiler generates.
+
+
+The above example could be implemented like this:
+
+\code
+typedef struct shape
+{
+    double (* area )( const struct shape* this );
+}
+shape;
+
+typedef struct
+{
+    shape super;
+    double length;
+}
+square;
+
+typedef struct
+{
+    shape super;
+    double radius;
+}
+circle;
+
+double square_area( const shape* this )
+{
+    return this->length * this->length;
+}
+
+square* create_square( double length )
+{
+    square* this = calloc( 1, sizeof(square) );
+    shape* super = (shape*)this;
+
+    this->length = length;
+    super->area = square_area;
+    return this;
+}
+
+double circle_area( const circle* this )
+{
+    return this->radius * this->radius * PI;
+}
+
+circle* create_circle( double radius )
+{
+    circle* this = calloc( 1, sizeof(circle) );
+    circle* super = (shape*)this;
+
+    this->radius = radius;
+    super->area = circle_area;
+    return this;
+}
+
+shape* first = (shape*)create_square( 2.0 );
+shape* second = (shape*)creeate_circle( 2.0 );
+
+first->area( first );
+second->area( second );
+\endcode
+
+What Java programmers now as an \a interface, or C++ programmers know as
+an \a abstract class is a struct that only has function pointers stored
+in it. Pointers to different implementations can be provided by parts of a
+programm (\a factory \a pattern et al), but the exact implementation is
+unknown to the user (and the user doesn't actually have to care, which is
+the whole point of object oriented design).
+
+\subsection cons Constructors, Destructors and Hiding Away the Data
+
+As previously mentioned  compiler enforced access control that the C++
+\a public \a private and \a protected annotations provide is not directly
+possible in C. You only have the per-inheritance-level joice between
+everything public and everything private, i.e. making the struct opaque.
+That means that structure is only pre-defined in a header. The definition is
+in the coresponding source file. As a result, a program that wants to obtain
+or alter data from the struct \a must go through getter/setter functions that
+can do sanity checking and aditional work.
+
+To create instances of the struct, the user must then call special create and
+destroy functions that deliver a pointer to a struct and free it again. Those
+are your constructors and destructors that also take care of initialization
+and cleanup, similar to the example above.
+
+The obvious problem here is the difficulty of externally inheriting a
+structure, what might make it undesireable to completely hide the declaration
+away in some cases.
+*/

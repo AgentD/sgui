@@ -1,0 +1,356 @@
+/**
+\page using
+
+\section devenv Setting up the development environment
+
+\note If you need to compile SGUI yourself, please refere to \ref compiling
+      on how to compile SGUI.
+
+Using the library requires to set up your development environment in a way
+that the SGUI include directory ("include" sub directory) is part of the
+include path and the sgui library gets linked to your program.
+
+The shared library, aka dll, is located under "bin/<platform>/" in the
+root directory of the downloaded archive, or in the "build/bin" sub directory
+if you compile SGUI yourself. On Unix-like systems, the shared and static
+libraries end up in "build/lib" when compiling it yourself.
+
+Under Windows&reg; one must link agains the sgui.lib or sgui.a library in the
+"lib/<platform>/" sub directory.
+
+The "lib/<platform>/" sub directory also contains an alternative static
+linking library.
+
+The full code for the example program described in this chapter can be found
+in \ref simple.c.
+
+The easiest way to make the SGUI declarations visible to your code is by
+including "sgui.h", which includes all other SGUI headers:
+
+\code
+#include "sgui.h"
+\endcode
+
+You don't need to worry about overriden headers or namespace polution.
+All public SGUI headers start with "sgui_*", all functions and datatypes
+with "sgui_*" and all enumerations and constants with "SGUI_".
+
+Lets start with a minimal example that does nothing but show off
+initialisation, shutdown and how to compile the library.
+
+\section init Initialisation and the main loop
+
+To start using SGUI, initialisation has to be done first. (Perhaps somewhere
+in your main function) and logically, once you are done using SGUI, a proper
+unitialisation has to be done, what can be done using the
+\ref sgui_init and \ref sgui_deinit functions.
+
+Between initialisation and shutdown lies a main loop, where window system
+messages are handled and the GUI is updated. For this purpose, there is the
+\ref sgui_main_loop function which enters an infinite loop in which it
+handles events from the window system, updates the SGUI windows (this minimal
+example does not create any), call event callbacks and so on. It will not
+return until all visible windows are closed. Since we don't have any windows
+in this example, it will return immediately.
+
+Lets take a look at the code:
+
+\code
+#include "sgui.h"
+
+int main( )
+{
+    sgui_init( );
+
+    sgui_main_loop( );
+
+    sgui_deinit( );
+    return 0;
+}
+\endcode
+
+\section compile Compiling
+
+If you have an IDE like Visual Studio&reg; or Eclipse and you configured it
+propperly to link against the SGUI library and added the SGUI include path,
+compiling should reduce to pressing a magic "compile" button. How exactely
+to configuring a specific IDE is left to the reader experienced with their
+desired IDE.
+
+Compiling this simple example application with gcc under a UNIX&reg; like
+operating system requires the following command:
+\code{.sh}
+gcc -I<sgui_include_path> -Wl,-rpath,. -L<library_path> -lsgui test.c
+\endcode
+
+ - With the "-I" option the SGUI include directory is added to the
+   compilers include path
+ - The "-Wl,-rpath,." option tells the compiler that the generated binary
+   should look for "libsgui.so" in its own directory. This is only
+   needed when SGUI is not installed to your systems library directory
+   (e.g. through the distributions package management system).
+ - The "-L<library_path>" tells the compiler to look for libraries in the
+   SGUI library directory. Again, this is not needed when SGUI is installed
+   to your system.
+ - The option "-lsgui" tells the compiler to link against the SGUI
+   library.
+
+This command should produce a working "a.out" that does nothing. To run the
+program, the "libsgui.so" has to be in the same directory as "a.out" or
+installed to your systems default library directory.
+
+Alternatively, you can link SGUI statically:
+\code{.sh}
+gcc -I<sgui_include_path> -L<lib_path> -lsgui_static test.c
+\endcode
+
+For Windows&reg;, the command line for mingw would look like this (where "gcc"
+is of course the proper name of your "mingw" binary):
+\code{.sh}
+gcc -I<sgui_include_path> test.c -L<lib_path> -lsgui
+\endcode
+
+\section usewin Creating and using windows
+
+Windows in SGUI are represented by the \ref sgui_window structure. To create
+a window, simply call the \ref sgui_window_create function.
+
+The functions returns a pointer to an \ref sgui_window struct on success, or
+\b NULL on error. All functions operating on a window take that pointer as
+a first parameter and are prefixed \b sgui_window_.
+
+If the function succeeds and a window is created, the window is initially
+invisible. To make it visible and allow the user to interact with it, the
+function \ref sgui_window_set_visible is used.
+
+As you can see once again, the function name starts with the name of the data
+structure it works on and takes a pointer to it as a first parameter.
+The function takes an argument, indicating whether the window should be
+visible or not. There are constants \ref SGUI_INVISIBLE and \ref SGUI_VISIBLE
+for enahncing readability.
+
+Once you are done using your window, you should destroy it (i.e. free its
+resources to avoid leaks). This is done using the \ref sgui_window_destroy
+function.
+
+The naming scheme of SGUI functions should be pretty straight forward:
+ - Functions operating on objects start with the name of the object and take
+   a pointer to it as their first argument. E.g. functions operating on
+   \ref sgui_window are prefixed \b sgui_window_ and take an sgui_window
+   pointer as first argument.
+ - Functions for creating SGUI objects are always named \b create. E.g. the
+   function for creating an \ref sgui_window is named \ref sgui_window_create.
+ - Functions for freeing SGUI objects are always named \b destroy. E.g. the
+   function for destroying an \ref sgui_window is named \ref sgui_window_destroy.
+
+With this in mind, it should be easy to understand what SGUI functions do from
+reading their name. So lets take a look at a simple example that uses some
+window functions:
+
+\code
+#include "sgui.h"
+
+int main( )
+{
+    sgui_window* wnd;
+
+    sgui_init( );
+
+    wnd = sgui_window_create( NULL, 400, 300, 0 );
+
+    sgui_window_set_title( wnd, "Simple Sample" );
+
+    sgui_window_move_center( wnd );
+
+    sgui_window_set_visible( wnd, SGUI_VISIBLE );
+
+    sgui_main_loop( );
+
+    sgui_window_destroy( wnd );
+
+    sgui_deinit( );
+    return 0;
+}
+\endcode
+
+If you compile the program (with command line presented previously, or your
+favourite IDE) and run it, you will see a blank, 400*300 pixel window in the
+center of your screen (assuming your window manager didn't resize it) and the
+title bar of the window will say "Simple Sample".
+
+The final result should look something like this:
+\image html sample1.png
+
+The title bar text of the window is set by calling \ref sgui_window_set_title
+and the window is moved to the center of the screen by calling
+\ref sgui_window_move_center.
+
+Also note, that the \b destroy function is called after the main loop, but
+before the \b deinit function. It is \b required that the \ref sgui_deinit
+function is the \b last SGUI function you call and likewise \ref sgui_init the
+\b first SGUI function you call.
+
+In this example, the \ref sgui_main_loop function does not return until the
+user closes the window. When that happens, the function returns, the window
+gets destroyed (pressing the close button only makes it invisible) and the
+program exits.
+
+With this in mind, it should be easy to play around with various window
+functions.
+
+\section usingwid Creating and using widgets
+
+\image html shot1.png
+
+So far, we have seen how to create and manipulate windows. This is not very
+usefull as it presents no ways for a user to interact with the program yet.
+
+For this purpose, SGUI provides \a widgets. In the image above you can
+sese various widgets inside a window. Again, we will expand the previous
+example to demonstrate this.
+
+We start off by adding some new declarations at the beginning of the main
+function:
+
+\code
+int main( )
+{
+    sgui_window* wnd;
+    sgui_widget* text;
+    sgui_widget* button;
+\endcode
+
+The \ref sgui_widget structure represents a widget. We will create two
+simple widgets in this example, a label widget, which only draws a text
+onto the window and a button that the user can click.
+
+Now lets create those two widgets:
+
+\code
+    text = sgui_label_create( 10, 10, "To close the window,\n"
+                                      "press <color=\"#FF0000\">close" );
+
+    button = sgui_button_create( 30, 60, 75, 30, "Close", 0 );
+\endcode
+
+The \ref sgui_label_create function creates a label widget and the
+\ref sgui_button_create function creates a button widget.
+Both functions take a position as their first two parameters, i.e. a distance
+from the left of the window and a distance from the top of the window, each
+\a in \a pixels. The label is positioned at (10,10) and the button
+at (30,60).
+
+The next parameter of the \ref sgui_label_create function is a string
+to display. As you can see from the result, we can make line breaks by using
+'\n' and change the color using a pseudo HTML \< color="#RRGGBB" \> tag. We
+could also write bold and italic text using \< b \> and \< i \> tags.
+
+The next two parameters of the \ref sgui_button_create function specify a
+width and a height of the button (in pixels), where the width is the
+horizontal length and the height the vertical length, starting at the given
+position. The last two parameters of the function are the text to print onto
+the button and whether the button should be a normal button (0) or a toggle
+button (non-zero).
+
+Now that we created those two widgets, we just need to add them to the window
+(after creating the window and before the main loop of course):
+
+\code
+    sgui_window_add_widget( wnd, text );
+
+    sgui_window_add_widget( wnd, button );
+\endcode
+
+The widgets are now visible inside the window. All we need to do now is to
+destroy the newly created objects after the main loop ends:
+
+\code
+    sgui_widget_destroy( text );
+
+    sgui_widget_destroy( button );
+\endcode
+
+When you now compile and run the program, the final result will look like
+this:
+
+\image html sample2.png
+
+Of course, this looks a little odd, since the window is way bigger than 
+has to be for the widgets we placed inside it.
+
+If you don't want to fiddle around with the exact pixel width and height,
+you can use the \ref sgui_window_pack function to automatically adjust the
+window size to the content of the window.
+
+It is adviseable to play around with widgets in this sample program. Knowing
+that all other widgets are created, destroyed and attached to a window in the
+same way, it should be sufficient to browse through the doxygen documentation
+or the header files to try out other widgets.
+
+In this example however, you will notice that you can press the button like
+mad and nothing will happen, so we still don't have any user interaction. How
+should the library know that the button labeled "close" is supposed to close
+the window anyway? We will take a look at this in the next section.
+
+\section useev Event callbacks
+
+The SGUI library provides two mechanisms for receiving events:
+ - A \a Signals \a \& \a Slots like callback system. The library can be told
+   to react to a specific event by calling a function on an object with
+   given arguments (even arguments passed on by the event source).
+ - \a Window \a callbacks can be registered directly to windows to receive
+   notifications about window resize events, key press-release events, mouse
+   movements, etc... concerning the window that it was registered to.
+   Every window can have exactely one callback.
+
+Lets take a look at the first option to make our close button actually close
+the window.
+
+The \ref sgui_event_connect function is used to connect an event with a
+response. We simply add this before calling \ref sgui_init :
+\code
+sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT, sgui_window_set_visible, wnd, SGUI_INT, SGUI_INVISIBLE );
+\endcode
+The first argument is the source of the event. In this case the button widget.
+The second argument is the specific event to react to, when triggered by the
+given souce.
+
+What follows is the function to call when reacting to the event, in our case
+we want to turn the window invisible, hence \ref sgui_window_set_visible. The
+next argument is the object to use the function on, our window.
+\ref SGUI_INT specifies, that an additional integer argument should be
+passed to the function. The additional integer argument is set to
+\ref SGUI_INVISIBLE in order to thide the window.
+
+And that's it! That is everything required to connect the button click to the
+window close action. Or any other event to any other action for that matter.
+\n
+\n
+\n
+Now lets take a look at window callbacks. In our example, we want to print out
+every character entered while our window has focus. The function that does
+this, with the signature of \ref sgui_window_callback is given below:
+
+\code
+void window_callback( void* user, const sgui_event* event )
+{
+    if( event->type == SGUI_CHAR_EVENT )
+    {
+        printf( "%s\n", event->arg.utf8 );
+    }
+}
+\endcode
+
+All that's left to do now is to register that callback to our window:
+
+\code
+sgui_window_on_event( wnd, window_callback );
+\endcode
+
+Alternatively, the same thing could also be done this way using the event
+connection system:
+
+\code
+sgui_event_connect( wnd, SGUI_CHAR_EVENT, printf, "%s\n", SGUI_FROM_EVENT, SGUI_UTF8 );
+\endcode
+*/

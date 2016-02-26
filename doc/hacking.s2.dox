@@ -1,0 +1,32 @@
+/**
+\page hacking
+\section style Coding Style
+
+At the moment, there is no indent file. Altough it should not be too hard to
+mimic the style of the code already there, here are a few guidelines:
+ - Braces always on the next line, same indentation as the keyword.
+ - Lines no longer than 80 columns.
+ - Use spaces (4 of them) for indentation.
+ - No space between a function name or keyword and the opening paranthesis.
+ - No space between a closing paranthesis and a semicolon.
+ - Optionally use space before and after first and last function arguments or
+   around operators.
+ - When wrapping a function call or declaration, the first argument in the
+   next line is indented to the same column as the first argument.
+ - When wrapping expressions, the operator is always at the end of the line,
+   never at the beginning of the new line.
+ - All structures are typedefed with a forward declaration in
+   \ref sgui_predef.h
+ - No typedefs to atomic data types are used. Always use the integer
+   data types provided by C (i.e. unsigned int and int).
+ - Never make function arguments or struct members enum types for the sake
+   of ABI stability.
+ - Avoid floating point calculations and data types.
+ - Use C++ guards in headers.
+ - Use the \b sgui_ prefix for functions and typedefs in headers.
+ - Use the \b SGUI_ prefix for enums or preprocessor definitions.
+ - Use the \b sgui_ prefix for publicly visible headers.
+ - Functions not declared in any headers have to be static.
+ - Every header without platform dependencies has to be included
+   in \ref sgui.h
+*/

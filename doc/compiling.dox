@@ -1,0 +1,149 @@
+/**
+\page compiling
+
+The sgui library uses a CMake based build system. CMake is a cross platform
+tool to generate platform dependend files for compiling source code (e.g. it
+can generate a Makefile or an MSVC solution file).
+For more information on CMake, please consult
+<a href="http://www.cmake.org/">the CMake website</a>.
+
+Since the demo programs need special files and the Windows&reg; backend needs
+the freetype DLL, the build tree stub is contained within the source tree.
+
+\section complunix Compiling on Unix-like systems
+
+To compile and build everything, issue the following commands from within the
+source directory:
+\code{.sh}
+cd build
+cmake ..
+make
+\endcode
+If you replace "cmake" in the above commands with "ccmake", you will get a
+text based user interface. Pressing [c] will configure the build system and
+give you a screen with lots of compilation options. Pressing [c] again and
+then [g] generates the build system and you will return to the shell where
+you can run make to compile sgui.
+
+SGUI can easily be cross compiled using a special CMake cross-compilation
+toolchain file. Toolchain files for 32 bit and 64 bit Windows&reg; via Mingw
+are provided with the source tree. Simply replace the above commands with the
+following to cross compile for 32 bit Windows&reg;:
+\code{.sh}
+cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE="../CMake/mingw.cmake"
+make
+\endcode
+Alternatively, use "mingw64.cmake" for a 64 bit Windows&reg; build.
+
+Please note that mingw cross compiling has so far only been done on Arch
+Linux, it might require minor adjustments of the mingwXX.cmake file to point
+to the correct compiler location.
+
+Cross compiling for other architectures will require some fiddling with CMake
+toolchain files, if not even porting of SGUI itself. If something breaks that
+should not break, please let me know.
+
+\section compwin Compiling on Windows&reg;
+
+\image html cmake.png
+
+On Windows&reg;, start the CMake gui program. A screenshot of the CMake GUI
+can be seen above.
+
+There should be a field labeled "Where is the source code" \b 1. Enter
+the path where this README file is located.
+
+In an other field, labeled "Where to build the binaries" \b 2, enter the
+path to the "build" directory within the directory where this README file is
+located.
+
+When clicking configure \b 3, a dialog should pop open where the target
+build system can be selected (e.g. which version of MSVC to use) and the main
+dialog should be filled with lots of configuration options that you can see
+above (initially displayed in red). Pressing "configure" \b 3 again and
+then "generate" \b 4 should generate the build system (e.g. An MSVC
+Solution file) which can then be used to compile sgui.
+
+Please note that altough some effort has been put into making SGUI compile
+with VisualStudio&reg;, on Windows&reg;, it is not a priority target. It
+should work in general, but it is only tested occasionally.
+
+It has been observed that sometimes CMake generates an error message, but no
+error actually occoured and re-running "configure" and "generate" creates a
+working build system.
+
+Depending on your versions of Windows&reg; and VisualStudio&reg;, you may want
+do disable Direct3D&reg; 11 in the compile configuration.
+
+\section compopt Compilation options
+
+When running cmake the following build options are available:
+
+ - \b COLDIALOG Compile with color selection dialog. \b Default: \b ON
+ - \b COLPICKER Compile with color picker widget. \b Default: \b ON
+ - \b FRAME Compile with frame widget. \b Default: \b ON
+ - \b GROUP Compile with group box widget. \b Default: \b ON
+ - \b ICONVIEW Compile with icon view widget. \b Default: \b ON
+ - \b MEMCANVAS Enable or disable the memory canvas implementation.
+   \b Default: \b ON. It may not be possible to disable this option if the
+    backend implementation for the current platform needs the memory canvas.
+ - \b MESSAGEBOX Compile with message box dialog window. \b Default: \b ON
+ - \b MVC Compile with model object and MVC widgets. \b Default: \b ON
+   If disabled, also disables all view widgets (like icon view).
+ - \b NATIVE_MV Compile with native message box function. \b Default: \b ON
+ - \b NOFLOAT Can be used to disable all internal use of floating point
+    data types and arithmetic. \b Default: \b OFF.
+ - \b OPENGL Enable or disable OpenGL&reg; support. \b Default: \b ON
+ - \b SUBVIEW Compile with sub view widget. \b Default: \b ON
+ - \b NOPS If this is set, disabled functions will be replaced with stubs that
+   always return error status, to keep binary compatibillity. Can be disabled
+   to save a few more bytes on the price of ABI compatibility.
+   \b Default: \b ON
+ - \b TABS Compile with tab widget. \b Default: \b ON
+ - \b XRENDER Compile X11 backend with Xrender support. \b Default: \b ON
+ - \b ICONCACHE Compile with icon cache. It may not be possible to disable
+   this option if the backend needs the icon cache. \b Default: \b ON
+ - \b DIRECT3D9 Compile with Direct3D&reg; 9 support. \b Default: \b ON
+ - \b DIRECT3D11 Compile with Direct3D&reg; 11 support. \b Default: \b ON
+
+Some options may or may not be available, depending on whether the target
+system supports them in the first place, or wether the target system needs
+them and cannot have them disabled.
+
+Also note that some options might be interdependend, e.g. the color dialog
+uses the color picker widget, so when disabling the widget, the dialog will
+also not be available.
+
+Depending on the target operating system, the following definitions are
+generated:
+ - SGUI_WINDOWS
+ - SGUI_UNIX
+
+\section gendoxy Generating Doxygen reference
+
+If Doxygen is available on a system, running the target \b doxydoc
+processes the \a Doxyfile.in file to generate a propper Doxygen input file
+and runs Doxygen on the input file.
+
+The Doxygen output is written to the directory \a doxydoc in the output
+directory tree.
+
+\section install Installing &amp; generating binary packages
+
+On Unix&reg; like systems, \b make \b install can be used to install the SGUI
+library. By default, headers are installed to \a /usr/local/include and
+the compiled, stripped library to \a /usr/local/lib.
+
+To change the prefix from \a /usr/local to something differnt, the
+variable \b CMAKE_INSTALL_PREFIX has to be altered.
+
+To install to a different root directory,
+\b make \b DESTDIR=root \b install can be used to install to
+\a root/prefix/lib and \a root/prefix/include instead.
+
+When cross compiling for Windows&reg;, the target \b pack
+(i.e. \b make \b pack) can be used to generate a zip archive with
+Windows&reg; binaries, example programs, documentation, etc... like the one
+that can be downloaded from the SGUI website.
+*/

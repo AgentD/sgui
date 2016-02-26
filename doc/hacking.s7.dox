@@ -1,0 +1,43 @@
+/**
+\page hacking
+
+\section canvas The canvas data structure
+
+Every window object has an instance of an \ref sgui_canvas implementation.
+The canvas offers rendering functions with legacy-OpenGL-style begin-end
+functions.
+
+Widgets can be added to a canvas. The canvas keeps track of the widgets,
+receives events from the window that it redirects to the apropriate widgets,
+keeping track of focused widgets, etc...
+
+The canvas can also accumulate \a dirty \a rects from widgets that request
+redrawing. When asking the canvas to render widgets, it makes sure child
+widgets are rendered with their apropriate offsets and clipped in respect to
+their parents.
+
+This is all done by the interface functions in \b canvas.c. All an
+implementation of a canvas has to do is supplying the callbacks for
+\a drawing, which means:
+ - begin/end callbacks (optional)
+ - clearing
+ - drawing boxes
+ - creating instances of an \ref sgui_pixmap implementation
+ - blitting/blending pixmaps
+ - drawing a one line text string with a specified font and color
+
+Clipping and offseting is taken care of by the interface functions, so the
+callbacks always get sane input with absolute coordinates, clipped to the
+size of the surface.
+
+When creating a canvas instance, \ref sgui_canvas_init has to be used at first
+to initialize the super structure.
+
+A canvas implementation will also have to be able to create instances of the
+asociated \ref sgui_pixmap implementation. A reference implementation that
+copies the pixel data to an internal buffer can be created using
+\ref sgui_internal_mem_pixmap_create.
+
+When creating a new canvas implementation it is adviseable to take a look at
+the header files and other existing canvas implementations for details.
+*/

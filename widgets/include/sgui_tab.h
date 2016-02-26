@@ -68,11 +68,10 @@ extern "C" {
  *
  * \memberof sgui_tab_group
  *
- * This creates a new tab group widget. Tabs have to be added to the widget by
- * creating them using sgui_tab_create and attaching them using
- * sgui_widget_add_child. Widgets can be added to the tab by using
- * sgui_widget_add_child on the tab widget. A tab can be selected by using
- * sgui_widget_set_visible.
+ * This creates a new tab group widget. Create tabs by calling
+ * sgui_tab_create and attach them with sgui_widget_add_child. Widgets can
+ * then be added to the tab using sgui_widget_add_child on the tab widget.
+ * A tab can be selected with sgui_widget_set_visible.
  *
  * \param x      Horizontal component of the tab groups position
  * \param y      Vertical component of the tab groups position
@@ -91,8 +90,8 @@ SGUI_DLL sgui_widget* sgui_tab_group_create( int x, int y,
  * \memberof sgui_tab
  *
  * This creates a new tab widget. The tab widget has to be added to a tab
- * group manually using sgui_widget_add_child. Widget can be added to the
- * tab by using sgui_widget_add_child. A tab can be selected by using
+ * group manually using sgui_widget_add_child. Widgets can be added to the
+ * tab with sgui_widget_add_child. A tab can be selected with
  * sgui_widget_set_visible.
  *
  * \param parent  A pointer to the parent group to copy the size from. The new

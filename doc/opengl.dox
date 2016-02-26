@@ -1,0 +1,195 @@
+/**
+\page ogl
+
+<table>
+<tr>
+<td>
+\image html gldemo.png
+</td>
+<td>
+\image html glwidget.png
+</td>
+</tr>
+</table>
+
+The SGUI library can create windows with OpenGL&reg; contexts, both using the
+older 1.x and 2.x versions, as well as using the 3.x and above core profile
+versions.
+
+SGUI can create a window with an OpenGL&reg; context, either entirely managed
+with a redraw event sent to the window callback, or the program can take
+control over event processing and rendering, to allow for high frame rate real
+time rendering.
+
+SGUI also offers an \ref sgui_subview widget that can embedd a sub window with
+an OpenGL&reg; context into a widget, allowing easy creation of dedicated
+areas within a window to use for OpenGL&reg; rendering with normal widgets
+grouped around it.
+
+OpenGL&reg; windows don't have a canvas object and as such cannot render
+widgets.
+
+\section managed Creating an Automatically Managed OpenGL&reg; Window
+
+The code for a small example program can be found in the file \ref gl0.c.
+For the sake of simplicity, compatibillity profile has been used.
+
+To create a window with an OpenGL&reg; context, the
+\ref sgui_window_create_desc function has to be used instead of the regular
+\ref sgui_window_create function. The \ref sgui_window_create_desc function
+uses a pointer to an \ref sgui_window_description structure that can hold
+advanced parameters.
+
+In the case of OpenGL&reg; windows, the following fields are of interest
+to us:
+ - \b backend This field specifies what backend the window should use. To use
+   the plain, normal window system, specify \ref SGUI_NATIVE. For OpenGL&reg;
+   rendering, specify either \ref SGUI_OPENGL_CORE or \ref SGUI_OPENGL_COMPAT.
+   The former uses a core profile context while the later uses compatibillity
+   profile.
+ - \b flags Set the flag \ref SGUI_DOUBLEBUFFERED to request a context
+   with a distinct front and back buffer.
+ - \b bits_per_pixel specifies the number of color bits per pixel (valid
+   values are: 16, 24 or 32).
+ - \b depth_bits specifies the number of depth bits per pixel, 0 means don't
+   create a depth buffer.
+ - \b stencil_bits specifies the number of stencil bits per pixel, 0 means
+   don't create a stencil buffer.
+ - \b samples specifies the number of samples per pixel for multisample anti
+    aliasing, 0 means don't use MSAA.
+ - \b share optionally specifies a pointer to an existing \ref sgui_context
+   object that abstracts an OpenGL&reg; context (possible from another
+   window) that the context of the new window will share resources with it.
+
+When creating the window with the description structure pointer, an OpenGL&reg;
+context is created automatically. The window behaves like a regular SGUI
+window. The are a few differences however:
+ - An OpenGL&reg; window cannot have any widgets attached to it.
+ - When the window system requests a redraw, an \ref SGUI_EXPOSE_EVENT
+   event is generated.
+ - After catching the expose event in a window event callback, the context
+   of the window has to be made current in order to draw to it.
+
+Making the rendering context current just requires a call to
+\ref sgui_window_make_current. To release the context, call
+\ref sgui_window_release_current.
+
+The window can be used just like every other normal SGUI window, however it
+is not suited for interactive OpenGL&reg; rendering demands (i.e. pumping out
+frames at interactive rates), since the window is only redrawn when it
+has to.
+
+We will address that issue in the next section.
+
+\section manual Creating a Manually Managed OpenGL&reg; window
+
+The code for a small example program can be found in the file \ref gl1.c.
+For the sake of simplicity, compatibillity profile has been used.
+
+The window is created in the very same way as in the section above. The major
+difference here is, that rendering is done inside a manual main loop instead
+of an event function. The rendering context has to be made current before
+entering the main loop.
+
+The major difference is the main loop:
+\code
+while( sgui_main_loop_step( ) )
+{
+    glClear( GL_COLOR_BUFFER_BIT );
+
+    draw_frame( );
+
+    sgui_window_swap_buffers( wnd );
+}
+\endcode
+
+Instead of calling the regular \ref sgui_main_loop, the
+\ref sgui_main_loop_step function is used. This function just picks up \a one
+window system message, processes it, and returns immediately. If there are no
+messsages, it returns immediately. The return value is non-zero if there are
+still visible windows. After every main loop step, rendering to the window is
+performed. At the end of the loop, when rendering is done, the
+\ref sgui_window_swap_buffers function is called to swap the front and the
+back buffer (in case of double buffering). This way, rendering at interactive
+frame rates can be achived.
+
+\section subwindow Creating an OpenGL&reg; Subwindow
+
+Normally, when an application needs OpenGL&reg; rendering to display
+something, but does not neccessarily need interactive rendering, something
+like a small display area inside a normal window is desired.
+
+If you read the documentation on the \ref sgui_window_description structure,
+you may have noticed that the structure has a \b parent attribute. Using this
+attribute, a window (in this case with an OpenGL&reg; rendering context) can
+be created that resides undecorated, untouched by the window manager inside
+a regular window.
+
+To make your life easier, SGUI provides you with a nice widget that
+encapsulates that in a simple interface and behaves like a normal widget.
+
+
+The widget in question is called \ref sgui_subview widget. It manages a sub
+window (possibly with an OpenGL&reg; context). It can be created like a normal
+widget, attached to a window, or even as a child widget to another widget,
+and so on. It automatically transfers all its state information (geometry,
+visibility, etc...) to the underlying sub window to create the illusion of a
+sub window behaving like a widget. This illusion only breaks down when
+attaching it to something scrollable (like an \ref sgui_frame) as the window
+system doesn't know about sgui widgets and can't clip the sub window against
+them.
+
+To draw to the widget, a callback can be registered that is called as soon as
+the underlying window requires redrawing. Making the context current and
+swapping the buffers is taken care off by the widget.
+
+In addition, a callback can be registered that receives events from the
+underlying window (mouse movements, keyboard actions, etc...) and the window
+itself can be obtained to do more fancy stuff.
+
+For instance, it is perfectly possible to set the callback to NULL, obtain a
+pointer to the underlying window and call \ref sgui_window_make_current on
+the window in a second thread that then draws to the sub window in a loop.
+
+
+\section subthread OpenGL&reg; subwindows with drawing threads
+
+If not creating a sub window manually, the function
+\ref sgui_subview_get_window can be used to obtain a pointer to the window
+object managed by a subview widget.
+
+The context of the returned window can be made current in a dedicated drawing
+thread that then proceeds to redraw the window content in a loop, using
+\ref sgui_window_swap_buffers after every iteration to swap the front and
+back buffer.
+
+When the main thread (or any other thread) signals the drawing thread to stop,
+it is best to release the context after exiting the drawing loop, before
+exiting the drawing thread.
+
+An example application that does this can be found in \ref gl3.c.
+
+\section glext Loading Extension Function Pointers
+
+Using the function \ref sgui_window_get_context it is possible to get a
+pointer to an \ref sgui_context object that abstracts an OpenGL&reg; context.
+This pointer can be used for loading pointers to extension functions via the
+\b load method of the context object.
+
+\section glshare Creating a Dedicated Resource Loading Context
+
+In some application it is desired to create a dedicated context for resource
+loading. That context shares resources with the context used for rendering and
+is bound to a different thread, dedicated to loading resources.
+
+After getting the context object from a window using
+\ref sgui_window_get_context, the method \b create_share in the
+\ref sgui_context structure can be used to create a new context that shares
+resources with the existing context. The method \b destroy in the
+\ref sgui_context structure can be used to destroy that context when
+no longer needed.
+
+All that is left to do in the loading thread is to make the new context
+current with a call to the \b make_current method and later releasing
+it using \b release_current.
+*/
