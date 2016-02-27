@@ -279,6 +279,7 @@ add_subdirectory( tests )
 
 if( WIN32 )
   set_target_properties(sgui PROPERTIES PREFIX "")
+  set_target_properties(sguisubwm PROPERTIES PREFIX "")
 endif( )
 
 #----------------------------------------------------------------------
@@ -310,15 +311,15 @@ if( WIN32 )
 
   add_custom_target( pack 
                      COMMAND mkdir -p ./include
-                     COMMAND mkdir -p ./doc
                      COMMAND cp -r ${CMAKE_SOURCE_DIR}/extras .
-                     COMMAND cp -r ${CMAKE_SOURCE_DIR}/doc .
                      COMMAND cp ${CMAKE_SOURCE_DIR}/README .
                      COMMAND cp ${CMAKE_SOURCE_DIR}/LICENSE .
                      COMMAND cp ${CMAKE_SOURCE_DIR}/core/include/*.h ./include
                      COMMAND cp ${CMAKE_SOURCE_DIR}/widgets/include/*.h ./include
                      COMMAND cp ${CMAKE_SOURCE_DIR}/dialogs/include/*.h ./include
+                     COMMAND cp ${CMAKE_SOURCE_DIR}/subwm/include/*.h ./include
                      COMMAND cp ./win_dep/${W32_ARCH}/libfreetype.{a,la} ./lib/
+                     COMMAND cp ./lib/sguisubwm.a ./lib/sguisubwm.lib
                      COMMAND cp ./lib/libfreetype.a ./lib/libfreetype.lib
                      COMMAND cp ./lib/libsgui.dll.a ./lib/libsgui.dll.lib
                      COMMAND ${CMAKE_STRIP} --strip-all ./bin/*
@@ -327,7 +328,7 @@ if( WIN32 )
                      COMMAND cp ./win_dep/FTL.TXT ./lib
                      COMMAND cp ./win_dep/FTL.TXT ./bin
                      COMMAND zip sgui.zip -r -- ./bin ./font ./lib ./include ./doxydoc
-                     COMMAND zip ./sgui.zip -r -- ./LICENSE ./README ./doc
+                     COMMAND zip ./sgui.zip -r -- ./LICENSE ./README
                      COMMAND find extras -name "*.c" -print | zip ./sgui.zip -@
                      COMMAND mv sgui.zip ${CMAKE_SOURCE_DIR}/sgui_win32_${W32_ARCH}.zip
                      DEPENDS doxydoc
@@ -338,9 +339,10 @@ if( UNIX AND NOT APPLE )
   install( DIRECTORY core/include DESTINATION include )
   install( DIRECTORY widgets/include DESTINATION include )
   install( DIRECTORY dialogs/include DESTINATION include )
+  install( DIRECTORY subwm/include DESTINATION include )
   install( DIRECTORY ${CMAKE_BINARY_DIR}/include DESTINATION include )
 
-  install( TARGETS sgui
+  install( TARGETS sgui sguisubwm
            RUNTIME DESTINATION bin
            LIBRARY DESTINATION lib
            ARCHIVE DESTINATION lib )
