@@ -292,8 +292,8 @@ void sgui_canvas_send_window_event( sgui_canvas* this, const sgui_event* e )
         {
             if( (i = sgui_widget_find_next_focus( &this->root )) )
             {
-                sgui_canvas_set_focus( this, i );
                 this->flags |= SGUI_CANVAS_DRAW_FOCUS;
+                sgui_canvas_set_focus( this, i );
                 break;
             }
         }
