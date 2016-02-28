@@ -161,8 +161,7 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
         return NULL;
 
     /* create canvas */
-    super->ctx.canvas = sgui_tex_canvas_create( parent, parent->ctx.ctx,
-                                                width, height );
+    super->ctx.canvas = sgui_tex_canvas_create( parent, width, height );
 
     if( !super->ctx.canvas )
     {

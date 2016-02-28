@@ -149,8 +149,7 @@ int main( void )
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
 
     /****************** create a texture canvas ******************/
-    texcanvas = sgui_tex_canvas_create( wnd, sgui_window_get_context( wnd ),
-                                        128, 128 );
+    texcanvas = sgui_tex_canvas_create( wnd, 128, 128 );
 
     butt = sgui_button_create( 10, 10, 60, 25, "Button", 0 );
     check = sgui_checkbox_create( 10, 40, "OpenGL" );

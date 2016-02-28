@@ -95,18 +95,19 @@ extern "C" {
  *
  * \memberof sgui_tex_canvas
  *
- * \note If the context is an OpenGL context, this function assumes that the
- *       context is current and tries to create a texture object.
+ * \note If the window has an an OpenGL context, this function assumes that
+ *       the context, or a context that shares resources is current and tries
+ *       to create a texture object. Similary, the redrawing functions requre
+ *       the context of the window, or a context that shares resources, to be
+ *       current.
  *
  * \param wnd    A pointer to a window with a rendering context
- * \param ctx    A pointer to a rendering context to use (either the context
- *               from the window, or a context that shares resources with it)
  * \param width  The width of the canvas in pixels
  * \param height The height of the canvas in pixels
  *
  * \return A pointer to a texture canvas, or NULL on failure
  */
-sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
+sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd,
                                      unsigned width, unsigned int height );
 
 /**
@@ -121,7 +122,10 @@ sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
  *
  * \return A pointer to the texture object.
  */
-void* sgui_tex_canvas_get_texture( sgui_canvas* canvas );
+static SGUI_INLINE void* sgui_tex_canvas_get_texture( sgui_canvas* canvas )
+{
+    return ((sgui_tex_canvas*)canvas)->get_texture( canvas );
+}
 
 #ifdef __cplusplus
 }

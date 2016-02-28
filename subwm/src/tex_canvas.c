@@ -34,12 +34,12 @@
 
 
 
-sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
+sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd,
                                      unsigned width, unsigned int height )
 {
-    (void)ctx;
+    sgui_context* ctx = sgui_window_get_context( wnd );
 
-    if( !wnd || !width || !height )
+    if( !width || !height )
         return NULL;
 
     switch( wnd->backend )
@@ -53,22 +53,15 @@ sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd, sgui_context* ctx,
 
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
     case SGUI_DIRECT3D_9:
-        (void)wnd;
         return sgui_d3d9_canvas_create( ctx, width, height );
 #endif
 
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D11)
     case SGUI_DIRECT3D_11:
-        (void)wnd;
         return sgui_d3d11_canvas_create( ctx, width, height );
 #endif
     }
 
     return NULL;
-}
-
-void* sgui_tex_canvas_get_texture( sgui_canvas* this )
-{
-    return this ? ((sgui_tex_canvas*)this)->get_texture( this ) : NULL;
 }
 
