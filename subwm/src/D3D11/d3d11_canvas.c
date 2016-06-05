@@ -37,6 +37,7 @@ void d3d11_canvas_destroy( sgui_canvas* super )
     sgui_d3d11_canvas* this = (sgui_d3d11_canvas*)super;
 
     IUnknown_Release( (IUnknown*)this->tex );
+    IUnknown_Release( (IUnknown*)this->ctx );
     free( this->buffer );
     free( this );
 }
@@ -124,6 +125,8 @@ sgui_canvas* sgui_d3d11_canvas_create( sgui_context* ctx,
     ((sgui_canvas*)this)->begin = d3d11_canvas_begin;
     ((sgui_canvas*)this)->end = d3d11_canvas_end;
     this->ctx = ctx11->ctx;
+
+    IUnknown_AddRef( (IUnknown*)this->ctx );
 
     return (sgui_canvas*)this;
 }
