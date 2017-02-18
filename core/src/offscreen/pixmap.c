@@ -1,5 +1,5 @@
 /*
- * mem_pixmap.c
+ * pixmap.c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer

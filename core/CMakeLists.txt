@@ -7,10 +7,13 @@
 if( UNIX AND NOT APPLE )
   set( CORE_PLATFORM_SRC
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/canvas.c
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xrender/canvas.c
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xrender/pixmap.c
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xlib/canvas.c
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xlib/pixmap.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/font.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/keycode_translate.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/opengl.c
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/pixmap.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/platform.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/window.c )
 elseif( WIN32 )
@@ -29,8 +32,8 @@ set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/event.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/font_cache.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/icon_cache.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_canvas.c
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/mem_pixmap.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/offscreen/canvas.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/offscreen/pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/model.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/pixmap.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/rect.c

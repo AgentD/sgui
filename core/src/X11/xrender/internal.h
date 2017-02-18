@@ -1,5 +1,5 @@
 /*
- * pixmap.h
+ * internal.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,23 +22,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef X11_PIXMAP_H
-#define X11_PIXMAP_H
+#ifndef INTERNAL_H
+#define INTERNAL_H
 
-
-
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
-#include <X11/extensions/Xrender.h>
-
+#include "../platform.h"
+#include "sgui_config.h"
 #include "sgui_pixmap.h"
 
-#include "canvas.h"
+typedef struct
+{
+    sgui_canvas_x11 super;
+    Picture pic;
 
-
+    Picture pen;
+    Pixmap penmap;
+}
+sgui_canvas_xrender;
 
 typedef struct
 {
@@ -49,39 +48,9 @@ typedef struct
 }
 xrender_pixmap;
 
-typedef struct
-{
-    sgui_pixmap super;
-    int is_stencil;
-
-    sgui_canvas_xlib* owner;
-
-    union
-    {
-        Pixmap xpm;
-        unsigned char* pixels;
-    }
-    data;
-}
-xlib_pixmap;
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* create an xrender pixmap */
 sgui_pixmap* xrender_pixmap_create( sgui_canvas* canvas, unsigned int width,
                                     unsigned int height, int format );
 
-/* create an xlib pixmap */
-sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
-                                 unsigned int height, int format );
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* X11_PIXMAP_H */
+#endif /* INTERNAL_H */
 

@@ -33,7 +33,6 @@
 #include "opengl.h"
 #include "window.h"
 #include "canvas.h"
-#include "pixmap.h"
 #include "font.h"
 #include "keycode_translate.h"
 

@@ -1,5 +1,5 @@
 /*
- * canvas.h
+ * internal.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,50 +22,40 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef X11_CANVAS_H
-#define X11_CANVAS_H
+#ifndef INTERNAL_H
+#define INTERNAL_H
 
-#include "sgui_canvas.h"
-#include "sgui_font_cache.h"
+#include "../platform.h"
+#include "sgui_config.h"
+#include "sgui_pixmap.h"
 
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
-#include <X11/extensions/Xrender.h>
-
-
-/* default size of the font cache pixmap */
-#define FONT_MAP_WIDTH 256
-#define FONT_MAP_HEIGHT 256
-
-
-typedef struct sgui_canvas_x11
+typedef struct
 {
-    sgui_canvas super;
-    Drawable wnd;
-
-    sgui_icon_cache* cache; /* a font cache by the canvas */
-
-    void(* set_clip_rect )( struct sgui_canvas_x11* cv,
-                            int left, int top, int width, int height );
+    sgui_canvas_x11 super;
+    GC gc;
+    unsigned char bg[4];
 }
-sgui_canvas_x11;
+sgui_canvas_xlib;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct
+{
+    sgui_pixmap super;
+    int is_stencil;
 
-void canvas_x11_init( sgui_canvas* super, Drawable wnd,
-                      sgui_funptr clip, int sendexpose );
+    sgui_canvas_xlib* owner;
 
-sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
-                                unsigned int height, int sendexpose );
-
-#ifdef __cplusplus
+    union
+    {
+        Pixmap xpm;
+        unsigned char* pixels;
+    }
+    data;
 }
-#endif
+xlib_pixmap;
 
-#endif /* X11_CANVAS_H */
+/* create an xlib pixmap */
+sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
+                                 unsigned int height, int format );
+
+#endif /* INTERNAL_H */
 
