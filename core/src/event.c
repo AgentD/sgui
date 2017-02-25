@@ -105,20 +105,24 @@ out:
     return ret;
 }
 
-void sgui_event_connect( void* sender, int eventtype, ... )
+int sgui_event_connect( void* sender, int eventtype, ... )
 {
     sgui_function callback;
     struct listener* l;
+    int ret = 0;
     va_list va;
 
     va_start( va, eventtype );
     callback = va_arg( va, sgui_function );
 
-    if( !callback || !(l = calloc(1, sizeof(*l))) )
+    if( !callback )
     {
-        va_end(va);
-        return 0;
+        ret = 1;
+        goto out_va;
     }
+
+    if( !(l = calloc(1, sizeof(*l))) )
+        goto out_va;
 
     l->sender   = sender;
     l->callback = callback;
@@ -144,8 +148,10 @@ void sgui_event_connect( void* sender, int eventtype, ... )
                              l->value.i3[2] = va_arg( va, int ); break;
     }
 
-    add_listener(l, eventtype);
-    va_end( va );
+    ret = add_listener(l, eventtype);
+out_va:
+    va_end(va);
+    return ret;
 }
 
 void sgui_event_disconnect( void* sender, int eventtype,
@@ -196,12 +202,12 @@ out:
     sgui_internal_unlock_mutex( );
 }
 
-void sgui_event_post( const sgui_event* event )
+int sgui_event_post( const sgui_event* event )
 {
     sgui_event* new_queue;
+    int new_size, ret = 1;
     struct listener *l;
     struct bucket* b;
-    int new_size;
 
     sgui_internal_lock_mutex( );
 
@@ -230,19 +236,21 @@ void sgui_event_post( const sgui_event* event )
         new_size = queue_size<10 ? 10 : queue_size*2;
         new_queue = realloc( queue, sizeof(sgui_event)*new_size );
 
-        if( new_queue )
+        if( !new_queue )
         {
-            queue_size = new_size;
-            queue = new_queue;
+            ret = 0;
+            goto out;
         }
+
+        queue_size = new_size;
+        queue = new_queue;
     }
 
     /* add to queue */
-    if( queue_top < queue_size )
-        queue[ queue_top++ ] = (*event);
-
+    queue[ queue_top++ ] = (*event);
 out:
     sgui_internal_unlock_mutex( );
+    return ret;
 }
 
 /****************************************************************************/

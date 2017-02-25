@@ -484,8 +484,10 @@ extern "C" {
  *                  specifying the type of argument. If it is not SGUI_VOID,
  *                  one or more immediate value folow. If it is
  *                  SGUI_FROM_EVENT, an SGUI_EVENT_ARG value follows.
+ *
+ * \return Non-zero on success, zero if out of memory
  */
-SGUI_DLL void sgui_event_connect( void* sender, int eventtype, ... );
+SGUI_DLL int sgui_event_connect( void* sender, int eventtype, ... );
 
 /**
  * \brief Disconnect an event from a callback
@@ -506,8 +508,10 @@ SGUI_DLL void sgui_event_disconnect( void* sender, int eventtype,
  * \brief Post an event to the event queue
  *
  * \param event A pointer to an event structure
+ *
+ * \return Non-zero on success, zero if out of memory
  */
-SGUI_DLL void sgui_event_post( const sgui_event* event );
+SGUI_DLL int sgui_event_post( const sgui_event* event );
 
 /** \brief Get the number of events still waiting for processing */
 SGUI_DLL unsigned int sgui_event_queued( void );
