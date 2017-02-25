@@ -76,18 +76,49 @@ static struct bucket* buckets = NULL;
 
 
 
+static int add_listener(struct listener* l, int eventtype)
+{
+    struct bucket* b;
+    int ret = 0;
+
+    sgui_internal_lock_mutex( );
+
+    for( b = buckets; b != NULL; b = b->next )
+    {
+        if( b->event == eventtype )
+            break;
+    }
+
+    if( !b )
+    {
+        b = calloc(1, sizeof(*b));
+        if( !b )
+            goto out;
+        b->event = eventtype;
+        SGUI_ADD_TO_LIST(buckets, b);
+    }
+
+    SGUI_ADD_TO_LIST(b->listeners, l);
+    ret = 1;
+out:
+    sgui_internal_unlock_mutex( );
+    return ret;
+}
+
 void sgui_event_connect( void* sender, int eventtype, ... )
 {
     sgui_function callback;
     struct listener* l;
-    struct bucket* b;
     va_list va;
 
     va_start( va, eventtype );
     callback = va_arg( va, sgui_function );
 
     if( !callback || !(l = calloc(1, sizeof(*l))) )
-        goto done;
+    {
+        va_end(va);
+        return 0;
+    }
 
     l->sender   = sender;
     l->callback = callback;
@@ -113,25 +144,7 @@ void sgui_event_connect( void* sender, int eventtype, ... )
                              l->value.i3[2] = va_arg( va, int ); break;
     }
 
-    sgui_internal_lock_mutex( );
-
-    for( b = buckets; b != NULL; b = b->next )
-    {
-        if( b->event == eventtype )
-            break;
-    }
-
-    if( !b )
-    {
-        b = calloc(1, sizeof(*b));
-        b->event = eventtype;
-        SGUI_ADD_TO_LIST(buckets, b);
-    }
-
-    SGUI_ADD_TO_LIST(b->listeners, l);
-
-    sgui_internal_unlock_mutex( );
-done:
+    add_listener(l, eventtype);
     va_end( va );
 }
 
@@ -234,6 +247,103 @@ out:
 
 /****************************************************************************/
 
+static void call_from_event(const struct listener* l, const sgui_event* e)
+{
+    const void* ptr;
+    int x, y, z;
+
+    switch( l->value.i3[0] )
+    {
+    case SGUI_UI2_X: l->callback(l->receiver,e->arg.ui2.x );break;
+    case SGUI_UI2_Y: l->callback(l->receiver,e->arg.ui2.y );break;
+    case SGUI_UI2_XY:
+        l->callback(l->receiver,e->arg.ui2.x,e->arg.ui2.y);
+        break;
+    case SGUI_UI2_YX:
+        l->callback(l->receiver,e->arg.ui2.y,e->arg.ui2.x);
+        break;
+    case SGUI_EVENT:  ptr = e;                          goto out_ptr;
+    case SGUI_WIDGET: ptr = e->src.widget;              goto out_ptr;
+    case SGUI_WINDOW: ptr = e->src.window;              goto out_ptr;
+    case SGUI_UTF8:   ptr = e->arg.utf8;                goto out_ptr;
+    case SGUI_RECT:   ptr = &e->arg.rect;               goto out_ptr;
+    case SGUI_COLOR:  ptr = e->arg.color;               goto out_ptr;
+    case SGUI_TYPE:   x = e->type;                      goto out_x;
+    case SGUI_I:      x = e->arg.i;                     goto out_x;
+    case SGUI_I2_X:   x = e->arg.i2.x;                  goto out_x;
+    case SGUI_I2_Y:   x = e->arg.i2.y;                  goto out_x;
+    case SGUI_I3_X:   x = e->arg.i3.x;                  goto out_x;
+    case SGUI_I3_Y:   x = e->arg.i3.y;                  goto out_x;
+    case SGUI_I3_Z:   x = e->arg.i3.z;                  goto out_x;
+    case SGUI_I2_XY:  x = e->arg.i2.x; y = e->arg.i2.y; goto out_xy;
+    case SGUI_I2_YX:  x = e->arg.i2.y; y = e->arg.i2.x; goto out_xy;
+    case SGUI_I3_XY:  x = e->arg.i3.x; y = e->arg.i3.y; goto out_xy;
+    case SGUI_I3_XZ:  x = e->arg.i3.x; y = e->arg.i3.z; goto out_xy;
+    case SGUI_I3_YX:  x = e->arg.i3.y; y = e->arg.i3.x; goto out_xy;
+    case SGUI_I3_YZ:  x = e->arg.i3.y; y = e->arg.i3.z; goto out_xy;
+    case SGUI_I3_ZX:  x = e->arg.i3.z; y = e->arg.i3.x; goto out_xy;
+    case SGUI_I3_ZY:  x = e->arg.i3.z; y = e->arg.i3.y; goto out_xy;
+    case SGUI_I3_XYZ:
+        x = e->arg.i3.x; y = e->arg.i3.y; z = e->arg.i3.z;
+        goto out_xyz;
+    case SGUI_I3_XZY:
+        x = e->arg.i3.x; y = e->arg.i3.z; z = e->arg.i3.y;
+        goto out_xyz;
+    case SGUI_I3_YXZ:
+        x = e->arg.i3.y; y = e->arg.i3.x; z = e->arg.i3.z;
+        goto out_xyz;
+    case SGUI_I3_YZX:
+        x = e->arg.i3.y; y = e->arg.i3.z; z = e->arg.i3.x;
+        goto out_xyz;
+    case SGUI_I3_ZXY:
+        x = e->arg.i3.z; y = e->arg.i3.x; z = e->arg.i3.y;
+        goto out_xyz;
+    case SGUI_I3_ZYX:
+        x = e->arg.i3.z; y = e->arg.i3.y; z = e->arg.i3.x;
+        goto out_xyz;
+    }
+    return;
+out_ptr:
+    l->callback(l->receiver, ptr);
+    return;
+out_x:
+    l->callback(l->receiver, x);
+    return;
+out_xy:
+    l->callback(l->receiver, x, y);
+    return;
+out_xyz:
+    l->callback(l->receiver, x, y, z);
+    return;
+}
+
+static void call(const struct listener* l, const sgui_event* e)
+{
+    switch( l->type )
+    {
+    case SGUI_FROM_EVENT:
+        call_from_event(l, e);
+        break;
+    case SGUI_VOID:   l->callback(l->receiver);             break;
+    case SGUI_CHAR:   l->callback(l->receiver, l->value.c); break;
+    case SGUI_SHORT:  l->callback(l->receiver, l->value.s); break;
+    case SGUI_INT:    l->callback(l->receiver, l->value.i3[0]); break;
+    case SGUI_LONG:   l->callback(l->receiver, l->value.l); break;
+    case SGUI_POINTER:l->callback(l->receiver, l->value.p); break;
+#ifndef SGUI_NO_FLOAT
+    case SGUI_FLOAT:  l->callback(l->receiver, l->value.f); break;
+    case SGUI_DOUBLE: l->callback(l->receiver, l->value.d); break;
+#endif
+    case SGUI_INT2:
+        l->callback(l->receiver, l->value.i3[0], l->value.i3[1]);
+        break;
+    case SGUI_INT3:
+        l->callback( l->receiver, l->value.i3[0], l->value.i3[1],
+                     l->value.i3[2] );
+        break;
+    }
+}
+
 void sgui_event_process( void )
 {
     struct listener* l;
@@ -270,93 +380,8 @@ void sgui_event_process( void )
         /* for each receiver */
         for( l = b->listeners; l != NULL; l = l->next )
         {
-            if( l->sender && l->sender != e->src.other )
-                continue;
-
-            switch( l->type )
-            {
-            case SGUI_FROM_EVENT:
-                switch( l->value.i3[0] )
-                {
-                case SGUI_EVENT: l->callback(l->receiver,e            );break;
-                case SGUI_WIDGET:l->callback(l->receiver,e->src.widget);break;
-                case SGUI_WINDOW:l->callback(l->receiver,e->src.window);break;
-                case SGUI_TYPE:  l->callback(l->receiver,e->type      );break;
-                case SGUI_I:     l->callback(l->receiver,e->arg.i     );break;
-                case SGUI_I2_X:  l->callback(l->receiver,e->arg.i2.x  );break;
-                case SGUI_I2_Y:  l->callback(l->receiver,e->arg.i2.y  );break;
-                case SGUI_I3_X:  l->callback(l->receiver,e->arg.i3.x  );break;
-                case SGUI_I3_Y:  l->callback(l->receiver,e->arg.i3.y  );break;
-                case SGUI_I3_Z:  l->callback(l->receiver,e->arg.i3.z  );break;
-                case SGUI_UI2_X: l->callback(l->receiver,e->arg.ui2.x );break;
-                case SGUI_UI2_Y: l->callback(l->receiver,e->arg.ui2.y );break;
-                case SGUI_UTF8:  l->callback(l->receiver,e->arg.utf8  );break;
-                case SGUI_RECT:  l->callback(l->receiver,&e->arg.rect );break;
-                case SGUI_COLOR: l->callback(l->receiver,e->arg.color );break;
-                case SGUI_UI2_XY:
-                    l->callback(l->receiver,e->arg.ui2.x,e->arg.ui2.y); break;
-                case SGUI_UI2_YX:
-                    l->callback(l->receiver,e->arg.ui2.y,e->arg.ui2.x); break;
-                case SGUI_I2_XY:
-                    l->callback(l->receiver,e->arg.i2.x,e->arg.i2.y); break;
-                case SGUI_I2_YX:
-                    l->callback(l->receiver,e->arg.i2.y,e->arg.ui2.x); break;
-                case SGUI_I3_XY:
-                    l->callback(l->receiver,e->arg.i3.x,e->arg.i3.y); break;
-                case SGUI_I3_XZ:
-                    l->callback(l->receiver,e->arg.i3.x,e->arg.i3.z); break;
-                case SGUI_I3_YX:
-                    l->callback(l->receiver,e->arg.i3.y,e->arg.i3.x); break;
-                case SGUI_I3_YZ:
-                    l->callback(l->receiver,e->arg.i3.y,e->arg.i3.z); break;
-                case SGUI_I3_ZX:
-                    l->callback(l->receiver,e->arg.i3.z,e->arg.i3.x); break;
-                case SGUI_I3_ZY:
-                    l->callback(l->receiver,e->arg.i3.z,e->arg.i3.y); break;
-                case SGUI_I3_XYZ:
-                    l->callback( l->receiver,
-                                 e->arg.i3.x, e->arg.i3.y, e->arg.i3.z );
-                    break;
-                case SGUI_I3_XZY:
-                    l->callback( l->receiver,
-                                 e->arg.i3.x, e->arg.i3.z, e->arg.i3.y );
-                    break;
-                case SGUI_I3_YXZ:
-                    l->callback( l->receiver,
-                                 e->arg.i3.y, e->arg.i3.x, e->arg.i3.z );
-                    break;
-                case SGUI_I3_YZX:
-                    l->callback( l->receiver,
-                                 e->arg.i3.y, e->arg.i3.z, e->arg.i3.x );
-                    break;
-                case SGUI_I3_ZXY:
-                    l->callback( l->receiver,
-                                 e->arg.i3.z, e->arg.i3.x, e->arg.i3.y );
-                    break;
-                case SGUI_I3_ZYX:
-                    l->callback( l->receiver,
-                                 e->arg.i3.z, e->arg.i3.y, e->arg.i3.x );
-                    break;
-                }
-                break;
-            case SGUI_VOID:   l->callback(l->receiver);             break;
-            case SGUI_CHAR:   l->callback(l->receiver, l->value.c); break;
-            case SGUI_SHORT:  l->callback(l->receiver, l->value.s); break;
-            case SGUI_INT:    l->callback(l->receiver, l->value.i3[0]); break;
-            case SGUI_LONG:   l->callback(l->receiver, l->value.l); break;
-            case SGUI_POINTER:l->callback(l->receiver, l->value.p); break;
-#ifndef SGUI_NO_FLOAT
-            case SGUI_FLOAT:  l->callback(l->receiver, l->value.f); break;
-            case SGUI_DOUBLE: l->callback(l->receiver, l->value.d); break;
-#endif
-            case SGUI_INT2:
-                l->callback(l->receiver, l->value.i3[0], l->value.i3[1]);
-                break;
-            case SGUI_INT3:
-                l->callback( l->receiver, l->value.i3[0], l->value.i3[1],
-                             l->value.i3[2] );
-                break;
-            }
+            if( !l->sender || l->sender == e->src.other )
+                call(l, e);
         }
     }
 
