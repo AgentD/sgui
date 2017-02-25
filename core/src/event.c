@@ -33,9 +33,8 @@
 
 
 
-typedef struct listener
+struct listener
 {
-    int event;                  /* event to listen for */
     void* sender;               /* sender to listen for */
 
     void* receiver;             /* receiver */
@@ -58,32 +57,38 @@ typedef struct listener
     }
     value;
 
-    struct listener* next;      /* linked list pointer */
-}
-listener;
+    struct listener* next;
+};
+
+struct bucket
+{
+    int event;                      /* event to listen for */
+    struct listener* listeners;     /* linked list of listeneres */
+    struct bucket* next;
+};
 
 
 
 static sgui_event* queue = NULL;
 static int queue_top = 0;
 static int queue_size = 0;
-static listener* listeners = NULL;
+static struct bucket* buckets = NULL;
 
 
 
 void sgui_event_connect( void* sender, int eventtype, ... )
 {
     sgui_function callback;
-    listener* l;
+    struct listener* l;
+    struct bucket* b;
     va_list va;
 
     va_start( va, eventtype );
     callback = va_arg( va, sgui_function );
 
-    if( !callback || !(l = calloc( 1, sizeof(listener) )) )
+    if( !callback || !(l = calloc(1, sizeof(*l))) )
         goto done;
 
-    l->event    = eventtype;
     l->sender   = sender;
     l->callback = callback;
     l->receiver = va_arg( va, void* );
@@ -109,7 +114,22 @@ void sgui_event_connect( void* sender, int eventtype, ... )
     }
 
     sgui_internal_lock_mutex( );
-    SGUI_ADD_TO_LIST( listeners, l );
+
+    for( b = buckets; b != NULL; b = b->next )
+    {
+        if( b->event == eventtype )
+            break;
+    }
+
+    if( !b )
+    {
+        b = calloc(1, sizeof(*b));
+        b->event = eventtype;
+        SGUI_ADD_TO_LIST(buckets, b);
+    }
+
+    SGUI_ADD_TO_LIST(b->listeners, l);
+
     sgui_internal_unlock_mutex( );
 done:
     va_end( va );
@@ -118,15 +138,27 @@ done:
 void sgui_event_disconnect( void* sender, int eventtype,
                             sgui_function callback, void* receiver )
 {
-    listener* old = NULL;
-    listener* l = listeners;
+    struct listener* old = NULL;
+    struct listener* l;
+    struct bucket* b;
 
     sgui_internal_lock_mutex( );
 
+    for( b = buckets; b != NULL; b = b->next )
+    {
+        if( b->event == eventtype )
+            break;
+    }
+
+    if( !b )
+        goto out;
+
+    l = b->listeners;
+
     while( l )
     {
-        if( l->event==eventtype && l->callback==callback &&
-            l->sender==sender && l->receiver==receiver )
+        if( l->callback==callback && l->sender==sender &&
+            l->receiver==receiver )
         {
             if( old )
             {
@@ -136,9 +168,9 @@ void sgui_event_disconnect( void* sender, int eventtype,
             }
             else
             {
-                listeners = listeners->next;
+                b->listeners = b->listeners->next;
                 free( l );
-                l = listeners;
+                l = b->listeners;
             }
         }
         else
@@ -147,17 +179,39 @@ void sgui_event_disconnect( void* sender, int eventtype,
             l = l->next;
         }
     }
-
+out:
     sgui_internal_unlock_mutex( );
 }
 
 void sgui_event_post( const sgui_event* event )
 {
     sgui_event* new_queue;
+    struct listener *l;
+    struct bucket* b;
     int new_size;
 
     sgui_internal_lock_mutex( );
 
+    /* if there is no one handling the event, drop it */
+    for( b = buckets; b != NULL; b = b->next )
+    {
+        if( b->event == event->type )
+            break;
+    }
+
+    if( !b )
+        goto out;
+
+    for( l = b->listeners; l != NULL; l = l->next )
+    {
+        if( !l->sender || l->sender == event->src.other )
+            break;
+    }
+
+    if( !l )
+        goto out;
+
+    /* enlarge queue if necessary */
     if( queue_top == queue_size )
     {
         new_size = queue_size<10 ? 10 : queue_size*2;
@@ -170,9 +224,11 @@ void sgui_event_post( const sgui_event* event )
         }
     }
 
+    /* add to queue */
     if( queue_top < queue_size )
         queue[ queue_top++ ] = (*event);
 
+out:
     sgui_internal_unlock_mutex( );
 }
 
@@ -180,16 +236,17 @@ void sgui_event_post( const sgui_event* event )
 
 void sgui_event_process( void )
 {
+    struct listener* l;
     sgui_event* local;
+    struct bucket* b;
     sgui_event* e;
     int i, count;
-    listener* l;
 
     sgui_internal_lock_mutex( );
 
     /*
-        snatch the queue, so modification while processing
-        doesn't confuse us
+        Handling events can potentially trigger adding of new events, which
+        can trigger a realloc() of the event queue.
      */
     local = queue;
     count = queue_top;
@@ -198,11 +255,22 @@ void sgui_event_process( void )
     queue_size = 0;
     queue = NULL;
 
-    for( e=local, i=0; i<count; ++i, ++e )  /* for each event in the queue */
+    /* for each event in the queue */
+    for( e=local, i=0; i<count; ++i, ++e )
     {
-        for( l=listeners; l; l=l->next )        /* for each listener */
+        /* find receiver queue for the event type */
+        for( b = buckets; b != NULL; b = b->next )
         {
-            if( (l->event!=e->type)||(l->sender && l->sender!=e->src.other) )
+            if( b->event == e->type )
+                break;
+        }
+        if( !b )
+            continue;
+
+        /* for each receiver */
+        for( l = b->listeners; l != NULL; l = l->next )
+        {
+            if( l->sender && l->sender != e->src.other )
                 continue;
 
             switch( l->type )
@@ -299,15 +367,24 @@ void sgui_event_process( void )
 
 void sgui_event_reset( void )
 {
-    listener* l;
+    struct listener* l;
+    struct bucket* b;
 
     sgui_internal_lock_mutex( );
 
-    while( listeners )
+    while( buckets )
     {
-        l = listeners;
-        listeners = listeners->next;
-        free( l );
+        b = buckets;
+        buckets = buckets->next;
+
+        while( b->listeners )
+        {
+            l = b->listeners;
+            b->listeners = b->listeners->next;
+            free(l);
+        }
+
+        free(b);
     }
 
     free( queue );
