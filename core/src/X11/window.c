@@ -376,7 +376,11 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     if( desc->flags & (~SGUI_ALL_WINDOW_FLAGS) )
         return NULL;
 
-    this = calloc( 1, sizeof(sgui_window_xlib) );
+    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
+        this = calloc( 1, sizeof(sgui_window_glx) );
+    else
+        this = calloc( 1, sizeof(sgui_window_xlib) );
+
     super = (sgui_window*)this;
 
     if( !this )
@@ -385,12 +389,13 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
     sgui_internal_lock_mutex( );
 
     /******************** create the window ********************/
-    if( desc->backend==SGUI_OPENGL_CORE || desc->backend==SGUI_OPENGL_COMPAT )
+    switch( desc->backend )
     {
+    case SGUI_OPENGL_CORE:
+    case SGUI_OPENGL_COMPAT:
         this->wnd = create_glx_window( super, desc, x_parent );
-    }
-    else if( desc->backend==SGUI_NATIVE || desc->backend==SGUI_CUSTOM )
-    {
+        break;
+    default:
         memcpy( rgb, sgui_skin_get( )->window_color, 3 );
 
         color = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
@@ -398,6 +403,7 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         this->wnd = XCreateSimpleWindow( x11.dpy, x_parent, 0, 0,
                                          desc->width, desc->height,
                                          0, 0, color );
+        break;
     }
 
     if( !this->wnd )
@@ -423,18 +429,23 @@ sgui_window* sgui_window_create_desc( const sgui_window_description* desc )
         goto failic;
 
     /********************** create canvas **********************/
-    if( desc->backend==SGUI_NATIVE )
+    switch( desc->backend )
     {
+    case SGUI_NATIVE:
         super->ctx.canvas = canvas_x11_create( this->wnd,
                                                attr.width, attr.height, 1 );
-    }
-    else if(desc->backend==SGUI_OPENGL_CORE||desc->backend==SGUI_OPENGL_COMPAT)
-    {
-        super->ctx.ctx = gl_context_create(super,desc->backend,desc->share);
-    }
 
-    if( !super->ctx.canvas && !super->ctx.ctx && desc->backend!=SGUI_CUSTOM )
-        goto failcv;
+        if( !super->ctx.canvas )
+            goto failcv;
+        break;
+    case SGUI_OPENGL_CORE:
+    case SGUI_OPENGL_COMPAT:
+        super->ctx.ctx = gl_context_create(super, desc->backend, desc->share);
+
+        if( !super->ctx.ctx )
+            goto failcv;
+        break;
+    }
 
     if( desc->flags & SGUI_VISIBLE )
         XMapWindow( x11.dpy, this->wnd );

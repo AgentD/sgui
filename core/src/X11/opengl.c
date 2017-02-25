@@ -178,13 +178,13 @@ sgui_context* gl_context_create( sgui_window* wnd, int backend,
         {
             attribs[1] = versions[i][0];
             attribs[3] = versions[i][1];
-            this->gl = CreateContextAttribs( x11.dpy, TO_X11(wnd)->cfg, sctx,
+            this->gl = CreateContextAttribs( x11.dpy, TO_GLX(wnd)->cfg, sctx,
                                              True, attribs );
         }
     }
 
     if( !this->gl )
-        this->gl = glXCreateNewContext( x11.dpy, TO_X11(wnd)->cfg,
+        this->gl = glXCreateNewContext( x11.dpy, TO_GLX(wnd)->cfg,
                                         GLX_RGBA_TYPE, sctx, GL_TRUE );
 
     if( !this->gl )
@@ -232,7 +232,7 @@ Window create_glx_window( sgui_window* this,
     if( !fbcount )
         goto outfbl;
 
-    TO_X11(this)->cfg = fbl[0];
+    TO_GLX(this)->cfg = fbl[0];
     vi = glXGetVisualFromFBConfig( x11.dpy, fbl[0] );
 
     if( !vi )

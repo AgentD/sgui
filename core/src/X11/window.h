@@ -41,6 +41,7 @@
 
 
 #define TO_X11( window ) ((sgui_window_xlib*)window)
+#define TO_GLX( window ) ((sgui_window_glx*)window)
 #define IS_CHILD 0x8000
 #define X11_EVENT_MASK (ExposureMask|StructureNotifyMask|PointerMotionMask|\
                         KeyPressMask|FocusChangeMask|ButtonReleaseMask|\
@@ -55,16 +56,21 @@ typedef struct _sgui_window_xlib
     Window wnd;
     XIC ic;
 
-    unsigned int mouse_warped;/* mouse warp counter */
+    unsigned int mouse_warped;       /* mouse warp counter */
 
-#ifndef SGUI_NO_OPENGL
-    GLXFBConfig cfg;
-#endif
-
-    struct _sgui_window_xlib* next;  /* linked list stuff */
+    struct _sgui_window_xlib* next;
 }
 sgui_window_xlib;
 
+#ifndef SGUI_NO_OPENGL
+typedef struct
+{
+    sgui_window_xlib super;
+
+    GLXFBConfig cfg;
+}
+sgui_window_glx;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
