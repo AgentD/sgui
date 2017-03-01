@@ -27,31 +27,28 @@
 #include "sgui_internal.h"
 
 
-
-void sgui_pixmap_load( sgui_pixmap* this, int dstx, int dsty,
-                       const unsigned char* data, int srcx, int srcy,
-                       unsigned int width, unsigned int height,
-                       unsigned int scan, int format )
+void sgui_pixmap_load(sgui_pixmap *this, int dstx, int dsty,
+			const unsigned char *data, int srcx, int srcy,
+			unsigned int width, unsigned int height,
+			unsigned int scan, int format)
 {
-    int bpp =  format==SGUI_RGBA8 ? 4 :
-              (format==SGUI_RGB8  ? 3 : 1);
+	int bpp = format==SGUI_RGBA8 ? 4 : (format==SGUI_RGB8 ? 3 : 1);
 
-    if( !width || !height || srcx>=(int)scan )
-        return;
+	if (!width || !height || srcx >= (int)scan)
+		return;
 
-    if( dstx>=(int)this->width || dsty>=(int)this->height )
-        return;
+	if (dstx >= (int)this->width || dsty >= (int)this->height)
+		return;
 
-    if( (srcx+width)>=scan )
-        width = scan - srcx;
+	if ((srcx + width) >= scan)
+		width = scan - srcx;
 
-    if( (dstx+width)>=this->width )
-        width = this->width - dstx;
+	if ((dstx + width) >= this->width)
+		width = this->width - dstx;
 
-    if( (dsty+height)>=this->height )
-        height = this->height - dsty;
+    	if ((dsty + height) >= this->height)
+		height = this->height - dsty;
 
-    data += (srcy*scan + srcx) * bpp;
-    this->load( this, dstx, dsty, data, scan, width, height, format );
+	data += (srcy * scan + srcx) * bpp;
+	this->load(this, dstx, dsty, data, scan, width, height, format);
 }
-

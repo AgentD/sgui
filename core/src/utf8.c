@@ -27,86 +27,87 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 #define INVALID_CHARACTER 0xFFFD
 
-
-
-unsigned int sgui_utf8_decode( const char* utf8, unsigned int* length )
+unsigned int sgui_utf8_decode(const char *utf8, unsigned int *length)
 {
-    unsigned int ch = 0, i = 0, len = 0;
+	unsigned int ch = 0, i = 0, len = 0;
 
-    len = 1;
-    ch = *(utf8++);
+	len = 1;
+	ch = *(utf8++);
 
-         if( (ch & 0xFE) == 0xFC ) { len = 6; ch &= 0x01; }
-    else if( (ch & 0xFC) == 0xF8 ) { len = 5; ch &= 0x03; }
-    else if( (ch & 0xF8) == 0xF0 ) { len = 4; ch &= 0x07; }
-    else if( (ch & 0xF0) == 0xE0 ) { len = 3; ch &= 0x0F; }
-    else if( (ch & 0xE0) == 0xC0 ) { len = 2; ch &= 0x1F; }
+	if ((ch & 0xFE) == 0xFC) {
+		len = 6;
+		ch &= 0x01;
+	} else if ((ch & 0xFC) == 0xF8) {
+		len = 5;
+		ch &= 0x03;
+	} else if ((ch & 0xF8) == 0xF0) {
+		len = 4;
+		ch &= 0x07;
+	} else if ((ch & 0xF0) == 0xE0) {
+		len = 3;
+		ch &= 0x0F;
+	} else if ((ch & 0xE0) == 0xC0) {
+		len = 2;
+		ch &= 0x1F;
+	}
 
-    for( i=1; i<len; ++i, ++utf8 )
-    {
-        ch <<= 6;
-        ch |= (*utf8) & 0x3F;
-    }
+	for (i = 1; i < len; ++i, ++utf8) {
+		ch <<= 6;
+		ch |= (*utf8) & 0x3F;
+	}
 
-    *length = len;
-    return ch;
+	*length = len;
+	return ch;
 }
 
 unsigned int sgui_utf8_encode( unsigned int cp, char* str )
 {
-    /* 0x00000000 - 0x00000080: 0aaaaaaa */
-    if( cp < 0x80 )
-    {
-        *str = cp;
-        return 1;
-    }
+	/* 0x00000000 - 0x00000080: 0aaaaaaa */
+	if (cp < 0x80) {
+		*str = cp;
+		return 1;
+	}
 
-    /* invalid characters */
-    if( cp > 0x10FFFF || cp==0xFFFE || cp==0xFEFF )
-        cp = INVALID_CHARACTER;
+	/* invalid characters */
+	if (cp > 0x10FFFF || cp == 0xFFFE || cp == 0xFEFF)
+		cp = INVALID_CHARACTER;
 
-    /* UTF16 surrogate pairs */
-    if( cp>=0xD800 && cp<=0xDFFF )
-        cp = INVALID_CHARACTER;
+	/* UTF16 surrogate pairs */
+	if (cp >= 0xD800 && cp <= 0xDFFF)
+		cp = INVALID_CHARACTER;
 
-    /* 0x00000080 - 0x000007FF: 110aaaaa 10bbbbbb */
-    if( cp < 0x800 )
-    {
-        *(str++) = (0xC0 | (cp >> 6));
-        *(str++) = 0x80 | (cp & 0x3F);
-        return 2;
-    }
+	/* 0x00000080 - 0x000007FF: 110aaaaa 10bbbbbb */
+	if (cp < 0x800) {
+		*(str++) = (0xC0 | (cp >> 6));
+		*(str++) = 0x80 | (cp & 0x3F);
+		return 2;
+	}
 
-    /* 0x00000800 - 0x0000FFFF: 1110aaaa 10bbbbbb 10cccccc */
-    if( cp < 0x10000 )
-    {
-        *(str++) = 0xE0 | (cp >> 12);
-        *(str++) = 0x80 | ((cp >> 6) & 0x3F);
-        *(str++) = 0x80 | (cp & 0x3F);
-        return 3;
-    }
+	/* 0x00000800 - 0x0000FFFF: 1110aaaa 10bbbbbb 10cccccc */
+	if (cp < 0x10000) {
+		*(str++) = 0xE0 | (cp >> 12);
+		*(str++) = 0x80 | ((cp >> 6) & 0x3F);
+		*(str++) = 0x80 | (cp & 0x3F);
+		return 3;
+	}
 
-    /* 0x00010000 - 0x0010FFFF: 11110aaa 10bbbbbb 10cccccc 10dddddd */
-    *(str++) = 0xF0 | (cp >> 18);
-    *(str++) = 0x80 | ((cp >> 12) & 0x3F);
-    *(str++) = 0x80 | ((cp >> 6) & 0x3F);
-    *(str++) = 0x80 | (cp & 0x3F);
-    return 4;
+	/* 0x00010000 - 0x0010FFFF: 11110aaa 10bbbbbb 10cccccc 10dddddd */
+	*(str++) = 0xF0 | (cp >> 18);
+	*(str++) = 0x80 | ((cp >> 12) & 0x3F);
+	*(str++) = 0x80 | ((cp >> 6) & 0x3F);
+	*(str++) = 0x80 | (cp & 0x3F);
+	return 4;
 }
 
-unsigned int sgui_utf8_strlen( const char* utf8 )
+unsigned int sgui_utf8_strlen(const char *utf8)
 {
-    unsigned int len;
+	unsigned int len;
 
-    for( len=0; *utf8; ++utf8 )
-    {
-        len += ((*utf8) & 0xC0)!=0x80;
-    }
+	for (len = 0; *utf8; ++utf8) {
+		len += ((*utf8) & 0xC0) != 0x80;
+	}
 
-    return len;
+	return len;
 }
-

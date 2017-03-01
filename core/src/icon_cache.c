@@ -32,312 +32,293 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 #ifndef SGUI_NO_ICON_CACHE
-#define IS_RED( i ) ((i) && (i)->red)
+#define IS_RED(i) ((i) && (i)->red)
 
-static void tree_destroy( sgui_icon_cache* this, sgui_icon* icon )
+static void tree_destroy(sgui_icon_cache *this, sgui_icon *icon)
 {
-    if( icon )
-    {
-        tree_destroy( this, icon->left );
-        tree_destroy( this, icon->right );
-    }
+	if (icon) {
+		tree_destroy(this, icon->left);
+		tree_destroy(this, icon->right);
+	}
 
-    if( this->icon_destroy )
-        this->icon_destroy( icon );
-    else
-        free( icon );
+	if (this->icon_destroy) {
+		this->icon_destroy(icon);
+	} else {
+		free(icon);
+	}
 }
 
-static sgui_icon* tree_balance( sgui_icon* this )
+static sgui_icon *tree_balance(sgui_icon *this)
 {
-    sgui_icon* i;
+	sgui_icon *i;
 
-    if( IS_RED(this->right) && !IS_RED(this->left) )
-    {
-        /* rotate left */
-        i = this->right;
-        this->right = i->left;
-        i->left = this;
-        i->red = i->left->red;
-        i->left->red = 1;
-        this = i;
-    }
+	if (IS_RED(this->right) && !IS_RED(this->left)) {
+		/* rotate left */
+		i = this->right;
+		this->right = i->left;
+		i->left = this;
+		i->red = i->left->red;
+		i->left->red = 1;
+		this = i;
+	}
 
-    if( IS_RED(this->left) && IS_RED(this->left->left) )
-    {
-        /* rotate right */
-        i = this->left;
-        this->left = i->right;
-        i->right = this;
-        i->red = i->right->red;
-        i->right->red = 1;
-        this = i;
-    }
+	if (IS_RED(this->left) && IS_RED(this->left->left)) {
+		/* rotate right */
+		i = this->left;
+		this->left = i->right;
+		i->right = this;
+		i->red = i->right->red;
+		i->right->red = 1;
+		this = i;
+	}
 
-    if( IS_RED(this->left) && IS_RED(this->right) )
-    {
-        /* flip colors */
-        this->red = !this->red;
-        this->left->red = !this->left->red;
-        this->right->red = !this->right->red;
-    }
+	if (IS_RED(this->left) && IS_RED(this->right)) {
+		/* flip colors */
+		this->red = !this->red;
+		this->left->red = !this->left->red;
+		this->right->red = !this->right->red;
+	}
 
-    return this;
+	return this;
 }
 
-/******************** public interface of sgui_icon_cache *******************/
-
-void sgui_icon_cache_destroy( sgui_icon_cache* this )
+void sgui_icon_cache_destroy(sgui_icon_cache *this)
 {
-    tree_destroy( this, this->root );
-    sgui_pixmap_destroy( this->pixmap );
+	tree_destroy(this, this->root);
+	sgui_pixmap_destroy(this->pixmap);
 
-    if( this->destroy )
-        this->destroy( this );
-    else
-        free( this );
+	if (this->destroy) {
+		this->destroy(this);
+	} else {
+		free(this);
+	}
 }
 
-sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* this,
-                                        sgui_icon* root, sgui_icon* new )
+sgui_icon *sgui_icon_cache_tree_insert(sgui_icon_cache *this,
+					sgui_icon *root, sgui_icon *new)
 {
-    if( !root || !new )
-        return new;
+	if (!root || !new)
+		return new;
 
-    if( this->icon_compare( new, root ) < 0 )
-        root->left = sgui_icon_cache_tree_insert( this, root->left, new );
-    else
-        root->right = sgui_icon_cache_tree_insert( this, root->right, new );
+	if (this->icon_compare(new, root) < 0) {
+		root->left = sgui_icon_cache_tree_insert(this, root->left,
+								new);
+	} else {
+		root->right = sgui_icon_cache_tree_insert(this, root->right,
+								new);
+	}
 
-    return tree_balance( root );
+	return tree_balance(root);
 }
 
-void sgui_icon_cache_load_icon( sgui_icon_cache* this, sgui_icon* i,
-                                const unsigned char* data, unsigned int scan,
-                                int format )
+void sgui_icon_cache_load_icon(sgui_icon_cache *this, sgui_icon *i,
+				const unsigned char *data, unsigned int scan,
+				int format)
 {
-    if( !scan )
-        return;
+	if (!scan)
+		return;
 
-    sgui_pixmap_load( this->pixmap, i->area.left, i->area.top, data, 0, 0,
-                      SGUI_RECT_WIDTH(i->area), SGUI_RECT_HEIGHT(i->area),
-                      scan, format );
+	sgui_pixmap_load(this->pixmap, i->area.left, i->area.top, data, 0, 0,
+			SGUI_RECT_WIDTH(i->area), SGUI_RECT_HEIGHT(i->area),
+			scan, format);
 }
 
-void sgui_icon_cache_draw_icon( const sgui_icon_cache* this,
-                                const sgui_icon* i, int x, int y )
+void sgui_icon_cache_draw_icon(const sgui_icon_cache *this,
+				const sgui_icon *i, int x, int y)
 {
-    sgui_canvas_draw_pixmap( this->owner, x, y, this->pixmap,
-                             (sgui_rect*)&(i->area),
-                             this->format==SGUI_RGBA8 );
+	sgui_canvas_draw_pixmap(this->owner, x, y, this->pixmap,
+				(sgui_rect *)&(i->area),
+				this->format == SGUI_RGBA8);
 }
 
-int sgui_icon_cache_alloc_area( sgui_icon_cache* this,
-                                unsigned int width, unsigned int height,
-                                sgui_rect* out )
+int sgui_icon_cache_alloc_area(sgui_icon_cache *this, unsigned int width,
+				unsigned int height, sgui_rect *out)
 {
-    if( !width || !height )
-        return 0;
+	if (!width || !height)
+		return 0;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    /* check if there is enought space for the icon */
-    if( (this->next_x + width) > this->width )
-    {
-        if( (this->next_y + this->row_height + height) > this->height )
-            goto fail;
-    }
-    else
-    {
-        if( (this->next_y + height) > this->height )
-            goto fail;
-    }
+	if ((this->next_x + width) > this->width) {
+		if ((this->next_y + this->row_height + height) > this->height)
+			goto fail;
+	} else {
+		if ((this->next_y + height) > this->height)
+			goto fail;
+	}
 
-    /* allocate area */
-    if( (this->next_x + width) > this->width )
-    {
-        this->next_x  = 0;
-        this->next_y += this->row_height;
-        this->row_height = height;
-    }
+	if ((this->next_x + width) > this->width) {
+		this->next_x = 0;
+		this->next_y += this->row_height;
+		this->row_height = height;
+	}
 
-    sgui_rect_set_size( out, this->next_x, this->next_y, width, height );
+	sgui_rect_set_size(out, this->next_x, this->next_y, width, height);
 
-    this->next_x += width;
-    this->row_height = height>this->row_height ? height : this->row_height;
+	this->next_x += width;
+	this->row_height = height>this->row_height ? height : this->row_height;
 
-    sgui_internal_unlock_mutex( );
-    return 1;
+	sgui_internal_unlock_mutex();
+	return 1;
 fail:
-    sgui_internal_unlock_mutex( );
-    return 0;
+	sgui_internal_unlock_mutex();
+	return 0;
 }
 
-sgui_icon* sgui_icon_cache_find( const sgui_icon_cache* this,
-                                 const sgui_icon* icon )
+sgui_icon *sgui_icon_cache_find(const sgui_icon_cache *this,
+				const sgui_icon *icon)
 {
-    sgui_icon* node;
-    int val;
+	sgui_icon *node;
+	int val;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
+	node = this->root;
 
-    for( node=this->root; node; node=val<0 ? node->left : node->right )
-    {
-        val = this->icon_compare( icon, node );
+	while (node != NULL) {
+		val = this->icon_compare(icon, node);
 
-        if( val==0 )
-            break;
-    }
+		if (val == 0)
+			break;
 
-    sgui_internal_unlock_mutex( );
-    return node;
+		node = val < 0 ? node->left : node->right;
+	}
+
+	sgui_internal_unlock_mutex();
+	return node;
 }
 
 /*********************** sgui_icon_map implementation ***********************/
-typedef struct
+typedef struct {
+	sgui_icon super;
+	unsigned int id;
+} sgui_map_icon;
+
+static int compare_ids(const sgui_icon *left, const sgui_icon *right)
 {
-    sgui_icon super;
-    unsigned int id;
-}
-sgui_map_icon;
+	sgui_map_icon *l = (sgui_map_icon *)left;
+	sgui_map_icon *r = (sgui_map_icon *)right;
 
-static int compare_ids( const sgui_icon* left, const sgui_icon* right )
-{
-    sgui_map_icon* l = (sgui_map_icon*)left;
-    sgui_map_icon* r = (sgui_map_icon*)right;
-    return l->id==r->id ? 0 : (l->id < r->id ? -1 : 1);
-}
-
-sgui_icon_cache* sgui_icon_map_create( sgui_canvas* canvas,
-                                       unsigned int width,
-                                       unsigned int height,
-                                       int alpha )
-{
-    sgui_icon_cache* this;
-
-    /* sanity check */
-    if( !width || !height )
-        return NULL;
-
-    /* allocate structure */
-    this = calloc( 1, sizeof(sgui_icon_cache) );
-
-    if( !this )
-        return NULL;
-
-    /* initialize */
-    this->icon_compare = compare_ids;
-    this->owner = canvas;
-    this->width = width;
-    this->height = height;
-    this->format = alpha ? SGUI_RGBA8 : SGUI_RGB8;
-    this->pixmap = sgui_canvas_create_pixmap( canvas, width, height,
-                                              this->format );
-
-    if( !this->pixmap )
-    {
-        free( this );
-        return NULL;
-    }
-
-    return this;
+	return l->id == r->id ? 0 : (l->id < r->id ? -1 : 1);
 }
 
-int sgui_icon_map_add_icon( sgui_icon_cache* this, unsigned int id,
-                            unsigned int width, unsigned int height )
+sgui_icon_cache *sgui_icon_map_create(sgui_canvas *canvas, unsigned int width,
+					unsigned int height, int alpha)
 {
-    sgui_map_icon* i;
+	sgui_icon_cache *this;
 
-    /* sanity check */
-    if( !width || !height || sgui_icon_map_find( this, id ) )
-        return 0;
+	if (!width || !height)
+		return NULL;
 
-    sgui_internal_lock_mutex( );
+	this = calloc(1, sizeof(*this));
+	if (!this)
+		return NULL;
 
-    /* create icon */
-    if( !(i = calloc( 1, sizeof(sgui_map_icon) )) )
-        goto fail;
+	this->icon_compare = compare_ids;
+	this->owner = canvas;
+	this->width = width;
+	this->height = height;
+	this->format = alpha ? SGUI_RGBA8 : SGUI_RGB8;
+	this->pixmap = sgui_canvas_create_pixmap(canvas, width, height,
+						this->format);
 
-    i->super.red = 1;
-    i->id = id;
+	if (!this->pixmap) {
+		free(this);
+		return NULL;
+	}
 
-    if( !sgui_icon_cache_alloc_area( this, width, height, &i->super.area ) )
-    {
-        free( i );
-        goto fail;
-    }
+	return this;
+}
 
-    /* insert into tree */
-    this->root = sgui_icon_cache_tree_insert(this, this->root, (sgui_icon*)i);
-    this->root->red = 0;
+int sgui_icon_map_add_icon(sgui_icon_cache *this, unsigned int id,
+				unsigned int width, unsigned int height)
+{
+	sgui_map_icon *i;
 
-    sgui_internal_unlock_mutex( );
-    return 1;
+	if (!width || !height || sgui_icon_map_find(this, id))
+		return 0;
+
+	sgui_internal_lock_mutex();
+
+	i = calloc(1, sizeof(*i));
+	if (!i)
+		goto fail;
+
+	i->super.red = 1;
+	i->id = id;
+
+	if (!sgui_icon_cache_alloc_area(this, width, height, &i->super.area)) {
+		free(i);
+		goto fail;
+	}
+
+	this->root = sgui_icon_cache_tree_insert(this, this->root,
+						(sgui_icon *)i);
+	this->root->red = 0;
+
+	sgui_internal_unlock_mutex();
+	return 1;
 fail:
-    sgui_internal_unlock_mutex( );
-    return 0;
+	sgui_internal_unlock_mutex();
+	return 0;
 }
 
-sgui_icon* sgui_icon_map_find( const sgui_icon_cache* this, unsigned int id )
+sgui_icon *sgui_icon_map_find(const sgui_icon_cache *this, unsigned int id)
 {
-    sgui_map_icon cmp;
-    cmp.id = id;
-    return sgui_icon_cache_find( this, (sgui_icon*)&cmp );
+	sgui_map_icon cmp;
+	cmp.id = id;
+	return sgui_icon_cache_find(this, (sgui_icon *)&cmp);
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-void sgui_icon_cache_destroy( sgui_icon_cache* cache )
+void sgui_icon_cache_destroy(sgui_icon_cache *cache)
 {
-    (void)cache;
+	(void)cache;
 }
-sgui_icon* sgui_icon_cache_tree_insert( sgui_icon_cache* cache,
-                                        sgui_icon* root, sgui_icon* insert )
+sgui_icon *sgui_icon_cache_tree_insert(sgui_icon_cache *cache,
+					sgui_icon *root, sgui_icon *insert)
 {
-    (void)cache; (void)root;
-    return insert;
+	(void)cache; (void)root;
+	return insert;
 }
-void sgui_icon_cache_load_icon( sgui_icon_cache* cache, sgui_icon* icon,
-                                const unsigned char* data, unsigned int scan,
-                                int format )
+void sgui_icon_cache_load_icon(sgui_icon_cache *cache, sgui_icon *icon,
+				const unsigned char *data, unsigned int scan,
+				int format)
 {
-    (void)cache; (void)icon; (void)data; (void)scan; (void)format;
+	(void)cache; (void)icon; (void)data; (void)scan; (void)format;
 }
-void sgui_icon_cache_draw_icon( const sgui_icon_cache* cache,
-                                const sgui_icon* icon, int x, int y )
+void sgui_icon_cache_draw_icon(const sgui_icon_cache *cache,
+				const sgui_icon *icon, int x, int y)
 {
-    (void)cache; (void)icon; (void)x; (void)y;
+	(void)cache; (void)icon; (void)x; (void)y;
 }
-int sgui_icon_cache_alloc_area( sgui_icon_cache* cache, unsigned int width,
-                                unsigned int height, sgui_rect* out )
+int sgui_icon_cache_alloc_area(sgui_icon_cache *cache, unsigned int width,
+				unsigned int height, sgui_rect *out)
 {
-    (void)cache; (void)width; (void)height; (void)out;
-    return 0;
+	(void)cache; (void)width; (void)height; (void)out;
+	return 0;
 }
-sgui_icon* sgui_icon_cache_find( const sgui_icon_cache* cache,
-                                 const sgui_icon* icon )
+sgui_icon *sgui_icon_cache_find(const sgui_icon_cache *cache,
+				const sgui_icon *icon)
 {
-    (void)cache; (void)icon;
-    return NULL;
+	(void)cache; (void)icon;
+	return NULL;
 }
-sgui_icon_cache* sgui_icon_map_create( sgui_canvas* canvas,
-                                       unsigned int width,
-                                       unsigned int height, int alpha )
+sgui_icon_cache *sgui_icon_map_create(sgui_canvas *canvas,
+					unsigned int width,
+					unsigned int height, int alpha)
 {
-    (void)canvas; (void)width; (void)height; (void)alpha;
-    return NULL;
+	(void)canvas; (void)width; (void)height; (void)alpha;
+	return NULL;
 }
-int sgui_icon_map_add_icon( sgui_icon_cache* map, unsigned int id,
-                            unsigned int width, unsigned int height )
+int sgui_icon_map_add_icon(sgui_icon_cache *map, unsigned int id,
+				unsigned int width, unsigned int height)
 {
-    (void)map; (void)id; (void)width; (void)height;
-    return 0;
+	(void)map; (void)id; (void)width; (void)height;
+	return 0;
 }
-sgui_icon* sgui_icon_map_find( const sgui_icon_cache* map, unsigned int id )
+sgui_icon *sgui_icon_map_find(const sgui_icon_cache *map, unsigned int id)
 {
-    (void)map; (void)id;
-    return NULL;
+	(void)map; (void)id;
+	return NULL;
 }
 #endif /* !SGUI_NO_ICON_CACHE */
-
