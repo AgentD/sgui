@@ -35,10 +35,10 @@ extern "C" {
 #endif
 
 /* initialise keycode symbol lookup table */
-void init_keycodes( );
+void init_keycodes();
 
 /* convert KeySym to an sgui key code */
-int key_entries_translate( KeySym key );
+int key_entries_translate(KeySym key);
 
 #ifdef __cplusplus
 }

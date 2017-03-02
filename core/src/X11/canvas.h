@@ -35,33 +35,29 @@
 
 #include <X11/extensions/Xrender.h>
 
-
 /* default size of the font cache pixmap */
 #define FONT_MAP_WIDTH 256
 #define FONT_MAP_HEIGHT 256
 
+typedef struct sgui_canvas_x11 {
+	sgui_canvas super;
+	Drawable wnd;
 
-typedef struct sgui_canvas_x11
-{
-    sgui_canvas super;
-    Drawable wnd;
+	sgui_icon_cache *cache;		/* a font cache by the canvas */
 
-    sgui_icon_cache* cache; /* a font cache by the canvas */
-
-    void(* set_clip_rect )( struct sgui_canvas_x11* cv,
-                            int left, int top, int width, int height );
-}
-sgui_canvas_x11;
+	void(* set_clip_rect )(struct sgui_canvas_x11 *cv,
+				int left, int top, int width, int height);
+} sgui_canvas_x11;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void canvas_x11_init( sgui_canvas* super, Drawable wnd,
-                      sgui_funptr clip, int sendexpose );
+void canvas_x11_init(sgui_canvas *super, Drawable wnd,
+			sgui_funptr clip, int sendexpose);
 
-sgui_canvas* canvas_x11_create( Drawable wnd, unsigned int width,
-                                unsigned int height, int sendexpose );
+sgui_canvas *canvas_x11_create(Drawable wnd, unsigned int width,
+				unsigned int height, int sendexpose);
 
 #ifdef __cplusplus
 }

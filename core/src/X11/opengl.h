@@ -32,24 +32,24 @@
 #include <X11/X.h>
 
 #ifndef SGUI_NO_OPENGL
-    #include <GL/glx.h>
+	#include <GL/glx.h>
 #endif
 
-#define LOAD_GLFUN( name ) glXGetProcAddress( (const GLubyte*)(name) )
+#define LOAD_GLFUN(name) glXGetProcAddress((const GLubyte*)(name))
 
 #ifndef GLX_ARB_create_context
-    #define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
-    #define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
-    #define GLX_CONTEXT_FLAGS_ARB                     0x2094
+	#define GLX_CONTEXT_MAJOR_VERSION_ARB             0x2091
+	#define GLX_CONTEXT_MINOR_VERSION_ARB             0x2092
+	#define GLX_CONTEXT_FLAGS_ARB                     0x2094
 
-    #define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
-    #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
+	#define GLX_CONTEXT_DEBUG_BIT_ARB                 0x0001
+	#define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
 #endif
 
 #ifndef GLX_ARB_create_context_profile
-    #define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
-    #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
-    #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+	#define GLX_CONTEXT_PROFILE_MASK_ARB              0x9126
+	#define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+	#define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #endif
 
 #ifdef __cplusplus
@@ -57,13 +57,12 @@ extern "C" {
 #endif
 
 /* set the GLXFBConfig of an sgui_xlib_window and create a window */
-Window create_glx_window( sgui_window* wnd,
-                          const sgui_window_description* desc,
-                          Window parent );
+Window create_glx_window(sgui_window *wnd,
+			const sgui_window_description *desc, Window parent);
 
 /* create an OpenGL context for an Xlib window */
-sgui_context* gl_context_create( sgui_window* wnd, int backend,
-                                 sgui_context* share );
+sgui_context *gl_context_create(sgui_window *wnd, int backend,
+				sgui_context *share);
 
 #ifdef __cplusplus
 }

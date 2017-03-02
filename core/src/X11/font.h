@@ -25,8 +25,6 @@
 #ifndef X11_FONT_H
 #define X11_FONT_H
 
-
-
 #include "sgui_font.h"
 
 #include <ft2build.h>
@@ -40,28 +38,22 @@
     #define NO_SYS_FONT_PATH 1
 #endif
 
-
-
-typedef struct
-{
-    sgui_font super;
-    FT_Face face;
-    void* buffer;
-    unsigned int current_glyph;
-}
-sgui_x11_font;
-
-
+typedef struct {
+	sgui_font super;
+	FT_Face face;
+	void *buffer;
+	unsigned int current_glyph;
+} sgui_x11_font;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* called by sgui_init( ) to initialize the font rendering system */
-int font_init( void );
+int font_init(void);
 
 /* called by sgui_deinit( ) to clean up the font rendering system */
-void font_deinit( void );
+void font_deinit(void);
 
 #ifdef __cplusplus
 }

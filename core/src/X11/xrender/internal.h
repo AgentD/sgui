@@ -29,28 +29,24 @@
 #include "sgui_config.h"
 #include "sgui_pixmap.h"
 
-typedef struct
-{
-    sgui_canvas_x11 super;
-    Picture pic;
+typedef struct {
+	sgui_canvas_x11 super;
+	Picture pic;
 
-    Picture pen;
-    Pixmap penmap;
-}
-sgui_canvas_xrender;
+	Picture pen;
+	Pixmap penmap;
+} sgui_canvas_xrender;
 
-typedef struct
-{
-    sgui_pixmap super;
+typedef struct {
+	sgui_pixmap super;
 
-    Pixmap pix;
-    Picture pic;
-}
-xrender_pixmap;
+	Pixmap pix;
+	Picture pic;
+} xrender_pixmap;
 
 /* create an xrender pixmap */
-sgui_pixmap* xrender_pixmap_create( sgui_canvas* canvas, unsigned int width,
-                                    unsigned int height, int format );
+sgui_pixmap *xrender_pixmap_create(sgui_canvas *canvas, unsigned int width,
+					unsigned int height, int format);
 
 #endif /* INTERNAL_H */
 

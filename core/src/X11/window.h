@@ -27,7 +27,6 @@
 #define X11_WINDOW_H
 
 
-
 #include "sgui_internal.h"
 #include "sgui_window.h"
 
@@ -39,45 +38,41 @@
 #include <X11/Xatom.h>
 
 
+#define TO_X11(window) ((sgui_window_xlib *)window)
+#define TO_GLX(window) ((sgui_window_glx *)window)
 
-#define TO_X11( window ) ((sgui_window_xlib*)window)
-#define TO_GLX( window ) ((sgui_window_glx*)window)
 #define IS_CHILD 0x8000
-#define X11_EVENT_MASK (ExposureMask|StructureNotifyMask|PointerMotionMask|\
-                        KeyPressMask|FocusChangeMask|ButtonReleaseMask|\
-                        KeyReleaseMask|PropertyChangeMask|ButtonPressMask)
+
+#define X11_EVENT_MASK (ExposureMask | StructureNotifyMask |\
+			PointerMotionMask | KeyPressMask | FocusChangeMask |\
+			ButtonReleaseMask | KeyReleaseMask |\
+			PropertyChangeMask | ButtonPressMask)
 
 
+typedef struct _sgui_window_xlib {
+	sgui_window super;
 
-typedef struct _sgui_window_xlib
-{
-    sgui_window super;
+	Window wnd;
+	XIC ic;
 
-    Window wnd;
-    XIC ic;
+	unsigned int mouse_warped;       /* mouse warp counter */
 
-    unsigned int mouse_warped;       /* mouse warp counter */
-
-    struct _sgui_window_xlib* next;
-}
-sgui_window_xlib;
+	struct _sgui_window_xlib* next;
+} sgui_window_xlib;
 
 #ifndef SGUI_NO_OPENGL
-typedef struct
-{
-    sgui_window_xlib super;
+typedef struct {
+	sgui_window_xlib super;
 
-    GLXFBConfig cfg;
-}
-sgui_window_glx;
+	GLXFBConfig cfg;
+} sgui_window_glx;
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* process an XEvent */
-void handle_window_events( sgui_window_xlib* wnd, XEvent* e );
+void handle_window_events(sgui_window_xlib *wnd, XEvent *e);
 
 #ifdef __cplusplus
 }

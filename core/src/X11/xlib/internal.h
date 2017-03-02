@@ -29,33 +29,27 @@
 #include "sgui_config.h"
 #include "sgui_pixmap.h"
 
-typedef struct
-{
-    sgui_canvas_x11 super;
-    GC gc;
-    unsigned char bg[4];
-}
-sgui_canvas_xlib;
+typedef struct {
+	sgui_canvas_x11 super;
+	GC gc;
+	unsigned char bg[4];
+} sgui_canvas_xlib;
 
-typedef struct
-{
-    sgui_pixmap super;
-    int is_stencil;
+typedef struct {
+	sgui_pixmap super;
+	int is_stencil;
 
-    sgui_canvas_xlib* owner;
+	sgui_canvas_xlib *owner;
 
-    union
-    {
-        Pixmap xpm;
-        unsigned char* pixels;
-    }
-    data;
-}
-xlib_pixmap;
+	union {
+		Pixmap xpm;
+		unsigned char *pixels;
+	} data;
+} xlib_pixmap;
 
 /* create an xlib pixmap */
-sgui_pixmap* xlib_pixmap_create( sgui_canvas* cv, unsigned int width,
-                                 unsigned int height, int format );
+sgui_pixmap *xlib_pixmap_create(sgui_canvas *cv, unsigned int width,
+				unsigned int height, int format);
 
 #endif /* INTERNAL_H */
 
