@@ -22,7 +22,7 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/lib" )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin" )
 
-set( PROJECT_BRIEF "A small, simple gui library implemented in plain C89" )
+set( PROJECT_BRIEF "A small, simple gui library" )
 set( PROJECT_VERSION "alpha" )
 
 #----------------------------------------------------------------------
@@ -140,7 +140,7 @@ endif( )
 #----------------------------------------------------------------------
 if( CMAKE_COMPILER_IS_GNUCC OR MINGW )
   message( STATUS "Compiling with gcc" )
-  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic"          )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -pedantic"       )
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshadow -Wwrite-strings" )
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror"    )
 
