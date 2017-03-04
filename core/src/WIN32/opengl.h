@@ -32,15 +32,12 @@
 #include <windows.h>
 
 
-
-
-typedef HGLRC (__stdcall * WGLCREATECONTEXTATTRIBSARBPROC )( HDC, HGLRC,
-                                                             const int* );
-typedef int   (__stdcall * WGLCHOOSEPIXELFORMATARBPROC )( HDC, const int*,
-                                                          const FLOAT*, UINT,
-                                                          int*, UINT* );
-typedef BOOL  (__stdcall * WGLSWAPINTERVALEXT )( int );
-
+typedef HGLRC (__stdcall * WGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC,
+								const int *);
+typedef int   (__stdcall * WGLCHOOSEPIXELFORMATARBPROC)(HDC, const int *,
+							const FLOAT *, UINT,
+							int*, UINT *);
+typedef BOOL  (__stdcall * WGLSWAPINTERVALEXT)(int);
 
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB   0x2091
@@ -54,7 +51,6 @@ typedef BOOL  (__stdcall * WGLSWAPINTERVALEXT )( int );
 
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-
 
 
 #define WGL_NUMBER_PIXEL_FORMATS_ARB            0x2000
@@ -117,12 +113,12 @@ extern "C" {
 #endif
 
 /* set a pixel format for a window */
-int set_pixel_format( sgui_window_w32* wnd,
-                      const sgui_window_description* desc );
+int set_pixel_format(sgui_window_w32 *wnd,
+			const sgui_window_description *desc);
 
 /* create an OpenGL context */
-sgui_context* gl_context_create( sgui_window_w32* wnd, int backend,
-                                 sgui_context* share );
+sgui_context *gl_context_create(sgui_window_w32 *wnd, int backend,
+				sgui_context *share);
 
 #ifdef __cplusplus
 }

@@ -32,23 +32,21 @@
 
 #define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
 
-typedef struct
-{
-    sgui_font super;
+typedef struct {
+	sgui_font super;
 
-    FT_Face face;
-    void* buffer;
-    unsigned int current_glyph;
-}
-sgui_w32_font;
+	FT_Face face;
+	void *buffer;
+	unsigned int current_glyph;
+} sgui_w32_font;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int font_init( void );
+int font_init(void);
 
-void font_deinit( void );
+void font_deinit(void);
 
 #ifdef __cplusplus
 }

@@ -29,7 +29,7 @@
 #include "sgui_internal.h"
 
 #ifndef SGUI_NO_D3D11
-    #include "sgui_d3d11.h"
+	#include "sgui_d3d11.h"
 #endif
 
 #ifdef __cplusplus
@@ -37,11 +37,11 @@ extern "C" {
 #endif
 
 /* resize swapchain and depth/stencil buffer after window resize */
-void d3d11_resize( sgui_context* ctx );
+void d3d11_resize(sgui_context *ctx);
 
 /* create a Direct3D 11 context context */
-sgui_context* d3d11_context_create( sgui_window* wnd,
-                                    const sgui_window_description* desc );
+sgui_context *d3d11_context_create(sgui_window *wnd,
+				const sgui_window_description *desc);
 
 #ifdef __cplusplus
 }

@@ -25,206 +25,156 @@
 #define SGUI_BUILDING_DLL
 #include "font.h"
 
-
-
 static FT_Library freetype = 0;
 
-
-
-int font_init( void )
+int font_init(void)
 {
-    return (FT_Init_FreeType( &freetype )==0);
+	return FT_Init_FreeType(&freetype) == 0;
 }
 
-void font_deinit( void )
+void font_deinit(void)
 {
-    if( freetype )
-        FT_Done_FreeType( freetype );
+	if (freetype)
+		FT_Done_FreeType(freetype);
 
-    freetype = 0;
+	freetype = 0;
 }
 
-/****************************************************************************/
-
-static void w32_font_destroy( sgui_font* this )
+static void w32_font_destroy(sgui_font *this)
 {
-    if( this )
-    {
-        FT_Done_Face( ((sgui_w32_font*)this)->face );
+	FT_Done_Face(((sgui_w32_font *)this)->face);
 
-        free( ((sgui_w32_font*)this)->buffer );
-        free( this );
-    }
+	free(((sgui_w32_font *)this)->buffer);
+	free(this);
 }
 
-static void w32_font_load_glyph( sgui_font* super, unsigned int codepoint )
+static void w32_font_load_glyph(sgui_font *super, unsigned int codepoint)
 {
-    sgui_w32_font* this = (sgui_w32_font*)super;
-    FT_UInt i;
+	sgui_w32_font *this = (sgui_w32_font *)super;
+	FT_UInt i;
 
-    if( this )
-    {
-        this->current_glyph = codepoint;
+	this->current_glyph = codepoint;
 
-        i = FT_Get_Char_Index( this->face, codepoint );
+	i = FT_Get_Char_Index(this->face, codepoint);
 
-        FT_Load_Glyph( this->face, i, FT_LOAD_DEFAULT );
-        FT_Render_Glyph( this->face->glyph, FT_RENDER_MODE_NORMAL );
-    }
+	FT_Load_Glyph(this->face, i, FT_LOAD_DEFAULT);
+	FT_Render_Glyph(this->face->glyph, FT_RENDER_MODE_NORMAL);
 }
 
-static int w32_font_get_kerning_distance( sgui_font* super,
-                                          unsigned int first,
-                                          unsigned int second )
+static int w32_font_get_kerning_distance(sgui_font *super, unsigned int first,
+					unsigned int second)
 {
-    sgui_w32_font* this = (sgui_w32_font*)super;
-    FT_UInt index_a, index_b;
-    FT_Vector delta;
+	sgui_w32_font *this = (sgui_w32_font *)super;
+	FT_UInt index_a, index_b;
+	FT_Vector delta;
 
-    if( this && FT_HAS_KERNING( this->face ) )
-    {
-        index_a = FT_Get_Char_Index( this->face, first );
-        index_b = FT_Get_Char_Index( this->face, second );
+	if (!FT_HAS_KERNING(this->face))
+		return 0;
 
-        FT_Get_Kerning( this->face, index_a, index_b,
-                        FT_KERNING_DEFAULT, &delta );
+	index_a = FT_Get_Char_Index(this->face, first);
+	index_b = FT_Get_Char_Index(this->face, second);
 
-        return -((delta.x < 0 ? -delta.x : delta.x) >> 6);
-    }
+	FT_Get_Kerning(this->face, index_a, index_b,
+			FT_KERNING_DEFAULT, &delta);
 
-    return 0;
+	return -((delta.x < 0 ? -delta.x : delta.x) >> 6);
 }
 
-static void w32_font_get_glyph_metrics( sgui_font* super, unsigned int* width,
-                                        unsigned int* height, int* bearing )
+static void w32_font_get_glyph_metrics(sgui_font *super, unsigned int *width,
+					unsigned int *height, int *bearing)
 {
-    sgui_w32_font* this = (sgui_w32_font*)super;
-    unsigned int w = 0, h = 0;
-    int b = 0;
+	sgui_w32_font *this = (sgui_w32_font *)super;
+	unsigned int w = 0, h = 0;
+	int b = 0;
 
-    if( this )
-    {
-        if( this->current_glyph == ' ' )
-        {
-            w = super->height / 3;
-            h = super->height;
-            b = 0;
-        }
-        else
-        {
-            w = this->face->glyph->bitmap.width;
-            h = this->face->glyph->bitmap.rows;
-            b = super->height - this->face->glyph->bitmap_top;
-        }
-    }
+	if (this->current_glyph == ' ') {
+		w = super->height / 3;
+		h = super->height;
+		b = 0;
+	} else {
+		w = this->face->glyph->bitmap.width;
+		h = this->face->glyph->bitmap.rows;
+		b = super->height - this->face->glyph->bitmap_top;
+	}
 
-    if( width   ) *width   = w;
-    if( height  ) *height  = h;
-    if( bearing ) *bearing = b;
+	if (width)
+		*width   = w;
+	if (height)
+		*height  = h;
+	if (bearing)
+		*bearing = b;
 }
 
-static unsigned char* w32_font_get_glyph( sgui_font* this )
+static unsigned char *w32_font_get_glyph(sgui_font *this)
 {
-    if( this && ((sgui_w32_font*)this)->current_glyph != ' ' )
-        return ((sgui_w32_font*)this)->face->glyph->bitmap.buffer;
+	if (((sgui_w32_font *)this)->current_glyph == ' ')
+		return NULL;
 
-    return NULL;
+	return ((sgui_w32_font *)this)->face->glyph->bitmap.buffer;
 }
 
-/****************************************************************************/
-
-sgui_font* sgui_font_load( const char* filename, unsigned int pixel_height )
+sgui_font *sgui_font_load(const char *filename, unsigned int pixel_height)
 {
-    sgui_w32_font* this;
-    char buffer[ 512 ];
-    sgui_font* super;
+	sgui_w32_font *this = calloc(1, sizeof(*this));
+	sgui_font *super = (sgui_font *)this;
+	char buffer[512];
 
-    /* sanity check */
-    if( !filename )
-        return NULL;
+	if (!this)
+		return NULL;
 
-    /* allocate font structure */
-    this = calloc( 1, sizeof(sgui_w32_font) );
-    super = (sgui_font*)this;
+	if (FT_New_Face(freetype, filename, 0, &this->face)) {
+		/* FIXME: buffer size!!!!! */
+		sprintf(buffer, "%s%s", SYS_FONT_PATH, filename);
 
-    if( !this )
-        return NULL;
+		if (FT_New_Face(freetype, buffer, 0, &this->face))
+			goto fail;
+	}
 
-    /* load the font file */
-    if( !FT_New_Face( freetype, filename, 0, &this->face ) )
-        goto cont;
+	super->height = pixel_height;
+	super->destroy = w32_font_destroy;
+	super->load_glyph = w32_font_load_glyph;
+	super->get_kerning_distance = w32_font_get_kerning_distance;
+	super->get_glyph_metrics = w32_font_get_glyph_metrics;
+	super->get_glyph = w32_font_get_glyph;
 
-    sprintf( buffer, "%s%s", SYS_FONT_PATH, filename );
-
-    if( !FT_New_Face( freetype, buffer, 0, &this->face ) )
-        goto cont;
-
-    free( this );
-    return NULL;
-
-cont:
-    /* initialise the remaining fields */
-    this->buffer        = NULL;
-    this->current_glyph = 0;
-
-    super->height               = pixel_height;
-    super->destroy              = w32_font_destroy;
-    super->load_glyph           = w32_font_load_glyph;
-    super->get_kerning_distance = w32_font_get_kerning_distance;
-    super->get_glyph_metrics    = w32_font_get_glyph_metrics;
-    super->get_glyph            = w32_font_get_glyph;
-
-    FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
-
-    return super;
+	FT_Set_Pixel_Sizes(this->face, 0, pixel_height);
+	return super;
+fail:
+	free(this);
+	return NULL;
 }
 
-sgui_font* sgui_font_load_memory( const void* data, unsigned long size,
-                                  unsigned int pixel_height )
+sgui_font *sgui_font_load_memory(const void *data, unsigned long size,
+				unsigned int pixel_height)
 {
-    sgui_w32_font* this;
-    sgui_font* super;
+	sgui_w32_font *this = calloc(1, sizeof(*this));
+	sgui_font *super = (sgui_font *)this;
 
-    /* sanity check */
-    if( !data || !size )
-        return NULL;
+	if (!this)
+		return NULL;
 
-    /* allocate font structure */
-    this = calloc( 1, sizeof(sgui_w32_font) );
-    super = (sgui_font*)this;
+	this->buffer = malloc(size);
 
-    if( !this )
-        return NULL;
+	if (!this->buffer) {
+		free(this);
+		return NULL;
+	}
 
-    /* allocate a buffer for the file */
-    this->buffer = malloc( size );
+	memcpy(this->buffer, data, size);
 
-    if( !this->buffer )
-    {
-        free( this );
-        return NULL;
-    }
+	if (FT_New_Memory_Face(freetype, this->buffer, size, 0, &this->face)) {
+		free(this->buffer);
+		free(this);
+		return NULL;
+	}
 
-    /* initialise the font */
-    if( FT_New_Memory_Face( freetype, this->buffer, size, 0, &this->face ) )
-    {
-        free( this->buffer );
-        free( this );
-        return NULL;
-    }
+	super->height = pixel_height;
+	super->destroy = w32_font_destroy;
+	super->load_glyph = w32_font_load_glyph;
+	super->get_kerning_distance = w32_font_get_kerning_distance;
+	super->get_glyph_metrics = w32_font_get_glyph_metrics;
+	super->get_glyph = w32_font_get_glyph;
 
-    /* initialise the remaining fields */
-    this->current_glyph = 0;
-
-    super->height               = pixel_height;
-    super->destroy              = w32_font_destroy;
-    super->load_glyph           = w32_font_load_glyph;
-    super->get_kerning_distance = w32_font_get_kerning_distance;
-    super->get_glyph_metrics    = w32_font_get_glyph_metrics;
-    super->get_glyph            = w32_font_get_glyph;
-
-    FT_Set_Pixel_Sizes( this->face, 0, pixel_height );
-
-    return super;
+	FT_Set_Pixel_Sizes(this->face, 0, pixel_height);
+	return super;
 }
-

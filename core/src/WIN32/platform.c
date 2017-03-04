@@ -26,254 +26,255 @@
 #include "sgui.h"
 #include "platform.h"
 
-
 struct w32_state w32;
 
-
-static LRESULT CALLBACK WindowProcFun( HWND hWnd, UINT msg, WPARAM wp,
-                                       LPARAM lp )
+static LRESULT CALLBACK WindowProcFun(HWND hWnd, UINT msg,
+					WPARAM wp, LPARAM lp)
 {
-    sgui_window_w32* wnd;
-    int result = 0;
+	sgui_window_w32 *wnd;
+	int result = 0;
 
-    sgui_internal_lock_mutex( );
-    wnd = (sgui_window_w32*)GET_USER_PTR( hWnd );
+	sgui_internal_lock_mutex();
+	wnd = (sgui_window_w32 *)GET_USER_PTR(hWnd);
 
-    if( !wnd && (msg==WM_DESTROY || msg==WM_NCDESTROY) )
-        goto out;
+	if (!wnd && (msg == WM_DESTROY || msg == WM_NCDESTROY))
+		goto out;
 
-    result = wnd ? handle_window_events( wnd, msg, wp, lp ) :
-                   DefWindowProcA( hWnd, msg, wp, lp );
+	result = wnd ? handle_window_events(wnd, msg, wp, lp) :
+			DefWindowProcA(hWnd, msg, wp, lp);
 out:
-    sgui_internal_unlock_mutex( );
-    return result;
+	sgui_internal_unlock_mutex();
+	return result;
 }
 
-static int is_window_active( void )
+static int is_window_active(void)
 {
-    sgui_window_w32* i;
+	sgui_window_w32 *i = w32.list;
 
-    sgui_internal_lock_mutex( );
-    for( i=w32.list; i!=NULL && !(i->super.flags & SGUI_VISIBLE); i=i->next );
-    sgui_internal_unlock_mutex( );
+	sgui_internal_lock_mutex();
+	while (i != NULL && !(i->super.flags & SGUI_VISIBLE)) {
+		i = i->next;
+	}
+	sgui_internal_unlock_mutex();
 
-    return (i!=NULL);
+	return i != NULL;
 }
 
-static void update_windows( void )
+static void update_windows(void)
 {
-    sgui_window_w32* i;
+	sgui_window_w32 *i;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    for( i=w32.list; i!=NULL; i=i->next )
-       update_window( i );
+	for (i = w32.list; i != NULL; i = i->next)
+		update_window(i);
 
-    sgui_internal_unlock_mutex( );
+	sgui_internal_unlock_mutex();
 }
 
-/****************************************************************************/
-
-WCHAR* utf8_to_utf16( const char* utf8, int rdbytes )
+WCHAR *utf8_to_utf16(const char *utf8, int rdbytes)
 {
-    unsigned int length = MultiByteToWideChar(CP_UTF8,0,utf8,rdbytes,NULL,0);
-    WCHAR* out = malloc( sizeof(WCHAR)*(length+1) );
+	size_t length;
+	WCHAR *out;
 
-    if( out )
-    {
-        MultiByteToWideChar( CP_UTF8, 0, utf8, -1, out, length );
-        out[length] = '\0';
-    }
-    return out;
+	length = MultiByteToWideChar(CP_UTF8, 0, utf8, rdbytes, NULL, 0);
+	out = malloc(sizeof(WCHAR) * (length + 1));
+
+	if (out) {
+		MultiByteToWideChar(CP_UTF8, 0, utf8, -1, out, length);
+		out[length] = '\0';
+	}
+	return out;
 }
 
-char* utf16_to_utf8( WCHAR* utf16 )
+char *utf16_to_utf8(WCHAR *utf16)
 {
-    unsigned int size = WideCharToMultiByte(CP_UTF8,0,utf16,-1,0,0,0,0);
-    char* out = malloc( size+1 );
+	size_t size;
+	char *out;
 
-    if( out )
-    {
-        WideCharToMultiByte( CP_UTF8, 0, utf16, -1, out, size, NULL, NULL );
-        out[size] = '\0';
-    }
-    return out;
+	size = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, 0, 0, 0, 0);
+	out = malloc(size + 1);
+	if (!out)
+		return NULL;
+
+	WideCharToMultiByte(CP_UTF8, 0, utf16, -1, out, size, NULL, NULL);
+	out[size] = '\0';
+
+	return out;
 }
 
 void w32_window_write_clipboard( sgui_window* this, const char* text,
                                  unsigned int length )
 {
-    WCHAR* ptr = NULL;
-    unsigned int i;
-    HGLOBAL hDATA;
-    LPVOID dst;
-    (void)this;
+	WCHAR *ptr = NULL;
+	unsigned int i;
+	HGLOBAL hDATA;
+	LPVOID dst;
+	(void)this;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    if( OpenClipboard( NULL ) )
-    {
-        EmptyClipboard( );
+	if (!OpenClipboard(NULL))
+		goto out;
 
-        if( (ptr = utf8_to_utf16( text, length )) )
-        {
-            i = lstrlenW( ptr );
+	EmptyClipboard();
 
-            if( (hDATA = GlobalAlloc( GMEM_MOVEABLE, sizeof(WCHAR)*(i+1) )) )
-            {
-                if( (dst = GlobalLock( hDATA )) )
-                {
-                    memcpy( dst, ptr, sizeof(WCHAR)*(i+1) );
-                    GlobalUnlock( hDATA );
-                    SetClipboardData( CF_UNICODETEXT, hDATA );
-                }
-            }
+	ptr = utf8_to_utf16(text, length);
+	if (!ptr)
+		goto out_close;
 
-            free( ptr );
-        }
+	i = lstrlenW(ptr);
+	hDATA = GlobalAlloc(GMEM_MOVEABLE, sizeof(WCHAR) * (i + 1));
+	if (!hDATA)
+		goto out_free;
 
-        CloseClipboard( );
-    }
+	dst = GlobalLock(hDATA);
+	if (!dst) {
+		GlobalFree(hDATA);
+		goto out_free;
+	}
 
-    sgui_internal_unlock_mutex( );
+	memcpy(dst, ptr, sizeof(WCHAR) * (i + 1));
+	GlobalUnlock(hDATA);
+	SetClipboardData(CF_UNICODETEXT, hDATA);
+out_free:
+	free(ptr);
+out_close:
+	CloseClipboard();
+out:
+	sgui_internal_unlock_mutex();
 }
 
-const char* w32_window_read_clipboard( sgui_window* this )
+const char *w32_window_read_clipboard(sgui_window *this)
 {
-    WCHAR* buffer = NULL;
-    HANDLE hDATA;
-    (void)this;
+	WCHAR *buffer = NULL;
+	HANDLE hDATA;
+	(void)this;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    free( w32.clipboard );
-    w32.clipboard = NULL;
+	free(w32.clipboard);
+	w32.clipboard = NULL;
 
-    if( OpenClipboard( NULL ) )
-    {
-        if( (hDATA = GetClipboardData( CF_UNICODETEXT )) )
-        {
-            if( (buffer = (WCHAR*)GlobalLock( hDATA )) )
-            {
-                w32.clipboard = utf16_to_utf8( buffer );
-                GlobalUnlock( hDATA );
-            }
-        }
+	if (!OpenClipboard(NULL))
+		goto out;
 
-        CloseClipboard( );
-    }
+	hDATA = GetClipboardData(CF_UNICODETEXT);
+	if (!hDATA)
+		goto out_close;
 
-    sgui_internal_unlock_mutex( );
-    return w32.clipboard;
+	buffer = (WCHAR *)GlobalLock(hDATA);
+	if (!buffer)
+		goto out_close;
+
+	w32.clipboard = utf16_to_utf8(buffer);
+	GlobalUnlock(hDATA);
+out_close:
+	CloseClipboard();
+out:
+	sgui_internal_unlock_mutex();
+	return w32.clipboard;
 }
 
-/****************************************************************************/
-
-void add_window( sgui_window_w32* this )
+void add_window(sgui_window_w32 *this)
 {
-    SGUI_ADD_TO_LIST( w32.list, this );
+	SGUI_ADD_TO_LIST(w32.list, this);
 }
 
-void remove_window( sgui_window_w32* this )
+void remove_window(sgui_window_w32 *this)
 {
-    sgui_window_w32* i;
+	sgui_window_w32 *i;
 
-    SGUI_REMOVE_FROM_LIST( w32.list, i, this );
+	SGUI_REMOVE_FROM_LIST(w32.list, i, this);
 }
 
-/****************************************************************************/
-
-void sgui_internal_lock_mutex( void )
+void sgui_internal_lock_mutex(void)
 {
-    EnterCriticalSection( &w32.mutex );
+	EnterCriticalSection(&w32.mutex);
 }
 
-void sgui_internal_unlock_mutex( void )
+void sgui_internal_unlock_mutex(void)
 {
-    LeaveCriticalSection( &w32.mutex );
+	LeaveCriticalSection(&w32.mutex);
 }
 
-int sgui_init( void )
+int sgui_init(void)
 {
-    WNDCLASSEXA wc;
+	WNDCLASSEXA wc;
 
-    memset( &w32, 0, sizeof(w32) );             /* clear global state */
+	memset(&w32, 0, sizeof(w32));
+	w32.wndclass = "sgui_wnd_class";
 
-    w32.wndclass = "sgui_wnd_class";            /* store wndclass name */
+	InitializeCriticalSection(&w32.mutex);
 
-    InitializeCriticalSection( &w32.mutex );    /* initalize global mutex */
+	if (!font_init())
+		goto fail;
 
-    if( !font_init( ) )                         /* initialise font system */
-        goto fail;
+	if (!(w32.hInstance = GetModuleHandleA(NULL)))
+		goto fail;
 
-    if( !(w32.hInstance = GetModuleHandleA( NULL )) )   /* get hInstance */
-        goto fail;
+	memset(&wc, 0, sizeof(WNDCLASSEXA));
 
-    /* Register window class */
-    memset( &wc, 0, sizeof(WNDCLASSEXA) );
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+	wc.lpfnWndProc = WindowProcFun;
+	wc.hInstance = w32.hInstance;
+	wc.lpszClassName = w32.wndclass;
+	wc.hCursor = LoadCursorA(NULL, IDC_ARROW);
 
-    wc.cbSize        = sizeof(WNDCLASSEX);
-    wc.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-    wc.lpfnWndProc   = WindowProcFun;
-    wc.hInstance     = w32.hInstance;
-    wc.lpszClassName = w32.wndclass;
-    wc.hCursor       = LoadCursorA( NULL, IDC_ARROW );
+	if (RegisterClassExA(&wc) == 0)
+		goto fail;
 
-    if( RegisterClassExA( &wc ) == 0 )
-        goto fail;
-
-    sgui_skin_set( NULL );      /* initialise default GUI skin */
-    sgui_event_reset( );        /* reset event subsystem */
-    return 1;
+	sgui_skin_set(NULL);
+	sgui_event_reset();
+	return 1;
 fail:
-    sgui_deinit( );
-    return 0;
+	sgui_deinit();
+	return 0;
 }
 
-void sgui_deinit( void )
+void sgui_deinit(void)
 {
-    sgui_event_reset( );                        /* reset event subsystem */
-    sgui_interal_skin_deinit_default( );        /* reset skinning system */
-    font_deinit( );                             /* cleanup font system */
+	sgui_event_reset();
+	sgui_interal_skin_deinit_default();
+	font_deinit();
 
-    UnregisterClassA( w32.wndclass, w32.hInstance );   /* remove wndclass */
-    DeleteCriticalSection( &w32.mutex );        /* destroy global mutex */
-    free( w32.clipboard );                      /* destroy clipboard buffer */
+	UnregisterClassA(w32.wndclass, w32.hInstance);
+	DeleteCriticalSection(&w32.mutex);
+	free(w32.clipboard);
 
-    memset( &w32, 0, sizeof(w32) );             /* clear global state */
+	memset(&w32, 0, sizeof(w32));
 }
 
-int sgui_main_loop_step( void )
+int sgui_main_loop_step(void)
 {
-    MSG msg;
+	MSG msg;
 
-    update_windows( );
+	update_windows();
 
-    if( PeekMessageA( &msg, 0, 0, 0, PM_REMOVE ) )
-    {
-        TranslateMessage( &msg );
-        DispatchMessageA( &msg );
-    }
+	if (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessageA(&msg);
+	}
 
-    sgui_event_process( );
+	sgui_event_process();
 
-    return is_window_active( ) || sgui_event_queued( );
+	return is_window_active() || sgui_event_queued();
 }
 
-void sgui_main_loop( void )
+void sgui_main_loop(void)
 {
-    MSG msg;
+	MSG msg;
 
-    while( is_window_active( ) )
-    {
-        update_windows( );
-        GetMessageA( &msg, 0, 0, 0 );
-        TranslateMessage( &msg );
-        DispatchMessageA( &msg );
-        sgui_event_process( );
-    }
+	while (is_window_active()) {
+		update_windows();
+		GetMessageA(&msg, 0, 0, 0);
+		TranslateMessage(&msg);
+		DispatchMessageA(&msg);
+		sgui_event_process();
+	}
 
-    while( sgui_event_queued( ) )
-        sgui_event_process( );
+	while (sgui_event_queued()) {
+		sgui_event_process();
+	}
 }
-

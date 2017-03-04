@@ -28,29 +28,24 @@
 #include "sgui_internal.h"
 #include "sgui_window.h"
 
-#define TO_W32( window ) ((sgui_window_w32*)window)
+#define TO_W32(window) ((sgui_window_w32 *)window)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+typedef struct _sgui_window_w32 {
+	sgui_window super;
 
+	HWND hWnd;
+	HDC hDC;
 
-typedef struct _sgui_window_w32
-{
-    sgui_window super;
+	void *data;
+	BITMAPINFO info;
+	HBITMAP bitmap;
+	HBRUSH bgbrush;
 
-    HWND hWnd;
-    HDC hDC;
-
-    void* data;
-    BITMAPINFO info;
-    HBITMAP bitmap;
-    HBRUSH bgbrush;
-
-    struct _sgui_window_w32* next;
-}
-sgui_window_w32;
-
+	struct _sgui_window_w32 *next;
+} sgui_window_w32;
 
 
 #ifdef __cplusplus
@@ -58,11 +53,10 @@ extern "C" {
 #endif
 
 /* in window.c: invalidate all dirty rects of the canvas */
-void update_window( sgui_window_w32* wnd );
+void update_window(sgui_window_w32 *wnd);
 
 /* in window.c: handle window messages */
-int handle_window_events( sgui_window_w32* wnd, UINT msg,
-                          WPARAM wp, LPARAM lp );
+int handle_window_events(sgui_window_w32 *wnd, UINT msg, WPARAM wp, LPARAM lp);
 
 #ifdef __cplusplus
 }

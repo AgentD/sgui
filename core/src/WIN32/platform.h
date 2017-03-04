@@ -25,8 +25,6 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-
-
 #include "sgui_skin.h"
 #include "sgui_canvas.h"
 #include "sgui_rect.h"
@@ -46,60 +44,54 @@
 #include <string.h>
 #include <ctype.h>
 
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) ||\
-    defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
+#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || \
+	defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
 
-    #define SET_USER_PTR( hwnd, ptr )\
-            SetWindowLongPtrA( hwnd, GWLP_USERDATA, (LONG_PTR)ptr )
+	#define SET_USER_PTR(hwnd, ptr) \
+		SetWindowLongPtrA(hwnd, GWLP_USERDATA, (LONG_PTR)ptr)
 
-    #define GET_USER_PTR( hwnd ) GetWindowLongPtrA( hwnd, GWLP_USERDATA )
+	#define GET_USER_PTR(hwnd) GetWindowLongPtrA(hwnd, GWLP_USERDATA)
 #else
-    #define SET_USER_PTR( hwnd, ptr )\
-            SetWindowLongA( hwnd, GWL_USERDATA, (LONG)ptr )
+	#define SET_USER_PTR(hwnd, ptr) \
+		SetWindowLongA(hwnd, GWL_USERDATA, (LONG)ptr)
 
-    #define GET_USER_PTR( hwnd ) GetWindowLongA( hwnd, GWL_USERDATA )
+	#define GET_USER_PTR(hwnd) GetWindowLongA(hwnd, GWL_USERDATA)
 #endif
 
 #ifndef MAPVK_VSC_TO_VK_EX
-    #define MAPVK_VSC_TO_VK_EX 3
+	#define MAPVK_VSC_TO_VK_EX 3
 #endif
 
-
-
-extern struct w32_state
-{
-    HINSTANCE hInstance;        /* instance handle */
-    const char* wndclass;       /* window class name */
-    sgui_window_w32* list;      /* global list of all windows */
-    CRITICAL_SECTION mutex;     /* global sgui mutex */
-    char* clipboard;            /* clipboard translaton buffer */
-}
-w32;
-
-
+extern struct w32_state {
+	HINSTANCE hInstance;		/* instance handle */
+	const char *wndclass;		/* window class name */
+	sgui_window_w32 *list;		/* global list of all windows */
+	CRITICAL_SECTION mutex;		/* global sgui mutex */
+	char *clipboard;		/* clipboard translaton buffer */
+} w32;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* convert an UTF-8 string to UTF-16 */
-WCHAR* utf8_to_utf16( const char* utf8, int rdbytes );
+WCHAR *utf8_to_utf16(const char *utf8, int rdbytes);
 
 /* convert an UTF-16 string to UTF-8 */
-char* utf16_to_utf8( WCHAR* utf16 );
+char *utf16_to_utf8(WCHAR *utf16);
 
 /* implementation of the clipboard write function */
-void w32_window_write_clipboard( sgui_window* wnd, const char* text,
-                                 unsigned int length );
+void w32_window_write_clipboard(sgui_window *wnd, const char *text,
+				unsigned int length);
 
 /* implementation of the clipboard read function */
-const char* w32_window_read_clipboard( sgui_window* wnd );
+const char *w32_window_read_clipboard(sgui_window *wnd);
 
 /* add a window to the list used by the main loop */
-void add_window( sgui_window_w32* wnd );
+void add_window(sgui_window_w32 *wnd);
 
 /* remove a window from the list used by the main loop */
-void remove_window( sgui_window_w32* wnd );
+void remove_window(sgui_window_w32 *wnd);
 
 #ifdef __cplusplus
 }

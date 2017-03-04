@@ -29,7 +29,7 @@
 #include "sgui_internal.h"
 
 #ifndef SGUI_NO_D3D9
-    #include "sgui_d3d9.h"
+	#include "sgui_d3d9.h"
 #endif
 
 #ifdef __cplusplus
@@ -37,10 +37,10 @@ extern "C" {
 #endif
 
 /* create a Direct3D 9 context context */
-sgui_context* d3d9_context_create( sgui_window* wnd,
-                                   const sgui_window_description* desc );
+sgui_context *d3d9_context_create(sgui_window *wnd,
+				const sgui_window_description *desc);
 
-void send_event_if_d3d9_lost( sgui_window* wnd );
+void send_event_if_d3d9_lost(sgui_window *wnd);
 
 #ifdef __cplusplus
 }
