@@ -55,6 +55,11 @@ typedef struct {
 	sgui_item super;
 
 	sgui_item *children;
+
+	struct {
+		char *text;
+		sgui_icon *icon;
+	} cols[];
 } sgui_simple_item;
 
 typedef struct {
@@ -65,23 +70,17 @@ typedef struct {
 
 static void destroy_itemlist(sgui_simple_model *this, sgui_item *list)
 {
-	unsigned char *text;
+	sgui_simple_item *old;
 	unsigned int col;
-	sgui_item *old;
 
 	while (list) {
-		destroy_itemlist(this, ((sgui_simple_item *)list)->children);
-
-		old = list;
+		old = (sgui_simple_item *)list;
 		list = list->next;
 
-		text = (unsigned char *)old;
-		text += sizeof(sgui_simple_item);
+		destroy_itemlist(this, old->children);
 
-		for (col = 0; col < this->super.cols; ++col) {
-			free(*((char **)text));
-			text += sizeof(void*)*2;
-		}
+		for (col = 0; col < this->super.cols; ++col)
+			free(old->cols[col].text);
 
 		free(old);
 	}
@@ -135,26 +134,16 @@ static const char *simple_item_text(const sgui_model *this,
 				const sgui_item *item,
 				unsigned int column)
 {
-	unsigned char *ptr = (unsigned char *)item;
 	(void)this;
-
-	ptr += sizeof(sgui_simple_item);
-	ptr += sizeof(void *) * 2 * column;
-
-	return *((const char **)ptr);
+	return ((sgui_simple_item *)item)->cols[column].text;
 }
 
 static sgui_icon *simple_item_icon(const sgui_model *this,
 				const sgui_item *item,
 				unsigned int column)
 {
-	unsigned char *ptr = (unsigned char *)item;
 	(void)this;
-
-	ptr += sizeof(sgui_simple_item);
-	ptr += sizeof(void *) * (2 * column + 1);
-
-	return *((sgui_icon **)ptr);
+	return ((sgui_simple_item *)item)->cols[column].icon;
 }
 
 sgui_model *sgui_simple_model_create(unsigned int columns,
@@ -185,13 +174,12 @@ sgui_model *sgui_simple_model_create(unsigned int columns,
 sgui_item *sgui_simple_model_add_item(sgui_model *super, sgui_item *parent)
 {
 	sgui_simple_model *this = (sgui_simple_model *)super;
-	sgui_item *item = NULL;
-	unsigned int size;
+	sgui_simple_item *s;
+	sgui_item *item;
 
-	size = sizeof(sgui_simple_item);
-	size += sizeof(void *) * 2 * super->cols;
+	s = calloc(1, sizeof(*s) + sizeof(s->cols[0]) * super->cols);
+	item = (sgui_item *)s;
 
-	item = calloc(1, size);
 	if (!item)
 		return NULL;
 
@@ -212,38 +200,31 @@ sgui_item *sgui_simple_model_add_item(sgui_model *super, sgui_item *parent)
 void sgui_simple_item_set_icon(sgui_model *this, sgui_item *item,
 				unsigned int column, const sgui_icon *icon)
 {
-	unsigned char *ptr = (unsigned char *)item;
+	sgui_simple_item *s = (sgui_simple_item *)item;
 
-	if (column < this->cols && this->cache) {
-		sgui_internal_lock_mutex();
+	sgui_internal_lock_mutex();
 
-		ptr += sizeof(sgui_simple_item);
-		ptr += sizeof(void *) * (2 * column + 1);
+	if (column < this->cols && this->cache)
+		s->cols[column].icon = (sgui_icon *)icon;
 
-		*((const sgui_icon **)ptr) = icon;
-
-		sgui_internal_unlock_mutex();
-	}
+	sgui_internal_unlock_mutex();
 }
 
 void sgui_simple_item_set_text(sgui_model *this, sgui_item *item,
 				unsigned int column, const char *text)
 {
-	unsigned char *ptr = (unsigned char *)item;
+	sgui_simple_item *s = (sgui_simple_item *)item;
+
+	sgui_internal_lock_mutex();
 
 	if (column < this->cols) {
-		sgui_internal_lock_mutex();
-
-		ptr += sizeof(sgui_simple_item);
-		ptr += sizeof(void*) * 2 * column;
-
-		free(*((char **)ptr));
+		free(s->cols[column].text);
 
 		if (text)
-			*((char**)ptr) = sgui_strdup(text);
-
-		sgui_internal_unlock_mutex();
+			s->cols[column].text = sgui_strdup(text);
 	}
+
+	sgui_internal_unlock_mutex();
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 const char *sgui_item_text(const sgui_model *model, const sgui_item *item,
