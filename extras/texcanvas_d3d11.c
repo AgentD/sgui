@@ -270,8 +270,7 @@ int main( void )
         return -1;
 
     /*************** create a texture canvas ***************/
-    texcanvas = sgui_tex_canvas_create( wnd, sgui_window_get_context( wnd ),
-                                        128, 128 );
+    texcanvas = sgui_tex_canvas_create( wnd, 128, 128 );
     if( !texcanvas )
         return -1;
 
