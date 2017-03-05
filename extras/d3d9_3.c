@@ -27,9 +27,9 @@ CUSTOMVERTEX;
 
 CUSTOMVERTEX vertices[] =
 {
-    {  90.0f,  20.0f, 1.0f, 1.0f, D3DCOLOR_XRGB(0, 0, 255) },
-    { 140.0f, 100.0f, 1.0f, 1.0f, D3DCOLOR_XRGB(0, 255, 0) },
-    {  40.0f, 100.0f, 1.0f, 1.0f, D3DCOLOR_XRGB(255, 0, 0) }
+    {  90.0f,  20.0f, 1.0f, 1.0f, 0x000000FF },
+    { 140.0f, 100.0f, 1.0f, 1.0f, 0x0000FF00 },
+    {  40.0f, 100.0f, 1.0f, 1.0f, 0x00FF0000 }
 };
 
 #define CUSTOMFVF (D3DFVF_XYZRHW | D3DFVF_DIFFUSE)
