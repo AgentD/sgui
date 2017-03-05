@@ -103,6 +103,97 @@ static void release_d3d11(void)
 	sgui_internal_unlock_mutex();
 }
 
+static HRESULT create_depth_buffer(sgui_d3d11_context *ctx,
+					const sgui_window_description *desc)
+{
+	D3D11_DEPTH_STENCIL_VIEW_DESC view_desc;
+	D3D11_TEXTURE2D_DESC tex_desc;
+	HRESULT hr;
+
+	memset(&tex_desc, 0, sizeof(tex_desc));
+	memset(&view_desc, 0, sizeof(view_desc));
+
+	tex_desc.Width = desc->width;
+	tex_desc.Height = desc->height;
+	tex_desc.MipLevels = 1;
+	tex_desc.ArraySize = 1;
+	tex_desc.SampleDesc.Count = desc->samples > 0 ? desc->samples : 1;
+	tex_desc.Usage = D3D11_USAGE_DEFAULT;
+	tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	if (desc->stencil_bits) {
+		tex_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	} else if (desc->depth_bits <= 16) {
+		tex_desc.Format = DXGI_FORMAT_D16_UNORM;
+	} else {
+		tex_desc.Format = DXGI_FORMAT_D32_FLOAT;
+	}
+
+	hr = ctx->dev->CreateTexture2D(&tex_desc, NULL, &ctx->ds_texture);
+	if (hr != S_OK)
+		return hr;
+
+	view_desc.Format = tex_desc.Format;
+	view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+	if (desc->samples)
+		view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+
+	return ctx->dev->CreateDepthStencilView(ctx->ds_texture, &view_desc,
+						&ctx->dsv);
+}
+
+static void bind_backbuffer(sgui_d3d11_context *ctx, UINT width, UINT height)
+{
+	D3D11_VIEWPORT viewport;
+
+	memset(&viewport, 0, sizeof(viewport));
+
+	viewport.Width = width;
+	viewport.Height = height;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+
+	ctx->ctx->OMSetRenderTargets(1, &ctx->backbuffer, ctx->dsv);
+	ctx->ctx->RSSetViewports(1, &viewport);
+}
+
+static HRESULT create_swapchain_dev_ctx(sgui_d3d11_context *ctx, HWND hWnd,
+					const sgui_window_description *desc)
+{
+	DXGI_SWAP_CHAIN_DESC scd;
+	HRESULT hr;
+	size_t i;
+
+	memset(&scd, 0, sizeof(scd));
+
+	scd.BufferDesc.RefreshRate.Numerator = 60;
+	scd.BufferDesc.RefreshRate.Denominator = 1;
+	scd.BufferDesc.Format = (desc->bits_per_pixel == 16) ?
+				DXGI_FORMAT_B5G6R5_UNORM :
+				DXGI_FORMAT_R8G8B8A8_UNORM;
+	scd.SampleDesc.Count = desc->samples > 0 ? desc->samples : 1;
+	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	scd.BufferCount = (desc->flags & SGUI_DOUBLEBUFFERED) ? 2 : 1;
+	scd.OutputWindow = hWnd;
+	scd.Windowed = TRUE;
+	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	for (i = 0; i < sizeof(drivers) / sizeof(drivers[0]); ++i) {
+		hr = CreateDeviceAndSwapChain(NULL, drivers[i], NULL, 0,
+						levels, NUMLEVELS,
+						D3D11_SDK_VERSION, &scd,
+						&ctx->swapchain, &ctx->dev,
+						NULL, &ctx->ctx);
+
+		if (hr == S_OK)
+			break;
+	}
+
+	return hr;
+}
+
 /****************************************************************************/
 
 static void context_d3d11_destroy(sgui_context *super)
@@ -158,7 +249,6 @@ void d3d11_resize(sgui_context *super)
 	ID3D11Texture2D *pBackBuffer;
 	ID3D11RenderTargetView *tv;
 	DXGI_SWAP_CHAIN_DESC scd;
-	D3D11_VIEWPORT viewport;
 	bool is_bound, has_ds;
 
 	ctx->ctx->OMGetRenderTargets(1, &tv, NULL);
@@ -211,70 +301,30 @@ void d3d11_resize(sgui_context *super)
 						&ds_view_desc, &ctx->dsv);
 	}
 
-	if (is_bound) {
-		ctx->ctx->OMSetRenderTargets(1, &ctx->backbuffer, ctx->dsv);
-
-		memset(&viewport, 0, sizeof(viewport));
-		viewport.Width = ctx->wnd->w;
-		viewport.Height = ctx->wnd->h;
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-
-		ctx->ctx->RSSetViewports(1, &viewport);
-	}
+	if (is_bound)
+		bind_backbuffer(ctx, ctx->wnd->w, ctx->wnd->h);
 }
 
 sgui_context *d3d11_context_create(sgui_window *wnd,
 					const sgui_window_description *desc)
 {
-	D3D11_DEPTH_STENCIL_VIEW_DESC ds_view_desc;
-	D3D11_TEXTURE2D_DESC ds_tex_desc;
 	ID3D11Texture2D *pBackBuffer;
-	DXGI_SWAP_CHAIN_DESC scd;
 	sgui_d3d11_context *ctx;
-	D3D11_VIEWPORT viewport;
 	sgui_context *super;
 	HRESULT hr;
-	size_t i;
 
 	if (!load_d3d11())
 		return NULL;
 
 	ctx = (sgui_d3d11_context *)calloc(1, sizeof(*ctx));
-	super = (sgui_context*)ctx;
+	super = (sgui_context *)ctx;
 
 	if (!ctx) {
 		release_d3d11();
 		return NULL;
 	}
 
-	memset(&scd, 0, sizeof(scd));
-
-	scd.BufferDesc.RefreshRate.Numerator = 60;
-	scd.BufferDesc.RefreshRate.Denominator = 1;
-	scd.BufferDesc.Format = (desc->bits_per_pixel == 16) ?
-				DXGI_FORMAT_B5G6R5_UNORM :
-				DXGI_FORMAT_R8G8B8A8_UNORM;
-	scd.SampleDesc.Count = desc->samples>0 ? desc->samples : 1;
-	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	scd.BufferCount = (desc->flags & SGUI_DOUBLEBUFFERED) ? 2 : 1;
-	scd.OutputWindow = TO_W32(wnd)->hWnd;
-	scd.Windowed = TRUE;
-	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-	for (i = 0; i < NUMDRIVERS; ++i) {
-		hr = CreateDeviceAndSwapChain(NULL, drivers[i], NULL, 0,
-						levels, NUMLEVELS,
-						D3D11_SDK_VERSION, &scd,
-						&ctx->swapchain, &ctx->dev,
-						NULL, &ctx->ctx);
-
-		if (hr >= 0)
-			break;
-	}
-
-	if (hr < 0)
+	if (create_swapchain_dev_ctx(ctx, TO_W32(wnd)->hWnd, desc) != S_OK)
 		goto fail;
 
 	hr = ctx->swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D),
@@ -292,55 +342,11 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 		goto fail;
 
 	if (desc->depth_bits > 0 || desc->stencil_bits > 0) {
-		memset(&ds_tex_desc, 0, sizeof(ds_tex_desc));
-		memset(&ds_view_desc, 0, sizeof(ds_view_desc));
-
-		ds_tex_desc.Width = desc->width;
-		ds_tex_desc.Height = desc->height;
-		ds_tex_desc.MipLevels = 1;
-		ds_tex_desc.ArraySize = 1;
-		ds_tex_desc.SampleDesc.Count = scd.SampleDesc.Count;
-		ds_tex_desc.Usage = D3D11_USAGE_DEFAULT;
-		ds_tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-		if (desc->stencil_bits) {
-			ds_tex_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		} else if (desc->depth_bits <= 16) {
-			ds_tex_desc.Format = DXGI_FORMAT_D16_UNORM;
-		} else {
-			ds_tex_desc.Format = DXGI_FORMAT_D32_FLOAT;
-		}
-
-		hr = ctx->dev->CreateTexture2D(&ds_tex_desc, NULL,
-						&ctx->ds_texture);
-
-		if (hr < 0)
-			goto fail;
-
-		ds_view_desc.Format = ds_tex_desc.Format;
-		ds_view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		if (desc->samples) {
-			ds_view_desc.ViewDimension = 
-					D3D11_DSV_DIMENSION_TEXTURE2DMS;
-		}
-
-		hr = ctx->dev->CreateDepthStencilView(ctx->ds_texture,
-						&ds_view_desc, &ctx->dsv);
-
-		if (hr < 0)
+		if (create_depth_buffer(ctx, desc) != S_OK)
 			goto fail;
 	}
 
-	ctx->ctx->OMSetRenderTargets(1, &ctx->backbuffer, ctx->dsv);
-
-	memset(&viewport, 0, sizeof(viewport));
-
-	viewport.Width = desc->width;
-	viewport.Height = desc->height;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-
-	ctx->ctx->RSSetViewports(1, &viewport);
+	bind_backbuffer(ctx, desc->width, desc->height);
 
 	wnd->swap_buffers = d3d11_swap_buffers;
 	wnd->set_vsync = d3d11_set_vsync;
