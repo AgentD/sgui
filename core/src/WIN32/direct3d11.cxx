@@ -26,8 +26,6 @@
 #include "direct3d11.h"
 #include "window.h"
 
-#include <stdio.h>
-
 #ifndef SGUI_NO_D3D11
 typedef HRESULT (__stdcall *CREATEDEVSWAPCHAIN)(IDXGIAdapter *,
 						D3D_DRIVER_TYPE,
@@ -59,7 +57,6 @@ static const D3D_DRIVER_TYPE drivers[] = {
 	D3D_DRIVER_TYPE_REFERENCE
 };
 
-#define NUMDRIVERS (sizeof(drivers) / sizeof(drivers[0]))
 #define NUMLEVELS (sizeof(levels) / sizeof(levels[0]))
 
 static int load_d3d11(void)
@@ -279,8 +276,7 @@ void d3d11_resize(sgui_context *super)
 	ctx->swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D),
 					(void **)&pBackBuffer);
 
-	ctx->dev->CreateRenderTargetView((ID3D11Resource *)pBackBuffer,
-					NULL, &ctx->backbuffer);
+	ctx->dev->CreateRenderTargetView(pBackBuffer, NULL, &ctx->backbuffer);
 
 	pBackBuffer->Release();
 
@@ -330,7 +326,7 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 	hr = ctx->swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D),
 					(void **)&pBackBuffer);
 
-	if (hr < 0)
+	if (hr != S_OK)
 		goto fail;
 
 	hr = ctx->dev->CreateRenderTargetView(pBackBuffer, NULL,
@@ -338,7 +334,7 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 
 	pBackBuffer->Release();
 
-	if (hr < 0)
+	if (hr != S_OK)
 		goto fail;
 
 	if (desc->depth_bits > 0 || desc->stencil_bits > 0) {
