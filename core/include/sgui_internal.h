@@ -134,40 +134,9 @@ SGUI_DLL void sgui_interal_skin_init_default( void );
  */
 SGUI_DLL void sgui_interal_skin_deinit_default( void );
 
-/**
- * \brief Instantiate an in memory implementation of a pixmap
- *
- * \memberof sgui_mem_pixmap
- *
- * Used by the memory canvas implementation.
- *
- * \param width  The width of the pixmap in pixels
- * \param height The height of the pixmap in pixels
- * \param format The pixmap color format
- */
-SGUI_DLL sgui_pixmap* sgui_internal_mem_pixmap_create( unsigned int width,
-                                                       unsigned int height,
-                                                       int format,
-                                                       int swaprb );
-
-/**
- * \brief Get a pointer to the data of a memory pixmap
- *
- * \memberof sgui_mem_pixmap
- */
-SGUI_DLL unsigned char* sgui_internal_mem_pixmap_buffer( sgui_pixmap* pix );
-
-/**
- * \brief Get the color format of a memory pixmap
- *
- * \memberof sgui_mem_pixmap
- */
-SGUI_DLL int sgui_internal_mem_pixmap_format( sgui_pixmap* pix );
-
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif /* SGUI_WIDGET_INTERNAL_H */
+#endif /* SGUI_INTERNAL_H */
 

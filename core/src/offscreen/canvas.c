@@ -29,6 +29,8 @@
 #include "sgui_utf8.h"
 #include "sgui_internal.h"
 
+#include "internal.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -126,8 +128,8 @@ static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
 	unsigned char *dst, *row;
-	unsigned char *src = sgui_internal_mem_pixmap_buffer(pixmap), *srow;
-	unsigned int format = sgui_internal_mem_pixmap_format(pixmap), i, j;
+	unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
+	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width*3;
 	unsigned int scan, lines;
 
@@ -170,7 +172,7 @@ static void canvas_mem_blend_rgb(sgui_canvas *super, int x, int y,
 	unsigned char iA, *src, *dst, *row, *srow;
 	unsigned int i, j, scan, lines, dyd;
 
-	if (sgui_internal_mem_pixmap_format(pixmap) != SGUI_RGBA8) {
+	if (mem_pixmap_format(pixmap) != SGUI_RGBA8) {
 		canvas_mem_blit_rgb(super, x, y, pixmap, srcrect);
 		return;
 	}
@@ -179,7 +181,7 @@ static void canvas_mem_blend_rgb(sgui_canvas *super, int x, int y,
 
 	sgui_pixmap_get_size(pixmap, &scan, &lines);
 	dst = this->data + (y - this->starty) * dyd + (x - this->startx) * 3;
-	src = sgui_internal_mem_pixmap_buffer(pixmap);
+	src = mem_pixmap_buffer(pixmap);
 	src += (srcrect->top * scan + srcrect->left) * 4;
 
 	for (j = 0; j < h; ++j) {
@@ -309,8 +311,8 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
 	unsigned char *dst, *row;
-	unsigned char *src = sgui_internal_mem_pixmap_buffer(pixmap), *srow;
-	unsigned int format = sgui_internal_mem_pixmap_format(pixmap), i, j;
+	unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
+	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width * 4;
 	unsigned int scan, lines;
 
@@ -360,7 +362,7 @@ static void canvas_mem_blend_rgba(sgui_canvas *super, int x, int y,
 	unsigned char iA, *src, *dst, *row, *srow;
 	unsigned int i, j, scan, lines, dyd;
 
-	if (sgui_internal_mem_pixmap_format(pixmap) != SGUI_RGBA8) {
+	if (mem_pixmap_format(pixmap) != SGUI_RGBA8) {
 		canvas_mem_blit_rgba(super, x, y, pixmap, srcrect);
 		return;
 	}
@@ -369,7 +371,7 @@ static void canvas_mem_blend_rgba(sgui_canvas *super, int x, int y,
 
 	sgui_pixmap_get_size(pixmap, &scan, &lines);
 	dst = this->data + (y - this->starty) * dyd + (x - this->startx) * 4;
-	src = sgui_internal_mem_pixmap_buffer(pixmap);
+	src = mem_pixmap_buffer(pixmap);
 	src += (srcrect->top * scan + srcrect->left) * 4;
 
 	for (j = 0; j < h; ++j) {
@@ -474,8 +476,8 @@ static sgui_pixmap *canvas_mem_create_pixmap(sgui_canvas *this,
 						unsigned int height,
 						int format)
 {
-	return sgui_internal_mem_pixmap_create(width, height, format,
-					((sgui_mem_canvas*)this)->swaprb);
+	return mem_pixmap_create(width, height, format,
+				((sgui_mem_canvas*)this)->swaprb);
 }
 
 /****************************************************************************/

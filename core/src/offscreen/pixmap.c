@@ -26,6 +26,8 @@
 #include "sgui_internal.h"
 #include "sgui_pixmap.h"
 
+#include "internal.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -236,9 +238,8 @@ static void mem_pixmap_destroy(sgui_pixmap *super)
 
 /****************************************************************************/
 
-sgui_pixmap *sgui_internal_mem_pixmap_create(unsigned int width,
-						unsigned int height,
-						int format, int swaprb)
+sgui_pixmap *mem_pixmap_create(unsigned int width, unsigned int height,
+				int format, int swaprb)
 {
 	sgui_pixmap *super;
 	mem_pixmap *this;
@@ -271,12 +272,12 @@ sgui_pixmap *sgui_internal_mem_pixmap_create(unsigned int width,
 	return (sgui_pixmap *)this;
 }
 
-unsigned char *sgui_internal_mem_pixmap_buffer(sgui_pixmap *this)
+unsigned char *mem_pixmap_buffer(sgui_pixmap *this)
 {
 	return ((mem_pixmap *)this)->buffer;
 }
 
-int sgui_internal_mem_pixmap_format(sgui_pixmap *this)
+int mem_pixmap_format(sgui_pixmap *this)
 {
 	return ((mem_pixmap *)this)->format;
 }
