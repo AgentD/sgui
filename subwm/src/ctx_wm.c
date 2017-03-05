@@ -121,8 +121,18 @@ sgui_window* sgui_ctx_wm_create_window( sgui_ctx_wm* this,
 
 void sgui_ctx_wm_remove_window( sgui_ctx_wm* this, sgui_window* wnd )
 {
-    sgui_ctx_window* it;
-    SGUI_REMOVE_FROM_LIST( this->list, it, (sgui_ctx_window*)wnd );
+	sgui_ctx_window *it;
+
+	if (this->list == (sgui_ctx_window*)wnd) {
+		this->list = ((sgui_ctx_window*)wnd)->next;
+	} else {
+		for (it = this->list; it->next != NULL; it = it->next) {
+			if (it->next == ((sgui_ctx_window*)wnd)) {
+				it->next = ((sgui_ctx_window*)wnd)->next;
+				break;
+			}
+		}
+        }
 }
 
 void sgui_ctx_wm_draw_gui( sgui_ctx_wm* this )
@@ -250,13 +260,22 @@ void sgui_ctx_wm_inject_event( sgui_ctx_wm* this, const sgui_event* event )
 
 void sgui_ctx_wm_make_topmost( sgui_ctx_wm* this, sgui_ctx_window* wnd )
 {
-    sgui_ctx_window* it;
+	sgui_ctx_window *it;
 
-    SGUI_REMOVE_FROM_LIST( this->list, it, wnd );
+	if (this->list == (sgui_ctx_window*)wnd) {
+		this->list = ((sgui_ctx_window*)wnd)->next;
+	} else {
+		for (it = this->list; it->next != NULL; it = it->next) {
+			if (it->next == ((sgui_ctx_window*)wnd)) {
+				it->next = ((sgui_ctx_window*)wnd)->next;
+				break;
+			}
+		}
+        }
 
-    for( it=this->list; it->next!=NULL; it=it->next ) { }
+	for (it = this->list; it->next != NULL; it = it->next) { }
 
-    it->next = wnd;
-    wnd->next = NULL;
+	it->next = wnd;
+	wnd->next = NULL;
 }
 

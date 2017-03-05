@@ -178,14 +178,24 @@ out:
 
 void add_window(sgui_window_w32 *this)
 {
-	SGUI_ADD_TO_LIST(w32.list, this);
+	this->next = w32.list;
+	w32.list = this;
 }
 
 void remove_window(sgui_window_w32 *this)
 {
 	sgui_window_w32 *i;
 
-	SGUI_REMOVE_FROM_LIST(w32.list, i, this);
+	if (w32.list == this) {
+		w32.list = w32.list->next;
+	} else {
+		for (i = w32.list; i->next != NULL; i = i->next) {
+			if (i->next == this) {
+				i->next = this->next;
+				break;
+			}
+		}
+	}
 }
 
 void sgui_internal_lock_mutex(void)

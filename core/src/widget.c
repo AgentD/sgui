@@ -257,7 +257,7 @@ out:
 
 void sgui_widget_remove_from_parent(sgui_widget *this)
 {
-	sgui_widget *i = NULL;
+	sgui_widget *i = NULL, *p;
 	sgui_rect r;
 
 	sgui_internal_lock_mutex();
@@ -265,7 +265,18 @@ void sgui_widget_remove_from_parent(sgui_widget *this)
 	if (!this->parent)
 		goto out;
 
-	SGUI_REMOVE_FROM_LIST(this->parent->children, i, this);
+	p = this->parent;
+
+	if (p->children == this) {
+		p->children = this->next;
+	} else {
+		for (i = p->children; i->next != NULL; i = i->next) {
+			if (i->next == this) {
+				i->next = this->next;
+				break;
+			}
+		}
+	}
 
 	if (this->canvas && sgui_widget_is_absolute_visible(this)) {
 		sgui_widget_get_absolute_rect(this, &r);

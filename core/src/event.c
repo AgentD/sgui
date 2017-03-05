@@ -84,10 +84,12 @@ static int add_listener(struct listener *l, int eventtype)
 		if (!b)
 			goto out;
 		b->event = eventtype;
-		SGUI_ADD_TO_LIST(buckets, b);
+		b->next = buckets;
+		buckets = b;
 	}
 
-	SGUI_ADD_TO_LIST(b->listeners, l);
+	l->next = b->listeners;
+	b->listeners = l;
 	ret = 1;
 out:
 	sgui_internal_unlock_mutex();

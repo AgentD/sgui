@@ -150,14 +150,24 @@ static int have_active_windows(void)
 
 void add_window(sgui_window_xlib *this)
 {
-	SGUI_ADD_TO_LIST(x11.list, this);
+	this->next = x11.list;
+	x11.list = this;
 }
 
 void remove_window(sgui_window_xlib *this)
 {
 	sgui_window_xlib *i;
 
-	SGUI_REMOVE_FROM_LIST(x11.list, i, this);
+	if (x11.list == this) {
+		x11.list = x11.list->next;
+	} else {
+		for (i = x11.list; i->next != NULL; i = i->next) {
+			if (i->next == this) {
+				i->next = this->next;
+				break;
+			}
+		}
+	}
 }
 
 /****************************************************************************/

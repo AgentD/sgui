@@ -40,27 +40,6 @@
 #include "sgui_skin.h"
 
 
-
-#define SGUI_ADD_TO_LIST( list, element )\
-        (element)->next=(list); (list)=(element)
-
-#define SGUI_REMOVE_FROM_LIST( list, iterator, element )\
-        if( (list)==(element) )\
-        {\
-            (list) = (list)->next;\
-        }\
-        else\
-        {\
-            for( iterator=list; iterator->next; iterator=iterator->next )\
-            {\
-                if( iterator->next==element )\
-                {\
-                    iterator->next = iterator->next->next;\
-                    break;\
-                }\
-            }\
-        }
-
 #ifndef MAX
     #define MAX( a, b ) (((a)>(b)) ? (a) : (b))
 #endif
@@ -70,10 +49,7 @@
 #endif
 
 
-
-
 SGUI_DLL extern sgui_skin sgui_default_skin;
-
 
 
 #ifdef __cplusplus
