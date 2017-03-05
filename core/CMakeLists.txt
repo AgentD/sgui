@@ -21,8 +21,8 @@ elseif( WIN32 )
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/font.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/opengl.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/platform.c
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/direct3d9.c
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/direct3d11.c
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/direct3d9.cxx
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/direct3d11.cxx
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/window.c )
 endif( )
 

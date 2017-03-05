@@ -1,5 +1,5 @@
 /*
- * direct3d11.c
+ * direct3d11.cxx
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -107,99 +107,96 @@ static void release_d3d11(void)
 
 static void context_d3d11_destroy(sgui_context *super)
 {
-	sgui_d3d11_context *this = (sgui_d3d11_context *)super;
+	sgui_d3d11_context *ctx = (sgui_d3d11_context *)super;
 
-	if (this->dsv)
-		ID3D11DepthStencilView_Release(this->dsv);
+	if (ctx->dsv)
+		ctx->dsv->Release();
 
-	if (this->ds_texture)
-		ID3D11Texture2D_Release(this->ds_texture);
+	if (ctx->ds_texture)
+		ctx->ds_texture->Release();
 
-	if (this->backbuffer)
-		ID3D11RenderTargetView_Release(this->backbuffer);
+	if (ctx->backbuffer)
+		ctx->backbuffer->Release();
 
-	if (this->ctx)
-		ID3D11DeviceContext_Release(this->ctx);
+	if (ctx->ctx)
+		ctx->ctx->Release();
 
-	if (this->dev)
-		ID3D11Device_Release(this->dev);
+	if (ctx->dev)
+		ctx->dev->Release();
 
-	if (this->swapchain)
-		IDXGISwapChain_Release(this->swapchain);
+	if (ctx->swapchain)
+		ctx->swapchain->Release();
 
-	free(this);
+	free(ctx);
 	release_d3d11();
 }
 
-static void *context_d3d11_get_internal(sgui_context *this)
+static void *context_d3d11_get_internal(sgui_context *ctx)
 {
-	return ((sgui_d3d11_context *)this)->dev;
+	return ((sgui_d3d11_context *)ctx)->dev;
 }
 
 static void d3d11_swap_buffers(sgui_window *wnd)
 {
-	sgui_d3d11_context *this = (sgui_d3d11_context *)wnd->ctx.ctx;
+	sgui_d3d11_context *ctx = (sgui_d3d11_context *)wnd->ctx.ctx;
 
-	IDXGISwapChain_Present(this->swapchain, this->syncrate ? 1 : 0, 0);
+	ctx->swapchain->Present(ctx->syncrate, 0);
 }
 
 static void d3d11_set_vsync(sgui_window *wnd, int interval)
 {
-	sgui_d3d11_context *this = (sgui_d3d11_context *)wnd->ctx.ctx;
+	sgui_d3d11_context *ctx = (sgui_d3d11_context *)wnd->ctx.ctx;
 
-	this->syncrate = interval ? 1 : 0;
+	ctx->syncrate = interval ? 1 : 0;
 }
 
 void d3d11_resize(sgui_context *super)
 {
-	sgui_d3d11_context *this = (sgui_d3d11_context *)super;
+	sgui_d3d11_context *ctx = (sgui_d3d11_context *)super;
 	D3D11_DEPTH_STENCIL_VIEW_DESC ds_view_desc;
 	D3D11_TEXTURE2D_DESC ds_tex_desc;
 	ID3D11Texture2D *pBackBuffer;
 	ID3D11RenderTargetView *tv;
 	DXGI_SWAP_CHAIN_DESC scd;
 	D3D11_VIEWPORT viewport;
-	int is_bound, has_ds;
+	bool is_bound, has_ds;
 
-	ID3D11DeviceContext_OMGetRenderTargets(this->ctx, 1, &tv, NULL);
+	ctx->ctx->OMGetRenderTargets(1, &tv, NULL);
 
-	is_bound = (tv == this->backbuffer);
-	has_ds = (this->dsv != NULL);
+	is_bound = (tv == ctx->backbuffer);
+	has_ds = (ctx->dsv != NULL);
 
 	if (tv)
-		ID3D11RenderTargetView_Release(tv);
+		tv->Release();
 
-	if (is_bound) {
-		ID3D11DeviceContext_OMSetRenderTargets(this->ctx, 0,
-							NULL, NULL);
-	}
+	if (is_bound)
+		ctx->ctx->OMSetRenderTargets(0, NULL, NULL);
 
-	IDXGISwapChain_GetDesc(this->swapchain, &scd);
-	ID3D11RenderTargetView_Release(this->backbuffer);
+	ctx->swapchain->GetDesc(&scd);
+	ctx->backbuffer->Release();
 
 	if (has_ds) {
-		ID3D11Texture2D_GetDesc(this->ds_texture, &ds_tex_desc);
+		ctx->ds_texture->GetDesc(&ds_tex_desc);
 
-		ID3D11Texture2D_Release(this->ds_texture);
-		ID3D11DepthStencilView_Release(this->dsv);
+		ctx->ds_texture->Release();
+		ctx->dsv->Release();
 	}
 
-	IDXGISwapChain_ResizeBuffers(this->swapchain, scd.BufferCount,
-					this->wnd->w, this->wnd->h,
-					scd.BufferDesc.Format, scd.Flags);
+	ctx->swapchain->ResizeBuffers(scd.BufferCount, ctx->wnd->w,
+					ctx->wnd->h, scd.BufferDesc.Format,
+					scd.Flags);
 
-	IDXGISwapChain_GetBuffer(this->swapchain, 0, &IID_ID3D11Texture2D,
-				(LPVOID *)&pBackBuffer);
+	ctx->swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D),
+					(void **)&pBackBuffer);
 
-	ID3D11Device_CreateRenderTargetView(this->dev,
-					(ID3D11Resource *)pBackBuffer,
-					NULL, &this->backbuffer);
+	ctx->dev->CreateRenderTargetView((ID3D11Resource *)pBackBuffer,
+					NULL, &ctx->backbuffer);
 
-	ID3D11Texture2D_Release(pBackBuffer);
+	pBackBuffer->Release();
 
 	if (has_ds) {
-		ds_tex_desc.Width = this->wnd->w;
-		ds_tex_desc.Height = this->wnd->h;
+		ds_tex_desc.Width = ctx->wnd->w;
+		ds_tex_desc.Height = ctx->wnd->h;
 
 		memset(&ds_view_desc, 0, sizeof(ds_view_desc));
 		ds_view_desc.Format = ds_tex_desc.Format;
@@ -207,26 +204,23 @@ void d3d11_resize(sgui_context *super)
 					D3D11_DSV_DIMENSION_TEXTURE2DMS :
 					D3D11_DSV_DIMENSION_TEXTURE2D;
 
-		ID3D11Device_CreateTexture2D(this->dev, &ds_tex_desc, NULL,
-						&this->ds_texture);
+		ctx->dev->CreateTexture2D(&ds_tex_desc, NULL,
+						&ctx->ds_texture);
 
-		ID3D11Device_CreateDepthStencilView(this->dev,
-					(ID3D11Resource *)this->ds_texture,
-					&ds_view_desc, &this->dsv);
+		ctx->dev->CreateDepthStencilView(ctx->ds_texture,
+						&ds_view_desc, &ctx->dsv);
 	}
 
 	if (is_bound) {
-		ID3D11DeviceContext_OMSetRenderTargets(this->ctx, 1,
-							&this->backbuffer,
-							this->dsv);
+		ctx->ctx->OMSetRenderTargets(1, &ctx->backbuffer, ctx->dsv);
 
 		memset(&viewport, 0, sizeof(viewport));
-		viewport.Width = this->wnd->w;
-		viewport.Height = this->wnd->h;
+		viewport.Width = ctx->wnd->w;
+		viewport.Height = ctx->wnd->h;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 
-		ID3D11DeviceContext_RSSetViewports(this->ctx, 1, &viewport);
+		ctx->ctx->RSSetViewports(1, &viewport);
 	}
 }
 
@@ -237,7 +231,7 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 	D3D11_TEXTURE2D_DESC ds_tex_desc;
 	ID3D11Texture2D *pBackBuffer;
 	DXGI_SWAP_CHAIN_DESC scd;
-	sgui_d3d11_context *this;
+	sgui_d3d11_context *ctx;
 	D3D11_VIEWPORT viewport;
 	sgui_context *super;
 	HRESULT hr;
@@ -246,10 +240,10 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 	if (!load_d3d11())
 		return NULL;
 
-	this = calloc(1, sizeof(*this));
-	super = (sgui_context*)this;
+	ctx = (sgui_d3d11_context *)calloc(1, sizeof(*ctx));
+	super = (sgui_context*)ctx;
 
-	if (!this) {
+	if (!ctx) {
 		release_d3d11();
 		return NULL;
 	}
@@ -273,8 +267,8 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 		hr = CreateDeviceAndSwapChain(NULL, drivers[i], NULL, 0,
 						levels, NUMLEVELS,
 						D3D11_SDK_VERSION, &scd,
-						&this->swapchain, &this->dev,
-						NULL, &this->ctx);
+						&ctx->swapchain, &ctx->dev,
+						NULL, &ctx->ctx);
 
 		if (hr >= 0)
 			break;
@@ -283,17 +277,16 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 	if (hr < 0)
 		goto fail;
 
-	hr = IDXGISwapChain_GetBuffer(this->swapchain, 0, &IID_ID3D11Texture2D,
-					(LPVOID *)&pBackBuffer);
+	hr = ctx->swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D),
+					(void **)&pBackBuffer);
 
 	if (hr < 0)
 		goto fail;
 
-	hr = ID3D11Device_CreateRenderTargetView(this->dev,
-						(ID3D11Resource*)pBackBuffer,
-						NULL, &this->backbuffer);
+	hr = ctx->dev->CreateRenderTargetView(pBackBuffer, NULL,
+						&ctx->backbuffer);
 
-	ID3D11Texture2D_Release(pBackBuffer);
+	pBackBuffer->Release();
 
 	if (hr < 0)
 		goto fail;
@@ -318,8 +311,8 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 			ds_tex_desc.Format = DXGI_FORMAT_D32_FLOAT;
 		}
 
-		hr = ID3D11Device_CreateTexture2D(this->dev, &ds_tex_desc,
-						NULL, &this->ds_texture);
+		hr = ctx->dev->CreateTexture2D(&ds_tex_desc, NULL,
+						&ctx->ds_texture);
 
 		if (hr < 0)
 			goto fail;
@@ -331,16 +324,14 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 					D3D11_DSV_DIMENSION_TEXTURE2DMS;
 		}
 
-		hr = ID3D11Device_CreateDepthStencilView(this->dev,
-                                          (ID3D11Resource *)this->ds_texture,
-                                          &ds_view_desc, &this->dsv);
+		hr = ctx->dev->CreateDepthStencilView(ctx->ds_texture,
+						&ds_view_desc, &ctx->dsv);
 
 		if (hr < 0)
 			goto fail;
 	}
 
-	ID3D11DeviceContext_OMSetRenderTargets(this->ctx, 1, &this->backbuffer,
-						this->dsv);
+	ctx->ctx->OMSetRenderTargets(1, &ctx->backbuffer, ctx->dsv);
 
 	memset(&viewport, 0, sizeof(viewport));
 
@@ -349,12 +340,12 @@ sgui_context *d3d11_context_create(sgui_window *wnd,
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 
-	ID3D11DeviceContext_RSSetViewports(this->ctx, 1, &viewport);
+	ctx->ctx->RSSetViewports(1, &viewport);
 
 	wnd->swap_buffers = d3d11_swap_buffers;
 	wnd->set_vsync = d3d11_set_vsync;
 
-	this->wnd = wnd;
+	ctx->wnd = wnd;
 	super->destroy = context_d3d11_destroy;
 	super->get_internal = context_d3d11_get_internal;
 	return super;

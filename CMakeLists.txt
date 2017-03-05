@@ -179,6 +179,8 @@ endif( )
 if( WIN32 )
   set( SGUI_WINDOWS 1 )
 
+  enable_language( CXX )
+
   if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     message( STATUS "Compiling for 64 bit Windows" )
   else( )
