@@ -56,64 +56,56 @@ void sgui_internal_window_post_init(sgui_window *this, unsigned int width,
 	}
 }
 
-void sgui_internal_window_fire_event(sgui_window *this, const sgui_event *e)
+static void send_raw_event(sgui_window *this, const sgui_event *e)
 {
-	sgui_event ev;
-
-	if (e->type == SGUI_KEY_PRESSED_EVENT) {
-		switch (e->arg.i) {
-		case SGUI_KC_SHIFT:
-		case SGUI_KC_LSHIFT:
-		case SGUI_KC_RSHIFT:
-			this->modmask |= SGUI_MOD_SHIFT;
-			break;
-		case SGUI_KC_CONTROL:
-		case SGUI_KC_LCONTROL:
-		case SGUI_KC_RCONTROL:
-			this->modmask |= SGUI_MOD_CTRL;
-			break;
-		case SGUI_KC_ALT:
-		case SGUI_KC_LALT:
-		case SGUI_KC_RALT:
-			this->modmask |= SGUI_MOD_ALT;
-			break;
-		case SGUI_KC_LSUPER:
-		case SGUI_KC_RSUPER:
-			this->modmask |= SGUI_MOD_SUPER;
-			break;
-		}
-	} else if (e->type == SGUI_KEY_RELEASED_EVENT) {
-		switch (e->arg.i) {
-		case SGUI_KC_SHIFT:
-		case SGUI_KC_LSHIFT:
-		case SGUI_KC_RSHIFT:
-			this->modmask &= ~SGUI_MOD_SHIFT;
-			break;
-		case SGUI_KC_CONTROL:
-		case SGUI_KC_LCONTROL:
-		case SGUI_KC_RCONTROL:
-			this->modmask &= ~SGUI_MOD_CTRL;
-			break;
-		case SGUI_KC_ALT:
-		case SGUI_KC_LALT:
-		case SGUI_KC_RALT:
-			this->modmask &= ~SGUI_MOD_ALT;
-			break;
-		case SGUI_KC_LSUPER:
-		case SGUI_KC_RSUPER:
-			this->modmask &= ~SGUI_MOD_SUPER;
-			break;
-		}
-	}
-
 	if (this->event_fun)
 		this->event_fun(this->userptr, e);
 
 	sgui_event_post(e);
 
-	if (this->backend==SGUI_NATIVE) {
+	if (this->backend == SGUI_NATIVE)
 		sgui_canvas_send_window_event(this->ctx.canvas, e);
+}
+
+void sgui_internal_window_fire_event(sgui_window *this, const sgui_event *e)
+{
+	sgui_event ev;
+	int mask;
+
+	if (e->type == SGUI_KEY_PRESSED_EVENT ||
+		e->type == SGUI_KEY_RELEASED_EVENT) {
+		mask = 0;
+
+		switch (e->arg.i) {
+		case SGUI_KC_SHIFT:
+		case SGUI_KC_LSHIFT:
+		case SGUI_KC_RSHIFT:
+			mask = SGUI_MOD_SHIFT;
+			break;
+		case SGUI_KC_CONTROL:
+		case SGUI_KC_LCONTROL:
+		case SGUI_KC_RCONTROL:
+			mask = SGUI_MOD_CTRL;
+			break;
+		case SGUI_KC_ALT:
+		case SGUI_KC_LALT:
+		case SGUI_KC_RALT:
+			mask = SGUI_MOD_ALT;
+			break;
+		case SGUI_KC_LSUPER:
+		case SGUI_KC_RSUPER:
+			mask = SGUI_MOD_SUPER;
+			break;
+		}
+
+		if (e->type == SGUI_KEY_PRESSED_EVENT) {
+			this->modmask |= mask;
+		} else {
+			this->modmask &= ~mask;
+		}
 	}
+
+	send_raw_event(this, e);
 
 	/* generate events for special key combinations */
 	if ((this->modmask == SGUI_MOD_CTRL) &&
@@ -137,14 +129,7 @@ void sgui_internal_window_fire_event(sgui_window *this, const sgui_event *e)
 			break;
 		}
 
-		if (this->event_fun)
-			this->event_fun(this->userptr, &ev);
-
-		sgui_event_post(&ev);
-
-		if (this->backend == SGUI_NATIVE) {
-			sgui_canvas_send_window_event(this->ctx.canvas, &ev);
-		}
+		send_raw_event(this, &ev);
 	}
 }
 
