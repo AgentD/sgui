@@ -135,26 +135,6 @@ extern "C"
 #endif
 
 /**
- * \brief Set the skin to use for rendering UI elements
- *
- * \memberof sgui_skin
- *
- * The skin can only be set globally and should only be changed while no
- * window or widget exists.
- * 
- * GUI elements are only rerendered when required, changes would progress
- * slowly and look disturbing. Even if the skin is changed while no widgets
- * are visible, the widgets might look odd as they can use skin elements
- * of the previous skin for calculating their dimensions during
- * initialisation.
- *
- * This function is automatically called by sgui_init with a NULL argument.
- *
- * \param skin A pointer to a skin structure. NULL to reset to default
- */
-SGUI_DLL void sgui_skin_set( sgui_skin* skin );
-
-/**
  * \brief Retrieve a pointer to the currently set GUI skin renderer
  *
  * \memberof sgui_skin

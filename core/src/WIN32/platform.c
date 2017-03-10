@@ -235,7 +235,7 @@ int sgui_init(void)
 	if (RegisterClassExA(&wc) == 0)
 		goto fail;
 
-	sgui_skin_set(NULL);
+	sgui_interal_skin_init_default();
 	sgui_event_reset();
 	return 1;
 fail:

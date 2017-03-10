@@ -432,9 +432,9 @@ int sgui_init(void)
 	if (!(x11.im = XOpenIM(x11.dpy, NULL, NULL, NULL)))
 		goto fail;
 
-	init_keycodes();	/* initialise keycode translation LUT */
-	sgui_skin_set(NULL);	/* initialise default GUI skin */
-	sgui_event_reset();	/* reset event system */
+	init_keycodes();
+	sgui_interal_skin_init_default();
+	sgui_event_reset();
 
 	x11.atom_wm_delete = XInternAtom(x11.dpy, "WM_DELETE_WINDOW", True);
 	x11.atom_pty = XInternAtom(x11.dpy, "SGUI_CLIP", False);

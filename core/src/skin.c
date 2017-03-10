@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-static sgui_skin* skin;
+static sgui_skin* skin = &sgui_default_skin;
 
 #define ITALIC 0x01
 #define BOLD 0x02
@@ -191,16 +191,9 @@ static void process_text(const char *text, sgui_canvas *canvas, int x, int y,
 }
 
 /****************************************************************************/
-
-void sgui_skin_set(sgui_skin *ui_skin)
-{
-	sgui_interal_skin_init_default();
-	skin = ui_skin ? ui_skin : &sgui_default_skin;
-}
-
 sgui_skin *sgui_skin_get(void)
 {
-	return skin ? skin : &sgui_default_skin;
+	return skin;
 }
 
 sgui_font* sgui_skin_get_default_font(int bold, int italic)
