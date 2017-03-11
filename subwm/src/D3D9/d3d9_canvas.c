@@ -38,7 +38,7 @@ void d3d9_canvas_destroy( sgui_canvas* this )
     free( this );
 }
 
-int d3d9_canvas_begin( sgui_canvas* super, sgui_rect* r )
+int d3d9_canvas_begin( sgui_canvas* super, const sgui_rect* r )
 {
     sgui_d3d9_canvas* this = (sgui_d3d9_canvas*)super;
     D3DLOCKED_RECT lr;

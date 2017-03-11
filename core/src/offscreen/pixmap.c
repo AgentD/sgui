@@ -272,12 +272,12 @@ sgui_pixmap *mem_pixmap_create(unsigned int width, unsigned int height,
 	return (sgui_pixmap *)this;
 }
 
-unsigned char *mem_pixmap_buffer(sgui_pixmap *this)
+const unsigned char *mem_pixmap_buffer(const sgui_pixmap *this)
 {
 	return ((mem_pixmap *)this)->buffer;
 }
 
-int mem_pixmap_format(sgui_pixmap *this)
+int mem_pixmap_format(const sgui_pixmap *this)
 {
 	return ((mem_pixmap *)this)->format;
 }

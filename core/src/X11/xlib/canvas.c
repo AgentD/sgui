@@ -56,7 +56,7 @@ static void canvas_xlib_set_clip_rect(sgui_canvas_x11 *super,
 	sgui_internal_unlock_mutex();
 }
 
-static void canvas_xlib_draw_box(sgui_canvas *super, sgui_rect *r,
+static void canvas_xlib_draw_box(sgui_canvas *super, const sgui_rect *r,
 				const unsigned char *color, int format)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
@@ -86,7 +86,8 @@ static void canvas_xlib_draw_box(sgui_canvas *super, sgui_rect *r,
 }
 
 static void canvas_xlib_blit(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
 	xlib_pixmap *pix = (xlib_pixmap *)pixmap;
@@ -102,7 +103,8 @@ static void canvas_xlib_blit(sgui_canvas *super, int x, int y,
 }
 
 static void canvas_xlib_blend_glyph(sgui_canvas *super, int x, int y,
-					sgui_pixmap *pixmap, sgui_rect *r,
+					const sgui_pixmap *pixmap,
+					const sgui_rect *r,
 					const unsigned char *color)
 
 {

@@ -105,7 +105,7 @@ static void canvas_x11_resize(sgui_canvas *this, unsigned int width,
 	(void)this; (void)width; (void)height;
 }
 
-static void canvas_x11_clear(sgui_canvas *super, sgui_rect *r)
+static void canvas_x11_clear(sgui_canvas *super, const sgui_rect *r)
 {
 	sgui_canvas_x11 *this = (sgui_canvas_x11 *)super;
 

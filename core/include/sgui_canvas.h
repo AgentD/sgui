@@ -108,7 +108,7 @@ struct sgui_canvas
      *
      * \return Non-zero on success, zero on failure
      */
-    int(* begin )( sgui_canvas* canvas, sgui_rect* r );
+    int(* begin )( sgui_canvas* canvas, const sgui_rect* r );
 
     /**
      * \brief Gets called by sgui_canvas_end
@@ -136,7 +136,7 @@ struct sgui_canvas
      * \param r      The region to clear, with ofset applied and cliped with
      *               the scissor rect
      */
-    void(* clear )( sgui_canvas* canvas, sgui_rect* r );
+    void(* clear )( sgui_canvas* canvas, const sgui_rect* r );
 
     /**
      * \brief Draw a box onto a canvas
@@ -146,7 +146,7 @@ struct sgui_canvas
      * \param color   The color to draw the rect in
      * \param format  The format of the color
      */
-    void(* draw_box )( sgui_canvas* canvas, sgui_rect* r,
+    void(* draw_box )( sgui_canvas* canvas, const sgui_rect* r,
                        const unsigned char* color, int format );
 
     /**
@@ -158,8 +158,8 @@ struct sgui_canvas
      * \param pixmap  The pixmap to blend.
      * \param srcrect A subrectangle of the pixmap to blit.
      */
-    void(* blit )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
-                   sgui_rect* srcrect );
+    void(* blit )( sgui_canvas* canvas, int x, int y,
+                   const sgui_pixmap* pixmap, const sgui_rect* srcrect );
 
     /**
      * \brief Blend onto a canvas
@@ -170,8 +170,8 @@ struct sgui_canvas
      * \param pixmap  The pixmap to blend.
      * \param srcrect A subrectangle of the pixmap to blend.
      */
-    void(* blend )( sgui_canvas* canvas, int x, int y, sgui_pixmap* pixmap,
-                    sgui_rect* srcrect );
+    void(* blend )( sgui_canvas* canvas, int x, int y,
+                    const sgui_pixmap* pixmap, const sgui_rect* srcrect );
 
     /**
      * \brief Blend a constant color onto a canvas, use alpha from pixmap
@@ -186,7 +186,7 @@ struct sgui_canvas
      * \param color   The constant RGB color.
      */
     void (* blend_glyph )( sgui_canvas* canvas, int x, int y,
-                           sgui_pixmap* pixmap, sgui_rect* r,
+                           const sgui_pixmap* pixmap, const sgui_rect* r,
                            const unsigned char* color );
 
     /**
@@ -294,7 +294,8 @@ SGUI_DLL void sgui_canvas_set_focus( sgui_canvas* canvas,
  * \param canvas The canvas
  * \param r      The dirty rectangle
  */
-SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas, sgui_rect* r );
+SGUI_DLL void sgui_canvas_add_dirty_rect( sgui_canvas* canvas,
+                                          const sgui_rect* r );
 
 /**
  * \brief Get the number of dirty rectangles from a canvas
@@ -525,7 +526,7 @@ SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
  *
  * \param r The area to clear
  */
-SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
+SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, const sgui_rect* r );
 
 /**
  * \brief Draw a rectangle onto a canvas
@@ -536,7 +537,7 @@ SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, sgui_rect* r );
  * \param color  The color to draw the box in
  * \param format The color format stored in the color array (SGUI_RGB8, ...)
  */
-SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, sgui_rect* r,
+SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, const sgui_rect* r,
                                     const unsigned char* color,
                                     int format );
 
@@ -572,8 +573,8 @@ SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
  * \param blend  Non-zero to blend the image, zero for simple blitting
  */
 SGUI_DLL void sgui_canvas_draw_pixmap( sgui_canvas* canvas, int x, int y,
-                                       sgui_pixmap* pixmap,
-                                       sgui_rect* srcrect, int blend );
+                                       const sgui_pixmap* pixmap,
+                                       const sgui_rect* srcrect, int blend );
 
 /**
  * \brief Render one line of text in a single font face

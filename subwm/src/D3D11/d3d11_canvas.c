@@ -42,7 +42,7 @@ void d3d11_canvas_destroy( sgui_canvas* super )
     free( this );
 }
 
-int d3d11_canvas_begin( sgui_canvas* this, sgui_rect* r )
+int d3d11_canvas_begin( sgui_canvas* this, const sgui_rect* r )
 {
     ((sgui_d3d11_canvas*)this)->locked = *r;
     return 1;

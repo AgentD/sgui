@@ -42,7 +42,7 @@ static void canvas_mem_resize(sgui_canvas *super, unsigned int width,
 	(void)super; (void)width; (void)height;
 }
 
-static void canvas_mem_clear(sgui_canvas *super, sgui_rect *r)
+static void canvas_mem_clear(sgui_canvas *super, const sgui_rect *r)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int deltax, deltay;
@@ -63,7 +63,7 @@ static void canvas_mem_clear(sgui_canvas *super, sgui_rect *r)
 
 /****************************************************************************/
 
-static void canvas_mem_draw_box_rgb(sgui_canvas *super, sgui_rect *r,
+static void canvas_mem_draw_box_rgb(sgui_canvas *super, const sgui_rect *r,
 					const unsigned char *color, int format)
 {
 	unsigned int R = 0, G = 0, B = 0, A = 0, iA = 0, pitch;
@@ -122,13 +122,14 @@ static void canvas_mem_draw_box_rgb(sgui_canvas *super, sgui_rect *r,
 }
 
 static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
 	unsigned char *dst, *row;
-	unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
+	const unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
 	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width*3;
 	unsigned int scan, lines;
@@ -164,13 +165,15 @@ static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 }
 
 static void canvas_mem_blend_rgb(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
-	unsigned char iA, *src, *dst, *row, *srow;
 	unsigned int i, j, scan, lines, dyd;
+	const unsigned char *src, *srow;
+	unsigned char iA, *dst, *row;
 
 	if (mem_pixmap_format(pixmap) != SGUI_RGBA8) {
 		canvas_mem_blit_rgb(super, x, y, pixmap, srcrect);
@@ -242,7 +245,7 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
 
 /****************************************************************************/
 
-static void canvas_mem_draw_box_rgba(sgui_canvas *super, sgui_rect *r,
+static void canvas_mem_draw_box_rgba(sgui_canvas *super, const sgui_rect *r,
 				const unsigned char *color, int format)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
@@ -305,13 +308,14 @@ static void canvas_mem_draw_box_rgba(sgui_canvas *super, sgui_rect *r,
 }
 
 static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
 	unsigned char *dst, *row;
-	unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
+	const unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
 	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width * 4;
 	unsigned int scan, lines;
@@ -354,13 +358,15 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 }
 
 static void canvas_mem_blend_rgba(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
-	unsigned char iA, *src, *dst, *row, *srow;
 	unsigned int i, j, scan, lines, dyd;
+	const unsigned char *src, *srow;
+	unsigned char iA, *dst, *row;
 
 	if (mem_pixmap_format(pixmap) != SGUI_RGBA8) {
 		canvas_mem_blit_rgba(super, x, y, pixmap, srcrect);

@@ -114,7 +114,7 @@ out:
 	sgui_internal_unlock_mutex();
 }
 
-void sgui_canvas_add_dirty_rect(sgui_canvas *this, sgui_rect *r)
+void sgui_canvas_add_dirty_rect(sgui_canvas *this, const sgui_rect *r)
 {
 	unsigned int i;
 	sgui_rect r0;
@@ -394,7 +394,7 @@ void sgui_canvas_end(sgui_canvas *this)
 	}
 }
 
-void sgui_canvas_clear(sgui_canvas *this, sgui_rect *r)
+void sgui_canvas_clear(sgui_canvas *this, const sgui_rect *r)
 {
 	sgui_rect r1;
 
@@ -412,7 +412,7 @@ void sgui_canvas_clear(sgui_canvas *this, sgui_rect *r)
 		this->clear(this, &r1);
 }
 
-void sgui_canvas_draw_box(sgui_canvas *this, sgui_rect *r,
+void sgui_canvas_draw_box(sgui_canvas *this, const sgui_rect *r,
 			const unsigned char *color, int format)
 {
 	sgui_rect r1;
@@ -453,8 +453,8 @@ void sgui_canvas_draw_line(sgui_canvas *this, int x, int y,
 }
 
 void sgui_canvas_draw_pixmap(sgui_canvas *this, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect,
-				int blend)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect, int blend)
 {
 	unsigned int w, h;
 	sgui_rect src, clip;

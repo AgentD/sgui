@@ -62,7 +62,7 @@ static void canvas_xrender_set_clip_rect(sgui_canvas_x11 *super,
 	sgui_internal_unlock_mutex();
 }
 
-static void canvas_xrender_draw_box(sgui_canvas *super, sgui_rect *r,
+static void canvas_xrender_draw_box(sgui_canvas *super, const sgui_rect *r,
 					const unsigned char *color, int format)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
@@ -86,7 +86,8 @@ static void canvas_xrender_draw_box(sgui_canvas *super, sgui_rect *r,
 }
 
 static void canvas_xrender_blit(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
@@ -105,7 +106,8 @@ static void canvas_xrender_blit(sgui_canvas *super, int x, int y,
 }
 
 static void canvas_xrender_blend(sgui_canvas *super, int x, int y,
-				sgui_pixmap *pixmap, sgui_rect *srcrect)
+				const sgui_pixmap *pixmap,
+				const sgui_rect *srcrect)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
 
@@ -118,7 +120,8 @@ static void canvas_xrender_blend(sgui_canvas *super, int x, int y,
 }
 
 static void canvas_xrender_blend_glyph(sgui_canvas *super, int x, int y,
-					sgui_pixmap *pixmap, sgui_rect*r,
+					const sgui_pixmap *pixmap,
+					const sgui_rect *r,
 					const unsigned char* color)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;

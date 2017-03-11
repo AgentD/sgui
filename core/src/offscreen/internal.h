@@ -28,9 +28,9 @@
 sgui_pixmap* mem_pixmap_create(unsigned int width, unsigned int height,
 				int format, int swaprb);
 
-unsigned char* mem_pixmap_buffer(sgui_pixmap *pix);
+const unsigned char* mem_pixmap_buffer(const sgui_pixmap *pix);
 
-int mem_pixmap_format(sgui_pixmap *pix);
+int mem_pixmap_format(const sgui_pixmap *pix);
 
 #endif /* INTERNAL_H */
 

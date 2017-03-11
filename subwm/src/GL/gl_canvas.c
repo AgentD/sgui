@@ -40,7 +40,7 @@ static void gl_canvas_destroy( sgui_canvas* super )
     free( this );
 }
 
-static int gl_canvas_begin( sgui_canvas* this, sgui_rect* r )
+static int gl_canvas_begin( sgui_canvas* this, const sgui_rect* r )
 {
     ((sgui_gl_canvas*)this)->locked = *r;
     return 1;
