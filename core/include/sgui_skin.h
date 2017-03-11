@@ -55,6 +55,11 @@ struct sgui_skin
     sgui_font* font_ital;   /**< \brief Font face for italic text */
     sgui_font* font_boit;   /**< \brief Font face for bold and italic text */
 
+    void(* get_skin_pixmap_size )( sgui_skin* skin, unsigned int* width,
+                                   unsigned int* height, int* format);
+
+    void(* init_skin_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
+
     void(* get_checkbox_extents )( sgui_skin* skin, sgui_rect* r );
 
     void(* get_radio_button_extents )( sgui_skin* skin, sgui_rect* r );

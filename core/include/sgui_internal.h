@@ -110,6 +110,8 @@ SGUI_DLL void sgui_interal_skin_init_default( void );
  */
 SGUI_DLL void sgui_interal_skin_deinit_default( void );
 
+SGUI_DLL void sgui_internal_memcanvas_cleanup( void );
+
 #ifdef __cplusplus
 }
 #endif

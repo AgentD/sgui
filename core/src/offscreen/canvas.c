@@ -488,6 +488,39 @@ static sgui_pixmap *canvas_mem_create_pixmap(sgui_canvas *this,
 
 /****************************************************************************/
 
+static sgui_pixmap *skin_pixmap = NULL;
+
+const sgui_pixmap *memory_canvas_get_skin_pixmap(sgui_canvas *this)
+{
+	unsigned int width, height;
+	sgui_skin *skin;
+	int format;
+
+	sgui_internal_lock_mutex();
+	if (!skin_pixmap) {
+		skin = sgui_skin_get();
+		skin->get_skin_pixmap_size(skin, &width, &height, &format);
+
+		skin_pixmap = mem_pixmap_create(width, height, format,
+					((sgui_mem_canvas*)this)->swaprb);
+
+		if (skin_pixmap)
+			skin->init_skin_pixmap(skin, skin_pixmap);
+	}
+	sgui_internal_unlock_mutex();
+	return skin_pixmap;
+}
+
+void sgui_internal_memcanvas_cleanup(void)
+{
+	if (skin_pixmap) {
+		skin_pixmap->destroy(skin_pixmap);
+		skin_pixmap = NULL;
+	}
+}
+
+/****************************************************************************/
+
 sgui_canvas *sgui_memory_canvas_create(unsigned char *buffer,
 					unsigned int width,
 					unsigned int height,
@@ -546,6 +579,7 @@ int sgui_memory_canvas_init(sgui_canvas *super, unsigned char *buffer,
 	super->clear = canvas_mem_clear;
 	super->draw_string = canvas_mem_draw_string;
 	super->create_pixmap = canvas_mem_create_pixmap;
+	super->get_skin_pixmap = memory_canvas_get_skin_pixmap;
 	return 1;
 }
 

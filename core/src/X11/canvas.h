@@ -59,6 +59,8 @@ void canvas_x11_init(sgui_canvas *super, Drawable wnd,
 sgui_canvas *canvas_x11_create(Drawable wnd, unsigned int width,
 				unsigned int height, int sendexpose);
 
+void canvas_cleanup_skin_pixmap(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -454,6 +454,8 @@ fail:
 void sgui_deinit(void)
 {
 	sgui_event_reset();
+	canvas_cleanup_skin_pixmap();
+	sgui_internal_memcanvas_cleanup();
 	sgui_interal_skin_deinit_default();
 	font_deinit();
 	pthread_mutex_destroy(&x11.mutex);

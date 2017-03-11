@@ -25,6 +25,10 @@
 #define SGUI_BUILDING_DLL
 #include "internal.h"
 
+
+static sgui_pixmap *skin_pixmap = NULL;
+
+
 static void canvas_xrender_destroy(sgui_canvas *super)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
@@ -142,6 +146,36 @@ static void canvas_xrender_blend_glyph(sgui_canvas *super, int x, int y,
 	sgui_internal_unlock_mutex();
 }
 
+static const sgui_pixmap *canvas_xrender_get_skin_pixmap(sgui_canvas *super)
+{
+	unsigned int width, height;
+	int format;
+	sgui_skin *skin;
+
+	sgui_internal_lock_mutex();
+
+	if (!skin_pixmap) {
+		skin = sgui_skin_get();
+
+		skin->get_skin_pixmap_size(skin, &width, &height, &format);
+
+		skin_pixmap = super->create_pixmap(super, width,
+							height, format);
+
+		if (skin_pixmap)
+			skin->init_skin_pixmap(skin, skin_pixmap);
+	}
+
+	sgui_internal_unlock_mutex();
+	return skin_pixmap;
+}
+
+void canvas_xrender_cleanup_skin_pixmap(void)
+{
+	if (skin_pixmap)
+		skin_pixmap->destroy(skin_pixmap);
+}
+
 sgui_canvas *canvas_xrender_create(Drawable wnd, unsigned int width,
 				unsigned int height, int sendexpose)
 {
@@ -189,6 +223,7 @@ sgui_canvas *canvas_xrender_create(Drawable wnd, unsigned int width,
 	super->blend_glyph = canvas_xrender_blend_glyph;
 	super->create_pixmap = xrender_pixmap_create;
 	super->draw_box = canvas_xrender_draw_box;
+	super->get_skin_pixmap = canvas_xrender_get_skin_pixmap;
 
 	canvas_x11_init(super, wnd, canvas_xrender_set_clip_rect, sendexpose);
 	return (sgui_canvas *)this;

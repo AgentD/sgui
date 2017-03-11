@@ -247,6 +247,7 @@ void sgui_deinit(void)
 {
 	sgui_event_reset();
 	sgui_interal_skin_deinit_default();
+	sgui_internal_memcanvas_cleanup();
 	font_deinit();
 
 	UnregisterClassA(w32.wndclass, w32.hInstance);

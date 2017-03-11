@@ -99,6 +99,17 @@ struct sgui_canvas
                                      unsigned int height, int format );
 
     /**
+     * \brief Used by \ref sgui_skin implementations for drawing UI elements
+     *
+     * An \ref sgui_skin can use a pixmap for piecing together UI elements.
+     * The canvas implementation is responsible for creating and initialising
+     * a pixmap once and then providing an abstraction for the skin. This way,
+     * the canvas implementation can create one global instance and share that
+     * among multiple windows.
+     */
+    const sgui_pixmap* (* get_skin_pixmap )( sgui_canvas* canvas );
+
+    /**
      * \brief Gets called by sgui_canvas_begin
      *
      * Can be set to NULL if not needed by the implementation.
