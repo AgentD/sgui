@@ -45,8 +45,7 @@
 
 
 /* COLORMAP 7 */
-static const unsigned char colormap[4*7] =
-{
+static const unsigned char colormap[4*7] = {
     0x00, 0x00, 0x00, 0x00,     /* fully transparent */
     0x00, 0x00, 0x00, 0xFF,     /* black */
     0xFF, 0xFF, 0xFF, 0x80,     /* semi transparent white */
@@ -57,8 +56,7 @@ static const unsigned char colormap[4*7] =
 };
 
 /* SIZE 32x32 */
-static const unsigned char info[ 255 ] =
-{
+static const unsigned char info[255] = {
 0x85,0,1,0x83,011,010,0x8A,0,011,013,0x83,033,031,011,0x88,0,011,0x87,033,011,
 0x86,0,1,0x89,033,010,0x85,0,013,0x83,033,034,044,043,0x83,033,031,0x84,0,1,
 0x84,033,0x83,044,0x84,033,010,0x83,0,013,0x84,033,0x83,044,0x84,033,031,0x40,
@@ -76,8 +74,7 @@ static const unsigned char info[ 255 ] =
 };
 
 /* SIZE 32x32 */
-static const unsigned char warning[ 248 ] =
-{
+static const unsigned char warning[248] = {
 0x86,0,1,011,0x8E,0,015,055,010,0x8C,0,1,0x6D,051,020,0x8B,0,1,0x6D,051,022,
 0x8B,0,015,0x83,055,012,020,0x8A,0,015,0x83,055,012,020,0x89,0,1,0x84,055,051,
 022,0x89,0,1,0x84,055,051,022,0x89,0,015,0x85,055,012,020,0x88,0,015,055,051,
@@ -94,8 +91,7 @@ static const unsigned char warning[ 248 ] =
 };
 
 /* SIZE 32x32 */
-static const unsigned char critical[ 291 ] =
-{
+static const unsigned char critical[291] = {
 0x85,0,1,0x83,011,010,0x8A,0,1,016,0x83,066,061,010,0x88,0,1,016,0x85,066,061,
 010,0x87,0,016,0x87,066,061,0x86,0,1,0x89,066,012,0x85,0,016,0x89,066,061,020,
 0x83,0,1,0x8B,066,012,0x83,0,016,0x76,063,0x85,066,036,0x76,061,020,0x40,016,
@@ -115,8 +111,7 @@ static const unsigned char critical[ 291 ] =
 };
 
 /* SIZE 32x32 */
-static const unsigned char question[ 257 ] =
-{
+static const unsigned char question[257] = {
 0x85,0,1,0x83,011,010,0x8A,0,011,013,0x83,033,031,011,0x88,0,011,0x87,033,011,
 0x86,0,1,0x89,033,010,0x85,0,013,0x89,033,031,0x84,0,1,0x84,033,0x83,044,0x84,
 033,010,0x83,0,013,0x83,033,034,033,034,044,043,0x83,033,031,0x40,1,0x84,033,
