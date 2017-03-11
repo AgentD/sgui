@@ -124,42 +124,53 @@ static void extract_image(tga_image *img, unsigned char *src,
 			unsigned char *cmap, unsigned int colors,
 			unsigned int bytes)
 {
-	unsigned char a, b, c, *dst = img->buffer, *end = src + bytes;
-	unsigned int x, y, count = 0;
+	unsigned char a, b, c, *dst = img->buffer;
+	unsigned int i = 0, num_pixels, count = 0;
 
-	for (y = 0; y < img->height; ++y) {
-		for (x = 0; x < img->width; x += 2) {
-			if (count) {
-				--count;
-			} else if (dst >= end) {
+	num_pixels = img->height * img->width;
+
+	while (i < num_pixels) {
+		if (count) {
+			--count;
+		} else {
+			if (!bytes)
 				break;
+
+			if (*src & 0x80) {
+				count = (*src & 0x7F) - 1;
+				++src;
+				--bytes;
+			} else if (*src & 0x40) {
+				count = 1;
 			} else {
-				if (*src & 0x80) {
-					count = (*src & 0x7F) - 1;
-					++src;
-				} else if (*src & 0x40) {
-					count = 1;
-				} else {
-					count = 0;
-				}
-				c = *(src++);
-
-				a = ((c & 070) >> 3);
-				b = (c & 007);
-
-				a = a < colors ? a : 0;
-				b = b < colors ? b : 0;
+				count = 0;
 			}
 
-			*(dst++) = cmap[a * 4    ];
-			*(dst++) = cmap[a * 4 + 1];
-			*(dst++) = cmap[a * 4 + 2];
-			*(dst++) = cmap[a * 4 + 3];
+			if (!bytes)
+				break;
+			c = *src;
+			++src;
+			--bytes;
 
+			a = ((c & 070) >> 3);
+			b = (c & 007);
+
+			a = a < colors ? a : 0;
+			b = b < colors ? b : 0;
+		}
+
+		*(dst++) = cmap[a * 4    ];
+		*(dst++) = cmap[a * 4 + 1];
+		*(dst++) = cmap[a * 4 + 2];
+		*(dst++) = cmap[a * 4 + 3];
+		++i;
+
+		if (i < num_pixels) {
 			*(dst++) = cmap[b * 4    ];
 			*(dst++) = cmap[b * 4 + 1];
 			*(dst++) = cmap[b * 4 + 2];
 			*(dst++) = cmap[b * 4 + 3];
+			++i;
 		}
 	}
 }
