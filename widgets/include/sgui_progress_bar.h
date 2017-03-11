@@ -37,12 +37,6 @@
 
 
 
-#define SGUI_PROGRESS_BAR_CONTINUOUS  1
-#define SGUI_PROGRESS_BAR_STIPPLED    0
-#define SGUI_PROGRESS_BAR_HORIZONTAL  0
-#define SGUI_PROGRESS_BAR_VERTICAL    1
-
-
 /**
  * \struct sgui_progress_bar
  *
@@ -65,15 +59,15 @@ extern "C" {
  *
  * \param x        Distance from the left of the window.
  * \param y        Distance from the top of the window.
- * \param style    SGUI_PROGRESS_BAR_CONTINUOUS for a continous bar,
- *                 SGUI_PROGRESS_BAR_STIPPLED for a bar out of discrete
- *                 slices.
- * \param vertical Non-zero for a vertical bar, zero for a horizontal bar.
+ * \param flags    SGUI_PROGRESS_BAR_CONTINUOUS for a continous bar,
+ *                 SGUI_PROGRESS_BAR_DISCRETE (default) for a bar out of
+ *                 discrete slices. SGUI_PROGRESS_BAR_HORIZONTAL to draw a
+ *                 horizontal bar (default) or SGUI_PROGRESS_BAR_VERTICAL
+ *                 to draw a vertical bar.
  * \param progress Initial progress for the bar (value between 0 and 100)
  * \param length   The length of the bar in pixels.
  */
-SGUI_DLL sgui_widget* sgui_progress_bar_create( int x, int y, int style,
-                                                int vertical,
+SGUI_DLL sgui_widget* sgui_progress_bar_create( int x, int y, int flags,
                                                 unsigned int progress,
                                                 unsigned int length );
 

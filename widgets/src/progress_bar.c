@@ -32,97 +32,97 @@
 #include <string.h>
 
 
+typedef struct {
+	sgui_widget super;
 
-typedef struct
+	int flags;
+	unsigned int progress;
+} sgui_progress_bar;
+
+
+static void progress_draw(sgui_widget *super)
 {
-    sgui_widget super;
+	sgui_progress_bar *this = (sgui_progress_bar *)super;
+	sgui_skin *skin = sgui_skin_get();
+	unsigned int length;
 
-    int vertical;
-    unsigned int progress, stippled;
-}
-sgui_progress_bar;
+	if (this->flags & SGUI_PROGRESS_BAR_VERTICAL) {
+		length = SGUI_RECT_HEIGHT(super->area);
+	} else {
+		length = SGUI_RECT_WIDTH(super->area);
+	}
 
 
-
-static void progress_draw( sgui_widget* super )
-{
-    sgui_skin* skin = sgui_skin_get( );
-    sgui_progress_bar* this = (sgui_progress_bar*)super;
-    unsigned int length = this->vertical ? SGUI_RECT_HEIGHT(super->area) :
-                                           SGUI_RECT_WIDTH(super->area);
-
-    if( this->stippled )
-    {
-        skin->draw_progress_stippled( skin, super->canvas, super->area.left,
-                                      super->area.top, length,
-                                      this->vertical, this->progress );
-    }
-    else
-    {
-        skin->draw_progress_bar( skin, super->canvas, super->area.left,
-                                 super->area.top, length, this->vertical,
-                                 this->progress );
-    }
+	skin->draw_progress_bar(skin, super->canvas, super->area.left,
+				super->area.top, length, this->flags, 
+				this->progress);
 }
 
 
-
-sgui_widget* sgui_progress_bar_create( int x, int y, int style, int vertical,
-                                       unsigned int progress,
-                                       unsigned int length )
+sgui_widget *sgui_progress_bar_create(int x, int y, int flags,
+					unsigned int progress,
+					unsigned int length)
 {
-    sgui_skin* skin = sgui_skin_get( );
-    unsigned int width, height;
-    sgui_progress_bar* this;
-    sgui_widget* super;
+	sgui_skin *skin = sgui_skin_get();
+	unsigned int width, height;
+	sgui_progress_bar* this;
+	sgui_widget* super;
 
-    /* sanity check */
-    if( progress > 100 )
-        progress = 100;
+	if (progress > 100)
+		progress = 100;
 
-    /* allocate widget structure */
-    this = calloc( 1, sizeof(sgui_progress_bar) );
-    super = (sgui_widget*)this;
+	if (flags & ~(SGUI_PROGRESS_BAR_CONTINUOUS|SGUI_PROGRESS_BAR_VERTICAL))
+		return NULL;
 
-    if( !this )
-        return NULL;
+	this = calloc(1, sizeof(*this));
+	super = (sgui_widget *)this;
 
-    /* initialise the base widget */
-    sgui_widget_init( super, 0, 0, 0, 0 );
+	if (!this)
+		return NULL;
 
-    super->draw          = progress_draw;
-    super->flags         = SGUI_WIDGET_VISIBLE;
-    super->destroy       = (void(*)(sgui_widget*))free;
-    this->progress       = progress;
-    this->stippled       = style==SGUI_PROGRESS_BAR_STIPPLED;
-    this->vertical       = vertical;
+	sgui_widget_init(super, 0, 0, 0, 0);
 
-    /* get the size of the progress bar */
-    width  = vertical ? skin->get_progess_bar_width( skin ) : length;
-    height = vertical ? length : skin->get_progess_bar_width( skin );
+	super->draw = progress_draw;
+	super->flags = SGUI_WIDGET_VISIBLE;
+	super->destroy = (void(*)(sgui_widget*))free;
+	this->flags = flags;
+	this->progress = progress;
 
-    sgui_rect_set_size( &super->area, x, y, width, height );
+	if (flags & SGUI_PROGRESS_BAR_VERTICAL) {
+		width = skin->get_progess_bar_width(skin);
+		height = length;
+	} else {
+		width = length;
+		height = skin->get_progess_bar_width(skin);
+	}
 
-    return super;
+	sgui_rect_set_size(&super->area, x, y, width, height);
+	return super;
 }
 
-void sgui_progress_bar_set_progress(sgui_widget* this, unsigned int progress)
+void sgui_progress_bar_set_progress(sgui_widget *super, unsigned int progress)
 {
-    sgui_rect r;
+	sgui_progress_bar *this = ((sgui_progress_bar *)super);
+	sgui_rect r;
 
-    sgui_internal_lock_mutex( );
-    if( this->canvas )
-    {
-        sgui_widget_get_absolute_rect( this, &r );
-        sgui_canvas_add_dirty_rect( this->canvas, &r );
-    }
+	sgui_internal_lock_mutex();
+	if (progress > 100)
+		progress = 100;
 
-    ((sgui_progress_bar*)this)->progress = progress>100 ? 100 : progress;
-    sgui_internal_unlock_mutex( );
+	if (this->progress == progress)
+		goto out;
+
+	this->progress = progress;
+
+	if (super->canvas) {
+		sgui_widget_get_absolute_rect(super, &r);
+		sgui_canvas_add_dirty_rect(super->canvas, &r);
+	}
+out:
+	sgui_internal_unlock_mutex();
 }
 
-unsigned int sgui_progress_bar_get_progress( sgui_widget* this )
+unsigned int sgui_progress_bar_get_progress(sgui_widget *this)
 {
-    return ((sgui_progress_bar*)this)->progress;
+	return ((sgui_progress_bar *)this)->progress;
 }
-

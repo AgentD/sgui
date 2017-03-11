@@ -38,6 +38,13 @@
 
 
 
+#define SGUI_PROGRESS_BAR_DISCRETE    0x00
+#define SGUI_PROGRESS_BAR_HORIZONTAL  0x00
+#define SGUI_PROGRESS_BAR_CONTINUOUS  0x01
+#define SGUI_PROGRESS_BAR_VERTICAL    0x02
+
+
+
 /**
  * \struct sgui_skin
  *
@@ -108,12 +115,8 @@ struct sgui_skin
                              sgui_rect* r, const char* caption );
 
     void(* draw_progress_bar )( sgui_skin* skin, sgui_canvas* canvas, int x,
-                                int y, unsigned int length, int vertical,
-                                int percentage );
-
-    void(* draw_progress_stippled )( sgui_skin* skin, sgui_canvas* canvas,
-                                     int x, int y, unsigned int length,
-                                     int vertical, int percentage );
+                                int y, unsigned int length, int flags,
+                                unsigned int percentage );
 
     void(* draw_scroll_bar )( sgui_skin* skin, sgui_canvas* canvas,
                               int x, int y, unsigned int length, int vertical,

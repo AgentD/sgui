@@ -336,85 +336,47 @@ static void default_draw_group_box( sgui_skin* this, sgui_canvas* canvas,
 
 static void default_draw_progress_bar(sgui_skin *this, sgui_canvas *canvas,
 					int x, int y, unsigned int length,
-					int vertical, int percentage)
+					int flags, unsigned int percentage)
 {
-	unsigned int bar = (percentage * (length - 2)) / 100;
+	unsigned int w, h, i, bar = (percentage * (length - 2)) / 100;
 	sgui_rect r;
 	(void)this;
 
-	if (vertical) {
-		sgui_rect_set_size(&r, x, y, 30, length - bar - 1);
-		sgui_canvas_draw_box(canvas, &r, darkoverlay, SGUI_RGBA8);
-
-		sgui_canvas_draw_line(canvas, x, y, 30, 1, black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y, length, 0,
-					black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y + length - 1, 30, 1,
-					white, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x + 29, y, length, 0,
-					white, SGUI_RGB8);
-
-		sgui_rect_set_size(&r, x + 1, y + length - bar - 1, 28, bar);
-		sgui_canvas_draw_box(canvas, &r, yellow, SGUI_RGB8);
-	} else {
-		sgui_rect_set_size(&r, x, y, length, 30);
-		sgui_canvas_draw_box(canvas, &r, darkoverlay, SGUI_RGBA8);
-
-		sgui_canvas_draw_line(canvas, x, y, 30, 0, black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y, length, 1,
-					black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y + 29, length, 1,
-					white, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x + length - 1, y, 30, 0,
-					white, SGUI_RGB8);
-
-		sgui_rect_set_size(&r, x + 1, y + 1, bar, 28);
-		sgui_canvas_draw_box(canvas, &r, yellow, SGUI_RGB8);
-	}
-}
-
-static void default_draw_progress_stippled(sgui_skin *this,
-						sgui_canvas *canvas,
-						int x, int y,
-						unsigned int length,
-						int vertical, int percentage)
-{
-	unsigned int i, bar = (percentage * (length - 2)) / 100;
-	sgui_rect r;
-	(void)this;
-
-	if (vertical) {
+	if (flags & SGUI_PROGRESS_BAR_VERTICAL) {
 		sgui_rect_set_size(&r, x, y, 30, length);
-		sgui_canvas_draw_box(canvas, &r, darkoverlay, SGUI_RGBA8);
-
-		sgui_canvas_draw_line(canvas, x, y, 30, 1, black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y, length, 0,
-					black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y + length - 1, 30, 1,
-					white, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x + 29, y, length, 0,
-					white, SGUI_RGB8);
-
-		for (i = 5; i < bar; i += 12) {
-			sgui_rect_set_size(&r, x + 5, y + length - 7 - i,
-						20, 7);
-			sgui_canvas_draw_box(canvas, &r, white, SGUI_RGBA8);
-		}
 	} else {
 		sgui_rect_set_size(&r, x, y, length, 30);
-		sgui_canvas_draw_box(canvas, &r, darkoverlay, SGUI_RGBA8);
+	}
 
-		sgui_canvas_draw_line(canvas, x, y, 30, 0, black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y, length, 1,
-					black, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x, y + 29, length, 1,
-					white, SGUI_RGB8);
-		sgui_canvas_draw_line(canvas, x + length - 1, y, 30, 0,
-					white, SGUI_RGB8);
+	default_draw_frame(this, canvas, &r);
 
-		for (i = 5; i < bar; i += 12) {
-			sgui_rect_set_size(&r, x + i, y + 5, 7, 20);
-			sgui_canvas_draw_box(canvas, &r, white, SGUI_RGBA8);
+	if (flags & SGUI_PROGRESS_BAR_CONTINUOUS) {
+		if (flags & SGUI_PROGRESS_BAR_VERTICAL) {
+			y += length - bar - 1;
+			w = 28;
+			h = bar;
+		} else {
+			y += 1;
+			w = bar;
+			h = 28;
+		}
+		sgui_rect_set_size(&r, x + 1, y, w, h);
+		sgui_canvas_draw_box(canvas, &r, yellow, SGUI_RGB8);
+	} else {
+		if (flags & SGUI_PROGRESS_BAR_VERTICAL) {
+			for (i = 5; i < bar; i += 12) {
+				sgui_rect_set_size(&r, x + 5,
+							y + length - 7 - i,
+							20, 7);
+				sgui_canvas_draw_box(canvas, &r, white,
+							SGUI_RGB8);
+			}
+		} else {
+			for (i = 5; i < bar; i += 12) {
+				sgui_rect_set_size(&r, x + i, y + 5, 7, 20);
+				sgui_canvas_draw_box(canvas, &r, white,
+							SGUI_RGB8);
+			}
 		}
 	}
 }
@@ -700,7 +662,6 @@ sgui_skin sgui_default_skin = {
 	.draw_group_box = default_draw_group_box,
 	.get_progess_bar_width = default_get_progess_bar_width,
 	.draw_progress_bar = default_draw_progress_bar,
-	.draw_progress_stippled = default_draw_progress_stippled,
 	.draw_scroll_bar = default_draw_scroll_bar,
 	.get_scroll_bar_width = default_get_scroll_bar_width,
 	.draw_tab_caption = default_draw_tab_caption,

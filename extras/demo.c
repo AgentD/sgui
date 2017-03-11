@@ -330,10 +330,13 @@ int main( int argc, char** argv )
     sgui_widget_add_child( t, tex );
 
     /* output widget tab */
-    p0 = sgui_progress_bar_create( 10,  25, 0, 0, 50, 300 );
-    p1 = sgui_progress_bar_create( 10,  65, 1, 0, 50, 300 );
-    p2 = sgui_progress_bar_create( 320, 25, 0, 1, 50, 300 );
-    p3 = sgui_progress_bar_create( 355, 25, 1, 1, 50, 300 );
+    p0 = sgui_progress_bar_create( 10, 25, 0, 50, 300 );
+    p1 = sgui_progress_bar_create( 10, 65, SGUI_PROGRESS_BAR_CONTINUOUS,
+                                   50, 300 );
+    p2 = sgui_progress_bar_create( 320, 25, SGUI_PROGRESS_BAR_VERTICAL,
+                                   50, 300 );
+    p3 = sgui_progress_bar_create( 355, 25, SGUI_PROGRESS_BAR_CONTINUOUS |
+                                   SGUI_PROGRESS_BAR_VERTICAL, 50, 300 );
 
     t = sgui_tab_create( tab, "Output" );
     sgui_widget_add_child( tab, t );
