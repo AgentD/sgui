@@ -52,7 +52,7 @@ static sgui_rect radio_ticked = { 12, 12, 23, 23 };
 
 static sgui_rect arrow_l = { 24, 0, 29, 10 };
 static sgui_rect arrow_r = { 29, 0, 34, 10 };
-static sgui_rect arrow_up = { 25, 0, 35, 5 };
+static sgui_rect arrow_up = { 24, 0, 34, 5 };
 static sgui_rect arrow_dn = { 24, 5, 34, 10 };
 
 static sgui_rect spin_up = { 26, 0, 32, 3 };
