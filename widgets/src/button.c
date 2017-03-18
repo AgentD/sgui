@@ -37,474 +37,418 @@
 #include <string.h>
 
 
-
 #define BUTTON        0x00
 #define TOGGLE_BUTTON 0x01
 #define CHECKBOX      0x02
 #define RADIO_BUTTON  0x03
-#define SELECTED      0x10
-#define HAVE_ICON     0x20
 
 
+typedef struct sgui_button {
+	sgui_widget super;
 
-
-typedef struct sgui_button
-{
-    sgui_widget super;
-
-    union
-    {
-        char* text;
+	union {
+		char *text;
 
 #ifndef SGUI_NO_ICON_CACHE
-        struct
-        {
-            sgui_icon_cache* cache;
-            sgui_icon* i;
-        }
-        icon;
+		struct {
+			sgui_icon_cache *cache;
+			sgui_icon *i;
+		} icon;
 #endif
-    }
-    dpy;
+	} dpy;
 
-    int flags;
-    unsigned int cx, cy;      /* button: text position,
-                                 checkbox/radio button: text/object offset */
+	unsigned int type : 3;
+	unsigned int selected : 1;
+	unsigned int have_icon : 1;
 
-    struct sgui_button* prev; /* radio button menu: next in menu */
-    struct sgui_button* next; /* radio button menu: previous in menu */
-}
-sgui_button;
+	/* button: text position, checkbox/radio button: text/object offset */
+	unsigned int cx, cy;
 
+	struct sgui_button *prev; /* radio button menu: next in menu */
+	struct sgui_button *next; /* radio button menu: previous in menu */
+} sgui_button;
 
-
-static void button_select( sgui_button* this, int selected, int postevent )
+static void button_toggle(sgui_button *this, int postevent)
 {
-    sgui_button* i;
-    sgui_event ev;
-    sgui_rect r;
+	sgui_canvas *cv = ((sgui_widget *)this)->canvas;
+	sgui_event ev;
+	sgui_rect r;
 
-    if( !this )
-        return;
+	this->selected = !this->selected;
 
-    sgui_internal_lock_mutex( );
+	if (cv) {
+		sgui_widget_get_absolute_rect((sgui_widget *)this, &r);
+		sgui_canvas_add_dirty_rect(cv, &r);
+	}
 
-    this->flags = selected ? (this->flags | SELECTED) : 
-                             (this->flags & (~SELECTED));
+	if (postevent) {
+		ev.src.widget = (sgui_widget *)this;
+		ev.type = this->selected ? SGUI_BUTTON_IN_EVENT :
+						SGUI_BUTTON_OUT_EVENT;
+		sgui_event_post(&ev);
+	}
+}
 
-    if( this->super.canvas )
-    {
-        sgui_widget_get_absolute_rect( &(this->super), &r );
-        sgui_canvas_add_dirty_rect( this->super.canvas, &r );
-    }
+static void button_select(sgui_button *this, int selected, int postevent)
+{
+	sgui_button *i;
 
-    if( postevent )
-    {
-        ev.src.widget = (sgui_widget*)this;
-        ev.type = selected ? SGUI_BUTTON_IN_EVENT : SGUI_BUTTON_OUT_EVENT;
-        sgui_event_post( &ev );
-    }
+	sgui_internal_lock_mutex();
+	if (selected && this->selected)
+		goto done;
 
-    /* if not in a group, we are done here */
-    if( !this->next && !this->prev )
-        goto done;
+	if (!selected && !this->selected)
+		goto done;
 
-    /* deselect all preceeding buttons in a group */
-    for( i=this->prev; i!=NULL; i=i->prev )
-    {
-        if( i->flags & SELECTED )
-        {
-            i->flags &= ~SELECTED;
-            if( i->super.canvas )
-            {
-                sgui_widget_get_absolute_rect( &(i->super), &r );
-                sgui_canvas_add_dirty_rect( i->super.canvas, &r );
-            }
-            goto done;
-        }
-    }
+	button_toggle(this, postevent);
 
-    /* deselect all following buttons in a group */
-    for( i=this->next; i!=NULL; i=i->next )
-    {
-        if( i->flags & SELECTED )
-        {
-            i->flags &= ~SELECTED;
-            if( i->super.canvas )
-            {
-                sgui_widget_get_absolute_rect( &(i->super), &r );
-                sgui_canvas_add_dirty_rect( i->super.canvas, &r );
-            }
-            goto done;
-        }
-    }
+	for (i = this->prev; i != NULL; i = i->prev) {
+		if (i->selected) {
+			button_toggle(i, 0);
+			goto done;
+		}
+	}
 
+	for (i = this->next; i != NULL; i = i->next) {
+		if (i->selected) {
+			button_toggle(i, 0);
+			goto done;
+		}
+	}
 done:
-    sgui_internal_unlock_mutex( );
+	sgui_internal_unlock_mutex();
 }
 
-static void button_draw( sgui_widget* super )
+static void button_draw(sgui_widget *super)
 {
-    sgui_button* this = (sgui_button*)super;
-    int in = (this->flags & SELECTED)!=0, x, y;
-    int type = (this->flags & 0x03);
-    sgui_skin* skin = sgui_skin_get( );
+	sgui_button *this = (sgui_button *)super;
+	int in = (this->selected ? 1 : 0), x, y;
+	sgui_skin* skin = sgui_skin_get();
 
-    if( type==BUTTON || type==TOGGLE_BUTTON )
-    {
-        skin->draw_button( skin, super->canvas, &super->area, in );
-        x = super->area.left + this->cx - in;
-        y = super->area.top  + this->cy - in;
-    }
-    else
-    {
-        if( type==CHECKBOX )
-        {
-            skin->draw_checkbox( skin, super->canvas, super->area.left,
-                                       super->area.top+this->cy, in );
-        }
-        else
-        {
-            skin->draw_radio_button( skin, super->canvas, super->area.left,
-                                           super->area.top+this->cy, in );
-        }
+	if (this->type == BUTTON || this->type == TOGGLE_BUTTON) {
+		skin->draw_button(skin, super->canvas, &super->area, in);
+		x = super->area.left + this->cx - in;
+		y = super->area.top  + this->cy - in;
+	} else {
+		if (this->type == CHECKBOX) {
+			skin->draw_checkbox(skin, super->canvas,
+					super->area.left,
+					super->area.top + this->cy, in);
+		} else {
+			skin->draw_radio_button(skin, super->canvas,
+						super->area.left,
+						super->area.top + this->cy,
+						in);
+		}
 
-        x = super->area.left + this->cx;
-        y = super->area.top;
-    }
+		x = super->area.left + this->cx;
+		y = super->area.top;
+	}
 
+	if (this->have_icon) {
 #ifndef SGUI_NO_ICON_CACHE
-    if( this->flags & HAVE_ICON )
-        sgui_icon_cache_draw_icon(this->dpy.icon.cache,this->dpy.icon.i,x,y);
-    else
+		sgui_icon_cache_draw_icon(this->dpy.icon.cache,
+					this->dpy.icon.i, x, y);
 #endif
-        sgui_skin_draw_text( super->canvas, x, y, this->dpy.text );
+	} else {
+		sgui_skin_draw_text(super->canvas, x, y, this->dpy.text);
+	}
 }
 
-static void toggle_button_on_event( sgui_widget* super, const sgui_event* e )
+static void toggle_button_on_event(sgui_widget *super, const sgui_event *e)
 {
-    sgui_button* this = (sgui_button*)super;
-    int prev=0, next=0;
+	sgui_button *this = (sgui_button *)super, *select = NULL;
 
-    if( this->prev || this->next )
-    {
-        if( e->type==SGUI_KEY_RELEASED_EVENT )
-        {
-            if( this->flags & SELECTED )
-            {
-                prev = e->arg.i==SGUI_KC_UP || e->arg.i==SGUI_KC_LEFT;
-                next = e->arg.i==SGUI_KC_DOWN || e->arg.i==SGUI_KC_RIGHT;
+	if (e->type == SGUI_MOUSE_PRESS_EVENT) {
+		if (!this->prev && !this->next)
+			goto out_toggle;
+		select = this;
+	} else if (e->type == SGUI_KEY_PRESSED_EVENT) {
+		switch (e->arg.i) {
+		case SGUI_KC_UP:
+		case SGUI_KC_LEFT:
+			if (this->selected)
+				select = this->prev;
+			break;
+		case SGUI_KC_DOWN:
+		case SGUI_KC_RIGHT:
+			if (this->selected)
+				select = this->next;
+			break;
+		case SGUI_KC_RETURN:
+		case SGUI_KC_SPACE:
+			if (!this->prev && !this->next)
+				goto out_toggle;
+			if (!this->selected)
+				select = this;
+			break;
+		}
+	}
 
-                if( prev && this->prev )
-                {
-                    sgui_canvas_set_focus( this->super.canvas,
-                                           (sgui_widget*)this->prev );
-                    button_select( this->prev, 1, 1 );
-                }
-                else if( next && this->next )
-                {
-                    sgui_canvas_set_focus( this->super.canvas,
-                                           (sgui_widget*)this->next );
-                    button_select( this->next, 1, 1 );
-                }
-            }
-            else if( e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE )
-            {
-                button_select( this, 1, 1 );
-            }
-        }
-        else if( e->type==SGUI_MOUSE_RELEASE_EVENT )
-        {
-            if( !(this->flags & SELECTED) )
-                button_select( this, 1, 1 );
-        }
-    }
-    else if( (e->type == SGUI_MOUSE_RELEASE_EVENT) ||
-             (e->type==SGUI_KEY_RELEASED_EVENT &&
-              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
-    {
-        button_select( this, !(this->flags & SELECTED), 1 );
-    }
+	if (select) {
+		sgui_canvas_set_focus(((sgui_widget *)select)->canvas,
+					(sgui_widget *)select);
+		button_select(select, 1, 1);
+	}
+	return;
+out_toggle:
+	button_toggle(this, 1);
 }
 
-static void button_on_event( sgui_widget* super, const sgui_event* e )
+static void button_on_event(sgui_widget *super, const sgui_event *e)
 {
-    sgui_button* this = (sgui_button*)super;
+	sgui_button *this = (sgui_button *)super;
 
-    if( this->flags & SELECTED )
-    {
-        if( e->type==SGUI_MOUSE_LEAVE_EVENT )
-        {
-            button_select( this, 0, 0 );
-        }
-        else if( e->type==SGUI_MOUSE_RELEASE_EVENT ||
-                 (e->type==SGUI_KEY_RELEASED_EVENT &&
-                  (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
-        {
-            button_select( this, 0, 1 );
-        }
-    }
-    else if( e->type==SGUI_MOUSE_PRESS_EVENT ||
-             (e->type==SGUI_KEY_PRESSED_EVENT &&
-              (e->arg.i==SGUI_KC_RETURN || e->arg.i==SGUI_KC_SPACE)) )
-    {
-        button_select( this, 1, 0 );
-    }
+	switch (e->type) {
+	case SGUI_MOUSE_LEAVE_EVENT:
+		button_select(this, 0, 0);
+		break;
+	case SGUI_KEY_RELEASED_EVENT:
+		if (e->arg.i != SGUI_KC_RETURN && e->arg.i != SGUI_KC_SPACE)
+			break;
+	case SGUI_MOUSE_RELEASE_EVENT:
+		button_select(this, 0, 1);
+		break;
+	case SGUI_KEY_PRESSED_EVENT:
+		if (e->arg.i != SGUI_KC_RETURN && e->arg.i != SGUI_KC_SPACE)
+			break;
+	case SGUI_MOUSE_PRESS_EVENT:
+		button_select(this, 1, 0);
+		break;
+	}
 }
 
-static void button_destroy( sgui_widget* super )
+static void button_destroy(sgui_widget *super)
 {
-    sgui_button* this = (sgui_button*)super;
+	sgui_button *this = (sgui_button *)super;
 
-    /* detatch from linked list */
-    sgui_internal_lock_mutex( );
-    if( this->prev ) this->prev->next = this->next;
-    if( this->next ) this->next->prev = this->prev;
-    sgui_internal_unlock_mutex( );
+	sgui_internal_lock_mutex();
+	if (this->prev)
+		this->prev->next = this->next;
+	if (this->next)
+		this->next->prev = this->prev;
+	sgui_internal_unlock_mutex();
 
-    /* free memory of text buffer and button */
-    if( !(this->flags & HAVE_ICON) )
-        free( this->dpy.text );
+	if (!this->have_icon)
+		free(this->dpy.text);
 
-    free( this );
+	free(this);
 }
 
-static sgui_widget* button_create_common( int x, int y, unsigned int width,
-                                          unsigned int height,
-                                          sgui_icon* icon,
-                                          sgui_icon_cache* cache,
-                                          const char* text, int flags )
+static sgui_widget *button_create_common(int x, int y, unsigned int width,
+					unsigned int height, sgui_icon *icon,
+					sgui_icon_cache *cache,
+					const char *text, int type,
+					int have_icon)
 {
-    unsigned int text_width, text_height;
-    sgui_widget* super;
-    sgui_button* this;
-    sgui_skin* skin;
-    sgui_rect r;
+	sgui_button *this = calloc(1, sizeof(*this));
+	sgui_widget *super = (sgui_widget *)this;
+	unsigned int text_width, text_height;
+	sgui_skin *skin;
+	sgui_rect r;
 
-    this = calloc( 1, sizeof(sgui_button) );
-    super = (sgui_widget*)this;
+	if (!this)
+		return NULL;
 
-    if( !this )
-        return NULL;
-
-    /* allocate space for the text */
+	if (have_icon) {
 #ifndef SGUI_NO_ICON_CACHE
-    if( flags & HAVE_ICON )
-    {
-        this->dpy.icon.cache = cache;
-        this->dpy.icon.i = icon;
-        sgui_icon_get_area( icon, &r );
-    }
-    else
+		this->dpy.icon.cache = cache;
+		this->dpy.icon.i = icon;
+		sgui_icon_get_area(icon, &r);
 #endif
-    {
-        if( !(this->dpy.text = sgui_strdup( text )) )
-        {
-            free( this );
-            return NULL;
-        }
+	} else {
+		if (!(this->dpy.text = sgui_strdup(text))) {
+			free(this);
+			return NULL;
+		}
+		sgui_skin_get_text_extents(text, &r);
+	}
 
-        sgui_skin_get_text_extents( text, &r );
-    }
+	text_width = SGUI_RECT_WIDTH(r);
+	text_height = SGUI_RECT_HEIGHT(r);
 
-    text_width = SGUI_RECT_WIDTH( r );
-    text_height = SGUI_RECT_HEIGHT( r );
+	if (type == BUTTON || type == TOGGLE_BUTTON) {
+		this->cx = (width - text_width) / 2;
+		this->cy = (height - text_height) / 2;
+	} else {
+		skin = sgui_skin_get();
 
-    /* compute size */
-    if( (flags & 0x03)==BUTTON || (flags & 0x03)==TOGGLE_BUTTON )
-    {
-        this->cx = width /2 - text_width/2;
-        this->cy = height/2 - text_height/2;
-    }
-    else
-    {
-        skin = sgui_skin_get( );
+		if (type == CHECKBOX)
+			skin->get_checkbox_extents(skin, &r);
+		else if (type == RADIO_BUTTON)
+			skin->get_radio_button_extents(skin, &r);
 
-        if( (flags & 0x03)==CHECKBOX )
-            skin->get_checkbox_extents( skin, &r );
-        else if( (flags & 0x03)==RADIO_BUTTON )
-            skin->get_radio_button_extents( skin, &r );
+		this->cx = SGUI_RECT_WIDTH(r);
+		this->cy = SGUI_RECT_HEIGHT(r);
 
-        this->cx = SGUI_RECT_WIDTH( r );
-        this->cy = SGUI_RECT_HEIGHT( r );
+		width  = this->cx + text_width;
+		height = MAX(this->cy, text_height);
 
-        width  = this->cx + text_width;
-        height = MAX(this->cy, text_height);
+		this->cy = (height - this->cy) / 2;
+		this->cy = MAX(this->cy, 0);
+	}
 
-        this->cy = (height - this->cy) / 2;
-        this->cy = MAX( this->cy, 0 );
-    }
+	sgui_widget_init(super, x, y, width, height);
+	this->type = type;
+	this->have_icon = have_icon;
 
-    /* initialise remaining fields */
-    sgui_widget_init( super, x, y, width, height );
+	if (type == BUTTON) {
+		this->super.window_event = button_on_event;
+	} else {
+		this->super.window_event = toggle_button_on_event;
+	}
 
-    this->prev = NULL;
-    this->next = NULL;
-    this->flags = flags;
-
-    if( (flags & 0x03)==BUTTON )
-        this->super.window_event = button_on_event;
-    else
-        this->super.window_event = toggle_button_on_event;
-
-    super->draw = button_draw;
-    super->destroy = button_destroy;
-
-    return (sgui_widget*)this;
+	super->draw = button_draw;
+	super->destroy = button_destroy;
+	return (sgui_widget *)this;
 }
 
 /***************************************************************************/
-sgui_widget* sgui_icon_button_create( int x, int y, unsigned int width,
-                                      unsigned int height,
-                                      sgui_icon_cache* cache,
-                                      sgui_icon* icon, int toggleable )
+sgui_widget *sgui_icon_button_create(int x, int y, unsigned int width,
+				unsigned int height, sgui_icon_cache *cache,
+				sgui_icon *icon, int toggleable)
 {
-    return button_create_common( x, y, width, height, icon, cache, NULL,
-                                 (toggleable ? TOGGLE_BUTTON : BUTTON) |
-                                 HAVE_ICON );
+	return button_create_common(x, y, width, height, icon, cache, NULL,
+				toggleable ? TOGGLE_BUTTON : BUTTON, 1);
 }
 
-sgui_widget* sgui_radio_button_create( int x, int y, const char* text )
+sgui_widget *sgui_radio_button_create(int x, int y, const char *text)
 {
-    return button_create_common( x, y, 0, 0, 0, NULL, text, RADIO_BUTTON );
+	return button_create_common(x, y, 0, 0, 0, NULL, text,
+					RADIO_BUTTON, 0);
 }
 
-sgui_widget* sgui_checkbox_create( int x, int y, const char* text )
+sgui_widget* sgui_checkbox_create(int x, int y, const char *text)
 {
-    return button_create_common( x, y, 0, 0, 0, NULL, text, CHECKBOX );
+	return button_create_common(x, y, 0, 0, 0, NULL, text, CHECKBOX, 0);
 }
 
-sgui_widget* sgui_button_create( int x, int y,
-                                 unsigned int width, unsigned int height,
-                                 const char* text, int toggleable )
+sgui_widget* sgui_button_create(int x, int y, unsigned int width,
+				unsigned int height, const char *text,
+				int toggleable)
 {
-    return button_create_common( x, y, width, height, 0, NULL, text,
-                                 toggleable ? TOGGLE_BUTTON : BUTTON );
+	return button_create_common(x, y, width, height, 0, NULL, text,
+				toggleable ? TOGGLE_BUTTON : BUTTON, 0);
 }
 
-void sgui_button_group_connect( sgui_widget* super, sgui_widget* previous,
-                                sgui_widget* next )
+void sgui_button_group_connect(sgui_widget *super, sgui_widget *previous,
+				sgui_widget *next)
 {
-    sgui_button* this = (sgui_button*)super;
+	sgui_button *this = (sgui_button *)super;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
+	if (this->prev)
+		this->prev->next = this->next;
+	if (this->next)
+		this->next->prev = this->prev;
 
-    /* disconnect from existing linked list */
-    if( this->prev ) this->prev->next = this->next;
-    if( this->next ) this->next->prev = this->prev;
+	this->prev = (sgui_button *)previous;
+	this->next = (sgui_button *)next;
 
-    /* connect to new list */
-    this->prev = (sgui_button*)previous;
-    this->next = (sgui_button*)next;
+	if (this->prev)
+		this->prev->next = this;
+	if (this->next)
+		this->next->prev = this;
 
-    if( this->prev ) this->prev->next = this;
-    if( this->next ) this->next->prev = this;
-
-    sgui_internal_unlock_mutex( );
+	sgui_internal_unlock_mutex();
 }
 
-void sgui_button_set_state( sgui_widget* this, int state )
+void sgui_button_set_state(sgui_widget *this, int state)
 {
-    if( (((sgui_button*)this)->flags & 0x03)!=BUTTON )
-        button_select( (sgui_button*)this, state, 0 );
+	if (((sgui_button *)this)->type != BUTTON)
+		button_select((sgui_button *)this, state, 0);
 }
 
-int sgui_button_get_state( sgui_widget* this )
+int sgui_button_get_state(sgui_widget *this)
 {
-    return (((sgui_button*)this)->flags & SELECTED)!=0;
+	return ((sgui_button *)this)->selected;
 }
 
-void sgui_button_set_text( sgui_widget* super, const char* text )
+void sgui_button_set_text(sgui_widget *super, const char *text)
 {
-    unsigned int text_width, text_height;
-    sgui_button* this = (sgui_button*)super;
-    sgui_rect r;
+	sgui_button *this = (sgui_button *)super;
+	unsigned int text_width, text_height;
+	sgui_rect r;
 
-    sgui_skin_get_text_extents( text, &r );
-    text_width = SGUI_RECT_WIDTH( r );
-    text_height = SGUI_RECT_HEIGHT( r );
+	sgui_skin_get_text_extents(text, &r);
+	text_width = SGUI_RECT_WIDTH(r);
+	text_height = SGUI_RECT_HEIGHT(r);
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    /* adjust buffer size and copy */
-    if( !(this->flags & HAVE_ICON) )
-        free( this->dpy.text );
+	if (!this->have_icon)
+		free(this->dpy.text);
 
-    this->flags &= ~HAVE_ICON;
-    this->dpy.text = sgui_strdup( text );
+	this->have_icon = 0;
+	this->dpy.text = sgui_strdup(text);
 
-    /* determine text position */
-    if( (this->flags & 0x03)==BUTTON || (this->flags & 0x03)==TOGGLE_BUTTON )
-    {
-        this->cx = (super->area.left + super->area.right - text_width)>>1;
-        this->cy = (super->area.top + super->area.bottom - text_height)>>1;
-    }
-    else
-    {
-        super->area.right = super->area.left + this->cx + text_width;
-    }
+	if (this->type == BUTTON || this->type == TOGGLE_BUTTON) {
+		this->cx = super->area.left + super->area.right - text_width;
+		this->cy = super->area.top + super->area.bottom - text_height;
 
-    sgui_internal_unlock_mutex( );
+		this->cx /= 2;
+		this->cy /= 2;
+	} else {
+		super->area.right = super->area.left + this->cx + text_width;
+	}
+
+	sgui_internal_unlock_mutex();
 }
-
 #ifndef SGUI_NO_ICON_CACHE
-void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
-                           sgui_icon* icon )
+void sgui_button_set_icon(sgui_widget *super, sgui_icon_cache *cache,
+			sgui_icon *icon)
 {
-    unsigned int img_width, img_height, width, height;
-    sgui_button* this = (sgui_button*)super;
-    sgui_skin* skin;
-    sgui_rect r;
+	unsigned int img_width, img_height, width, height;
+	sgui_button *this = (sgui_button *)super;
+	sgui_skin *skin;
+	sgui_rect r;
 
-    sgui_icon_get_area( icon, &r );
-    sgui_internal_lock_mutex( );
+	sgui_icon_get_area(icon, &r);
+	sgui_internal_lock_mutex();
 
-    /* copy display data */
-    if( !(this->flags & HAVE_ICON) )
-        free( this->dpy.text );
+	if (!this->have_icon)
+		free(this->dpy.text);
 
-    this->flags |= HAVE_ICON;
-    this->dpy.icon.cache = cache;
-    this->dpy.icon.i = icon;
+	this->have_icon = 1;
+	this->dpy.icon.cache = cache;
+	this->dpy.icon.i = icon;
 
-    img_width = SGUI_RECT_WIDTH( r );
-    img_height = SGUI_RECT_HEIGHT( r );
+	img_width = SGUI_RECT_WIDTH(r);
+	img_height = SGUI_RECT_HEIGHT(r);
 
-    /* adjust position and size */
-    if( (this->flags & 0x03)==BUTTON || (this->flags & 0x03)==TOGGLE_BUTTON )
-    {
-        this->cx = (super->area.left + super->area.right - img_width)>>1;
-        this->cy = (super->area.top + super->area.bottom - img_height)>>1;
-    }
-    else
-    {
-        skin = sgui_skin_get( );
+	if (this->type == BUTTON || this->type == TOGGLE_BUTTON) {
+		this->cx = super->area.left + super->area.right - img_width;
+		this->cy = super->area.top + super->area.bottom - img_height;
 
-        if( (this->flags & 0x03)==CHECKBOX )
-            skin->get_checkbox_extents( skin, &r );
-        else if( (this->flags & 0x03)==RADIO_BUTTON )
-            skin->get_radio_button_extents( skin, &r );
+		this->cx /= 2;
+		this->cy /= 2;
+	} else {
+		skin = sgui_skin_get();
 
-        this->cx = SGUI_RECT_WIDTH( r );
-        this->cy = SGUI_RECT_HEIGHT( r );
+		if (this->type == CHECKBOX) {
+			skin->get_checkbox_extents(skin, &r);
+		} else if (this->type == RADIO_BUTTON) {
+			skin->get_radio_button_extents(skin, &r);
+		}
 
-        width  = this->cx + img_width;
-        height = MAX(this->cy, img_height);
+		this->cx = SGUI_RECT_WIDTH(r);
+		this->cy = SGUI_RECT_HEIGHT(r);
 
-        this->cy = (height > this->cy) ? ((height - this->cy) / 2) : 0;
+		width = this->cx + img_width;
+		height = MAX(this->cy, img_height);
 
-        sgui_rect_set_size( &(super->area),
-                            super->area.left, super->area.right,
-                            width, height );
-    }
+		this->cy = (height > this->cy) ? ((height - this->cy) / 2) : 0;
 
-    sgui_internal_unlock_mutex( );
+		sgui_rect_set_size(&(super->area), super->area.left,
+					super->area.right, width, height);
+	}
+
+	sgui_internal_unlock_mutex();
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-void sgui_button_set_icon( sgui_widget* super, sgui_icon_cache* cache,
-                           sgui_icon* icon )
+void sgui_button_set_icon(sgui_widget *super, sgui_icon_cache *cache,
+			sgui_icon *icon)
 {
-    (void)super; (void)cache; (void)icon;
+	(void)super; (void)cache; (void)icon;
 }
 #endif
-
