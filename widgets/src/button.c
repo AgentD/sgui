@@ -36,13 +36,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-#define BUTTON        0x00
-#define TOGGLE_BUTTON 0x01
-#define CHECKBOX      0x02
-#define RADIO_BUTTON  0x03
-
-
 typedef struct sgui_button {
 	sgui_widget super;
 
@@ -61,7 +54,7 @@ typedef struct sgui_button {
 	unsigned int selected : 1;
 	unsigned int have_icon : 1;
 
-	/* button: text position, checkbox/radio button: text/object offset */
+	/* button: text or icon offset  */
 	unsigned int cx, cy;
 
 	struct sgui_button *prev; /* radio button menu: next in menu */
@@ -125,24 +118,14 @@ static void button_draw(sgui_widget *super)
 	int in = (this->selected ? 1 : 0), x, y;
 	sgui_skin* skin = sgui_skin_get();
 
-	if (this->type == BUTTON || this->type == TOGGLE_BUTTON) {
-		skin->draw_button(skin, super->canvas, &super->area, in);
-		x = super->area.left + this->cx - in;
-		y = super->area.top  + this->cy - in;
-	} else {
-		if (this->type == CHECKBOX) {
-			skin->draw_checkbox(skin, super->canvas,
-					super->area.left,
-					super->area.top + this->cy, in);
-		} else {
-			skin->draw_radio_button(skin, super->canvas,
-						super->area.left,
-						super->area.top + this->cy,
-						in);
-		}
+	skin->draw_button(skin, super->canvas, &super->area, this->type, in);
 
-		x = super->area.left + this->cx;
-		y = super->area.top;
+	x = super->area.left + this->cx;
+	y = super->area.top  + this->cy;
+
+	if (this->type == SGUI_BUTTON || this->type == SGUI_TOGGLE_BUTTON) {
+		x += in;
+		y += in;
 	}
 
 	if (this->have_icon) {
@@ -267,32 +250,33 @@ static sgui_widget *button_create_common(int x, int y, unsigned int width,
 	text_width = SGUI_RECT_WIDTH(r);
 	text_height = SGUI_RECT_HEIGHT(r);
 
-	if (type == BUTTON || type == TOGGLE_BUTTON) {
+	if (type == SGUI_BUTTON || type == SGUI_TOGGLE_BUTTON) {
 		this->cx = (width - text_width) / 2;
 		this->cy = (height - text_height) / 2;
 	} else {
 		skin = sgui_skin_get();
 
-		if (type == CHECKBOX)
-			skin->get_checkbox_extents(skin, &r);
-		else if (type == RADIO_BUTTON)
-			skin->get_radio_button_extents(skin, &r);
+		skin->get_button_extents(skin, type, &r);
 
 		this->cx = SGUI_RECT_WIDTH(r);
 		this->cy = SGUI_RECT_HEIGHT(r);
 
-		width  = this->cx + text_width;
-		height = MAX(this->cy, text_height);
+		width = this->cx + text_width;
 
-		this->cy = (height - this->cy) / 2;
-		this->cy = MAX(this->cy, 0);
+		if (this->cy > text_height) {
+			height = this->cy;
+			this->cy = (this->cy - text_height) / 2;
+		} else {
+			height = text_height;
+			this->cy = 0;
+		}
 	}
 
 	sgui_widget_init(super, x, y, width, height);
 	this->type = type;
 	this->have_icon = have_icon;
 
-	if (type == BUTTON) {
+	if (type == SGUI_BUTTON) {
 		this->super.window_event = button_on_event;
 	} else {
 		this->super.window_event = toggle_button_on_event;
@@ -309,18 +293,18 @@ sgui_widget *sgui_icon_button_create(int x, int y, unsigned int width,
 				sgui_icon *icon, int toggleable)
 {
 	return button_create_common(x, y, width, height, icon, cache, NULL,
-				toggleable ? TOGGLE_BUTTON : BUTTON, 1);
+				toggleable ? SGUI_TOGGLE_BUTTON : SGUI_BUTTON, 1);
 }
 
 sgui_widget *sgui_radio_button_create(int x, int y, const char *text)
 {
 	return button_create_common(x, y, 0, 0, 0, NULL, text,
-					RADIO_BUTTON, 0);
+					SGUI_RADIO_BUTTON, 0);
 }
 
 sgui_widget* sgui_checkbox_create(int x, int y, const char *text)
 {
-	return button_create_common(x, y, 0, 0, 0, NULL, text, CHECKBOX, 0);
+	return button_create_common(x, y, 0, 0, 0, NULL, text, SGUI_CHECKBOX, 0);
 }
 
 sgui_widget* sgui_button_create(int x, int y, unsigned int width,
@@ -328,7 +312,7 @@ sgui_widget* sgui_button_create(int x, int y, unsigned int width,
 				int toggleable)
 {
 	return button_create_common(x, y, width, height, 0, NULL, text,
-				toggleable ? TOGGLE_BUTTON : BUTTON, 0);
+				toggleable ? SGUI_TOGGLE_BUTTON : SGUI_BUTTON, 0);
 }
 
 void sgui_button_group_connect(sgui_widget *super, sgui_widget *previous,
@@ -355,7 +339,7 @@ void sgui_button_group_connect(sgui_widget *super, sgui_widget *previous,
 
 void sgui_button_set_state(sgui_widget *this, int state)
 {
-	if (((sgui_button *)this)->type != BUTTON)
+	if (((sgui_button *)this)->type != SGUI_BUTTON)
 		button_select((sgui_button *)this, state, 0);
 }
 
@@ -366,8 +350,9 @@ int sgui_button_get_state(sgui_widget *this)
 
 void sgui_button_set_text(sgui_widget *super, const char *text)
 {
+	unsigned int text_width, text_height, width, height;
 	sgui_button *this = (sgui_button *)super;
-	unsigned int text_width, text_height;
+	sgui_skin *skin;
 	sgui_rect r;
 
 	sgui_skin_get_text_extents(text, &r);
@@ -382,14 +367,32 @@ void sgui_button_set_text(sgui_widget *super, const char *text)
 	this->have_icon = 0;
 	this->dpy.text = sgui_strdup(text);
 
-	if (this->type == BUTTON || this->type == TOGGLE_BUTTON) {
+	if (this->type == SGUI_BUTTON || this->type == SGUI_TOGGLE_BUTTON) {
 		this->cx = super->area.left + super->area.right - text_width;
 		this->cy = super->area.top + super->area.bottom - text_height;
 
 		this->cx /= 2;
 		this->cy /= 2;
 	} else {
-		super->area.right = super->area.left + this->cx + text_width;
+		skin = sgui_skin_get();
+
+		skin->get_button_extents(skin, this->type, &r);
+
+		this->cx = SGUI_RECT_WIDTH(r);
+		this->cy = SGUI_RECT_HEIGHT(r);
+
+		width = this->cx + text_width;
+
+		if (this->cy > text_height) {
+			height = this->cy;
+			this->cy = (this->cy - text_height) / 2;
+		} else {
+			height = text_height;
+			this->cy = 0;
+		}
+
+		sgui_rect_set_size(&super->area, super->area.left,
+					super->area.top, width, height);
 	}
 
 	sgui_internal_unlock_mutex();
@@ -416,7 +419,7 @@ void sgui_button_set_icon(sgui_widget *super, sgui_icon_cache *cache,
 	img_width = SGUI_RECT_WIDTH(r);
 	img_height = SGUI_RECT_HEIGHT(r);
 
-	if (this->type == BUTTON || this->type == TOGGLE_BUTTON) {
+	if (this->type == SGUI_BUTTON || this->type == SGUI_TOGGLE_BUTTON) {
 		this->cx = super->area.left + super->area.right - img_width;
 		this->cy = super->area.top + super->area.bottom - img_height;
 
@@ -425,19 +428,20 @@ void sgui_button_set_icon(sgui_widget *super, sgui_icon_cache *cache,
 	} else {
 		skin = sgui_skin_get();
 
-		if (this->type == CHECKBOX) {
-			skin->get_checkbox_extents(skin, &r);
-		} else if (this->type == RADIO_BUTTON) {
-			skin->get_radio_button_extents(skin, &r);
-		}
+		skin->get_button_extents(skin, this->type, &r);
 
 		this->cx = SGUI_RECT_WIDTH(r);
 		this->cy = SGUI_RECT_HEIGHT(r);
 
 		width = this->cx + img_width;
-		height = MAX(this->cy, img_height);
 
-		this->cy = (height > this->cy) ? ((height - this->cy) / 2) : 0;
+		if (this->cy > img_height) {
+			height = this->cy;
+			this->cy = (this->cy - img_height) / 2;
+		} else {
+			height = img_height;
+			this->cy = 0;
+		}
 
 		sgui_rect_set_size(&(super->area), super->area.left,
 					super->area.right, width, height);

@@ -30,7 +30,7 @@
 #include "sgui_internal.h"
 
 #include <stddef.h>
-
+#include <string.h>
 
 
 #define FONT "SourceSansPro-Regular.ttf"
@@ -98,10 +98,12 @@ static const unsigned char yellow[4]      = { 0xFF, 0xFF, 0x00, 0xFF };
 
 
 
-static void default_get_checkbox_extents(sgui_skin *this, sgui_rect *r)
+static void default_get_button_extents(sgui_skin *this, int type, sgui_rect *r)
 {
 	(void)this;
-	sgui_rect_set_size(r, 0, 0, 20, 12);
+	memset(r, 0, sizeof(*r));
+	if (type == SGUI_CHECKBOX || type == SGUI_RADIO_BUTTON)
+		sgui_rect_set_size(r, 0, 0, 20, 12);
 }
 
 static unsigned int default_get_edit_box_height(sgui_skin *this)
@@ -168,45 +170,48 @@ static void default_get_spin_buttons(sgui_skin *this, sgui_rect *up,
 	sgui_rect_set_size(down, 5, 15, 15, 10);
 }
 
-static void default_draw_checkbox(sgui_skin *this, sgui_canvas *canvas,
-					int x, int y, int checked)
-{
-	const sgui_pixmap *skin_pixmap;
-	sgui_rect *r;
-	(void)this;
-
-	r = checked ? &chkbox_ticked : &chkbox;
-	skin_pixmap = canvas->get_skin_pixmap(canvas);
-	sgui_canvas_draw_pixmap(canvas, x, y, skin_pixmap, r, 1);
-}
-
-static void default_draw_radio_button(sgui_skin *this, sgui_canvas *canvas,
-					int x, int y, int checked)
-{
-	const sgui_pixmap *skin_pixmap;
-	sgui_rect *r;
-	(void)this;
-
-	r = checked ? &radio_ticked : &radio;
-	skin_pixmap = canvas->get_skin_pixmap(canvas);
-	sgui_canvas_draw_pixmap(canvas, x, y, skin_pixmap, r, 1);
-}
-
 static void default_draw_button(sgui_skin *skin, sgui_canvas *canvas,
-				sgui_rect *r, int pressed)
+				sgui_rect *r, int type, int pressed)
 {
-	int w = SGUI_RECT_WIDTH_V(r), h = SGUI_RECT_HEIGHT_V(r);
-	int x = r->left, y = r->top;
+	int w, h, ph, x = r->left, y = r->top;
 	const unsigned char *lt, *rb;
+	const sgui_pixmap *skin_pixmap;
+	sgui_rect *pic;
 	(void)skin;
 
-	lt = pressed ? black : white;
-	rb = pressed ? white : black;
+	switch (type) {
+	case SGUI_RADIO_BUTTON:
+		pic = pressed ? &radio_ticked : &radio;
+		goto out_pic;
+	case SGUI_CHECKBOX:
+		pic = pressed ? &chkbox_ticked : &chkbox;
+		goto out_pic;
+	case SGUI_BUTTON:
+	case SGUI_TOGGLE_BUTTON:
+		w = SGUI_RECT_WIDTH_V(r);
+		h = SGUI_RECT_HEIGHT_V(r);
 
-	sgui_canvas_draw_line(canvas, x, y, w, 1, lt, SGUI_RGB8);
-	sgui_canvas_draw_line(canvas, x, y, h, 0, lt, SGUI_RGB8);
-	sgui_canvas_draw_line(canvas, x, y + h - 1, w, 1, rb, SGUI_RGB8);
-	sgui_canvas_draw_line(canvas, x + w - 1, y, h, 0, rb, SGUI_RGB8);
+		lt = pressed ? black : white;
+		rb = pressed ? white : black;
+
+		sgui_canvas_draw_line(canvas, x, y, w, 1, lt, SGUI_RGB8);
+		sgui_canvas_draw_line(canvas, x, y, h, 0, lt, SGUI_RGB8);
+		sgui_canvas_draw_line(canvas, x, y + h - 1, w, 1,
+						rb, SGUI_RGB8);
+		sgui_canvas_draw_line(canvas, x + w - 1, y, h, 0,
+						rb, SGUI_RGB8);
+		break;
+	}
+	return;
+out_pic:
+	h = SGUI_RECT_HEIGHT_V(r);
+	ph = SGUI_RECT_HEIGHT_V(pic);
+
+	if (h > ph)
+		y += (h - ph) / 2;
+
+	skin_pixmap = canvas->get_skin_pixmap(canvas);
+	sgui_canvas_draw_pixmap(canvas, x, y, skin_pixmap, pic, 1);
 }
 
 static void default_draw_editbox(sgui_skin *this, sgui_canvas *canvas,
@@ -400,24 +405,24 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 					SGUI_RGB8 );
 
 		/* upper button */
-		sgui_rect_set_size( &r, x, y, 20, 20 );
-		default_draw_button( this, canvas, &r, incbutton );
+		sgui_rect_set_size(&r, x, y, 20, 20);
+		default_draw_button(this, canvas, &r, SGUI_BUTTON, incbutton);
 
 		sgui_canvas_draw_pixmap(canvas, x + 5 - incbutton,
 						y + 7 - incbutton,
 						skin_pixmap, &arrow_up, 1);
 
 		/* lower button */
-		sgui_rect_set_size( &r, x, y+length-20, 20, 20 );
-		default_draw_button( this, canvas, &r, decbutton );
+		sgui_rect_set_size(&r, x, y+length-20, 20, 20);
+		default_draw_button(this, canvas, &r, SGUI_BUTTON, decbutton);
 
 		sgui_canvas_draw_pixmap(canvas, x + 5 - decbutton,
 						y + length - 12 - decbutton,
 						skin_pixmap, &arrow_dn, 1);
 
 		/* pane */
-		sgui_rect_set_size( &r, x, y+20+pane_offset, 20, pane_length );
-		default_draw_button( this, canvas, &r, 0 );
+		sgui_rect_set_size(&r, x, y+20+pane_offset, 20, pane_length);
+		default_draw_button(this, canvas, &r, SGUI_BUTTON, 0);
 	} else {
 		/* background */
 		sgui_rect_set_size( &r, x, y, length, 20 );
@@ -427,7 +432,7 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		/* left button */
 		sgui_rect_set_size( &r, x, y, 20, 20 );
-		default_draw_button( this, canvas, &r, incbutton );
+		default_draw_button(this, canvas, &r, SGUI_BUTTON, incbutton);
 
 		sgui_canvas_draw_pixmap(canvas, x + 7 - incbutton,
 						y + 5 - incbutton,
@@ -435,7 +440,7 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		/* right button */
 		sgui_rect_set_size( &r, x+length-20, y, 20, 20 );
-		default_draw_button( this, canvas, &r, decbutton );
+		default_draw_button(this, canvas, &r, SGUI_BUTTON, decbutton);
 
 		sgui_canvas_draw_pixmap(canvas, x + length - 13 - decbutton,
 						y + 5 - decbutton,
@@ -443,7 +448,7 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		/* pane */
 		sgui_rect_set_size( &r, x+20+pane_offset, y, pane_length, 20 );
-		default_draw_button( this, canvas, &r, 0 );
+		default_draw_button(this, canvas, &r, SGUI_BUTTON, 0);
 	}
 }
 
@@ -658,10 +663,7 @@ static void default_init_skin_pixmap(sgui_skin* skin, sgui_pixmap* pixmap)
 sgui_skin sgui_default_skin = {
 	.get_skin_pixmap_size = default_get_skin_pixmap_size,
 	.init_skin_pixmap = default_init_skin_pixmap,
-	.get_checkbox_extents = default_get_checkbox_extents,
-	.get_radio_button_extents = default_get_checkbox_extents,
-	.draw_checkbox = default_draw_checkbox,
-	.draw_radio_button = default_draw_radio_button,
+	.get_button_extents = default_get_button_extents,
 	.draw_button = default_draw_button,
 	.draw_editbox = default_draw_editbox,
 	.get_edit_box_height = default_get_edit_box_height,

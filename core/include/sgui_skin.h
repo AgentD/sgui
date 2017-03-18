@@ -43,6 +43,11 @@
 #define SGUI_PROGRESS_BAR_CONTINUOUS  0x01
 #define SGUI_PROGRESS_BAR_VERTICAL    0x02
 
+#define SGUI_BUTTON                   0x00
+#define SGUI_TOGGLE_BUTTON            0x01
+#define SGUI_CHECKBOX                 0x02
+#define SGUI_RADIO_BUTTON             0x03
+
 
 
 /**
@@ -67,9 +72,7 @@ struct sgui_skin
 
     void(* init_skin_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
 
-    void(* get_checkbox_extents )( sgui_skin* skin, sgui_rect* r );
-
-    void(* get_radio_button_extents )( sgui_skin* skin, sgui_rect* r );
+    void(* get_button_extents )( sgui_skin* skin, int type, sgui_rect* r );
 
     unsigned int(* get_edit_box_height )( sgui_skin* skin );
 
@@ -96,14 +99,8 @@ struct sgui_skin
     void(* draw_focus_box )( sgui_skin* skin, sgui_canvas* canvas,
                              sgui_rect* r );
 
-    void(* draw_checkbox )( sgui_skin* skin, sgui_canvas* canvas,
-                            int x, int y, int checked );
-
-    void(* draw_radio_button )( sgui_skin* skin, sgui_canvas* canvas,
-                                int x, int y, int checked );
-
     void(* draw_button )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
-                          int pressed );
+                          int type, int pressed );
 
     void(* draw_editbox )( sgui_skin* skin, sgui_canvas* canvas, sgui_rect* r,
                            const char* text, int offset, int cursor,
