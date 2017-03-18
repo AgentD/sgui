@@ -608,41 +608,49 @@ static void default_get_skin_pixmap_size(sgui_skin* skin, unsigned int* width,
 
 static void default_init_skin_pixmap(sgui_skin* skin, sgui_pixmap* pixmap)
 {
-	unsigned char buffer[PIXMAP_W * 2 * 4], *dptr;
-	unsigned int a, b, x, y, count = 0;
-	const unsigned char *iptr;
+	unsigned char buffer[PIXMAP_W * PIXMAP_H * 4];
+	union { sgui_u32 c32[2]; sgui_u64 c64; } col;
+	const unsigned char *iptr, *end;
+	unsigned int cw, count = 0;
+	sgui_u64 *dptr64;
+	size_t pixels;
 	(void)skin;
 
 	iptr = pixmap_data;
-	for (y = 0; y < PIXMAP_H; y += 2) {
-		dptr = buffer;
+	end = pixmap_data + sizeof(pixmap_data) / sizeof(pixmap_data[0]);
+	pixels = PIXMAP_W * PIXMAP_H;
+	dptr64 = (sgui_u64 *)buffer;
 
-		for (x = 0; x < (PIXMAP_W * 2); x += 2) {
-			if (count) {
-				--count;
-			} else {
-				count = (*iptr & 0x80) ?
-					((*(iptr++) & 0x7F) - 1) :
-					((*iptr & 0x40) ? 1 : 0);
-				a = ((*iptr & 070) >> 3) * 4;
-				b =  (*iptr & 007) * 4;
-				++iptr;
-			}
+	while (iptr < end && pixels) {
+		cw = *(iptr++);
 
-			*(dptr++) = colormap[a    ];
-			*(dptr++) = colormap[a + 1];
-			*(dptr++) = colormap[a + 2];
-			*(dptr++) = colormap[a + 3];
-
-			*(dptr++) = colormap[b    ];
-			*(dptr++) = colormap[b + 1];
-			*(dptr++) = colormap[b + 2];
-			*(dptr++) = colormap[b + 3];
+		if (cw & 0x80) {
+			if (iptr == end)
+				break;
+			count = cw & 0x7F;
+			cw = *(iptr++);
+		} else if (cw & 0x40) {
+			count = 2;
+		} else {
+			count = 1;
 		}
 
-		sgui_pixmap_load(pixmap, 0, y, buffer, 0, 0, PIXMAP_W, 2,
-					PIXMAP_W, SGUI_RGBA8);
+		col.c32[0] = ((sgui_u32 *)colormap)[(cw & 070) >> 3];
+		col.c32[1] = ((sgui_u32 *)colormap)[ cw & 007      ];
+
+		while (count && pixels >= 2) {
+			*(dptr64++) = col.c64;
+			--count;
+			pixels -= 2;
+		}
+		if (count) {
+			*((sgui_u32 *)dptr64) = col.c32[0];
+			break;
+		}
 	}
+
+	sgui_pixmap_load(pixmap, 0, 0, buffer, 0, 0, PIXMAP_W, PIXMAP_H,
+			PIXMAP_W, SGUI_RGBA8);
 }
 
 /****************************************************************************/

@@ -36,6 +36,9 @@
 #include "sgui_config.h"
 #include <stddef.h>
 
+#ifndef _MSC_VER
+    #include <stdint.h>
+#endif
 
 
 #if defined(SGUI_WINDOWS) && !defined(__TINYC__)
@@ -51,9 +54,15 @@
 #ifdef _MSC_VER
     #define SGUI_INLINE __forceinline
     #define sgui_strdup _strdup
+
+    typedef unsigned __int32 sgui_u32;
+    typedef unsigned __int64 sgui_u64;
 #else
     #define SGUI_INLINE __inline__ __attribute__((always_inline))
     #define sgui_strdup strdup
+
+    typedef uint32_t sgui_u32;
+    typedef uint64_t sgui_u64;
 #endif
 
 
