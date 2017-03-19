@@ -137,9 +137,9 @@ int main( void )
     /************************ createtexture canvas ************************/
     texcanvas = sgui_tex_canvas_create( wnd, 128, 128 );
 
-    butt = sgui_button_create( 10, 10, 60, 25, "Button", 0 );
-    check = sgui_checkbox_create( 10, 40, "Direct3D" );
-    check2 = sgui_checkbox_create( 10, 65, "Texture" );
+    butt = sgui_button_create( 10, 10, 60, 25, "Button", SGUI_BUTTON );
+    check = sgui_button_create( 10, 40, 0, 0, "Direct3D", SGUI_CHECKBOX );
+    check2 = sgui_button_create( 10, 65, 0, 0, "Texture", SGUI_CHECKBOX );
 
     sgui_button_set_state( check, 1 );
     sgui_button_set_state( check2, 1 );

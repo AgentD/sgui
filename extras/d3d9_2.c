@@ -80,7 +80,7 @@ int main( void )
 
     /* create some widgets */
     text = sgui_label_create( 40, 130, "Direct3D\302\256 widget" );
-    button = sgui_button_create( 10, 155, 75, 30, "Refresh", 0 );
+    button = sgui_button_create( 10, 155, 75, 30, "Refresh", SGUI_BUTTON );
 
     /* create a subview wiget. See gl2.c for further explanation */
     subview = sgui_subview_create( wnd, 10, 10, 180, 120,

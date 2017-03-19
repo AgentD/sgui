@@ -46,8 +46,8 @@ int main( void )
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
 
     /* create some widgets */
-    rb = sgui_button_create( 30, 30, 120, 30, "Read Clipboard", 0 );
-    wb = sgui_button_create( 30, 70, 120, 30, "Write Clipboard", 0 );
+    rb = sgui_button_create( 30, 30, 120, 30, "Read Clipboard", SGUI_BUTTON );
+    wb = sgui_button_create( 30, 70, 120, 30, "Write Clipboard", SGUI_BUTTON );
     eb = sgui_edit_box_create( 160, 70, 120, 128 );
 
     /* add widgets to the window */

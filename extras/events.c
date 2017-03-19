@@ -29,10 +29,10 @@ int main( void )
     sgui_window_set_title( wnd, "Signals & Slots" );
 
     /* create widgets */
-    b1 = sgui_button_create( 10, 10, 80, 30, "Show", 0 );
-    b2 = sgui_button_create( 10, 45, 80, 30, "Hide", 0 );
-    b3 = sgui_button_create( 10, 80, 80, 30, "Move", 0 );
-    b4 = sgui_button_create( 95, 80, 80, 30, "Close", 0 );
+    b1 = sgui_button_create( 10, 10, 80, 30, "Show", SGUI_BUTTON );
+    b2 = sgui_button_create( 10, 45, 80, 30, "Hide", SGUI_BUTTON );
+    b3 = sgui_button_create( 10, 80, 80, 30, "Move", SGUI_BUTTON );
+    b4 = sgui_button_create( 95, 80, 80, 30, "Close", SGUI_BUTTON );
 
     for( ptr=image, j=0; j<64; ++j )
     {

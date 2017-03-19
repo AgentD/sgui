@@ -114,9 +114,9 @@ int main( void )
     sgui_window_set_title( subwnd2, "Another Window" );
 
     /* create a few widgets */
-    butt = sgui_button_create( 10, 35, 60, 25, "Button", 0 );
-    check = sgui_checkbox_create( 10, 65, "OpenGL" );
-    check2 = sgui_checkbox_create( 10, 90, "Texture" );
+    butt = sgui_button_create( 10, 35, 60, 25, "Button", SGUI_BUTTON );
+    check = sgui_button_create( 10, 65, 0, 0, "OpenGL", SGUI_CHECKBOX );
+    check2 = sgui_button_create( 10, 90, 0, 0, "Texture", SGUI_CHECKBOX );
 
     label = sgui_label_create( 10, 35, "Hello, world!\n\n"
                                        "From a <b><i>sub</i></b> window." );

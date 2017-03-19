@@ -245,14 +245,14 @@ int main( int argc, char** argv )
     s2 = sgui_slider_create( 420, 35, 200, 1, 0, 100, 0  );
     s3 = sgui_slider_create( 280, 310, 200, 0, 0, 100, 0  );
     s4 = sgui_slider_create( 280, 335, 200, 0, 0, 100, 11 );
-    butt = sgui_button_create( 10, 275, 80, 30, "Button", 0 );
-    tb = sgui_button_create( 95, 275, 80, 30, "Toggle", 1 );
-    t1 = sgui_icon_button_create( 360,  35, 30, 30, ic,
-                                  sgui_icon_map_find(ic,0), 1 );
-    t2 = sgui_icon_button_create( 360,  70, 30, 30, ic,
-                                  sgui_icon_map_find(ic,1), 1 );
-    t3 = sgui_icon_button_create( 360, 105, 30, 30, ic,
-                                  sgui_icon_map_find(ic,2), 1 );
+    butt = sgui_button_create( 10, 275, 80, 30, "Button", SGUI_BUTTON );
+    tb = sgui_button_create( 95, 275, 80, 30, "Toggle", SGUI_TOGGLE_BUTTON );
+    t1 = sgui_icon_button_create(360,  35, 30, 30, ic,
+                                 sgui_icon_map_find(ic,0), SGUI_TOGGLE_BUTTON);
+    t2 = sgui_icon_button_create(360,  70, 30, 30, ic,
+                                 sgui_icon_map_find(ic,1), SGUI_TOGGLE_BUTTON);
+    t3 = sgui_icon_button_create(360, 105, 30, 30, ic,
+                                 sgui_icon_map_find(ic,2), SGUI_TOGGLE_BUTTON);
     eb = sgui_edit_box_create( 10, 195, 100, 100 );
     ebn = sgui_spin_box_create( 10, 235, 100, -2000, 2000, 1337, 42, 1 );
     ebp = sgui_pass_box_create( 120, 195, 100, 10 );
@@ -266,12 +266,12 @@ int main( int argc, char** argv )
     sgui_edit_box_set_text( ebp, "secret" );
 
     f = sgui_frame_create( 10, 25, 150, 150 );
-    r0 = sgui_radio_button_create( 10, 100, "Option 1" );
-    r1 = sgui_radio_button_create( 10, 126, "Option 2" );
-    r2 = sgui_radio_button_create( 10, 152, "Option 3" );
-    c0 = sgui_checkbox_create( 10,  10, "Checkbox 1" );
-    c1 = sgui_checkbox_create( 10,  35, "Checkbox 2" );
-    c2 = sgui_checkbox_create( 10,  60, "Checkbox 3" );
+    r0 = sgui_button_create( 10, 100, 0, 0, "Option 1", SGUI_RADIO_BUTTON );
+    r1 = sgui_button_create( 10, 126, 0, 0, "Option 2", SGUI_RADIO_BUTTON );
+    r2 = sgui_button_create( 10, 152, 0, 0, "Option 3", SGUI_RADIO_BUTTON );
+    c0 = sgui_button_create( 10,  10, 0, 0, "Checkbox 1", SGUI_CHECKBOX );
+    c1 = sgui_button_create( 10,  35, 0, 0, "Checkbox 2", SGUI_CHECKBOX );
+    c2 = sgui_button_create( 10,  60, 0, 0, "Checkbox 3", SGUI_CHECKBOX );
 
     sgui_button_group_connect( r0, NULL,   r1 );
     sgui_button_group_connect( r1, r0,     r2 );
@@ -286,9 +286,9 @@ int main( int argc, char** argv )
     sgui_widget_add_child( f, r2 );
 
     gb = sgui_group_box_create( 200, 25, 130, 110, "Group Box" );
-    ra = sgui_radio_button_create( 10, 25, "Option 1" );
-    rb = sgui_radio_button_create( 10, 51, "Option 2" );
-    rc = sgui_radio_button_create( 10, 77, "Option 3" );
+    ra = sgui_button_create( 10, 25, 0, 0, "Option 1", SGUI_RADIO_BUTTON );
+    rb = sgui_button_create( 10, 51, 0, 0, "Option 2", SGUI_RADIO_BUTTON );
+    rc = sgui_button_create( 10, 77, 0, 0, "Option 3", SGUI_RADIO_BUTTON );
 
     sgui_button_group_connect( ra, NULL,   rb );
     sgui_button_group_connect( rb, ra,     rc );

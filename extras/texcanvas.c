@@ -151,9 +151,9 @@ int main( void )
     /****************** create a texture canvas ******************/
     texcanvas = sgui_tex_canvas_create( wnd, 128, 128 );
 
-    butt = sgui_button_create( 10, 10, 60, 25, "Button", 0 );
-    check = sgui_checkbox_create( 10, 40, "OpenGL" );
-    check2 = sgui_checkbox_create( 10, 65, "Texture" );
+    butt = sgui_button_create( 10, 10, 60, 25, "Button", SGUI_BUTTON );
+    check = sgui_button_create( 10, 40, 0, 0, "OpenGL", SGUI_CHECKBOX );
+    check2 = sgui_button_create( 10, 65, 0, 0, "Texture", SGUI_CHECKBOX );
 
     sgui_button_set_state( check, 1 );
     sgui_button_set_state( check2, 1 );

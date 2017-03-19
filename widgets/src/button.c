@@ -218,6 +218,56 @@ static void button_destroy(sgui_widget *super)
 	free(this);
 }
 
+static void determine_shape(sgui_button *this, int type, unsigned int *width,
+			unsigned int *height, unsigned int text_w,
+			unsigned int text_h)
+{
+	sgui_skin *skin = sgui_skin_get();
+	sgui_rect r;
+
+	skin->get_button_extents(skin, type, &r);
+
+	if (type == SGUI_BUTTON || type == SGUI_TOGGLE_BUTTON) {
+		if (!*width)
+			*width = SGUI_RECT_WIDTH(r) + text_w;
+		if (!*height)
+			*height = SGUI_RECT_HEIGHT(r) + text_h;
+
+		this->cx = (*width - text_w) / 2;
+		this->cy = (*height - text_h) / 2;
+	} else {
+		this->cx = SGUI_RECT_WIDTH(r);
+		this->cy = SGUI_RECT_HEIGHT(r);
+
+		*width = this->cx + text_w;
+
+		if (this->cy > text_h) {
+			*height = this->cy;
+			this->cy = (this->cy - text_h) / 2;
+		} else {
+			*height = text_h;
+			this->cy = 0;
+		}
+	}
+}
+
+static void update_shape(sgui_button *this, const sgui_rect *contents)
+{
+	unsigned int width, height, text_w, text_h;
+	sgui_widget *super = (sgui_widget *)this;
+
+	width = SGUI_RECT_WIDTH(super->area);
+	height = SGUI_RECT_HEIGHT(super->area);
+
+	text_w = SGUI_RECT_WIDTH_V(contents);
+	text_h = SGUI_RECT_WIDTH_V(contents);
+
+	determine_shape(this, this->type, &width, &height, text_w, text_h);
+
+	sgui_rect_set_size(&super->area, super->area.left, super->area.top,
+					width, height);
+}
+
 static sgui_widget *button_create_common(int x, int y, unsigned int width,
 					unsigned int height, sgui_icon *icon,
 					sgui_icon_cache *cache,
@@ -227,7 +277,6 @@ static sgui_widget *button_create_common(int x, int y, unsigned int width,
 	sgui_button *this = calloc(1, sizeof(*this));
 	sgui_widget *super = (sgui_widget *)this;
 	unsigned int text_width, text_height;
-	sgui_skin *skin;
 	sgui_rect r;
 
 	if (!this)
@@ -250,27 +299,7 @@ static sgui_widget *button_create_common(int x, int y, unsigned int width,
 	text_width = SGUI_RECT_WIDTH(r);
 	text_height = SGUI_RECT_HEIGHT(r);
 
-	if (type == SGUI_BUTTON || type == SGUI_TOGGLE_BUTTON) {
-		this->cx = (width - text_width) / 2;
-		this->cy = (height - text_height) / 2;
-	} else {
-		skin = sgui_skin_get();
-
-		skin->get_button_extents(skin, type, &r);
-
-		this->cx = SGUI_RECT_WIDTH(r);
-		this->cy = SGUI_RECT_HEIGHT(r);
-
-		width = this->cx + text_width;
-
-		if (this->cy > text_height) {
-			height = this->cy;
-			this->cy = (this->cy - text_height) / 2;
-		} else {
-			height = text_height;
-			this->cy = 0;
-		}
-	}
+	determine_shape(this, type, &width, &height, text_width, text_height);
 
 	sgui_widget_init(super, x, y, width, height);
 	this->type = type;
@@ -290,29 +319,18 @@ static sgui_widget *button_create_common(int x, int y, unsigned int width,
 /***************************************************************************/
 sgui_widget *sgui_icon_button_create(int x, int y, unsigned int width,
 				unsigned int height, sgui_icon_cache *cache,
-				sgui_icon *icon, int toggleable)
+				sgui_icon *icon, int type)
 {
 	return button_create_common(x, y, width, height, icon, cache, NULL,
-				toggleable ? SGUI_TOGGLE_BUTTON : SGUI_BUTTON, 1);
-}
-
-sgui_widget *sgui_radio_button_create(int x, int y, const char *text)
-{
-	return button_create_common(x, y, 0, 0, 0, NULL, text,
-					SGUI_RADIO_BUTTON, 0);
-}
-
-sgui_widget* sgui_checkbox_create(int x, int y, const char *text)
-{
-	return button_create_common(x, y, 0, 0, 0, NULL, text, SGUI_CHECKBOX, 0);
+					type, 1);
 }
 
 sgui_widget* sgui_button_create(int x, int y, unsigned int width,
 				unsigned int height, const char *text,
-				int toggleable)
+				int type)
 {
 	return button_create_common(x, y, width, height, 0, NULL, text,
-				toggleable ? SGUI_TOGGLE_BUTTON : SGUI_BUTTON, 0);
+					type, 0);
 }
 
 void sgui_button_group_connect(sgui_widget *super, sgui_widget *previous,
@@ -350,14 +368,10 @@ int sgui_button_get_state(sgui_widget *this)
 
 void sgui_button_set_text(sgui_widget *super, const char *text)
 {
-	unsigned int text_width, text_height, width, height;
 	sgui_button *this = (sgui_button *)super;
-	sgui_skin *skin;
 	sgui_rect r;
 
 	sgui_skin_get_text_extents(text, &r);
-	text_width = SGUI_RECT_WIDTH(r);
-	text_height = SGUI_RECT_HEIGHT(r);
 
 	sgui_internal_lock_mutex();
 
@@ -367,43 +381,14 @@ void sgui_button_set_text(sgui_widget *super, const char *text)
 	this->have_icon = 0;
 	this->dpy.text = sgui_strdup(text);
 
-	if (this->type == SGUI_BUTTON || this->type == SGUI_TOGGLE_BUTTON) {
-		this->cx = super->area.left + super->area.right - text_width;
-		this->cy = super->area.top + super->area.bottom - text_height;
-
-		this->cx /= 2;
-		this->cy /= 2;
-	} else {
-		skin = sgui_skin_get();
-
-		skin->get_button_extents(skin, this->type, &r);
-
-		this->cx = SGUI_RECT_WIDTH(r);
-		this->cy = SGUI_RECT_HEIGHT(r);
-
-		width = this->cx + text_width;
-
-		if (this->cy > text_height) {
-			height = this->cy;
-			this->cy = (this->cy - text_height) / 2;
-		} else {
-			height = text_height;
-			this->cy = 0;
-		}
-
-		sgui_rect_set_size(&super->area, super->area.left,
-					super->area.top, width, height);
-	}
-
+	update_shape(this, &r);
 	sgui_internal_unlock_mutex();
 }
 #ifndef SGUI_NO_ICON_CACHE
 void sgui_button_set_icon(sgui_widget *super, sgui_icon_cache *cache,
 			sgui_icon *icon)
 {
-	unsigned int img_width, img_height, width, height;
 	sgui_button *this = (sgui_button *)super;
-	sgui_skin *skin;
 	sgui_rect r;
 
 	sgui_icon_get_area(icon, &r);
@@ -416,37 +401,7 @@ void sgui_button_set_icon(sgui_widget *super, sgui_icon_cache *cache,
 	this->dpy.icon.cache = cache;
 	this->dpy.icon.i = icon;
 
-	img_width = SGUI_RECT_WIDTH(r);
-	img_height = SGUI_RECT_HEIGHT(r);
-
-	if (this->type == SGUI_BUTTON || this->type == SGUI_TOGGLE_BUTTON) {
-		this->cx = super->area.left + super->area.right - img_width;
-		this->cy = super->area.top + super->area.bottom - img_height;
-
-		this->cx /= 2;
-		this->cy /= 2;
-	} else {
-		skin = sgui_skin_get();
-
-		skin->get_button_extents(skin, this->type, &r);
-
-		this->cx = SGUI_RECT_WIDTH(r);
-		this->cy = SGUI_RECT_HEIGHT(r);
-
-		width = this->cx + img_width;
-
-		if (this->cy > img_height) {
-			height = this->cy;
-			this->cy = (this->cy - img_height) / 2;
-		} else {
-			height = img_height;
-			this->cy = 0;
-		}
-
-		sgui_rect_set_size(&(super->area), super->area.left,
-					super->area.right, width, height);
-	}
-
+	update_shape(this, &r);
 	sgui_internal_unlock_mutex();
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)

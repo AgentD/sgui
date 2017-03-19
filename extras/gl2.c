@@ -58,7 +58,7 @@ int main( void )
 
     /* create some widgets */
     text = sgui_label_create(10, 130, "OpenGL\302\256 subview widget");
-    button = sgui_button_create( 10, 155, 75, 30, "Refresh", 0 );
+    button = sgui_button_create( 10, 155, 75, 30, "Refresh", SGUI_BUTTON );
 
     /*
         Create a sub view widget. The sub-view widget manages a sub-window.

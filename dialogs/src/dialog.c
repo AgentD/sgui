@@ -132,7 +132,7 @@ int sgui_dialog_init( sgui_dialog* this,
     if( button0 )
     {
         this->b0 = sgui_button_create( 0, 0, SGUI_RECT_WIDTH(r0)+10,
-                                       total_height, button0, 0 );
+                                       total_height, button0, SGUI_BUTTON );
 
         if( !this->b0 )
             return 0;
@@ -141,7 +141,7 @@ int sgui_dialog_init( sgui_dialog* this,
     if( button1 )
     {
         this->b1 = sgui_button_create( 0, 0, SGUI_RECT_WIDTH(r1)+10,
-                                       total_height, button1, 0 );
+                                       total_height, button1, SGUI_BUTTON );
 
         if( !this->b1 )
         {
@@ -153,7 +153,7 @@ int sgui_dialog_init( sgui_dialog* this,
     if( button2 )
     {
         this->b2 = sgui_button_create( 0, 0, SGUI_RECT_WIDTH(r2)+10,
-                                       total_height, button2, 0 );
+                                       total_height, button2, SGUI_BUTTON );
 
         if( !this->b2 )
         {

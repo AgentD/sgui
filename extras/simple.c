@@ -82,7 +82,7 @@ int main( )
         height. Set the text on the button and flags to 0. (There are various
         ways to make fancy buttons with the flag field)
      */
-    button = sgui_button_create( 50, 60, 80, 30, "Close", 0 );
+    button = sgui_button_create( 50, 60, 80, 30, "Close", SGUI_BUTTON );
 
     /* add widgets to the window */
     sgui_window_add_widget( wnd, text );

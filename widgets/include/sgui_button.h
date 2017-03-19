@@ -37,11 +37,6 @@
 
 
 
-#define SGUI_BUTTON_NORMAL     0
-#define SGUI_BUTTON_TOGGLEABLE 1
-
-
-
 /**
  * \struct sgui_button
  *
@@ -68,13 +63,14 @@ extern "C"
  *
  * \param x          X component of the buttons position
  * \param x          Y component of the buttons position
- * \param width      The width of the button in pixels
- * \param height     The height of the button in pixels
+ * \param width      The width of the button in pixels, set to zero to
+ *                   automatically determie the ideal size.
+ * \param height     The height of the button in pixels, set to zero to
+ *                   automatically determie the ideal size.
  * \param text       UTF8 text written onto the button
- * \param toggleable Non-zero for toggle buttons that remain in a state after
- *                   being clicked. Zero for normal buttons. The constants
- *                   SGUI_BUTTON_NORMAL and SGUI_BUTTON_TOGGLEABLE can be used
- *                   alternatively.
+ * \param type       What kind of button to create. Valid value are
+ *                   \ref SGUI_BUTTON, \ref SGUI_TOGGLE_BUTTON,
+ *                   \ref SGUI_CHECKBOX and \ref SGUI_RADIO_BUTTON.
  *
  * \return A button widget
  */
@@ -82,7 +78,7 @@ SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
                                           unsigned int width,
                                           unsigned int height,
                                           const char* text,
-                                          int toggleable );
+                                          int type );
 
 /**
  * \brief Create a button with an icon instead of a text displayed on it
@@ -91,48 +87,22 @@ SGUI_DLL sgui_widget* sgui_button_create( int x, int y,
  *
  * \param x          X component of the buttons position
  * \param x          Y component of the buttons position
- * \param width      The width of the button in pixels
- * \param height     The height of the button in pixels
+ * \param width      The width of the button in pixels, set to zero to
+ *                   automatically determie the ideal size.
+ * \param height     The height of the button in pixels, set to zero to
+ *                   automatically determie the ideal size.
  * \param cache      A pointer to an icon cache object owning the icon
  * \param icon       The icon to display
- * \param toggleable Non-zero for toggle buttons that remain in a state after
- *                   being clicked. Zero for normal buttons. The constants
- *                   SGUI_BUTTON_NORMAL and SGUI_BUTTON_TOGGLEABLE can be used
- *                   alternatively.
+ * \param type       What kind of button to create. Valid value are
+ *                   \ref SGUI_BUTTON, \ref SGUI_TOGGLE_BUTTON,
+ *                   \ref SGUI_CHECKBOX and \ref SGUI_RADIO_BUTTON.
  */
 SGUI_DLL sgui_widget* sgui_icon_button_create( int x, int y,
                                                unsigned int width,
                                                unsigned int height,
                                                sgui_icon_cache* cache,
                                                sgui_icon* icon,
-                                               int toggleable );
-
-/**
- * \brief Create a checkbox button widget
- *
- * \memberof sgui_button
- *
- * \param x    X component of the buttons position
- * \param x    Y component of the buttons position
- * \param text UTF8 text written next to the check box
- *
- * \return A checkbox button widget
- */
-SGUI_DLL sgui_widget* sgui_checkbox_create( int x, int y, const char* text );
-
-/**
- * \brief Create a radio button widget
- *
- * \memberof sgui_button
- *
- * \param x      X component of the radio buttons position
- * \param x      Y component of the radio buttons position
- * \param text   UTF8 text written next to the button
- *
- * \return A radio button widget
- */
-SGUI_DLL sgui_widget* sgui_radio_button_create( int x, int y,
-                                                const char* text );
+                                               int type );
 
 /**
  * \brief Connect button widgets to a button group (e.g. a bunch of radio
