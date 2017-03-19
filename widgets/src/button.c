@@ -287,6 +287,9 @@ static sgui_widget *button_create_common(int x, int y, unsigned int width,
 		this->dpy.icon.cache = cache;
 		this->dpy.icon.i = icon;
 		sgui_icon_get_area(icon, &r);
+#else
+		(void)icon; (void)cache;
+		memset(&r, 0, sizeof(r));
 #endif
 	} else {
 		if (!(this->dpy.text = sgui_strdup(text))) {
