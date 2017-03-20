@@ -33,161 +33,194 @@
 #include <string.h>
 
 
+typedef struct {
+	sgui_widget super;
 
-typedef struct
+	void *data;
+	unsigned int blend : 1;
+	unsigned int useptr : 1;
+	unsigned int from_pixmap : 1;
+	unsigned int format : 5;
+
+	sgui_rect src;
+
+	sgui_pixmap *pixmap;
+} sgui_image;
+
+static void image_draw(sgui_widget *super)
 {
-    sgui_widget super;
+	sgui_image *this = (sgui_image *)super;
 
-    void* data;
-    int format, blend, backend, useptr;
+	if (!this->pixmap)
+		return;
 
-    sgui_pixmap* pixmap;
-}
-sgui_image;
-
-
-
-static void image_draw( sgui_widget* super )
-{
-    sgui_image* this = (sgui_image*)super;
-
-    if( !this->pixmap )
-        return;
-
-    sgui_canvas_draw_pixmap( super->canvas, super->area.left, super->area.top,
-                             this->pixmap, NULL, this->blend );
-}
-
-static void image_destroy( sgui_widget* super )
-{
-    sgui_image* this = (sgui_image*)super;
-
-    if( !this->useptr )
-        free( this->data );
-
-    if( this->pixmap )
-        sgui_pixmap_destroy( this->pixmap );
-    free( this );
+	sgui_canvas_draw_pixmap(super->canvas, super->area.left,
+				super->area.top, this->pixmap,
+				&this->src, this->blend);
 }
 
-static void image_on_state_change( sgui_widget* super, int change )
+static void image_destroy(sgui_widget *super)
 {
-    sgui_image* this = (sgui_image*)super;
-    unsigned int w, h;
+	sgui_image *this = (sgui_image *)super;
 
-    if( change & SGUI_WIDGET_CANVAS_CHANGED )
-    {
-        sgui_internal_lock_mutex( );
+	if (!this->useptr)
+		free(this->data);
 
-        if( this->pixmap )
-        {
-            sgui_pixmap_destroy( this->pixmap );
-            this->pixmap = NULL;
-        }
+	if (this->pixmap && !this->from_pixmap)
+		sgui_pixmap_destroy(this->pixmap);
+	free(this);
+}
 
-        if( super->canvas )
-        {
-            sgui_widget_get_size( super, &w, &h );
-            this->pixmap = sgui_canvas_create_pixmap( super->canvas, w, h,
-                                                      this->format );
+static void image_on_state_change(sgui_widget *super, int change)
+{
+	sgui_image *this = (sgui_image *)super;
+	unsigned int w, h;
+	sgui_pixmap *p;
 
-            if( this->pixmap )
-            {
-                sgui_pixmap_load( this->pixmap, 0, 0, this->data, 0, 0, w, h,
-                                  w, this->format );
-            }
-        }
+	if (change & SGUI_WIDGET_CANVAS_CHANGED) {
+		sgui_internal_lock_mutex();
 
-        sgui_internal_unlock_mutex( );
-    }
+		if (this->from_pixmap) {
+			sgui_internal_unlock_mutex();
+			return;
+		}
+
+		if (this->pixmap) {
+			sgui_pixmap_destroy(this->pixmap);
+			this->pixmap = NULL;
+		}
+
+		if (!super->canvas) {
+			sgui_internal_unlock_mutex();
+			return;
+		}
+
+		sgui_widget_get_size(super, &w, &h);
+		p = sgui_canvas_create_pixmap(super->canvas, w, h,
+						this->format);
+		if (p) {
+			sgui_pixmap_load(p, 0, 0, this->data, 0, 0,
+					w, h, w, this->format);
+		}
+		this->pixmap = p;
+		sgui_internal_unlock_mutex();
+	}
 }
 
 /****************************************************************************/
 
-sgui_widget* sgui_image_create( int x, int y,
-                                unsigned int width, unsigned int height,
-                                const void* data, int format,
-                                int blend, int useptr )
+sgui_widget *sgui_image_create(int x, int y, unsigned int width,
+				unsigned int height, const void *data,
+				int format, int flags)
 {
-    sgui_image* this = calloc( 1, sizeof(sgui_image) );
-    sgui_widget* super = (sgui_widget*)this;
-    unsigned int num_bytes;
+	sgui_widget *super;
+	sgui_image *this;
+	size_t num_bytes;
 
-    if( !this )
-        return NULL;
+	if (flags & ~(SGUI_IMAGE_BLEND | SGUI_IMAGE_KEEP_PTR))
+		return NULL;
 
-    sgui_widget_init( super, x, y, width, height );
+	this = calloc(1, sizeof(*this));
+	super = (sgui_widget *)this;
 
-    if( !useptr )
-    {
-        num_bytes = width*height*(format==SGUI_RGBA8 ? 4 :
-                                  (format==SGUI_RGB8 ? 3 : 1));
-        this->data = malloc( num_bytes );
+	if (!this)
+		return NULL;
 
-        if( !this->data )
-        {
-            free( this );
-            return NULL;
-        }
+	sgui_rect_set_size(&this->src, 0, 0, width, height);
+	sgui_widget_init(super, x, y, width, height);
 
-        memcpy( this->data, data, num_bytes );
-    }
-    else
-    {
-        this->data = (unsigned char*)data;
-    }
+	if (flags & SGUI_IMAGE_KEEP_PTR) {
+		this->data = (unsigned char *)data;
+	} else {
+		num_bytes = width * height * (format == SGUI_RGBA8 ? 4 :
+						(format == SGUI_RGB8 ? 3 : 1));
+		this->data = malloc(num_bytes);
 
-    super->draw               = image_draw;
-    super->state_change_event = image_on_state_change;
-    super->destroy            = image_destroy;
-    super->flags              = SGUI_WIDGET_VISIBLE;
-    this->pixmap  = NULL;
-    this->format  = format;
-    this->blend   = blend;
-    this->useptr  = useptr;
+		if (!this->data) {
+			free(this);
+			return NULL;
+		}
 
-    return super;
+		memcpy(this->data, data, num_bytes);
+	}
+
+	super->draw = image_draw;
+	super->state_change_event = image_on_state_change;
+	super->destroy = image_destroy;
+	super->flags = SGUI_WIDGET_VISIBLE;
+	this->pixmap = NULL;
+	this->format = format;
+	this->blend = (flags & SGUI_IMAGE_BLEND) ? 1 : 0;
+	this->useptr = (flags & SGUI_IMAGE_KEEP_PTR) ? 1 : 0;
+	return super;
 }
 
-void sgui_image_reload( sgui_widget* super, unsigned int x, unsigned int y,
-                        unsigned int width, unsigned int height )
+sgui_widget* sgui_image_from_pixmap(int x, int y, unsigned int width,
+				unsigned int height, const sgui_pixmap *pixmap,
+				int src_x, int src_y, int flags)
 {
-    sgui_image* this = (sgui_image*)super;
-    unsigned int scan, imgheight;
-    sgui_rect r;
+	sgui_widget *super;
+	sgui_image *this;
 
-    if( !this || !this->pixmap )
-        return;
+	if (flags & ~(SGUI_IMAGE_BLEND))
+		return NULL;
 
-    scan      = SGUI_RECT_WIDTH(super->area);
-    imgheight = SGUI_RECT_HEIGHT(super->area);
+	this = calloc(1, sizeof(*this));
+	super = (sgui_widget *)this;
 
-    /* clamp image area */
-    if( x>=scan || y>=imgheight )
-        return;
+	if (!this)
+		return NULL;
 
-    if( (x+width) > scan )
-        width = scan - x;
+	sgui_rect_set_size(&this->src, src_x, src_y, width, height);
+	sgui_widget_init(super, x, y, width, height);
 
-    if( (y+height) > imgheight )
-        height = imgheight - y;
-
-    if( !width || !height )
-        return;
-
-    /* reupload image portion */
-    sgui_pixmap_load( this->pixmap, x, y, this->data, x, y, width, height,
-                      scan, this->format );
-
-    /* flag changed area dirty */
-    if( super->canvas )
-    {
-        sgui_widget_get_absolute_rect( super, &r );
-        r.left += x;
-        r.top += y;
-        r.right = r.left + width - 1;
-        r.bottom = r.top + height - 1;
-        sgui_canvas_add_dirty_rect( super->canvas, &r );
-    }
+	super->draw = image_draw;
+	super->state_change_event = image_on_state_change;
+	super->destroy = image_destroy;
+	super->flags = SGUI_WIDGET_VISIBLE;
+	this->pixmap = (sgui_pixmap *)pixmap;
+	this->blend = (flags & SGUI_IMAGE_BLEND) ? 1 : 0;
+	this->from_pixmap = 1;
+	return super;
 }
 
+void sgui_image_reload(sgui_widget *super, unsigned int x, unsigned int y,
+			unsigned int width, unsigned int height)
+{
+	sgui_image *this = (sgui_image *)super;
+	unsigned int scan, imgheight;
+	sgui_rect r;
+
+	if (!this->pixmap || this->from_pixmap)
+		return;
+
+	scan = SGUI_RECT_WIDTH(super->area);
+	imgheight = SGUI_RECT_HEIGHT(super->area);
+
+	/* clamp image area */
+	if (x >= scan || y >= imgheight)
+		return;
+
+	if ((x + width) > scan)
+		width = scan - x;
+
+	if ((y + height) > imgheight)
+		height = imgheight - y;
+
+	if (!width || !height)
+		return;
+
+	/* reupload image portion */
+	sgui_pixmap_load(this->pixmap, x, y, this->data, x, y, width, height,
+			scan, this->format);
+
+	/* flag changed area dirty */
+	if (super->canvas) {
+		sgui_widget_get_absolute_rect(super, &r);
+		r.left += x;
+		r.top += y;
+		r.right = r.left + width - 1;
+		r.bottom = r.top + height - 1;
+		sgui_canvas_add_dirty_rect(super->canvas, &r);
+	}
+}

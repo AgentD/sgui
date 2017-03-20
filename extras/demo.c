@@ -320,8 +320,10 @@ int main( int argc, char** argv )
     /* static widget tab */
     tex = sgui_label_create( 10, 175, text );
 
-    i0 = sgui_image_create(  10, 25, 128, 128, image, SGUI_RGBA8, 0, 1 );
-    i1 = sgui_image_create( 150, 25, 128, 128, image, SGUI_RGBA8, 1, 1 );
+    i0 = sgui_image_create(  10, 25, 128, 128, image, SGUI_RGBA8,
+                            SGUI_IMAGE_KEEP_PTR );
+    i1 = sgui_image_create( 150, 25, 128, 128, image, SGUI_RGBA8,
+                            SGUI_IMAGE_KEEP_PTR | SGUI_IMAGE_BLEND );
 
     t = sgui_tab_create( tab, "Static" );
     sgui_widget_add_child( tab, t );

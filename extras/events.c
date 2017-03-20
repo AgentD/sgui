@@ -44,7 +44,8 @@ int main( void )
         }
     }
 
-    img = sgui_image_create( 100, 10, 64, 64, image, SGUI_RGB8, 0, 1 );
+    img = sgui_image_create( 100, 10, 64, 64, image, SGUI_RGB8,
+                             SGUI_IMAGE_KEEP_PTR );
 
     /* add widgets to window */
     sgui_window_add_widget( wnd, b1 );

@@ -48,6 +48,27 @@
  */
 
 
+typedef enum {
+	/**
+	 * If set set, alpha-blend the image onto the canvas, otherwise
+	 * blit it.
+	 */
+	SGUI_IMAGE_BLEND = 0x01,
+
+	/**
+	 * If this flag is set, the implementation will use the pointer
+	 * supplied to \ref sgui_image_create function directly, but won't.
+	 * take over ownership. If it is cleared, the function makes an
+	 * internal copy of the source image.
+	 *
+	 * If the external pointer is kept, the function \ref sgui_image_reload
+	 * can be used to update portions of the image if it changed.
+	 *
+	 * \note This flag is not valid for \ref sgui_image_from_pixmap
+	 */
+	SGUI_IMAGE_KEEP_PTR = 0x02
+} SGUI_IMAGE_FLAGS;
+
 
 #ifdef __cplusplus
 extern "C"
@@ -59,21 +80,43 @@ extern "C"
  *
  * \memberof sgui_image
  *
+ * This function creates an internal copy of the supplied image, unless
+ * the \ref SGUI_IMAGE_KEEP_PTR flag is set.
+ *
  * \param x      Distance from the left of the window to the left of the image
  * \param y      Distance from the top of the window to the top of the image
  * \param width  Width of the image
  * \param height Height of the image
  * \param data   The RGB or RGBA image data
  * \param format The color format used by the image
- * \param blend  Non-zero if the image should be blended instead of blitted
- * \param useptr Non-zero if the given pointer should be used instead of
- *               creating an internal buffer to safe memory
+ * \param flags  A combination of \ref SGUI_IMAGE_FLAGS
  */
-SGUI_DLL sgui_widget* sgui_image_create( int x, int y,
-                                         unsigned int width,
-                                         unsigned int height,
-                                         const void* data, int format,
-                                         int blend, int useptr );
+SGUI_DLL sgui_widget *sgui_image_create(int x, int y, unsigned int width,
+					unsigned int height, const void *data,
+					int format, int flags);
+
+/**
+ * \brief Create an image widget for a pre-existing pixmap
+ *
+ * \memberof sgui_image
+ *
+ * \note The underlying implementation assumes that it can simply use the
+ *       supplied pixmap for whatever canvas the image widget is attached to.
+ *
+ * \param x      Distance from the left of the window to the left of the image
+ * \param y      Distance from the top of the window to the top of the image
+ * \param width  Width of the image
+ * \param height Height of the image
+ * \param pixmap A pointer to an existing pixmap to use
+ * \param src_x  Specifies an offset from the left into the pixmap
+ * \param src_y  Specifies an offset from the top into the pixmap
+ * \param flags  A combination of \ref SGUI_IMAGE_FLAGS
+ */
+SGUI_DLL sgui_widget *sgui_image_from_pixmap(int x, int y, unsigned int width,
+						unsigned int height,
+						const sgui_pixmap *pixmap,
+						int src_x, int src_y,
+						int flags);
 
 /**
  * \brief Reload a portion of an image
@@ -90,9 +133,9 @@ SGUI_DLL sgui_widget* sgui_image_create( int x, int y,
  * \param width  The width of the altered are in pixels
  * \param height The height of the altered are in pixels
  */
-SGUI_DLL void sgui_image_reload( sgui_widget* image,
-                                 unsigned int x, unsigned int y,
-                                 unsigned int width, unsigned int height );
+SGUI_DLL void sgui_image_reload(sgui_widget *image, unsigned int x,
+				unsigned int y, unsigned int width,
+				unsigned int height);
 
 #ifdef __cplusplus
 }
