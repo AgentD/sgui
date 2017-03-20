@@ -48,6 +48,30 @@
 #define SGUI_CHECKBOX                 0x02
 #define SGUI_RADIO_BUTTON             0x03
 
+/**
+ * \enum SGUI_SKIN_ICON
+ *
+ * \brief Built-in icons that an \ref sgui_skin implementation is
+ *        supposed to provide.
+ */
+typedef enum
+{
+	/** \brief Message box information icon */
+	SGUI_ICON_MB_INFO = 0,
+
+	/** \brief Message box warning icon */
+	SGUI_ICON_MB_WARNING = 1,
+
+	/** \brief Message box critical error icon */
+	SGUI_ICON_MB_CRITICAL = 2,
+
+	/** \brief Message box question icon */
+	SGUI_ICON_MB_QUESTION = 3,
+
+	/** \brief Not a valid icon ID but the number of icons there are */
+	SGUI_SKIN_NUM_ICONS = 4
+}
+SGUI_SKIN_ICON;
 
 
 /**
@@ -71,6 +95,8 @@ struct sgui_skin
                                    unsigned int* height, int* format);
 
     void(* init_skin_pixmap )( sgui_skin* skin, sgui_pixmap* pixmap );
+
+    void(* get_icon_area )( sgui_skin* skin, sgui_rect* r, int icon );
 
     void(* get_button_extents )( sgui_skin* skin, int type, sgui_rect* r );
 

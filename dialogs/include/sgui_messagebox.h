@@ -35,6 +35,7 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_skin.h"
 
 
 
@@ -54,23 +55,13 @@
 extern "C" {
 #endif
 
-
-
-#define SGUI_MB_INFO     0
-#define SGUI_MB_WARNING  1
-#define SGUI_MB_CRITICAL 2
-#define SGUI_MB_QUESTION 3
-
-
-
 /**
  * \brief Create a message box
  *
  * \memberof sgui_message_box
  *
- * \param icon    The icon to display (SGUI_MB_INFO, SGUI_MB_WARNING,
- *                SGUI_MB_CRITICAL or SGUI_MB_QUESTION).
- *                Defaults to SGUI_MB_INFO if invalid.
+ * \param icon    The icon to display (SGUI_ICON_MB_INFO, SGUI_ICON_MB_WARNING,
+ *                SGUI_ICON_MB_CRITICAL or SGUI_ICON_MB_QUESTION).
  * \param caption The caption to print onto the window title bar.
  * \param text    The text to write into the message box. (Can be multiline,
  *                and supports color/styling tags)

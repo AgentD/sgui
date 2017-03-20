@@ -31,6 +31,7 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <alloca.h>
 
 
 #define FONT "SourceSansPro-Regular.ttf"
@@ -61,13 +62,21 @@ static sgui_rect spin_dn = { 26, 7, 32, 10 };
 #define PIXMAP_W 35
 #define PIXMAP_H 24
 
+#define MBOX_ICON_W 32
+#define MBOX_ICON_H 32
 
-/* COLORMAP 4 */
-static const unsigned char colormap[4*4] = {
+#define MBOX_ICON_TOP 32
+
+/* COLORMAP 8 */
+static const unsigned char colormap[4*8] = {
 	0x00, 0x00, 0x00, 0x00,	/* completely transparent */
 	0x00, 0x00, 0x00, 0xFF,	/* black */
 	0xFF, 0xFF, 0xFF, 0xFF,	/* white */
 	0x00, 0x00, 0x00, 0x80,	/* semi transparent black */
+	0xFF, 0xFF, 0xFF, 0x80, /* semi transparent white */
+	0x00, 0x00, 0xFF, 0xFF,	/* blue */
+	0xFF, 0xFF, 0x00, 0xFF,	/* yellow */
+	0xFF, 0x00, 0x00, 0xFF,	/* red */
 };
 
 /* SIZE 35x24 */
@@ -88,6 +97,85 @@ static const unsigned char pixmap_data[266] = {
 0,2,022,020,0x89,0,1,023,0x88,0
 };
 
+/* SIZE 32x32 */
+static const unsigned char info[255] = {
+0x85,0,1,0x83,011,010,0x8A,0,011,012,0x83,022,021,011,0x88,0,011,0x87,022,011,
+0x86,0,1,0x89,022,010,0x85,0,012,0x83,022,025,055,052,0x83,022,021,0x84,0,1,
+0x84,022,0x83,055,0x84,022,010,0x83,0,012,0x84,022,0x83,055,0x84,022,021,0x40,
+1,0x85,022,025,055,052,0x85,022,010,0,1,0x8D,022,014,0,012,0x8D,022,021,040,
+012,0x84,022,025,0x83,055,0x85,022,021,040,012,0x85,022,025,0x6D,0x85,022,021,
+044,012,0x85,022,025,0x6D,0x85,022,021,044,012,0x85,022,025,0x6D,0x85,022,021,
+044,012,0x85,022,025,0x6D,0x85,022,021,044,012,0x85,022,025,0x6D,0x85,022,021,
+044,1,0x85,022,025,0x6D,0x85,022,014,044,1,0x85,022,025,0x6D,0x85,022,014,044,
+0,012,0x84,022,025,0x6D,0x84,022,021,044,040,0,1,0x83,022,025,0x84,055,0x83,
+022,014,044,040,0x40,012,0x89,022,021,0x64,0x83,0,1,0x89,022,014,044,040,0x84,
+0,011,0x87,022,011,0x64,0x85,0,4,011,012,0x83,022,021,011,0x64,040,0x86,0,044,
+041,011,0x52,014,0x83,044,0x88,0,0x64,012,022,014,0x64,0x8A,0,4,012,022,014,
+040,0x8C,0,1,022,014,040,0x8D,0,012,014,040,0x8D,0,1,014,040,0x8E,0,044,040,
+0x8E,0,4,040,0x85,0
+};
+
+/* SIZE 32x32 */
+static const unsigned char warning[248] = {
+0x86,0,1,011,0x8E,0,016,066,010,0x8C,0,1,0x76,061,040,0x8B,0,1,0x76,061,044,
+0x8B,0,016,0x83,066,014,040,0x8A,0,016,0x83,066,014,040,0x89,0,1,0x84,066,061,
+044,0x89,0,1,0x84,066,061,044,0x89,0,016,0x85,066,014,040,0x88,0,016,066,061,
+011,0x76,014,040,0x87,0,1,0x76,0x49,016,066,061,044,0x87,0,1,0x76,0x49,016,
+066,061,044,0x87,0,016,0x76,0x49,016,0x76,014,040,0x86,0,016,0x76,0x49,016,
+0x76,014,040,0x85,0,1,0x83,066,0x49,016,0x76,061,044,0x85,0,1,0x83,066,0x49,
+016,0x76,061,044,0x85,0,016,0x83,066,061,011,0x84,066,014,040,0x84,0,016,0x83,
+066,061,011,0x84,066,014,040,0x83,0,1,0x84,066,061,011,0x84,066,061,044,0x83,
+0,1,0x85,066,016,0x84,066,061,044,0x83,0,016,0x85,066,016,0x85,066,014,040,
+0x40,016,0x8B,066,014,040,0,1,0x86,066,011,0x85,066,061,044,0,1,0x85,066,061,
+011,016,0x84,066,061,044,0,016,0x85,066,061,011,016,0x85,066,014,040,016,0x86,
+066,011,0x86,066,014,040,016,0x8D,066,014,044,016,0x8D,066,014,044,1,0x8C,066,
+061,0x64,0,0x8C,011,014,0x64,0x40,0x8D,044,040,0x40,4,0x8C,044,0
+};
+
+/* SIZE 32x32 */
+static const unsigned char critical[291] = {
+0x85,0,1,0x83,011,010,0x8A,0,1,017,0x83,077,071,010,0x88,0,1,017,0x85,077,071,
+010,0x87,0,017,0x87,077,071,0x86,0,1,0x89,077,014,0x85,0,017,0x89,077,071,040,
+0x83,0,1,0x8B,077,014,0x83,0,017,0x7F,072,0x85,077,027,0x7F,071,040,0x40,017,
+0x7F,022,027,0x83,077,072,022,0x7F,071,040,0,1,0x7F,072,0x52,0x83,077,0x52,
+027,0x7F,014,0,1,0x83,077,0x52,027,077,072,0x52,0x83,077,014,0,017,0x83,077,
+072,0x52,077,0x52,027,0x83,077,071,040,017,0x84,077,0x85,022,0x84,077,071,040,
+017,0x84,077,072,0x83,022,027,0x84,077,071,044,017,0x85,077,0x83,022,0x85,077,
+071,044,017,0x85,077,0x83,022,0x85,077,071,044,017,0x84,077,072,0x83,022,027,
+0x84,077,071,044,017,0x84,077,0x85,022,0x84,077,071,044,017,0x83,077,072,0x52,
+077,0x52,027,0x83,077,071,044,1,0x83,077,0x52,027,077,072,0x52,0x83,077,014,
+040,1,0x7F,072,0x52,0x83,077,0x52,027,0x7F,014,040,0,017,0x7F,022,027,0x83,
+077,072,022,0x7F,071,044,040,0,017,0x7F,072,0x85,077,027,0x7F,071,044,0x40,
+1,0x8B,077,014,044,0x83,0,017,0x89,077,071,044,040,0x83,0,041,0x89,077,014,
+044,0x84,0,4,017,0x87,077,071,044,040,0x85,0,041,017,0x86,077,014,044,0x86,
+0,4,041,017,0x83,077,071,014,044,040,0x87,0,4,041,0x83,011,014,0x64,0x89,0,
+4,0x85,044,0x8B,0,4,0x83,044,0x86,0
+};
+
+/* SIZE 32x32 */
+static const unsigned char question[257] = {
+0x85,0,1,0x83,011,010,0x8A,0,011,012,0x83,022,021,011,0x88,0,011,0x87,022,011,
+0x86,0,1,0x89,022,010,0x85,0,012,0x89,022,021,0x84,0,1,0x84,022,0x83,055,0x84,
+022,010,0x83,0,012,0x83,022,025,022,025,055,052,0x83,022,021,0x40,1,0x84,022,
+055,0x52,0x6D,0x84,022,010,0,1,0x84,022,0x6D,022,0x6D,0x84,022,014,0,012,0x84,
+022,0x6D,022,0x6D,0x84,022,021,040,012,0x84,022,025,052,025,055,052,0x84,022,
+021,040,012,0x86,022,0x6D,0x85,022,021,044,012,0x86,022,055,052,0x85,022,021,
+044,012,0x86,022,055,0x86,022,021,044,012,0x86,022,055,0x86,022,021,044,012,
+0x8D,022,021,044,1,0x86,022,055,0x86,022,014,044,1,0x85,022,025,055,052,0x85,
+022,014,044,0,012,0x84,022,025,055,052,0x84,022,021,044,040,0,1,0x85,022,055,
+0x85,022,014,044,040,0x40,012,0x89,022,021,0x64,0x83,0,1,0x89,022,014,044,040,
+0x84,0,011,0x87,022,011,0x64,0x85,0,4,011,012,0x83,022,021,011,0x64,040,0x86,
+0,044,041,011,0x52,014,0x83,044,0x88,0,0x64,012,022,014,0x64,0x8A,0,4,012,022,
+014,040,0x8C,0,1,022,014,040,0x8D,0,012,014,040,0x8D,0,1,014,040,0x8E,0,044,
+040,0x8E,0,4,040,0x85,0
+};
+
+static const sgui_rect default_icons[] = {
+	{ 0, 32,  31, 63},
+	{32, 32,  63, 63},
+	{64, 32,  95, 63},
+	{96, 32, 127, 63},
+};
 
 static int is_init = 0;
 static const unsigned char black[4]       = { 0x00, 0x00, 0x00, 0xFF };
@@ -97,6 +185,66 @@ static const unsigned char focusbox[4]    = { 0xFF, 0x80, 0x25, 0xFF };
 static const unsigned char yellow[4]      = { 0xFF, 0xFF, 0x00, 0xFF };
 
 
+static void decode_pixmap(sgui_pixmap *pixmap, int x, int y,
+			const unsigned char *src, size_t size,
+			unsigned int width, unsigned int height)
+{
+	union { sgui_u32 c32[2]; sgui_u64 c64; } col;
+	const unsigned char *iptr, *end;
+	unsigned int cw, count = 0;
+	unsigned char *buffer;
+	sgui_u64 *dptr64;
+	size_t pixels;
+
+	buffer = alloca(width * height * 4);
+
+	iptr = src;
+	end = src + size;
+	pixels = width * height;
+	dptr64 = (sgui_u64 *)buffer;
+
+	while (iptr < end && pixels) {
+		cw = *(iptr++);
+
+		if (cw & 0x80) {
+			if (iptr == end)
+				break;
+			count = cw & 0x7F;
+			cw = *(iptr++);
+		} else if (cw & 0x40) {
+			count = 2;
+		} else {
+			count = 1;
+		}
+
+		col.c32[0] = ((sgui_u32 *)colormap)[(cw & 070) >> 3];
+		col.c32[1] = ((sgui_u32 *)colormap)[ cw & 007      ];
+
+		while (count && pixels >= 2) {
+			*(dptr64++) = col.c64;
+			--count;
+			pixels -= 2;
+		}
+		if (count) {
+			*((sgui_u32 *)dptr64) = col.c32[0];
+			break;
+		}
+	}
+
+	sgui_pixmap_load(pixmap, x, y, buffer, 0, 0, width, height,
+			width, SGUI_RGBA8);
+}
+
+static void default_get_icon_area(sgui_skin *skin, sgui_rect *r, int icon)
+{
+	(void)skin;
+
+	if (icon < 0 || icon >= SGUI_SKIN_NUM_ICONS) {
+		memset(r, 0, sizeof(*r));
+	} else {
+		*r = default_icons[icon];
+	}
+}
 
 static void default_get_button_extents(sgui_skin *this, int type, sgui_rect *r)
 {
@@ -613,49 +761,29 @@ static void default_get_skin_pixmap_size(sgui_skin* skin, unsigned int* width,
 
 static void default_init_skin_pixmap(sgui_skin* skin, sgui_pixmap* pixmap)
 {
-	unsigned char buffer[PIXMAP_W * PIXMAP_H * 4];
-	union { sgui_u32 c32[2]; sgui_u64 c64; } col;
-	const unsigned char *iptr, *end;
-	unsigned int cw, count = 0;
-	sgui_u64 *dptr64;
-	size_t pixels;
+	unsigned int w, h;
+	int x, y;
 	(void)skin;
 
-	iptr = pixmap_data;
-	end = pixmap_data + sizeof(pixmap_data) / sizeof(pixmap_data[0]);
-	pixels = PIXMAP_W * PIXMAP_H;
-	dptr64 = (sgui_u64 *)buffer;
+	decode_pixmap(pixmap, 0, 0, pixmap_data, sizeof(pixmap_data),
+			PIXMAP_W, PIXMAP_H);
 
-	while (iptr < end && pixels) {
-		cw = *(iptr++);
+	x = 0;
+	y = MBOX_ICON_TOP;
+	w = MBOX_ICON_W;
+	h = MBOX_ICON_H;
 
-		if (cw & 0x80) {
-			if (iptr == end)
-				break;
-			count = cw & 0x7F;
-			cw = *(iptr++);
-		} else if (cw & 0x40) {
-			count = 2;
-		} else {
-			count = 1;
-		}
 
-		col.c32[0] = ((sgui_u32 *)colormap)[(cw & 070) >> 3];
-		col.c32[1] = ((sgui_u32 *)colormap)[ cw & 007      ];
+	decode_pixmap(pixmap, x, y, info, sizeof(info), w, h);
+	x += MBOX_ICON_W;
 
-		while (count && pixels >= 2) {
-			*(dptr64++) = col.c64;
-			--count;
-			pixels -= 2;
-		}
-		if (count) {
-			*((sgui_u32 *)dptr64) = col.c32[0];
-			break;
-		}
-	}
+	decode_pixmap(pixmap, x, y, warning, sizeof(warning), w, h);
+	x += MBOX_ICON_W;
 
-	sgui_pixmap_load(pixmap, 0, 0, buffer, 0, 0, PIXMAP_W, PIXMAP_H,
-			PIXMAP_W, SGUI_RGBA8);
+	decode_pixmap(pixmap, x, y, critical, sizeof(critical), w, h);
+	x += MBOX_ICON_W;
+
+	decode_pixmap(pixmap, x, y, question, sizeof(pixmap_data), w, h);
 }
 
 /****************************************************************************/
@@ -684,6 +812,7 @@ sgui_skin sgui_default_skin = {
 	.get_edit_box_border_width = default_get_edit_box_border_width,
 	.get_scroll_bar_button_extents = default_get_scroll_bar_button_extents,
 	.get_tap_caption_extents = default_get_tap_caption_extents,
+	.get_icon_area = default_get_icon_area,
 	.font_height = FONT_HEIGHT,
 	.window_color = { 0x64, 0x64, 0x64, 0xFF },
 	.font_color = { 0xFF, 0xFF, 0xFF, 0xFF },

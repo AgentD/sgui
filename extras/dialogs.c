@@ -51,7 +51,7 @@ int main( void )
         text inside the message box. Since we only need two buttons, the
         third caption is set to NULL.
      */
-    mb = sgui_message_box_create( SGUI_MB_WARNING, "Test", text,
+    mb = sgui_message_box_create( SGUI_ICON_MB_WARNING, "Test", text,
                                   "Ok", "Foobar", NULL );
 
     /*
