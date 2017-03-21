@@ -34,320 +34,318 @@
 #include <ctype.h>
 
 
+typedef struct {
+	sgui_edit_box super;
 
-typedef struct
+	int min, max;
+} sgui_numeric_edit;
+
+typedef struct {
+	sgui_numeric_edit super;
+
+	sgui_rect up, down;	/* up and down buttons */
+	int step;
+
+	void (*on_event)(sgui_widget *widget, const sgui_event *event);
+} sgui_spin_box;
+
+
+static int charlen(int number)
 {
-    sgui_edit_box super;
-
-    int min, max;   /* minimum and maximum values */
-}
-sgui_numeric_edit;
-
-typedef struct
-{
-    sgui_numeric_edit super;
-
-    sgui_rect up, down; /* up and down buttons */
-    int step;           /* step size */
-
-    void (* on_event )( sgui_widget* widget, const sgui_event* event );
-}
-sgui_spin_box;
-
-
-
-static int charlen( int number )
-{
-    number = number<0 ? -number : number;
-    if( number >= 1000000000 ) return 10;
-    if( number >= 100000000  ) return 9;
-    if( number >= 10000000   ) return 8;
-    if( number >= 1000000    ) return 7;
-    if( number >= 100000     ) return 6;
-    if( number >= 10000      ) return 5;
-    if( number >= 1000       ) return 4;
-    if( number >= 100        ) return 3;
-    if( number >= 10         ) return 2;
-    return 1;
-}
-
-static int insert( sgui_edit_box* super, unsigned int len, const char* utf8 )
-{
-    sgui_numeric_edit* this = (sgui_numeric_edit*)super;
-    char temp[ 128 ], *end;
-    unsigned int i;
-    int val;
-
-    for( i = utf8[0]=='-' ? 1 : 0; i<len; ++i )
-    {
-        if( !isdigit( utf8[i] ) )
-            return 0;
-    }
-
-    if( (len + super->num_entered) > super->max_chars )
-        return 0;
-
-    /* stitch together */
-    memcpy( temp, super->buffer, super->cursor );
-    memcpy( temp+super->cursor, utf8, len );
-    strcpy( temp+super->cursor+len, super->buffer+super->cursor );
-
-    /* check */
-    val = strtol( temp, &end, 10 );
-
-    if( val < this->min || val > this->max || *end )
-        return 0;
-
-    /* insert */
-    strcpy( super->buffer, temp );
-
-    super->num_entered += len;
-    super->end += len;
-    super->cursor += len;
-    return 1;
+	number = number < 0 ? -number : number;
+	if (number >= 1000000000)
+		return 10;
+	if (number >= 100000000)
+		return 9;
+	if (number >= 10000000)
+		return 8;
+	if (number >= 1000000)
+		return 7;
+	if (number >= 100000)
+		return 6;
+	if (number >= 10000)
+		return 5;
+	if (number >= 1000)
+		return 4;
+	if (number >= 100)
+		return 3;
+	if (number >= 10)
+		return 2;
+	return 1;
 }
 
-static void remove_selection( sgui_edit_box* super )
+static int insert(sgui_edit_box *super, unsigned int len, const char *utf8)
 {
-    sgui_numeric_edit* this = (sgui_numeric_edit*)super;
-    int start = MIN( super->cursor, super->selection );
-    int end = MAX( super->cursor, super->selection );
-    char temp[ 128 ];
-    int val;
+	sgui_numeric_edit *this = (sgui_numeric_edit *)super;
+	char temp[128], *end;
+	unsigned int i;
+	int val;
 
-    memcpy( temp, super->buffer, start );
-    strcpy( temp+start, super->buffer+end );
+	for (i = (utf8[0] == '-') ? 1 : 0; i < len; ++i) {
+		if (!isdigit(utf8[i]))
+			return 0;
+	}
 
-    val = strtol( temp, NULL, 10 );
+	if ((len + super->num_entered) > super->max_chars)
+		return 0;
 
-    if( val >= this->min && val <= this->max )
-    {
-        strcpy( super->buffer, temp );
+	/* stitch together */
+	memcpy(temp, super->buffer, super->cursor);
+	memcpy(temp + super->cursor, utf8, len);
+	strcpy(temp + super->cursor + len, super->buffer + super->cursor);
 
-        super->num_entered -= (end - start);
-        super->end -= (end - start);
-        super->selection = super->cursor = start;
-    }
+	/* check */
+	val = strtol(temp, &end, 10);
+
+	if (val < this->min || val > this->max || *end)
+		return 0;
+
+	/* insert */
+	strcpy(super->buffer, temp);
+
+	super->num_entered += len;
+	super->end += len;
+	super->cursor += len;
+	return 1;
 }
 
-static void numeric_edit_text_changed( sgui_edit_box* this, int type )
+static void remove_selection(sgui_edit_box *super)
 {
-    sgui_event se;
-    (void)type;
+	sgui_numeric_edit *this = (sgui_numeric_edit *)super;
+	int start = MIN(super->cursor, super->selection);
+	int end = MAX(super->cursor, super->selection);
+	char temp[128];
+	int val;
 
-    se.src.widget = (sgui_widget*)this;
-    se.arg.i = sgui_numeric_edit_get_value( (sgui_widget*)this );
-    se.type = SGUI_EDIT_VALUE_CHANGED;
+	memcpy(temp, super->buffer, start);
+	strcpy(temp + start, super->buffer + end);
 
-    sgui_event_post( &se );
+	val = strtol(temp, NULL, 10);
+
+	if (val >= this->min && val <= this->max) {
+		strcpy(super->buffer, temp);
+
+		super->num_entered -= (end - start);
+		super->end -= (end - start);
+		super->selection = super->cursor = start;
+	}
 }
 
-static unsigned int offset_from_position( sgui_edit_box* this, int x )
+static void numeric_edit_text_changed(sgui_edit_box *this, int type)
 {
-    unsigned int len = 0, cur = this->offset;
-    sgui_skin* skin = sgui_skin_get( );
+	sgui_event se;
+	(void)type;
 
-    x -= skin->get_edit_box_border_width( skin );
-    x -= SGUI_RECT_WIDTH(this->super.area) -
-         sgui_skin_default_font_extents( this->buffer, -1, 0, 0 );
+	se.src.widget = (sgui_widget *)this;
+	se.arg.i = sgui_numeric_edit_get_value((sgui_widget *)this);
+	se.type = SGUI_EDIT_VALUE_CHANGED;
 
-    /* move 'cur' to the right until it the text extents from
-       the beginning to 'cur' catch up with the mouse offset */
-    while( (len < (unsigned int)x) && (cur < this->end) )
-    {
-        ++cur;
-
-        /* get the text extents from the rendering offset to 'cur' */
-        len = sgui_skin_default_font_extents( this->buffer+this->offset,
-                                              cur         -this->offset,
-                                              0, 0 );
-    }
-
-    return cur;
+	sgui_event_post(&se);
 }
 
-static void numeric_edit_draw( sgui_widget* super )
+static unsigned int offset_from_position(sgui_edit_box *this, int x)
 {
-    sgui_edit_box* this = (sgui_edit_box*)super;
-    sgui_skin* skin = sgui_skin_get( );
+	unsigned int len = 0, cur = this->offset;
+	sgui_skin *skin = sgui_skin_get();
 
-    skin->draw_editbox( skin, super->canvas, &(super->area),
-                              this->buffer, this->offset,
-                              this->flags & SGUI_EDIT_DRAW_CURSOR ?
-                              (int)this->cursor : -1,
-                              this->selection, 1, 0 );
+	x -= skin->get_edit_box_border_width(skin);
+	x -= SGUI_RECT_WIDTH(this->super.area) -
+		sgui_skin_default_font_extents(this->buffer, -1, 0, 0);
+
+	/* move 'cur' to the right until it the text extents from
+		the beginning to 'cur' catch up with the mouse offset*/
+	while ((len < (unsigned int)x) && (cur < this->end)) {
+		++cur;
+
+		/* get the text extents from the rendering offset to 'cur' */
+		len = sgui_skin_default_font_extents(
+						this->buffer + this->offset,
+						cur - this->offset, 0, 0);
+	}
+
+	return cur;
 }
 
-static void spin_box_draw( sgui_widget* super )
+static void numeric_edit_draw(sgui_widget *super)
 {
-    sgui_edit_box* this = (sgui_edit_box*)super;
-    sgui_skin* skin = sgui_skin_get( );
+	sgui_edit_box *this = (sgui_edit_box *)super;
+	sgui_skin *skin = sgui_skin_get();
 
-    skin->draw_editbox( skin, super->canvas, &(super->area),
-                              this->buffer, this->offset,
-                              this->flags & SGUI_EDIT_DRAW_CURSOR ?
-                              (int)this->cursor : -1,
-                              this->selection, 1, 1 );
+	skin->draw_editbox(skin, super->canvas, &super->area,
+			this->buffer, this->offset,
+			this->flags & SGUI_EDIT_DRAW_CURSOR ?
+				(int)this->cursor : -1,
+			this->selection, 1, 0);
 }
 
-static void spin_box_on_event( sgui_widget* super, const sgui_event* event )
+static void spin_box_draw(sgui_widget *super)
 {
-    sgui_spin_box* this = (sgui_spin_box*)super;
-    int value;
+	sgui_edit_box *this = (sgui_edit_box *)super;
+	sgui_skin *skin = sgui_skin_get();
 
-    switch( event->type )
-    {
-    case SGUI_MOUSE_MOVE_EVENT:
-        if( sgui_rect_is_point_inside( &this->up, event->arg.i2.x,
-                                                  event->arg.i2.y ) )
-            return;
-        if( sgui_rect_is_point_inside( &this->down, event->arg.i2.x,
-                                                    event->arg.i2.y ) )
-            return;
-        break;
-    case SGUI_MOUSE_PRESS_EVENT:
-        if( sgui_rect_is_point_inside( &this->up, event->arg.i3.x,
-                                                  event->arg.i3.y ) )
-            return;
-        if( sgui_rect_is_point_inside( &this->down, event->arg.i3.x,
-                                                    event->arg.i3.y ) )
-            return;
-        break;
-    case SGUI_MOUSE_RELEASE_EVENT:
-        if( sgui_rect_is_point_inside( &this->up, event->arg.i3.x,
-                                                  event->arg.i3.y ) )
-        {
-            value = sgui_numeric_edit_get_value( super );
-            sgui_numeric_edit_set_value( super, value + this->step );
-            numeric_edit_text_changed( (sgui_edit_box*)this, 0 );
-            return;
-        }
-        if( sgui_rect_is_point_inside( &this->down, event->arg.i3.x,
-                                                    event->arg.i3.y ) )
-        {
-            value = sgui_numeric_edit_get_value( super );
-            sgui_numeric_edit_set_value( super, value - this->step );
-            numeric_edit_text_changed( (sgui_edit_box*)this, 0 );
-            return;
-        }
-        break;
-    case SGUI_MOUSE_WHEEL_EVENT:
-        value = sgui_numeric_edit_get_value( super );
-        value = event->arg.i>0 ? (value + this->step) : (value - this->step);
-        sgui_numeric_edit_set_value( super, value );
-        numeric_edit_text_changed( (sgui_edit_box*)this, 0 );
-        return;
-    }
-
-    if( this->on_event )
-        this->on_event( super, event );
+	skin->draw_editbox(skin, super->canvas, &super->area,
+				this->buffer, this->offset,
+				this->flags & SGUI_EDIT_DRAW_CURSOR ?
+				(int)this->cursor : -1,
+				this->selection, 1, 1);
 }
 
-static int numeric_edit_init( sgui_numeric_edit* this,
-                              int x, int y, unsigned int width,
-                              int min, int max, int current )
+static void spin_box_on_event(sgui_widget *super, const sgui_event *event)
 {
-    unsigned int minlen = charlen( min ), maxlen = charlen( max );
-    unsigned int max_chars = MAX(minlen,maxlen);
-    sgui_edit_box* super = (sgui_edit_box*)this;
+	sgui_spin_box *this = (sgui_spin_box *)super;
+	int value;
 
-    if( min<0 || max<0 )
-        ++max_chars;
+	switch (event->type) {
+	case SGUI_MOUSE_MOVE_EVENT:
+		if (sgui_rect_is_point_inside(&this->up, event->arg.i2.x,
+							event->arg.i2.y)) {
+			return;
+		}
+		if (sgui_rect_is_point_inside(&this->down, event->arg.i2.x,
+							event->arg.i2.y)) {
+			return;
+		}
+		break;
+	case SGUI_MOUSE_PRESS_EVENT:
+		if (sgui_rect_is_point_inside(&this->up, event->arg.i3.x,
+							event->arg.i3.y)) {
+			return;
+		}
+		if (sgui_rect_is_point_inside(&this->down, event->arg.i3.x,
+							event->arg.i3.y)) {
+			return;
+		}
+		break;
+	case SGUI_MOUSE_RELEASE_EVENT:
+		if (sgui_rect_is_point_inside(&this->up, event->arg.i3.x,
+							event->arg.i3.y)) {
+			value = sgui_numeric_edit_get_value(super);
+			sgui_numeric_edit_set_value(super, value + this->step);
+			numeric_edit_text_changed((sgui_edit_box *)this, 0);
+			return;
+		}
+		if (sgui_rect_is_point_inside(&this->down, event->arg.i3.x,
+						event->arg.i3.y)) {
+			value = sgui_numeric_edit_get_value( super );
+			sgui_numeric_edit_set_value(super, value - this->step);
+			numeric_edit_text_changed((sgui_edit_box *)this, 0);
+			return;
+		}
+		break;
+	case SGUI_MOUSE_WHEEL_EVENT:
+		value = sgui_numeric_edit_get_value(super);
+		value = event->arg.i>0 ? (value + this->step) :
+					(value - this->step);
+		sgui_numeric_edit_set_value(super, value);
+		numeric_edit_text_changed((sgui_edit_box *)this, 0);
+		return;
+	}
 
-    current = MAX(current,min);
-    current = MIN(current,max);
+	if (this->on_event)
+		this->on_event(super, event);
+}
 
-    if( !sgui_edit_box_init( (sgui_edit_box*)this, x, y, width, max_chars ) )
-        return 0;
+static int numeric_edit_init(sgui_numeric_edit *this,
+				int x, int y, unsigned int width,
+				int min, int max, int current)
+{
+	unsigned int minlen = charlen(min), maxlen = charlen(max);
+	unsigned int max_chars = MAX(minlen, maxlen);
+	sgui_edit_box *super = (sgui_edit_box *)this;
 
-    this->min = min;
-    this->max = max;
-    super->insert = insert;
-    super->remove_selection = remove_selection;
-    super->text_changed = numeric_edit_text_changed;
-    super->offset_from_position = offset_from_position;
+	if (min < 0 || max < 0)
+		++max_chars;
 
-    ((sgui_widget*)this)->draw = numeric_edit_draw;
+	current = MAX(current, min);
+	current = MIN(current, max);
 
-    sprintf( super->buffer, "%d", current );
-    super->end = super->num_entered = strlen( super->buffer );
-    super->flags &= ~SGUI_EDIT_SELECTING; 
-    super->offset = super->selection = super->cursor = 0;
-    return 1;
+	if (!sgui_edit_box_init((sgui_edit_box *)this, x, y, width, max_chars))
+		return 0;
+
+	this->min = min;
+	this->max = max;
+	super->insert = insert;
+	super->remove_selection = remove_selection;
+	super->text_changed = numeric_edit_text_changed;
+	super->offset_from_position = offset_from_position;
+
+	((sgui_widget *)this)->draw = numeric_edit_draw;
+
+	sprintf(super->buffer, "%d", current);
+	super->end = super->num_entered = strlen(super->buffer);
+	super->flags &= ~SGUI_EDIT_SELECTING; 
+	super->offset = super->selection = super->cursor = 0;
+	return 1;
 }
 
 /****************************************************************************/
 
-sgui_widget* sgui_numeric_edit_create( int x, int y, unsigned int width,
-                                       int min, int max, int current )
+sgui_widget *sgui_numeric_edit_create(int x, int y, unsigned int width,
+					int min, int max, int current)
 {
-    sgui_numeric_edit* this = calloc( 1, sizeof(sgui_numeric_edit) );
+	sgui_numeric_edit *this = calloc(1, sizeof(*this));
 
-    if( this && !numeric_edit_init( this, x, y, width, min, max, current ) )
-    {
-        free( this );
-        return NULL;
-    }
-    return (sgui_widget*)this;
+	if (this && !numeric_edit_init(this, x, y, width, min, max, current)) {
+		free(this);
+		return NULL;
+	}
+	return (sgui_widget*)this;
 }
 
-sgui_widget* sgui_spin_box_create( int x, int y, unsigned int width,
-                                   int min, int max, int current,
-                                   unsigned int stepsize, int editable )
+sgui_widget *sgui_spin_box_create(int x, int y, unsigned int width,
+				int min, int max, int current,
+				unsigned int stepsize, int editable)
 {
-    sgui_spin_box* this = calloc( 1, sizeof(sgui_spin_box) );
-    sgui_numeric_edit* super = (sgui_numeric_edit*)this;
-    sgui_skin* skin;
+	sgui_spin_box *this = calloc( 1, sizeof(*this));
+	sgui_numeric_edit *super = (sgui_numeric_edit *)this;
+	sgui_skin *skin;
 
-    if( this )
-    {
-        if( !numeric_edit_init( super, x, y, width, min, max, current ) )
-        {
-            free( this );
-            return NULL;
-        }
+	if (!this)
+		return NULL;
 
-        ((sgui_widget*)this)->draw = spin_box_draw;
+	if (!numeric_edit_init(super, x, y, width, min, max, current)) {
+		free(this);
+		return NULL;
+	}
 
-        skin = sgui_skin_get( );
-        skin->get_spin_buttons( skin, &this->up, &this->down );
-        this->step     = stepsize>0 ? stepsize : 1;
+	((sgui_widget *)this)->draw = spin_box_draw;
 
-        if( editable )
-            this->on_event = ((sgui_widget*)this)->window_event;
+	skin = sgui_skin_get();
+	skin->get_spin_buttons(skin, &this->up, &this->down);
+	this->step = stepsize > 0 ? stepsize : 1;
 
-        ((sgui_widget*)this)->window_event = spin_box_on_event;
-    }
-    return (sgui_widget*)this;
+	if (editable)
+		this->on_event = ((sgui_widget *)this)->window_event;
+
+	((sgui_widget *)this)->window_event = spin_box_on_event;
+	return (sgui_widget *)this;
 }
 
-int sgui_numeric_edit_get_value( sgui_widget* this )
+int sgui_numeric_edit_get_value(sgui_widget *this)
 {
-    return strtol( ((sgui_edit_box*)this)->buffer, NULL, 10 );
+	return strtol(((sgui_edit_box *)this)->buffer, NULL, 10);
 }
 
-void sgui_numeric_edit_set_value( sgui_widget* box, int value )
+void sgui_numeric_edit_set_value(sgui_widget *box, int value)
 {
-    sgui_numeric_edit* this = (sgui_numeric_edit*)box;
-    sgui_edit_box* super = (sgui_edit_box*)box;
-    sgui_rect r;
+	sgui_numeric_edit *this = (sgui_numeric_edit *)box;
+	sgui_edit_box *super = (sgui_edit_box *)box;
+	sgui_rect r;
 
-    value = MAX(this->min, value);
-    value = MIN(this->max, value);
+	value = MAX(this->min, value);
+	value = MIN(this->max, value);
 
-    sprintf( super->buffer, "%d", value );
+	sprintf(super->buffer, "%d", value);
 
-    super->end = super->num_entered = strlen( super->buffer );
-    super->flags &= ~SGUI_EDIT_SELECTING;
-    super->offset = super->selection = super->cursor = 0;
+	super->end = super->num_entered = strlen(super->buffer);
+	super->flags &= ~SGUI_EDIT_SELECTING;
+	super->offset = super->selection = super->cursor = 0;
 
-    super->sync_cursors( super );
+	super->sync_cursors(super);
 
-    /* flag area dirty */
-    if( ((sgui_widget*)this)->canvas )
-    {
-        sgui_widget_get_absolute_rect( (sgui_widget*)this, &r );
-        sgui_canvas_add_dirty_rect( ((sgui_widget*)this)->canvas, &r );
-    }
+	/* flag area dirty */
+	if (((sgui_widget *)this)->canvas) {
+		sgui_widget_get_absolute_rect((sgui_widget *)this, &r);
+		sgui_canvas_add_dirty_rect(((sgui_widget *)this)->canvas, &r);
+	}
 }
-

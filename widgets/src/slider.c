@@ -33,235 +33,236 @@
 #include <string.h>
 
 
+typedef struct {
+	sgui_widget super;
 
-typedef struct
+	int min, max, value, steps, vertical, dragging;
+	unsigned int draglen, border;
+} sgui_slider;
+
+
+static void get_slider_rect(sgui_widget *super, sgui_rect *r)
 {
-    sgui_widget super;
+	sgui_slider *this = (sgui_slider *)super;
+	int i;
 
-    int min, max, value, steps, vertical, dragging;
-    unsigned int draglen, border;
-}
-sgui_slider;
+	if (this->steps) {
+		i = (this->steps - 1) * (this->value - this->min);
+		i /= this->max - this->min;
+		i *= this->draglen / (this->steps - 1);
+	} else {
+		i = this->draglen - 1;
+		i = (i * (this->value - this->min)) / (this->max - this->min);
+	}
 
-
-
-static void get_slider_rect( sgui_widget* super, sgui_rect* r )
-{
-    sgui_slider* this = (sgui_slider*)super;
-    int i;
-
-    if( this->steps )
-    {
-        i = ((this->steps-1)*(this->value-this->min)) / (this->max-this->min);
-        i *= this->draglen / (this->steps-1);
-    }
-    else
-    {
-        i = this->draglen - 1;
-        i = (i * (this->value - this->min)) / (this->max - this->min);
-    }
-
-    if( this->vertical )
-    {
-        r->left   = super->area.left;
-        r->right  = super->area.right;
-        r->top    = super->area.bottom - this->border - i;
-        r->top    = MAX(r->top, super->area.top);
-        r->bottom = r->top + this->border;
-        r->bottom = MIN(r->bottom, super->area.bottom);
-    }
-    else
-    {
-        r->top    = super->area.top;
-        r->bottom = super->area.bottom;
-        r->left   = super->area.left + i;
-        r->left   = MAX(r->left, super->area.left);
-        r->right  = r->left + this->border;
-        r->right  = MIN(r->right, super->area.right);
-    }
+	if (this->vertical) {
+		r->left = super->area.left;
+		r->right = super->area.right;
+		r->top = super->area.bottom - this->border - i;
+		r->top = MAX(r->top, super->area.top);
+		r->bottom = r->top + this->border;
+		r->bottom = MIN(r->bottom, super->area.bottom);
+	} else {
+		r->top = super->area.top;
+		r->bottom = super->area.bottom;
+		r->left = super->area.left + i;
+		r->left = MAX(r->left, super->area.left);
+		r->right = r->left + this->border;
+		r->right = MIN(r->right, super->area.right);
+	}
 }
 
-static int value_from_position( sgui_widget* super, int x, int y )
+static int value_from_position(sgui_widget *super, int x, int y)
 {
-    sgui_slider* this = (sgui_slider*)super;
-    int i;
+	sgui_slider *this = (sgui_slider *)super;
+	int i;
 
-    i  = this->vertical ? (SGUI_RECT_HEIGHT(super->area) - 1 - y) : x;
-    i -= this->border/2;
-    i  = i<0 ? 0 : i;
-    return this->min + ((this->max - this->min) * i)/this->draglen;
+	i  = this->vertical ? (SGUI_RECT_HEIGHT(super->area) - 1 - y) : x;
+	i -= this->border/2;
+	i  = i<0 ? 0 : i;
+	return this->min + ((this->max - this->min) * i) / this->draglen;
 }
 
 static void slider_on_event( sgui_widget* super, const sgui_event* e )
 {
-    sgui_slider* this = (sgui_slider*)super;
-    int delta, old_val, new_val;
-    sgui_event ev;
-    sgui_rect r;
+	sgui_slider *this = (sgui_slider *)super;
+	int delta, old_val, new_val;
+	sgui_event ev;
+	sgui_rect r;
 
-    sgui_internal_lock_mutex( );
-    old_val = new_val = this->value;
-    delta = this->steps ? ((this->max - this->min) / (this->steps-1)) : 1;
+	sgui_internal_lock_mutex();
+	old_val = new_val = this->value;
+	delta = this->steps ? ((this->max - this->min) / (this->steps-1)) : 1;
 
-    switch( e->type )
-    {
-    case SGUI_KEY_PRESSED_EVENT:
-        switch( e->arg.i )
-        {
-        case SGUI_KC_HOME:  new_val = this->min; break;
-        case SGUI_KC_END:   new_val = this->max; break;
-        case SGUI_KC_RIGHT: if( !this->vertical ) { new_val += delta; } break;
-        case SGUI_KC_LEFT:  if( !this->vertical ) { new_val -= delta; } break;
-        case SGUI_KC_UP:    if(  this->vertical ) { new_val += delta; } break;
-        case SGUI_KC_DOWN:  if(  this->vertical ) { new_val -= delta; } break;
-        case SGUI_KC_PRIOR:
-            new_val += this->steps ? 2*delta : (this->max-this->min)/10;
-            break;
-        case SGUI_KC_NEXT:
-            new_val -= this->steps ? 2*delta : (this->max-this->min)/10;
-            break;
-        }
-        break;
-    case SGUI_MOUSE_PRESS_EVENT:
-        if( e->arg.i3.z!=SGUI_MOUSE_BUTTON_LEFT )
-            break;
-        get_slider_rect( super, &r );
-        sgui_rect_add_offset( &r, -super->area.left, -super->area.top );
+	switch (e->type) {
+	case SGUI_KEY_PRESSED_EVENT:
+		switch (e->arg.i) {
+		case SGUI_KC_HOME:
+			new_val = this->min;
+			break;
+		case SGUI_KC_END:
+			new_val = this->max;
+			break;
+		case SGUI_KC_RIGHT:
+			if (!this->vertical)
+				new_val += delta;
+			break;
+		case SGUI_KC_LEFT:
+			if (!this->vertical)
+				new_val -= delta;
+			break;
+		case SGUI_KC_UP:
+			if (this->vertical)
+				new_val += delta;
+			break;
+		case SGUI_KC_DOWN:
+			if (this->vertical)
+				new_val -= delta;
+			break;
+		case SGUI_KC_PRIOR:
+			new_val += this->steps ? 2 * delta :
+						(this->max - this->min) / 10;
+			break;
+		case SGUI_KC_NEXT:
+			new_val -= this->steps ? 2 * delta :
+						(this->max - this->min) / 10;
+			break;
+		}
+		break;
+	case SGUI_MOUSE_PRESS_EVENT:
+		if (e->arg.i3.z != SGUI_MOUSE_BUTTON_LEFT)
+			break;
+		get_slider_rect(super, &r);
+		sgui_rect_add_offset(&r, -super->area.left, -super->area.top);
 
-        if( sgui_rect_is_point_inside( &r, e->arg.i3.x, e->arg.i3.y ) )
-            this->dragging = 1;
-        else
-            new_val = value_from_position( super, e->arg.i3.x, e->arg.i3.y );
-        break;
-    case SGUI_MOUSE_MOVE_EVENT:
-        if( this->dragging )
-            new_val = value_from_position( super, e->arg.i2.x, e->arg.i2.y );
-        break;
-    case SGUI_MOUSE_RELEASE_EVENT:
-    case SGUI_MOUSE_LEAVE_EVENT:
-        this->dragging = 0;
-        break;
-    case SGUI_MOUSE_WHEEL_EVENT:
-        new_val = (e->arg.i > 0) ? (new_val + delta) : (new_val - delta);
-        break;
-    }
+		if (sgui_rect_is_point_inside(&r, e->arg.i3.x, e->arg.i3.y)) {
+			this->dragging = 1;
+		} else {
+			new_val = value_from_position(super, e->arg.i3.x,
+							e->arg.i3.y);
+		}
+		break;
+	case SGUI_MOUSE_MOVE_EVENT:
+		if (this->dragging) {
+			new_val = value_from_position(super, e->arg.i2.x,
+							e->arg.i2.y);
+		}
+		break;
+	case SGUI_MOUSE_RELEASE_EVENT:
+	case SGUI_MOUSE_LEAVE_EVENT:
+		this->dragging = 0;
+		break;
+	case SGUI_MOUSE_WHEEL_EVENT:
+		new_val = (e->arg.i > 0) ? (new_val + delta) :
+						(new_val - delta);
+		break;
+	}
 
-    /* set value and fire event if changed */
-    sgui_slider_set_value( super, new_val );
+	sgui_slider_set_value(super, new_val);
 
-    if( old_val != this->value )
-    {
-        ev.type       = SGUI_SLIDER_CHANGED_EVENT;
-        ev.src.widget = super;
-        ev.arg.i      = this->value;
-        sgui_event_post( &ev );
-    }
+	if (old_val != this->value) {
+		ev.type = SGUI_SLIDER_CHANGED_EVENT;
+		ev.src.widget = super;
+		ev.arg.i = this->value;
+		sgui_event_post(&ev);
+	}
 
-    sgui_internal_unlock_mutex( );
+	sgui_internal_unlock_mutex();
 }
 
-static void slider_draw( sgui_widget* super )
+static void slider_draw(sgui_widget *super)
 {
-    sgui_slider* this = (sgui_slider*)super;
-    sgui_skin* skin = sgui_skin_get( );
+	sgui_slider *this = (sgui_slider *)super;
+	sgui_skin *skin = sgui_skin_get();
 
-    skin->draw_slider( skin, super->canvas, &super->area,
-                       this->vertical, this->min, this->max,
-                       this->value, this->steps );
+	skin->draw_slider(skin, super->canvas, &super->area,
+				this->vertical, this->min, this->max,
+				this->value, this->steps);
 }
 
 /****************************************************************************/
 
-sgui_widget* sgui_slider_create( int x, int y, unsigned int length,
-                                 int vertical, int min, int max,
-                                 unsigned int steps )
+sgui_widget *sgui_slider_create(int x, int y, unsigned int length,
+				int vertical, int min, int max,
+				unsigned int steps)
 {
-    sgui_skin* skin = sgui_skin_get( );
-    sgui_widget* super;
-    sgui_slider* this;
-    sgui_rect r;
-    int temp;
+	sgui_skin *skin = sgui_skin_get();
+	sgui_widget *super;
+	sgui_slider *this;
+	sgui_rect r;
+	int temp;
 
-    /* sanity check */
-    if( min > max )
-    {
-        temp = min;
-        min = max;
-        max = temp;
-    }
+	if (min > max) {
+		temp = min;
+		min = max;
+		max = temp;
+	}
 
-    if( min==max || length==0 )
-        return NULL;
+	if (min == max || length == 0)
+		return NULL;
 
-    /* create object */
-    this = calloc( 1, sizeof(sgui_slider) );
-    super = (sgui_widget*)this;
+	this = calloc(1, sizeof(*this));
+	super = (sgui_widget *)this;
 
-    if( !this )
-        return NULL;
+	if (!this)
+		return NULL;
 
-    /* initialize */
-    skin->get_slider_extents( skin, &r, vertical );
+	skin->get_slider_extents(skin, &r, vertical);
 
-    if( vertical )
-        sgui_widget_init( super, x, y, SGUI_RECT_WIDTH(r), length );
-    else
-        sgui_widget_init( super, x, y, length, SGUI_RECT_HEIGHT(r) );
+	if (vertical) {
+		sgui_widget_init(super, x, y, SGUI_RECT_WIDTH(r), length);
+	} else {
+		sgui_widget_init(super, x, y, length, SGUI_RECT_HEIGHT(r));
+	}
 
-    this->min      = min;
-    this->max      = max;
-    this->value    = min;
-    this->steps    = steps;
-    this->vertical = vertical;
-    this->border   = vertical ? SGUI_RECT_HEIGHT(r) : SGUI_RECT_WIDTH(r);
-    this->draglen  = length - this->border;
-
-    super->window_event = slider_on_event;
-    super->draw         = slider_draw;
-    super->destroy      = (void(*)(sgui_widget*))free;
-
-    return super;
+	this->min = min;
+	this->max = max;
+	this->value = min;
+	this->steps = steps;
+	this->vertical = vertical;
+	this->border = vertical ? SGUI_RECT_HEIGHT(r) : SGUI_RECT_WIDTH(r);
+	this->draglen = length - this->border;
+	super->window_event = slider_on_event;
+	super->draw = slider_draw;
+	super->destroy = (void(*)(sgui_widget *))free;
+	return super;
 }
 
-int sgui_slider_get_value( sgui_widget* this )
+int sgui_slider_get_value(sgui_widget *this)
 {
-    return ((sgui_slider*)this)->value;
+	return ((sgui_slider *)this)->value;
 }
 
-void sgui_slider_set_value( sgui_widget* super, int value )
+void sgui_slider_set_value(sgui_widget *super, int value)
 {
-    sgui_slider* this = (sgui_slider*)super;
-    int delta, reminder;
-    sgui_rect r;
+	sgui_slider *this = (sgui_slider *)super;
+	int delta, reminder;
+	sgui_rect r;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    /* sanitize value */
-    if( this->steps )
-    {
-        delta = (this->max - this->min) / (this->steps - 1);
-        reminder = value % delta;
+	if (this->steps) {
+		delta = (this->max - this->min) / (this->steps - 1);
+		reminder = value % delta;
 
-        if( reminder < (delta/2) )
-            value -= reminder;
-        else
-            value += delta - reminder;
-    }
+		if (reminder < (delta / 2)) {
+			value -= reminder;
+		} else {
+			value += delta - reminder;
+		}
+	}
 
-    value = MIN(value, this->max);
-    value = MAX(value, this->min);
+	value = MIN(value, this->max);
+	value = MAX(value, this->min);
 
-    /* if changed, set and request redraw */
-    if( this->value != value )
-    {
-        this->value = value;
-        if( this->super.canvas )
-        {
-            sgui_widget_get_absolute_rect( super, &r );
-            sgui_canvas_add_dirty_rect( this->super.canvas, &r );
-        }
-    }
+	if (this->value != value) {
+		this->value = value;
 
-    sgui_internal_unlock_mutex( );
+		if (this->super.canvas) {
+			sgui_widget_get_absolute_rect(super, &r);
+			sgui_canvas_add_dirty_rect(this->super.canvas, &r);
+		}
+	}
+
+	sgui_internal_unlock_mutex();
 }
-

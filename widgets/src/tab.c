@@ -39,234 +39,218 @@
 
 /* FIXME: somehow handle tabs with more captions than displayable? */
 #ifndef SGUI_NO_TABS
-typedef struct
+typedef struct {
+	sgui_widget super;
+
+	char *caption;
+	unsigned int caption_width;
+} sgui_tab;
+
+typedef struct {
+	sgui_widget super;
+
+	sgui_tab *current;
+	unsigned int tab_cap_width, tab_cap_height, count;
+} sgui_tab_group;
+
+static void tab_update_current(sgui_widget *super)
 {
-    sgui_widget super;
+	sgui_tab_group *g = (sgui_tab_group *)super->parent;
+	sgui_tab *this = (sgui_tab *)super;
+	sgui_widget *w;
 
-    char* caption;
-    unsigned int caption_width;
-}
-sgui_tab;
+	if (super->flags & SGUI_WIDGET_VISIBLE) {
+		g->current = this;
 
-typedef struct
-{
-    sgui_widget super;
-
-    sgui_tab* current;
-    unsigned int tab_cap_width, tab_cap_height, count;
-}
-sgui_tab_group;
-
-
-
-static void tab_on_state_change( sgui_widget* super, int change )
-{
-    sgui_tab_group* g = (sgui_tab_group*)super->parent;
-    sgui_tab* this = (sgui_tab*)super;
-    sgui_widget* w;
-    sgui_event ev;
-
-    if( change & SGUI_WIDGET_VISIBILLITY_CHANGED )
-    {
-        if( super->parent )
-        {
-            if( super->flags & SGUI_WIDGET_VISIBLE )
-            {
-                g->current = this;
-
-                for( w=super->parent->children; w!=NULL; w=w->next )
-                {
-                    if( w!=super && (w->flags & SGUI_WIDGET_VISIBLE) )
-                        sgui_widget_set_visible( w, 0 );
-                }
-            }
-            else if( g->current==this )
-            {
-                g->current = NULL;
-            }
-        }
-
-        ev.type = (super->flags & SGUI_WIDGET_VISIBLE) ?
-                  SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
-        ev.src.widget = super;
-        sgui_event_post( &ev );
-    }
+		for (w = super->parent->children; w != NULL; w = w->next) {
+			if (w != super && (w->flags & SGUI_WIDGET_VISIBLE))
+				sgui_widget_set_visible(w, 0);
+		}
+	} else if (g->current == this) {
+		g->current = NULL;
+	}
 }
 
-static void tab_on_draw( sgui_widget* super )
+static void tab_on_state_change(sgui_widget *this, int change)
 {
-    sgui_tab* this = ((sgui_tab*)super);
-    sgui_skin* skin = sgui_skin_get( );
-    unsigned int gap = 0;
-    sgui_widget* i;
+	sgui_event ev;
 
-    sgui_internal_lock_mutex( );
-    for( i=super->parent->children; i!=super; i=i->next )
-        gap += ((sgui_tab*)i)->caption_width;
+	if (change & SGUI_WIDGET_VISIBILLITY_CHANGED) {
+		if (this->parent)
+			tab_update_current(this);
 
-    skin->draw_tab(skin,super->canvas,&super->area,gap,this->caption_width);
-    sgui_internal_unlock_mutex( );
+		ev.type = (this->flags & SGUI_WIDGET_VISIBLE) ?
+				SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
+		ev.src.widget = this;
+		sgui_event_post(&ev);
+	}
 }
 
-static void tab_destroy( sgui_widget* super )
+static void tab_on_draw(sgui_widget *super)
 {
-    free( ((sgui_tab*)super)->caption );
-    free( super );
+	sgui_tab *this = ((sgui_tab *)super);
+	sgui_skin *skin = sgui_skin_get();
+	unsigned int gap = 0;
+	sgui_widget *i;
+
+	sgui_internal_lock_mutex();
+	for (i = super->parent->children; i != super; i = i->next)
+		gap += ((sgui_tab *)i)->caption_width;
+
+	skin->draw_tab(skin, super->canvas, &super->area, gap,
+			this->caption_width);
+	sgui_internal_unlock_mutex();
+}
+
+static void tab_destroy(sgui_widget *super)
+{
+	free(((sgui_tab *)super)->caption);
+	free(super);
 }
 
 /****************************************************************************/
 
-static void tab_group_on_state_change( sgui_widget* super, int change )
+static void tab_group_on_state_change(sgui_widget *super, int change)
 {
-    sgui_tab_group* this = (sgui_tab_group*)super;
-    sgui_widget* i;
+	sgui_tab_group *this = (sgui_tab_group *)super;
+	sgui_widget *i;
 
-    if( change==SGUI_WIDGET_CHILD_ADDED && !super->children->next )
-    {
-        ((sgui_tab_group*)super)->current = (sgui_tab*)super->children;
-        sgui_widget_set_visible( super->children, 1 );
-    }
-    else if( change==SGUI_WIDGET_CHILD_REMOVED )
-    {
-        for( i=super->children; i!=NULL; i=i->next )
-        {
-            if( i==(sgui_widget*)this->current )
-                return;
-        }
+	if (change == SGUI_WIDGET_CHILD_ADDED && !super->children->next) {
+		this->current = (sgui_tab *)super->children;
+		sgui_widget_set_visible(super->children, 1);
+	} else if (change == SGUI_WIDGET_CHILD_REMOVED) {
+		for (i = super->children; i != NULL; i = i->next) {
+			if (i == (sgui_widget *)this->current)
+				return;
+		}
 
-        this->current = (sgui_tab*)super->children;
-        sgui_widget_set_visible( super->children, 1 );
-    }
+		this->current = (sgui_tab *)super->children;
+		sgui_widget_set_visible(super->children, 1);
+	}
 }
 
-static void tab_group_on_event( sgui_widget* super, const sgui_event* e )
+static void tab_group_on_event(sgui_widget *super, const sgui_event *e)
 {
-    sgui_tab_group* this = (sgui_tab_group*)super;
-    sgui_widget* i;
-    int x;
+	sgui_tab_group *this = (sgui_tab_group*)super;
+	sgui_widget *i;
+	int x;
 
-    if( e->type == SGUI_MOUSE_PRESS_EVENT )
-    {
-        sgui_internal_lock_mutex( );
+	if (e->type == SGUI_MOUSE_PRESS_EVENT) {
+		sgui_internal_lock_mutex();
+		x = e->arg.i3.x;
 
-        for( x=e->arg.i3.x, i=super->children; i; i=i->next )
-        {
-            if( x<(int)(((sgui_tab*)i)->caption_width) )
-                break;
-            x -= ((sgui_tab*)i)->caption_width;
-        }
+		for (i = super->children; i != NULL; i = i->next) {
+			if (x < (int)(((sgui_tab *)i)->caption_width))
+				break;
+			x -= ((sgui_tab *)i)->caption_width;
+		}
 
-        sgui_widget_set_visible( i, 1 );
-        sgui_internal_unlock_mutex( );
-    }
-    else if( e->type==SGUI_KEY_RELEASED_EVENT && this->current &&
-             (e->arg.i==SGUI_KC_LEFT || e->arg.i==SGUI_KC_RIGHT) )
-    {
-        sgui_internal_lock_mutex( );
-        if( e->arg.i==SGUI_KC_LEFT )
-        {
-            for( i=super->children; i; i=i->next )
-            {
-                if( i->next==(sgui_widget*)this->current )
-                {
-                    sgui_widget_set_visible( i, 1 );
-                    break;
-                }
-            }
-        }
-        else if( this->current->super.next )
-        {
-            sgui_widget_set_visible( this->current->super.next, 1 );
-        }
-        sgui_internal_unlock_mutex( );
-    }
+		sgui_widget_set_visible(i, 1);
+		sgui_internal_unlock_mutex();
+	} else if (e->type == SGUI_KEY_RELEASED_EVENT && this->current) {
+		if (e->arg.i != SGUI_KC_LEFT && e->arg.i != SGUI_KC_RIGHT)
+			return;
+
+		sgui_internal_lock_mutex();
+
+		if (e->arg.i == SGUI_KC_LEFT) {
+			for (i = super->children; i != NULL; i = i->next) {
+				if (i->next == (sgui_widget *)this->current) {
+					sgui_widget_set_visible(i, 1);
+					break;
+				}
+			}
+		} else if (this->current->super.next) {
+			sgui_widget_set_visible(this->current->super.next, 1);
+		}
+
+		sgui_internal_unlock_mutex();
+	}
 }
 
-static void tab_group_draw( sgui_widget* super )
+static void tab_group_draw(sgui_widget *super)
 {
-    int x = super->area.left, y = super->area.top;
-    sgui_skin* skin = sgui_skin_get( );
-    sgui_widget* i;
+	int x = super->area.left, y = super->area.top;
+	sgui_skin *skin = sgui_skin_get();
+	sgui_widget *i;
 
-    sgui_internal_lock_mutex( );
+	sgui_internal_lock_mutex();
 
-    for( i=super->children; i!=NULL; i=i->next )
-    {
-        skin->draw_tab_caption( skin, super->canvas, x, y,
-                                ((sgui_tab*)i)->caption,
-                                ((sgui_tab*)i)->caption_width );
-        x += ((sgui_tab*)i)->caption_width;
-    }
+	for (i = super->children; i != NULL; i = i->next) {
+		skin->draw_tab_caption(skin, super->canvas, x, y,
+					((sgui_tab *)i)->caption,
+					((sgui_tab *)i)->caption_width);
+		x += ((sgui_tab *)i)->caption_width;
+	}
 
-    sgui_internal_unlock_mutex( );
+	sgui_internal_unlock_mutex();
 }
 
 /****************************************************************************/
 
-sgui_widget* sgui_tab_group_create( int x, int y,
-                                    unsigned int width, unsigned int height )
+sgui_widget *sgui_tab_group_create(int x, int y, unsigned int width,
+					unsigned int height)
 {
-    sgui_tab_group* this = calloc( 1, sizeof(sgui_tab_group) );
-    sgui_skin* skin = sgui_skin_get( );
-    sgui_rect r;
+	sgui_tab_group *this = calloc(1, sizeof(*this));
+	sgui_skin *skin = sgui_skin_get();
+	sgui_rect r;
 
-    if( !this )
-        return NULL;
+	if (!this)
+		return NULL;
 
-    sgui_widget_init( (sgui_widget*)this, x, y, width, height );
-    skin->get_tap_caption_extents( skin, &r );
+	sgui_widget_init((sgui_widget *)this, x, y, width, height);
+	skin->get_tap_caption_extents(skin, &r);
 
-    this->super.state_change_event = tab_group_on_state_change;
-    this->super.draw               = tab_group_draw;
-    this->super.window_event       = tab_group_on_event;
-    this->super.destroy            = (void(*)(sgui_widget*))free;
-    this->tab_cap_height           = SGUI_RECT_HEIGHT( r );
-    this->tab_cap_width            = SGUI_RECT_WIDTH( r );
-
-    return (sgui_widget*)this;
+	this->super.state_change_event = tab_group_on_state_change;
+	this->super.draw = tab_group_draw;
+	this->super.window_event = tab_group_on_event;
+	this->super.destroy = (void(*)(sgui_widget *))free;
+	this->tab_cap_height = SGUI_RECT_HEIGHT(r);
+	this->tab_cap_width = SGUI_RECT_WIDTH(r);
+	return (sgui_widget*)this;
 }
 
-sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
+sgui_widget *sgui_tab_create(sgui_widget *parent, const char *caption)
 {
-    sgui_tab* this = calloc( 1, sizeof(sgui_tab) );
-    sgui_widget* super = (sgui_widget*)this;
-    sgui_tab_group* g = (sgui_tab_group*)parent;
+	sgui_tab *this = calloc(1, sizeof(*this));
+	sgui_widget *super = (sgui_widget *)this;
+	sgui_tab_group *g = (sgui_tab_group *)parent;
+	unsigned int extents;
 
-    if( !this )
-        return NULL;
+	if (!this)
+		return NULL;
 
-    if( !(this->caption = sgui_strdup( caption )) )
-    {
-        free( this );
-        return NULL;
-    }
+	this->caption = sgui_strdup(caption);
+	if (!this->caption) {
+		free(this);
+		return NULL;
+	}
 
-    sgui_internal_lock_mutex( );
-    sgui_widget_init( super, 0, g->tab_cap_height,
-                      SGUI_RECT_WIDTH(parent->area),
-                      SGUI_RECT_HEIGHT(parent->area) - g->tab_cap_height );
-    sgui_internal_unlock_mutex( );
+	sgui_internal_lock_mutex();
+	sgui_widget_init(super, 0, g->tab_cap_height,
+			SGUI_RECT_WIDTH(parent->area),
+			SGUI_RECT_HEIGHT(parent->area) - g->tab_cap_height);
+	sgui_internal_unlock_mutex();
 
-    this->caption_width = g->tab_cap_width +
-                          sgui_skin_default_font_extents( caption, -1, 0, 0 );
-    super->flags              = 0;
-    super->state_change_event = tab_on_state_change;
-    super->draw               = tab_on_draw;
-    super->destroy            = tab_destroy;
+	extents = sgui_skin_default_font_extents(caption, -1, 0, 0);
 
-    return super;
+	this->caption_width = g->tab_cap_width + extents;
+	super->flags = 0;
+	super->state_change_event = tab_on_state_change;
+	super->draw = tab_on_draw;
+	super->destroy = tab_destroy;
+	return super;
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-sgui_widget* sgui_tab_create( sgui_widget* parent, const char* caption )
+sgui_widget *sgui_tab_create(sgui_widget *parent, const char *caption)
 {
-    (void)parent; (void)caption;
-    return NULL;
+	(void)parent; (void)caption;
+	return NULL;
 }
-sgui_widget* sgui_tab_group_create( int x, int y,
-                                    unsigned int width, unsigned int height )
+sgui_widget *sgui_tab_group_create(int x, int y, unsigned int width,
+					unsigned int height)
 {
-    (void)x; (void)y; (void)width; (void)height;
-    return NULL;
+	(void)x; (void)y; (void)width; (void)height;
+	return NULL;
 }
 #endif /* !SGUI_NO_TABS */
-

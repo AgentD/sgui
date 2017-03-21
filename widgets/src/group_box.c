@@ -1,6 +1,6 @@
 /*
  * group_box.c
- * This file is part of sgio
+ * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
  *
@@ -34,68 +34,56 @@
 #include <string.h>
 
 
-
 #ifndef SGUI_NO_GROUP_BOX
-typedef struct
+typedef struct {
+	sgui_widget super;
+	char *caption;
+} sgui_group_box;
+
+
+static void group_box_draw(sgui_widget *super)
 {
-    sgui_widget super;
-    char* caption;
-}
-sgui_group_box;
+	sgui_group_box *this = (sgui_group_box *)super;
+	sgui_skin *skin = sgui_skin_get();
 
-
-
-static void group_box_draw( sgui_widget* super )
-{
-    sgui_group_box* this = (sgui_group_box*)super;
-    sgui_skin* skin = sgui_skin_get( );
-
-    skin->draw_group_box(skin, super->canvas, &(super->area), this->caption);
+	skin->draw_group_box(skin, super->canvas, &super->area, this->caption);
 }
 
-static void group_box_destroy( sgui_widget* super )
+static void group_box_destroy(sgui_widget *super)
 {
-    sgui_group_box* this = (sgui_group_box*)super;
+	sgui_group_box *this = (sgui_group_box *)super;
 
-    free( this->caption );
-    free( this );
+	free(this->caption);
+	free(this);
 }
 
-
-
-sgui_widget* sgui_group_box_create( int x, int y,
-                                    unsigned int width, unsigned int height,
-                                    const char* caption )
+sgui_widget *sgui_group_box_create(int x, int y, unsigned int width,
+				unsigned int height, const char *caption)
 {
-    sgui_group_box* this = calloc( 1, sizeof(sgui_group_box) );
-    sgui_widget* super = (sgui_widget*)this;
+	sgui_group_box *this = calloc(1, sizeof(*this));
+	sgui_widget *super = (sgui_widget *)this;
 
-    if( !this )
-        return NULL;
+	if (!this)
+		return NULL;
 
-    /* try to store the caption string */
-    if( !(this->caption = sgui_strdup( caption )) )
-    {
-        free( this );
-        return NULL;
-    }
+	this->caption = sgui_strdup(caption);
+	if (!this->caption) {
+		free(this);
+		return NULL;
+	}
 
-    /* initialize widget base struct */
-    sgui_widget_init( super, x, y, width, height );
+	sgui_widget_init(super, x, y, width, height);
 
-    super->draw = group_box_draw;
-    super->destroy = group_box_destroy;
-    super->flags = SGUI_WIDGET_VISIBLE;
-
-    return super;
+	super->draw = group_box_draw;
+	super->destroy = group_box_destroy;
+	super->flags = SGUI_WIDGET_VISIBLE;
+	return super;
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-sgui_widget* sgui_group_box_create( int x, int y,
-                                    unsigned int width, unsigned int height,
-                                    const char* caption )
+sgui_widget *sgui_group_box_create(int x, int y, unsigned int width,
+				unsigned int height, const char *caption)
 {
-    (void)x; (void)y; (void)width; (void)height; (void)caption;
-    return NULL;
+	(void)x; (void)y; (void)width; (void)height; (void)caption;
+	return NULL;
 }
 #endif /* !SGUI_NO_GROUP_BOX */
-

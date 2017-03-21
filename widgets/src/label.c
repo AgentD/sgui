@@ -35,59 +35,47 @@
 #include <stdio.h>
 
 
+typedef struct {
+	sgui_widget super;
 
-typedef struct
+	char *text;
+} sgui_label;
+
+
+static void label_draw(sgui_widget *super)
 {
-    sgui_widget super;
+	sgui_label *this = (sgui_label *)super;
 
-    char* text;
-}
-sgui_label;
-
-
-
-static void label_draw( sgui_widget* super )
-{
-    sgui_label* this = (sgui_label*)super;
-
-    sgui_skin_draw_text( super->canvas, super->area.left, super->area.top,
-                         this->text );
+	sgui_skin_draw_text(super->canvas, super->area.left, super->area.top,
+				this->text);
 }
 
-static void label_destroy( sgui_widget* this )
+static void label_destroy(sgui_widget *this)
 {
-    free( ((sgui_label*)this)->text );
-    free( this );
+	free(((sgui_label *)this)->text);
+	free(this);
 }
 
-
-
-sgui_widget* sgui_label_create( int x, int y, const char* text )
+sgui_widget *sgui_label_create(int x, int y, const char *text)
 {
-    sgui_label* this;
-    sgui_widget* super;
+	sgui_label *this = calloc(1, sizeof(*this));
+	sgui_widget *super = (sgui_widget *)this;
 
-    /* create widget */
-    this = calloc( 1, sizeof(sgui_label) );
-    super = (sgui_widget*)this;
+	if (!this)
+		return NULL;
 
-    if( !this || !(this->text = sgui_strdup( text )) )
-    {
-        free( this );
-        return NULL;
-    }
+	this->text = sgui_strdup(text);
+	if (!this->text) {
+		free(this);
+		return NULL;
+	}
 
-    /* initialise the base widget */
-    sgui_widget_init( (sgui_widget*)this, 0, 0, 0, 0 );
+	sgui_widget_init((sgui_widget *)this, 0, 0, 0, 0);
+	super->draw = label_draw;
+	super->destroy = label_destroy;
+	super->flags = SGUI_WIDGET_VISIBLE;
 
-    super->draw          = label_draw;
-    super->destroy       = label_destroy;
-    super->flags         = SGUI_WIDGET_VISIBLE;
-
-    /* compute the text area */
-    sgui_skin_get_text_extents( text, &super->area );
-    sgui_rect_set_position( &super->area, x, y );
-
-    return (sgui_widget*)this;
+	sgui_skin_get_text_extents(text, &super->area);
+	sgui_rect_set_position(&super->area, x, y);
+	return (sgui_widget*)this;
 }
-
