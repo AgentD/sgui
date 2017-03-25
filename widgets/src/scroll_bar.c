@@ -44,181 +44,90 @@ typedef struct {
 } sgui_scroll_bar;
 
 
-
-static void scroll_bar_on_event_h(sgui_widget* super, const sgui_event *e)
+static void scroll_down(sgui_scroll_bar *this)
 {
-	sgui_scroll_bar *this = (sgui_scroll_bar *)super;
-	unsigned int l = this->length - 2 * this->bw, old;
-	sgui_rect r;
+	unsigned int l = this->length - 2 * this->bh, v_new, p_new;
 
-	sgui_internal_lock_mutex();
+	v_new = this->v_offset + this->v_length + this->v_length / 4;
+	p_new = this->p_offset + this->p_length + this->p_length / 4;
 
-	if (e->type == SGUI_MOUSE_WHEEL_EVENT) {
-		old = this->v_offset;
-
-		if (e->arg.i < 0) {
-			if (((this->v_offset + this->v_length + this->v_length / 4) < this->v_max) &&
-				((this->p_offset + this->p_length + this->p_length / 4) < l)) {
-				this->p_offset += this->p_length / 4;
-				this->v_offset += this->v_length / 4;
-			} else {
-				this->p_offset = l - this->p_length;
-				this->v_offset = this->v_max - this->v_length;
-			}
-		} else {
-			if ((this->p_offset > (this->p_length/4)) &&
-				(this->v_offset > (this->v_length/4))) {
-				this->p_offset -= this->p_length / 4;
-				this->v_offset -= this->v_length / 4;
-			} else {
-				this->p_offset = 0;
-				this->v_offset = 0;            
-			}
-		}
-
-		if (this->v_offset != old) {
-			if (this->scroll_fun)
-				this->scroll_fun(this->userptr, this->v_offset,
-						this->v_offset-old);
-
-			sgui_widget_get_absolute_rect(super, &r);
-			sgui_canvas_add_dirty_rect(super->canvas, &r);
-		}
-	} else if (e->type == SGUI_MOUSE_RELEASE_EVENT ||
-			e->type == SGUI_MOUSE_LEAVE_EVENT) {
-		/* buttons return to out state, need redraw */
-		if (this->dec_button_state || this->inc_button_state) {
-			sgui_widget_get_absolute_rect(super, &r);
-			sgui_canvas_add_dirty_rect(super->canvas, &r);
-		}
-
-		this->dec_button_state = this->inc_button_state = 0;
-	} else if (e->type == SGUI_MOUSE_PRESS_EVENT) {
-		/* update button state, request redraw */
-		this->dec_button_state = e->arg.i3.x < (int)this->bw;
-		this->inc_button_state = e->arg.i3.x >
-					((int)this->length - (int)this->bw);
-
-		sgui_widget_get_absolute_rect(super, &r);
-		sgui_canvas_add_dirty_rect(super->canvas, &r);
-
-		/* modify offset accordingly if a button was pressed */
-		old = this->v_offset;
-
-		if (this->inc_button_state) {
-			if (((this->v_offset + this->v_length + this->v_length / 4) < this->v_max) &&
-				((this->p_offset + this->p_length + this->p_length / 4) < l)) {
-				this->p_offset += this->p_length / 4;
-				this->v_offset += this->v_length / 4;
-			} else {
-				this->p_offset = l - this->p_length;
-				this->v_offset = this->v_max - this->v_length;
-			}
-		} else if (this->dec_button_state) {
-			if ((this->p_offset > (this->p_length/4)) &&
-				(this->v_offset > (this->v_length/4))) {
-				this->p_offset -= this->p_length / 4;
-				this->v_offset -= this->v_length / 4;
-			} else {
-				this->p_offset = 0;
-				this->v_offset = 0;
-			}
-		}
-
-		if (this->scroll_fun && (this->v_offset != old))
-			this->scroll_fun(this->userptr, this->v_offset,
-						this->v_offset-old);
+	if ((v_new < this->v_max) && (p_new < l)) {
+		this->p_offset += this->p_length / 4;
+		this->v_offset += this->v_length / 4;
+	} else {
+		this->p_offset = l - this->p_length;
+		this->v_offset = this->v_max - this->v_length;
 	}
-
-	sgui_internal_unlock_mutex();
 }
 
-static void scroll_bar_on_event_v(sgui_widget *super, const sgui_event *e)
+static void scroll_up(sgui_scroll_bar *this)
+{
+	if ((this->p_offset > (this->p_length / 4)) &&
+		(this->v_offset > (this->v_length / 4))) {
+		this->p_offset -= this->p_length / 4;
+		this->v_offset -= this->v_length / 4;
+	} else {
+		this->p_offset = 0;
+		this->v_offset = 0;
+	}
+}
+
+static void scroll_bar_on_event(sgui_widget* super, const sgui_event *e)
 {
 	sgui_scroll_bar *this = (sgui_scroll_bar *)super;
-	unsigned int l = this->length - 2 * this->bh, old;
+	unsigned int old;
 	sgui_rect r;
 
 	sgui_internal_lock_mutex();
+	old = this->v_offset;
 
-	if (e->type == SGUI_MOUSE_WHEEL_EVENT) {
-		old = this->v_offset;
-
+	switch (e->type) {
+	case SGUI_MOUSE_WHEEL_EVENT:
 		if (e->arg.i < 0) {
-			if (((this->v_offset + this->v_length + this->v_length / 4) < this->v_max) &&
-				((this->p_offset + this->p_length + this->p_length / 4)<l)) {
-				this->p_offset += this->p_length / 4;
-				this->v_offset += this->v_length / 4;
-			} else {
-				this->p_offset = l - this->p_length;
-				this->v_offset = this->v_max - this->v_length;
-			}
+			scroll_down(this);
 		} else {
-			if ((this->p_offset > (this->p_length / 4)) &&
-				(this->v_offset > (this->v_length / 4))) {
-				this->p_offset -= this->p_length / 4;
-				this->v_offset -= this->v_length / 4;
-			} else {
-				this->p_offset = 0;
-				this->v_offset = 0;
-			}
+			scroll_up(this);
 		}
-
-		if (this->v_offset != old) {
-			if (this->scroll_fun)
-				this->scroll_fun(this->userptr, this->v_offset,
-						this->v_offset - old);
-
-			sgui_widget_get_absolute_rect(super, &r);
-			sgui_canvas_add_dirty_rect(super->canvas, &r);
-		}
-	} else if (e->type == SGUI_MOUSE_RELEASE_EVENT ||
-			e->type == SGUI_MOUSE_LEAVE_EVENT) {
-		/* buttons return to out state, need redraw */
+		break;
+	case SGUI_MOUSE_RELEASE_EVENT:
+	case SGUI_MOUSE_LEAVE_EVENT:
 		if (this->dec_button_state || this->inc_button_state) {
 			sgui_widget_get_absolute_rect(super, &r);
 			sgui_canvas_add_dirty_rect(super->canvas, &r);
 		}
 
 		this->dec_button_state = this->inc_button_state = 0;
-	} else if (e->type == SGUI_MOUSE_PRESS_EVENT) {
-		/* update button state, request redraw */
-		this->dec_button_state = e->arg.i3.y < (int)this->bh;
-		this->inc_button_state = e->arg.i3.y >
+		break;
+	case SGUI_MOUSE_PRESS_EVENT:
+		if (this->horizontal) {
+			this->dec_button_state = e->arg.i3.x < (int)this->bw;
+			this->inc_button_state = e->arg.i3.x >
+					((int)this->length - (int)this->bw);
+		} else {
+			this->dec_button_state = e->arg.i3.y < (int)this->bh;
+			this->inc_button_state = e->arg.i3.y >
 					((int)this->length - (int)this->bh);
+		}
 
 		sgui_widget_get_absolute_rect(super, &r);
 		sgui_canvas_add_dirty_rect(super->canvas, &r);
 
-		/* modify offset accordingly if a button was pressed */
-		old = this->v_offset;
-
 		if (this->inc_button_state) {
-			if( ((this->v_offset + this->v_length + this->v_length/4) < this->v_max) &&
-				((this->p_offset + this->p_length + this->p_length / 4)<l) ) {
-				this->p_offset += this->p_length / 4;
-				this->v_offset += this->v_length / 4;
-			} else {
-				this->p_offset = l - this->p_length;
-				this->v_offset = this->v_max - this->v_length;
-			}
+			scroll_down(this);
 		} else if (this->dec_button_state) {
-			if ((this->p_offset > (this->p_length / 4)) &&
-				(this->v_offset > (this->v_length / 4)) ) {
-				this->p_offset -= this->p_length / 4;
-				this->v_offset -= this->v_length / 4;
-			} else {
-				this->p_offset = 0;
-				this->v_offset = 0;
-			}
+			scroll_up(this);
 		}
-
-		if (this->scroll_fun && (this->v_offset != old)) {
-			this->scroll_fun(this->userptr, this->v_offset,
-					this->v_offset - old);
-		}
+		break;
 	}
 
+	if (this->v_offset != old) {
+		if (this->scroll_fun)
+			this->scroll_fun(this->userptr, this->v_offset,
+					this->v_offset-old);
+
+		sgui_widget_get_absolute_rect(super, &r);
+		sgui_canvas_add_dirty_rect(super->canvas, &r);
+	}
 	sgui_internal_unlock_mutex();
 }
 
@@ -264,9 +173,7 @@ sgui_widget *sgui_scroll_bar_create(int x, int y, int horizontal,
 
 	sgui_widget_init( super, x, y, w, h );
 
-	this->super.window_event = horizontal ? scroll_bar_on_event_h :
-						scroll_bar_on_event_v;
-
+	super->window_event = scroll_bar_on_event;
 	super->draw = scroll_bar_draw;
 	super->destroy = (void(*)(sgui_widget*))free;
 	super->flags = SGUI_WIDGET_VISIBLE;
@@ -325,13 +232,17 @@ void sgui_scroll_bar_set_area(sgui_widget *super,
 				unsigned int disp_area_length)
 {
 	sgui_scroll_bar *this = (sgui_scroll_bar *)super;
+	unsigned int bar_length;
 	sgui_rect r;
 
 	sgui_internal_lock_mutex();
 
+	bar_length = this->length;
+	bar_length -= 2 * (this->horizontal ? this->bw : this->bh);
+
 	this->v_length = disp_area_length;
 	this->v_max = scroll_area_length;
-	this->p_length = ((this->v_length << 8) / this->v_max) * (this->length - 2 * (this->horizontal ? this->bw : this->bh));
+	this->p_length = ((this->v_length << 8) / this->v_max) * bar_length;
 
 	this->p_length >>= 8;
 
@@ -345,6 +256,7 @@ void sgui_scroll_bar_set_area(sgui_widget *super,
 void sgui_scroll_bar_set_length(sgui_widget *super, unsigned int length)
 {
 	sgui_scroll_bar *this = (sgui_scroll_bar *)super;
+	unsigned int bar_length;
 	sgui_rect r;
 
 	sgui_internal_lock_mutex();
@@ -356,8 +268,10 @@ void sgui_scroll_bar_set_length(sgui_widget *super, unsigned int length)
 		sgui_canvas_add_dirty_rect(super->canvas, &r);
 	}
 
+	bar_length = length - 2 * (this->horizontal ? this->bw : this->bh);
+
 	this->length = length;
-	this->p_length = ((this->v_length << 8) / this->v_max) * (this->length - 2 * (this->horizontal ? this->bw : this->bh));
+	this->p_length = ((this->v_length << 8) / this->v_max) * bar_length;
 
 	this->p_length >>= 8;
 
