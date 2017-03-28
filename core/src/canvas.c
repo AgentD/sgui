@@ -203,7 +203,7 @@ void sgui_canvas_redraw_area(sgui_canvas *this, const sgui_rect *r, int clear)
 	if (r && !sgui_rect_get_intersection(&r1, &r1, r))
 		goto done;
 
-	sgui_canvas_begin(this, NULL);
+	sgui_canvas_begin(this, &r1);
 	this->num_dirty = 0;
 
 	if (clear)
@@ -356,13 +356,13 @@ sgui_pixmap *sgui_canvas_create_pixmap(sgui_canvas *this,
 
 void sgui_canvas_set_scissor_rect(sgui_canvas *this, const sgui_rect *r)
 {
+	if (!(this->flags & SGUI_CANVAS_BEGAN))
+		return;
+
 	if (r) {
-		this->sc.left = MAX(0, r->left);
-		this->sc.top = MAX(0, r->top);
-		this->sc.right = MIN((int)this->width-1, r->right);
-		this->sc.bottom = MIN((int)this->height-1, r->bottom);
+		sgui_rect_get_intersection(&this->sc, &this->locked, r);
 	} else {
-		sgui_rect_set_size(&this->sc, 0, 0, this->width, this->height);
+		this->sc = this->locked;
 	}
 }
 
@@ -380,6 +380,7 @@ void sgui_canvas_begin(sgui_canvas *this, const sgui_rect *r)
 			return;
 
 		this->sc = r0;
+		this->locked = r0;
 		this->flags |= SGUI_CANVAS_BEGAN;
 	}
 }

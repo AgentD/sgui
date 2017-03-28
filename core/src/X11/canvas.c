@@ -91,7 +91,10 @@ static int canvas_x11_draw_string(sgui_canvas *super, int x, int y,
 		text += len;
 	}
 
-	this->set_clip_rect(this, 0, 0, super->width, super->height);
+	this->set_clip_rect(this, super->locked.left, super->locked.top,
+				SGUI_RECT_WIDTH(super->locked),
+				SGUI_RECT_HEIGHT(super->locked));
+
 	sgui_internal_unlock_mutex();
 	return x - oldx;
 fail:
@@ -113,6 +116,17 @@ static void canvas_x11_clear(sgui_canvas *super, const sgui_rect *r)
 	XClearArea(x11.dpy, this->wnd, r->left, r->top,
 			SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r), False);
 	sgui_internal_unlock_mutex();
+}
+
+static int canvas_x11_begin(sgui_canvas *super, const sgui_rect *r)
+{
+	sgui_canvas_x11 *this = (sgui_canvas_x11 *)super;
+
+	sgui_internal_lock_mutex();
+	this->set_clip_rect(this, r->left, r->top,
+				SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r));
+	sgui_internal_unlock_mutex();
+	return 1;
 }
 /****************************************************************************/
 sgui_canvas *canvas_xrender_create(Drawable wnd, unsigned int width,
@@ -163,6 +177,7 @@ void canvas_x11_init(sgui_canvas *super, Drawable wnd,
 	super->resize = canvas_x11_resize;
 	super->clear = canvas_x11_clear;
 	super->draw_string = canvas_x11_draw_string;
+	super->begin = canvas_x11_begin;
 	this->wnd = wnd;
 	this->set_clip_rect = clip;
 }

@@ -58,6 +58,10 @@ struct sgui_canvas
     unsigned int width;         /**< \brief Width of the canvas in pixels */
     unsigned int height;        /**< \brief Height of the canvas in pixels */
     sgui_rect sc;               /**< \brief current scissor rect */
+
+    /** \brief rectangle passed to \ref sgui_canvas_begin */
+    sgui_rect locked;
+
     int flags;                  /**< \brief A set of \ref SGUI_CANVAS_FLAGS */
 
     /**
