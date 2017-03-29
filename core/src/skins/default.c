@@ -31,7 +31,12 @@
 
 #include <stddef.h>
 #include <string.h>
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#include <malloc.h>
+#else
 #include <alloca.h>
+#endif
 
 
 #define FONT "SourceSansPro-Regular.ttf"
