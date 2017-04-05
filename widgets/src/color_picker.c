@@ -149,15 +149,18 @@ static void color_picker_draw(sgui_widget *super)
 
 	/* background pixmaps */
 	sgui_canvas_draw_pixmap(super->canvas, super->area.left,
-				super->area.top, this->hs, NULL, 1);
+				super->area.top, this->hs,
+				NULL, SGUI_CANVAS_BLEND);
 
 	sgui_canvas_draw_pixmap(super->canvas,
 				super->area.left + IMAGE_W + BAR_W / 2,
-				super->area.top, this->vbar, NULL, 1);
+				super->area.top, this->vbar,
+				NULL, SGUI_CANVAS_BLEND);
 
 	sgui_canvas_draw_pixmap(super->canvas,
 				super->area.left + IMAGE_W + 2 * BAR_W,
-				super->area.top, this->abar, NULL, 1);
+				super->area.top, this->abar,
+				NULL, SGUI_CANVAS_BLEND);
 
 	/* cross hair */
 	sgui_canvas_draw_line(super->canvas,

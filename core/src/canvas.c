@@ -455,7 +455,7 @@ void sgui_canvas_draw_line(sgui_canvas *this, int x, int y,
 
 void sgui_canvas_draw_pixmap(sgui_canvas *this, int x, int y,
 				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect, int blend)
+				const sgui_rect *srcrect, int op)
 {
 	unsigned int w, h;
 	sgui_rect src, clip;
@@ -478,11 +478,7 @@ void sgui_canvas_draw_pixmap(sgui_canvas *this, int x, int y,
 		x += src.left + this->ox;
 		y += src.top  + this->oy;
 
-		if (blend) {
-			this->blend(this, x, y, pixmap, &src);
-		} else {
-			this->blit(this, x, y, pixmap, &src);
-		}
+		this->blit(this, x, y, pixmap, &src, op);
 	}
 }
 

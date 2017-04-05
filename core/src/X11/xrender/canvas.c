@@ -91,7 +91,7 @@ static void canvas_xrender_draw_box(sgui_canvas *super, const sgui_rect *r,
 
 static void canvas_xrender_blit(sgui_canvas *super, int x, int y,
 				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
+				const sgui_rect *srcrect, int op)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
@@ -102,24 +102,14 @@ static void canvas_xrender_blit(sgui_canvas *super, int x, int y,
 	c.alpha = 0xFFFF;
 
 	sgui_internal_lock_mutex();
-	XRenderFillRectangle(x11.dpy, PictOpSrc, this->pic, &c, x, y, w, h);
+	if (op != SGUI_CANVAS_BLEND) {
+		XRenderFillRectangle(x11.dpy, PictOpSrc, this->pic, &c,
+					x, y, w, h);
+	}
+
 	XRenderComposite(x11.dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic,
 			0, this->pic, srcrect->left, srcrect->top, 0, 0,
 			x, y, w, h);
-	sgui_internal_unlock_mutex();
-}
-
-static void canvas_xrender_blend(sgui_canvas *super, int x, int y,
-				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
-{
-	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
-
-	sgui_internal_lock_mutex();
-	XRenderComposite(x11.dpy, PictOpOver, ((xrender_pixmap*)pixmap)->pic,
-			0, this->pic, srcrect->left, srcrect->top, 0, 0, x, y,
-			SGUI_RECT_WIDTH_V(srcrect),
-			SGUI_RECT_HEIGHT_V(srcrect));
 	sgui_internal_unlock_mutex();
 }
 
@@ -219,7 +209,6 @@ sgui_canvas *canvas_xrender_create(Drawable wnd, unsigned int width,
 
 	super->destroy = canvas_xrender_destroy;
 	super->blit = canvas_xrender_blit;
-	super->blend = canvas_xrender_blend;
 	super->blend_glyph = canvas_xrender_blend_glyph;
 	super->create_pixmap = xrender_pixmap_create;
 	super->draw_box = canvas_xrender_draw_box;

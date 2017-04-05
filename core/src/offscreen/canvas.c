@@ -123,7 +123,7 @@ static void canvas_mem_draw_box_rgb(sgui_canvas *super, const sgui_rect *r,
 
 static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
+				const sgui_rect *srcrect, int op)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
@@ -133,12 +133,34 @@ static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width*3;
 	unsigned int scan, lines;
+	int iA;
 
 	sgui_pixmap_get_size(pixmap, &scan, &lines);
 
 	dst = this->data + (y - this->starty) * dy + (x - this->startx) * 3;
 
-	if (format == SGUI_RGBA8) {
+	if (format == SGUI_RGBA8 && op == SGUI_CANVAS_BLEND) {
+		src += (srcrect->top * scan + srcrect->left) * 4;
+
+		for (j = 0; j < h; ++j) {
+			srow = src;
+			row = dst;
+
+			for (i = 0; i < w; ++i) {
+				iA = 0xFF - srow[3];
+
+				row[0] = ((row[0] * iA) >> 8) + srow[0];
+				row[1] = ((row[1] * iA) >> 8) + srow[1];
+				row[2] = ((row[2] * iA) >> 8) + srow[2];
+
+				row += 3;
+				srow += 4;
+			}
+
+			src += scan * 4;
+			dst += dy;
+		}
+	} else if (format == SGUI_RGBA8) {
 		src += (srcrect->top * scan + srcrect->left) * 4;
 
 		for (j = 0; j < h; ++j) {
@@ -161,49 +183,6 @@ static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 			src += scan * 3;
 			dst += dy;
 		}
-	}
-}
-
-static void canvas_mem_blend_rgb(sgui_canvas *super, int x, int y,
-				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
-{
-	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
-	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
-	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
-	unsigned int i, j, scan, lines, dyd;
-	const unsigned char *src, *srow;
-	unsigned char iA, *dst, *row;
-
-	if (mem_pixmap_format(pixmap) != SGUI_RGBA8) {
-		canvas_mem_blit_rgb(super, x, y, pixmap, srcrect);
-		return;
-	}
-
-	dyd = this->pitch ? this->pitch : super->width * 3;
-
-	sgui_pixmap_get_size(pixmap, &scan, &lines);
-	dst = this->data + (y - this->starty) * dyd + (x - this->startx) * 3;
-	src = mem_pixmap_buffer(pixmap);
-	src += (srcrect->top * scan + srcrect->left) * 4;
-
-	for (j = 0; j < h; ++j) {
-		srow = src;
-		row = dst;
-
-		for (i = 0; i < w; ++i) {
-			iA = 0xFF - srow[3];
-
-			row[0] = ((row[0] * iA) >> 8) + srow[0];
-			row[1] = ((row[1] * iA) >> 8) + srow[1];
-			row[2] = ((row[2] * iA) >> 8) + srow[2];
-
-			row += 3;
-			srow += 4;
-		}
-
-		src += scan * 4;
-		dst += dyd;
 	}
 }
 
@@ -309,7 +288,7 @@ static void canvas_mem_draw_box_rgba(sgui_canvas *super, const sgui_rect *r,
 
 static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
+				const sgui_rect *srcrect, int op)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
@@ -319,12 +298,35 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width * 4;
 	unsigned int scan, lines;
+	int iA;
 
 	sgui_pixmap_get_size(pixmap, &scan, &lines);
 
 	dst = this->data + (y - this->starty) * dy + (x - this->startx) * 4;
 
-	if (format == SGUI_RGBA8) {
+	if (format == SGUI_RGBA8 && op == SGUI_CANVAS_BLEND) {
+		src += (srcrect->top * scan + srcrect->left) * 4;
+
+		for (j = 0; j < h; ++j) {
+			srow = src;
+			row = dst;
+
+			for (i=0; i < w; ++i) {
+				iA = 0xFF - srow[3];
+
+				row[0] = ((row[0] * iA) >> 8) + srow[0];
+				row[1] = ((row[1] * iA) >> 8) + srow[1];
+				row[2] = ((row[2] * iA) >> 8) + srow[2];
+				row[3] = ((row[3] * iA) >> 8) + srow[3];
+
+				row += 4;
+				srow += 4;
+			}
+
+			src += scan * 4;
+			dst += dy;
+		}
+	} else if (format == SGUI_RGBA8) {
 		src += (srcrect->top * scan + srcrect->left) * 4;
 
 		for (j = 0; j < h; ++j) {
@@ -354,49 +356,6 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 			src += scan * 3;
 			dst += dy;
 		}
-	}
-}
-
-static void canvas_mem_blend_rgba(sgui_canvas *super, int x, int y,
-				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
-{
-	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
-	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
-	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
-	unsigned int i, j, scan, lines, dyd;
-	const unsigned char *src, *srow;
-	unsigned char iA, *dst, *row;
-
-	if (mem_pixmap_format(pixmap) != SGUI_RGBA8) {
-		canvas_mem_blit_rgba(super, x, y, pixmap, srcrect);
-		return;
-	}
-
-	dyd = this->pitch ? this->pitch : super->width * 4;
-
-	sgui_pixmap_get_size(pixmap, &scan, &lines);
-	dst = this->data + (y - this->starty) * dyd + (x - this->startx) * 4;
-	src = mem_pixmap_buffer(pixmap);
-	src += (srcrect->top * scan + srcrect->left) * 4;
-
-	for (j = 0; j < h; ++j) {
-		srow = src;
-		row = dst;
-
-		for (i=0; i < w; ++i) {
-			iA = 0xFF - srow[3];
-
-			row[0] = ((row[0] * iA) >> 8) + srow[0];
-			row[1] = ((row[1] * iA) >> 8) + srow[1];
-			row[2] = ((row[2] * iA) >> 8) + srow[2];
-			row[3] = ((row[3] * iA) >> 8) + srow[3];
-
-			row += 4;
-			srow += 4;
-		}
-		src += scan * 4;
-		dst += dyd;
 	}
 }
 
@@ -564,12 +523,10 @@ int sgui_memory_canvas_init(sgui_canvas *super, unsigned char *buffer,
 
 	if (format == SGUI_RGBA8) {
 		super->blit = canvas_mem_blit_rgba;
-		super->blend = canvas_mem_blend_rgba;
 		super->draw_box = canvas_mem_draw_box_rgba;
 		this->blend_stencil = canvas_mem_blend_stencil_rgba;
 	} else {
 		super->blit = canvas_mem_blit_rgb;
-		super->blend = canvas_mem_blend_rgb;
 		super->draw_box = canvas_mem_draw_box_rgb;
 		this->blend_stencil = canvas_mem_blend_stencil_rgb;
 	}

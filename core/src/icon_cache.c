@@ -128,8 +128,7 @@ void sgui_icon_cache_draw_icon(const sgui_icon_cache *this,
 				const sgui_icon *i, int x, int y)
 {
 	sgui_canvas_draw_pixmap(this->owner, x, y, this->pixmap,
-				(sgui_rect *)&(i->area),
-				this->format == SGUI_RGBA8);
+				(sgui_rect *)&(i->area), SGUI_CANVAS_BLEND);
 }
 
 int sgui_icon_cache_alloc_area(sgui_icon_cache *this, unsigned int width,

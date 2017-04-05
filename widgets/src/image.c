@@ -37,7 +37,7 @@ typedef struct {
 	sgui_widget super;
 
 	void *data;
-	unsigned int blend : 1;
+	unsigned int op : 9;
 	unsigned int useptr : 1;
 	unsigned int from_pixmap : 1;
 	unsigned int format : 5;
@@ -56,7 +56,7 @@ static void image_draw(sgui_widget *super)
 
 	sgui_canvas_draw_pixmap(super->canvas, super->area.left,
 				super->area.top, this->pixmap,
-				&this->src, this->blend);
+				&this->src, this->op);
 }
 
 static void image_destroy(sgui_widget *super)
@@ -150,7 +150,7 @@ sgui_widget *sgui_image_create(int x, int y, unsigned int width,
 	super->flags = SGUI_WIDGET_VISIBLE;
 	this->pixmap = NULL;
 	this->format = format;
-	this->blend = (flags & SGUI_IMAGE_BLEND) ? 1 : 0;
+	this->op = (flags & SGUI_IMAGE_BLEND) ? SGUI_CANVAS_BLEND : 0;
 	this->useptr = (flags & SGUI_IMAGE_KEEP_PTR) ? 1 : 0;
 	return super;
 }
@@ -179,7 +179,7 @@ sgui_widget* sgui_image_from_pixmap(int x, int y, unsigned int width,
 	super->destroy = image_destroy;
 	super->flags = SGUI_WIDGET_VISIBLE;
 	this->pixmap = (sgui_pixmap *)pixmap;
-	this->blend = (flags & SGUI_IMAGE_BLEND) ? 1 : 0;
+	this->op = (flags & SGUI_IMAGE_BLEND) ? SGUI_CANVAS_BLEND : 0;
 	this->from_pixmap = 1;
 	return super;
 }

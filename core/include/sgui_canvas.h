@@ -46,6 +46,16 @@ typedef enum
 }
 SGUI_CANVAS_FLAGS;
 
+typedef enum
+{
+    /** \brief Directly write out the new color */
+    SGUI_CANVAS_WRITE = 0,
+
+    /** \brief Alpha blend the new color onto the canvas */
+    SGUI_CANVAS_BLEND = 1
+}
+SGUI_CANVAS_OP;
+
 /**
  * \struct sgui_canvas
  *
@@ -172,21 +182,11 @@ struct sgui_canvas
      * \param y       Distance from the top of the canvas
      * \param pixmap  The pixmap to blend.
      * \param srcrect A subrectangle of the pixmap to blit.
+     * \param op      A \ref SGUI_CANVAS_OP operation
      */
     void(* blit )( sgui_canvas* canvas, int x, int y,
-                   const sgui_pixmap* pixmap, const sgui_rect* srcrect );
-
-    /**
-     * \brief Blend onto a canvas
-     *
-     * \param canvas  A pointer to the canvas.
-     * \param x       Distance from the left of the canvas
-     * \param y       Distance from the top of the canvas
-     * \param pixmap  The pixmap to blend.
-     * \param srcrect A subrectangle of the pixmap to blend.
-     */
-    void(* blend )( sgui_canvas* canvas, int x, int y,
-                    const sgui_pixmap* pixmap, const sgui_rect* srcrect );
+                   const sgui_pixmap* pixmap, const sgui_rect* srcrect,
+                   int op );
 
     /**
      * \brief Blend a constant color onto a canvas, use alpha from pixmap
@@ -585,11 +585,11 @@ SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
  * \param pixmap The pixmap to draw onto the canvas
  * \param srcrect A sub rect within the source image, or NULL to use the
  *                uncropped source image.
- * \param blend  Non-zero to blend the image, zero for simple blitting
+ * \param op     A \ref SGUI_CANVAS_OP color compositing operation to perform.
  */
 SGUI_DLL void sgui_canvas_draw_pixmap( sgui_canvas* canvas, int x, int y,
                                        const sgui_pixmap* pixmap,
-                                       const sgui_rect* srcrect, int blend );
+                                       const sgui_rect* srcrect, int op );
 
 /**
  * \brief Render one line of text in a single font face

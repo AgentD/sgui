@@ -364,7 +364,8 @@ out_pic:
 		y += (h - ph) / 2;
 
 	skin_pixmap = canvas->get_skin_pixmap(canvas);
-	sgui_canvas_draw_pixmap(canvas, x, y, skin_pixmap, pic, 1);
+	sgui_canvas_draw_pixmap(canvas, x, y, skin_pixmap, pic,
+				SGUI_CANVAS_BLEND);
 }
 
 static void default_draw_editbox(sgui_skin *this, sgui_canvas *canvas,
@@ -435,10 +436,10 @@ static void default_draw_editbox(sgui_skin *this, sgui_canvas *canvas,
 	if (spinbuttons) {
 		skin_pixmap = canvas->get_skin_pixmap(canvas);
 
-		sgui_canvas_draw_pixmap(canvas, x + 9, y + 7,
-						skin_pixmap, &spin_up, 1);
-		sgui_canvas_draw_pixmap(canvas, x + 9, y + 18,
-						skin_pixmap, &spin_dn, 1);
+		sgui_canvas_draw_pixmap(canvas, x + 9, y + 7, skin_pixmap,
+					&spin_up, SGUI_CANVAS_BLEND);
+		sgui_canvas_draw_pixmap(canvas, x + 9, y + 18, skin_pixmap,
+					&spin_dn, SGUI_CANVAS_BLEND);
 	}
 }
 
@@ -563,7 +564,8 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		sgui_canvas_draw_pixmap(canvas, x + 5 - incbutton,
 						y + 7 - incbutton,
-						skin_pixmap, &arrow_up, 1);
+						skin_pixmap, &arrow_up,
+						SGUI_CANVAS_BLEND);
 
 		/* lower button */
 		sgui_rect_set_size(&r, x, y+length-20, 20, 20);
@@ -571,7 +573,8 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		sgui_canvas_draw_pixmap(canvas, x + 5 - decbutton,
 						y + length - 12 - decbutton,
-						skin_pixmap, &arrow_dn, 1);
+						skin_pixmap, &arrow_dn,
+						SGUI_CANVAS_BLEND);
 
 		/* pane */
 		sgui_rect_set_size(&r, x, y+20+pane_offset, 20, pane_length);
@@ -589,7 +592,8 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		sgui_canvas_draw_pixmap(canvas, x + 7 - incbutton,
 						y + 5 - incbutton,
-						skin_pixmap, &arrow_l, 1);
+						skin_pixmap, &arrow_l,
+						SGUI_CANVAS_BLEND);
 
 		/* right button */
 		sgui_rect_set_size( &r, x+length-20, y, 20, 20 );
@@ -597,7 +601,8 @@ static void default_draw_scroll_bar( sgui_skin* this, sgui_canvas* canvas,
 
 		sgui_canvas_draw_pixmap(canvas, x + length - 13 - decbutton,
 						y + 5 - decbutton,
-						skin_pixmap, &arrow_r, 1);
+						skin_pixmap, &arrow_r,
+						SGUI_CANVAS_BLEND);
 
 		/* pane */
 		sgui_rect_set_size( &r, x+20+pane_offset, y, pane_length, 20 );

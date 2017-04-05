@@ -91,10 +91,11 @@ static void canvas_xlib_draw_box(sgui_canvas *super, const sgui_rect *r,
 
 static void canvas_xlib_blit(sgui_canvas *super, int x, int y,
 				const sgui_pixmap *pixmap,
-				const sgui_rect *srcrect)
+				const sgui_rect *srcrect, int op)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
 	xlib_pixmap *pix = (xlib_pixmap *)pixmap;
+	(void)op;
 
 	if (pix->is_stencil)
 		return;
@@ -200,7 +201,6 @@ sgui_canvas *canvas_xlib_create(Drawable wnd, unsigned int width,
 
 	super->destroy = canvas_xlib_destroy;
 	super->blit = canvas_xlib_blit;
-	super->blend = canvas_xlib_blit;
 	super->blend_glyph = canvas_xlib_blend_glyph;
 	super->create_pixmap = xlib_pixmap_create;
 	super->draw_box = canvas_xlib_draw_box;
