@@ -34,6 +34,7 @@
 
 
 #include "sgui_predef.h"
+#include "sgui_color.h"
 #include "sgui_rect.h"
 
 
@@ -83,8 +84,8 @@ struct sgui_skin
 {
     unsigned int font_height;   /**< \brief The pixel height of the font */
 
-    unsigned char window_color[4];  /**< \brief The window background color */
-    unsigned char font_color[4];    /**< \brief The font color */
+    sgui_color window_color;  /**< \brief The window background color */
+    sgui_color font_color;    /**< \brief The font color */
 
     sgui_font* font_norm;   /**< \brief Font face for normal text */
     sgui_font* font_bold;   /**< \brief Font face for bold text */

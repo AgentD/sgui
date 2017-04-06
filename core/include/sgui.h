@@ -37,6 +37,7 @@
 
 
 #include "sgui_canvas.h"
+#include "sgui_color.h"
 #include "sgui_context.h"
 #include "sgui_event.h"
 #include "sgui_font.h"

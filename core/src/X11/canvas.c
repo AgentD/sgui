@@ -52,7 +52,7 @@ static int canvas_x11_dirty_hook(sgui_canvas *super, const sgui_rect *r)
 }
 
 static int canvas_x11_draw_string(sgui_canvas *super, int x, int y,
-				sgui_font *font, const unsigned char *color,
+				sgui_font *font, const sgui_color color,
 				const char *text, unsigned int length)
 {
 	sgui_canvas_x11 *this = (sgui_canvas_x11 *)super;

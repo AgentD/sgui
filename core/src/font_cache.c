@@ -131,7 +131,7 @@ sgui_icon_cache *sgui_font_cache_create(sgui_pixmap *map)
 
 int sgui_font_cache_draw_glyph(sgui_icon_cache *this, sgui_font *font,
 				unsigned int codepoint, int x, int y,
-				sgui_canvas *cv, const unsigned char *color)
+				sgui_canvas *cv, const sgui_color color)
 {
 	GLYPH *g = fetch_glyph(this, font, codepoint);
 

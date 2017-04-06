@@ -35,6 +35,7 @@
 
 #include "sgui_predef.h"
 #include "sgui_widget.h"
+#include "sgui_color.h"
 #include "sgui_rect.h"
 
 
@@ -169,10 +170,10 @@ struct sgui_canvas
      * \param canvas  A pointer to the canvas.
      * \param r       The rect to draw (offset applied and clipped)
      * \param color   The color to draw the rect in
-     * \param format  The format of the color
+     * \param op      A \ref SGUI_CANVAS_OP operation
      */
     void(* draw_box )( sgui_canvas* canvas, const sgui_rect* r,
-                       const unsigned char* color, int format );
+                       sgui_color color, int op );
 
     /**
      * \brief Blit onto a canvas
@@ -202,7 +203,7 @@ struct sgui_canvas
      */
     void (* blend_glyph )( sgui_canvas* canvas, int x, int y,
                            const sgui_pixmap* pixmap, const sgui_rect* r,
-                           const unsigned char* color );
+                           const sgui_color color );
 
     /**
      * \brief Draw a string of text onto a canvas
@@ -218,7 +219,7 @@ struct sgui_canvas
      * \return The length of the rendered string in pixels.
      */
     int(* draw_string )( sgui_canvas* canvas, int x, int y, sgui_font* font,
-                         const unsigned char* color, const char* text,
+                         const sgui_color color, const char* text,
                          unsigned int length );
 };
 
@@ -235,7 +236,7 @@ typedef struct
 
     void (* blend_stencil )( sgui_canvas*, unsigned char*, int, int,
                              unsigned int, unsigned int, unsigned int,
-                             const unsigned char* );
+                             sgui_color );
 
     unsigned char* data;
 
@@ -256,13 +257,6 @@ typedef struct
     int bpp, swaprb;
 }
 sgui_mem_canvas;
-
-
-
-#define SGUI_A8    0
-#define SGUI_RGB8  1
-#define SGUI_RGBA8 2
-
 
 
 #ifdef __cplusplus
@@ -548,13 +542,12 @@ SGUI_DLL void sgui_canvas_clear( sgui_canvas* canvas, const sgui_rect* r );
  *
  * \memberof sgui_canvas
  *
- * \param r      The geometry of the box to draw
- * \param color  The color to draw the box in
- * \param format The color format stored in the color array (SGUI_RGB8, ...)
+ * \param r     The geometry of the box to draw
+ * \param color The color to draw the box in
+ * \param op    The \ref SGUI_CANVAS_OP color compositing operation to perform
  */
 SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, const sgui_rect* r,
-                                    const unsigned char* color,
-                                    int format );
+                                    sgui_color color, int op );
 
 /**
  * \brief Draw a line onto a canvas
@@ -569,11 +562,12 @@ SGUI_DLL void sgui_canvas_draw_box( sgui_canvas* canvas, const sgui_rect* r,
  * \param horizontal Non-zero to draw a horizontal line, zero to draw a
  *                   vertical line.
  * \param color      The color to draw the line in
- * \param format     The color format stored in the color array(SGUI_RGB8, ...)
+ * \param op         The \ref SGUI_CANVAS_OP color compositing operation
+ *                   to perform
  */
 SGUI_DLL void sgui_canvas_draw_line( sgui_canvas* canvas, int x, int y,
                                      unsigned int length, int horizontal,
-                                     const unsigned char* color, int format );
+                                     sgui_color color, int op );
 
 /**
  * \brief Draw an image onto a canvas
@@ -610,7 +604,7 @@ SGUI_DLL void sgui_canvas_draw_pixmap( sgui_canvas* canvas, int x, int y,
  */
 SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
                                           int bold, int italic,
-                                          const unsigned char* color,
+                                          const sgui_color color,
                                           const char* text,
                                           unsigned int length );
 

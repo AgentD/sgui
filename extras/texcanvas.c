@@ -103,10 +103,10 @@ static void gl_perspective( float fov_deg, float aspectratio,
 int main( void )
 {
     sgui_window_description desc;
-    unsigned char bgcolor[4];
     sgui_canvas* texcanvas;
     sgui_widget* check;
     sgui_widget* check2;
+    sgui_color bgcolor;
     sgui_widget* butt;
     sgui_window* wnd;
     GLuint* texture;
@@ -163,7 +163,7 @@ int main( void )
     sgui_widget_add_child( &texcanvas->root, check2 );
 
     /******* get window background color and clear canvas *******/
-    memcpy( bgcolor, sgui_skin_get( )->window_color, 4 );
+    bgcolor = sgui_skin_get( )->window_color;
 
     sgui_canvas_begin( texcanvas, NULL );
     sgui_canvas_clear( texcanvas, NULL );
@@ -202,7 +202,7 @@ int main( void )
         glBindTexture( GL_TEXTURE_2D, *texture );
 
         glBegin( GL_QUADS );
-        glColor4ub( bgcolor[0], bgcolor[1], bgcolor[2], 0xFF );
+        glColor4ub( bgcolor.c.r, bgcolor.c.g, bgcolor.c.b, 0xFF );
 
         for( i=0; i<16; ++i )
         {

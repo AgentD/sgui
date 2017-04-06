@@ -61,24 +61,22 @@ static void canvas_xlib_set_clip_rect(sgui_canvas_x11 *super,
 }
 
 static void canvas_xlib_draw_box(sgui_canvas *super, const sgui_rect *r,
-				const unsigned char *color, int format)
+				sgui_color color, int op)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
 	unsigned long R, G, B, A, iA;
 
-	if (format == SGUI_RGB8) {
-		R = color[0];
-		G = color[1];
-		B = color[2];
-	} else if(format == SGUI_RGBA8) {
-		A = color[3];
+	if (op == SGUI_CANVAS_BLEND) {
+		A = color.c.a;
 		iA = 0xFF - A;
 
-		R = ((color[0] * A + this->bg[0] * iA) >> 8) & 0x00FF;
-		G = ((color[1] * A + this->bg[1] * iA) >> 8) & 0x00FF;
-		B = ((color[2] * A + this->bg[2] * iA) >> 8) & 0x00FF;
+		R = ((color.c.r * A + this->bg.c.r * iA) >> 8) & 0x00FF;
+		G = ((color.c.g * A + this->bg.c.g * iA) >> 8) & 0x00FF;
+		B = ((color.c.b * A + this->bg.c.b * iA) >> 8) & 0x00FF;
 	} else {
-		R = G = B = color[0];
+		R = color.c.r;
+		G = color.c.g;
+		B = color.c.b;
 	}
 
 	sgui_internal_lock_mutex();
@@ -110,7 +108,7 @@ static void canvas_xlib_blit(sgui_canvas *super, int x, int y,
 static void canvas_xlib_blend_glyph(sgui_canvas *super, int x, int y,
 					const sgui_pixmap *pixmap,
 					const sgui_rect *r,
-					const unsigned char *color)
+					const sgui_color color)
 
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
@@ -119,16 +117,16 @@ static void canvas_xlib_blend_glyph(sgui_canvas *super, int x, int y,
 	int X, Y, C[4], sc;
 
 	src = pix->data.pixels + (r->top * pixmap->width + r->left);
-	C[3] = (color[0] << 16) | (color[1] << 8) | color[2];
-	C[2] = ((3 * color[0] / 4 + this->bg[0] / 4) << 16) |
-		((3 * color[1] / 4 + this->bg[1] / 4) << 8) |
-		(3 * color[2] / 4 + this->bg[2] / 4);
-	C[1] = ((color[0] / 2 + this->bg[0] / 2) << 16) |
-		((color[1] / 2 + this->bg[1] / 2) << 8) |
-		(color[2] / 2 + this->bg[2] / 2);
-	C[0] = ((color[0] / 4 + 3 * this->bg[0] / 4) << 16) |
-		((color[1] / 4 + 3 * this->bg[1] / 4) << 8) |
-		(color[2] / 4 + 3 * this->bg[2] / 4);
+	C[3] = (color.c.r << 16) | (color.c.g << 8) | color.c.b;
+	C[2] = ((3 * color.c.r / 4 + this->bg.c.r / 4) << 16) |
+		((3 * color.c.g / 4 + this->bg.c.g / 4) << 8) |
+		(3 * color.c.b / 4 + this->bg.c.b / 4);
+	C[1] = ((color.c.r / 2 + this->bg.c.r / 2) << 16) |
+		((color.c.g / 2 + this->bg.c.g / 2) << 8) |
+		(color.c.b / 2 + this->bg.c.b / 2);
+	C[0] = ((color.c.r / 4 + 3 * this->bg.c.r / 4) << 16) |
+		((color.c.g / 4 + 3 * this->bg.c.g / 4) << 8) |
+		(color.c.b / 4 + 3 * this->bg.c.b / 4);
 
 	sgui_internal_lock_mutex();
 	for (Y = r->top; Y <= r->bottom; ++Y, src += pixmap->width) {
@@ -195,7 +193,7 @@ sgui_canvas *canvas_xlib_create(Drawable wnd, unsigned int width,
 	if (!sgui_canvas_init(super, width, height))
 		goto fail;
 
-	memcpy(this->bg, sgui_skin_get()->window_color, 4);
+	this->bg = sgui_skin_get()->window_color;
 
 	sgui_internal_unlock_mutex();
 

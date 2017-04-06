@@ -35,7 +35,7 @@ clock_widget;
 static void draw_segment_digit( sgui_canvas* cv, int digit, int x, int y,
                                 int seglength )
 {
-    unsigned char color[4] = { 0xFF, 0x00, 0x00, 0xFF };
+    sgui_color color = { .c = { 0xFF, 0x00, 0x00, 0xFF } };
     int o = seglength / 4;
     sgui_rect r;
 
@@ -43,49 +43,49 @@ static void draw_segment_digit( sgui_canvas* cv, int digit, int x, int y,
     if( digit!=1 && digit!=4 )
     {
         sgui_rect_set_size( &r, x+o, y, seglength, o );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 
     /* top left */
     if( digit!=1 && digit!=2 && digit!=3 && digit!=7 )
     {
         sgui_rect_set_size( &r, x, y+o, o, seglength );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 
     /* top right */
     if( digit!=5 && digit!=6 )
     {
         sgui_rect_set_size( &r, x+seglength+o, y+o, o, seglength );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 
     /* center */
     if( digit!=0 && digit!=1 && digit!=7 )
     {
         sgui_rect_set_size( &r, x+o, y+seglength+o, seglength, o );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 
     /* bottom left */
     if( digit==0 || digit==2 || digit==6 || digit==8 )
     {
         sgui_rect_set_size( &r, x, y+seglength+2*o, o, seglength );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 
     /* bottom right */
     if( digit!=2 )
     {
         sgui_rect_set_size( &r, x+seglength+o, y+seglength+2*o, o, seglength );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 
     /* bottom */
     if( digit!=1 && digit!=4 && digit!=7 )
     {
         sgui_rect_set_size( &r, x+o, y+2*seglength+2*o, seglength, o );
-        sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+        sgui_canvas_draw_box( cv, &r, color, 0 );
     }
 }
 
@@ -94,15 +94,15 @@ static void draw_segment_digit( sgui_canvas* cv, int digit, int x, int y,
  */
 static void draw_colon( sgui_canvas* cv, int x, int y, int seglength )
 {
-    unsigned char color[4] = { 0xFF, 0x00, 0x00, 0xFF };
+    sgui_color color = { .c = { 0xFF, 0x00, 0x00, 0xFF } };
     int o = seglength / 4;
     sgui_rect r;
 
     sgui_rect_set_size( &r, x, y+o/2+seglength/2, o, o );
-    sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+    sgui_canvas_draw_box( cv, &r, color, 0 );
 
     sgui_rect_set_size( &r, x, y+2*o+seglength+seglength/2-o/2, o, o );
-    sgui_canvas_draw_box( cv, &r, color, SGUI_RGB8 );
+    sgui_canvas_draw_box( cv, &r, color, 0 );
 }
 
 /*

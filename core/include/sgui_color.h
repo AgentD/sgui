@@ -1,5 +1,5 @@
 /*
- * internal.h
+ * sgui_color.h
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,34 +22,39 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef INTERNAL_H
-#define INTERNAL_H
 
-#include "../platform.h"
-#include "sgui_config.h"
-#include "sgui_pixmap.h"
+/**
+ * \file sgui_color.h
+ *
+ * \brief Contains forward the \ref sgui_color type
+ */
+#ifndef SGUI_COLOR_H
+#define SGUI_COLOR_H
 
-typedef struct {
-	sgui_canvas_x11 super;
-	GC gc;
-	sgui_color bg;
-} sgui_canvas_xlib;
 
-typedef struct {
-	sgui_pixmap super;
-	int is_stencil;
+#include "sgui_predef.h"
 
-	sgui_canvas_xlib *owner;
 
-	union {
-		Pixmap xpm;
-		unsigned char *pixels;
-	} data;
-} xlib_pixmap;
+#define SGUI_A8    0
+#define SGUI_RGB8  1
+#define SGUI_RGBA8 2
 
-/* create an xlib pixmap */
-sgui_pixmap *xlib_pixmap_create(sgui_canvas *cv, unsigned int width,
-				unsigned int height, int format);
 
-#endif /* INTERNAL_H */
+union sgui_color
+{
+    struct
+    {
+        sgui_u8 r;
+        sgui_u8 g;
+        sgui_u8 b;
+        sgui_u8 a;
+    } c;
+
+    sgui_u8 v[4];
+
+    sgui_u32 uival;
+};
+
+
+#endif /* SGUI_COLOR_H */
 

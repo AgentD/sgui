@@ -49,7 +49,7 @@ static struct {
 };
 
 struct text_state {
-	unsigned char col[3];
+	sgui_color col;
 	int longest;
 	int X, Y;
 	int f;
@@ -76,15 +76,15 @@ static void process_tag(struct text_state *s, const char *text)
 	char *end;
 
 	if (!strncmp(text, "<color=\"default\">", 17)) {
-		memcpy(s->col, skin->font_color, 3);
-		return;
+		s->col = skin->font_color;
 	} else if(!strncmp(text, "<color=\"#", 9)) {
 		c = strtol(text + 9, &end, 16);
 
 		if (!strncmp(end, "\">", 2) && (end - (text + 9)) == 6) {
-			s->col[0] = (c>>16) & 0xFF;
-			s->col[1] = (c>>8 ) & 0xFF;
-			s->col[2] =  c      & 0xFF;
+			s->col.c.r = (c>>16) & 0xFF;
+			s->col.c.g = (c>>8 ) & 0xFF;
+			s->col.c.b =  c      & 0xFF;
+			s->col.c.a = 0xFF;
 		}
 	} else if(!strncmp(text, "<b>", 3)) {
 		s->f |= BOLD;
@@ -150,7 +150,7 @@ static void process_text(const char *text, sgui_canvas *canvas, int x, int y,
 	size_t i;
 
 	memset(&state, 0, sizeof(state));
-	memcpy(state.col, skin->font_color, 3);
+	state.col = skin->font_color;
 
 	while (text && *text) {
 		/* count chars until tag, entity, line break or terminator */

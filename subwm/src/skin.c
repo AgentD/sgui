@@ -88,7 +88,7 @@ static int default_get_window_transparency( sgui_subwm_skin* skin, int type )
 static void default_draw_title_bar( sgui_subwm_skin* skin, sgui_canvas* cv,
                                     const char* title )
 {
-    const unsigned char color[4] = { 0x00, 0x00, 0x00, 0xFF };
+    const sgui_color color = { .c = { 0x00, 0x00, 0x00, 0xFF } };
     sgui_rect r;
     (void)skin;
 
@@ -97,7 +97,7 @@ static void default_draw_title_bar( sgui_subwm_skin* skin, sgui_canvas* cv,
     sgui_canvas_draw_text_plain( cv, 15, 0, 1, 0,
                                  sgui_skin_get( )->font_color, title, -1 );
 
-    sgui_canvas_draw_line( cv, 0, 19, cv->width, 1, color, SGUI_RGBA8 );
+    sgui_canvas_draw_line( cv, 0, 19, cv->width, 1, color, SGUI_CANVAS_BLEND );
 }
 
 static unsigned int default_get_titlebar_height( sgui_subwm_skin* skin )
@@ -108,7 +108,7 @@ static unsigned int default_get_titlebar_height( sgui_subwm_skin* skin )
 
 static sgui_subwm_skin* suwbm_skin_default( void )
 {
-    unsigned char color[4];
+    sgui_color color;
     int x, y, a;
 
     defaultskin.get_ctx_skin_texture_size = default_get_ctx_skin_texture_size;
@@ -118,7 +118,7 @@ static sgui_subwm_skin* suwbm_skin_default( void )
     defaultskin.draw_title_bar = default_draw_title_bar;
     defaultskin.get_titlebar_height = default_get_titlebar_height;
 
-    memcpy( color, sgui_skin_get( )->window_color, 4 );
+    color = sgui_skin_get( )->window_color;
 
     for( y=0; y<16; ++y )
     {
@@ -130,9 +130,9 @@ static sgui_subwm_skin* suwbm_skin_default( void )
             if( ((y==1||y==14)&&(x<3||x>12)) || ((x==1||x==14)&&(y<3||y>12)) )
                 a = 0;
 
-            defaultctxtex[ (y*16 + x)*4   ] = color[0];
-            defaultctxtex[ (y*16 + x)*4+1 ] = color[1];
-            defaultctxtex[ (y*16 + x)*4+2 ] = color[2];
+            defaultctxtex[ (y*16 + x)*4   ] = color.c.r;
+            defaultctxtex[ (y*16 + x)*4+1 ] = color.c.g;
+            defaultctxtex[ (y*16 + x)*4+2 ] = color.c.b;
             defaultctxtex[ (y*16 + x)*4+3 ] = a;
         }
     }

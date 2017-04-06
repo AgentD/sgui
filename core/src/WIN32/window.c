@@ -48,7 +48,7 @@ static void create_canvas(sgui_window_w32 *this,
 			const sgui_window_description *desc)
 {
 	sgui_window *super = (sgui_window *)this;
-	unsigned char color[4];
+	sgui_color color;
 
 	this->info.bmiHeader.biSize = sizeof(this->info.bmiHeader);
 	this->info.bmiHeader.biBitCount = 32;
@@ -57,7 +57,7 @@ static void create_canvas(sgui_window_w32 *this,
 	this->info.bmiHeader.biWidth = desc->width;
 	this->info.bmiHeader.biHeight = -((int)desc->height);
 
-	memcpy(color, sgui_skin_get()->window_color, 3);
+	color = sgui_skin_get()->window_color;
 
 	if (!(this->hDC = CreateCompatibleDC(NULL)))
 		return;
@@ -68,7 +68,7 @@ static void create_canvas(sgui_window_w32 *this,
 	if (!this->bitmap)
 		goto faildc;
 
-	this->bgbrush = CreateSolidBrush(RGB(color[0], color[1], color[2]));
+	this->bgbrush = CreateSolidBrush(RGB(color.c.r, color.c.g, color.c.b));
 
 	if (!this->bgbrush)
 		goto faildib;

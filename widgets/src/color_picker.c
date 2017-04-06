@@ -73,14 +73,15 @@ typedef struct {
 
 
 /* source: http://web.mit.edu/storborg/Public/hsvtorgb.c */
-static void hsv_to_rgb(int h, int s, int v, unsigned char *rgb)
+static sgui_color hsva_to_rgba(int h, int s, int v, int a)
 {
 	int region, fpart, p, q, t;
+	sgui_color col;
 
 	/* grayscale */
 	if (s == 0) {
-		rgb[0] = rgb[1] = rgb[2] = v;
-		return;
+		col.c.r = col.c.g = col.c.b = v;
+		goto out;
 	}
 
 	region = h / 43;		/* circle sector index (0-5) */
@@ -91,45 +92,51 @@ static void hsv_to_rgb(int h, int s, int v, unsigned char *rgb)
 	t = (v * (255 - ((s * (255 - fpart)) >> 8))) >> 8;
 
 	switch (region) {
-	case 0:  rgb[0] = v; rgb[1] = t; rgb[2] = p; break;
-	case 1:  rgb[0] = q; rgb[1] = v; rgb[2] = p; break;
-	case 2:  rgb[0] = p; rgb[1] = v; rgb[2] = t; break;
-	case 3:  rgb[0] = p; rgb[1] = q; rgb[2] = v; break;
-	case 4:  rgb[0] = t; rgb[1] = p; rgb[2] = v; break;
-	default: rgb[0] = v; rgb[1] = p; rgb[2] = q; break;
+	case 0:  col.c.r = v; col.c.g = t; col.c.b = p; break;
+	case 1:  col.c.r = q; col.c.g = v; col.c.b = p; break;
+	case 2:  col.c.r = p; col.c.g = v; col.c.b = t; break;
+	case 3:  col.c.r = p; col.c.g = q; col.c.b = v; break;
+	case 4:  col.c.r = t; col.c.g = p; col.c.b = v; break;
+	default: col.c.r = v; col.c.g = p; col.c.b = q; break;
 	}
+out:
+	col.c.a = a;
+	return col;
 }
 
 static void generate_v_bar(sgui_color_picker *this)
 {
-	unsigned char *ptr = this->vbardata, rgb[3];
+	unsigned char *ptr = this->vbardata;
+	sgui_color rgba;
 	int x, y, v;
 
 	for (v = 0xFF, y = 0; y < IMAGE_H; ++y, v -= DELTA_V) {
-		hsv_to_rgb(this->hsva[0], this->hsva[1], v, rgb);
+		rgba = hsva_to_rgba(this->hsva[0], this->hsva[1], v, 0xFF);
 
 		for (x = 0; x < BAR_W; ++x, ptr += 3) {
-			ptr[0] = rgb[0];
-			ptr[1] = rgb[1];
-			ptr[2] = rgb[2];
+			ptr[0] = rgba.c.r;
+			ptr[1] = rgba.c.g;
+			ptr[2] = rgba.c.b;
 		}
 	}
 }
 
 static void generate_a_bar(sgui_color_picker *this)
 {
-	unsigned char *ptr = this->abardata, rgb[3];
+	unsigned char *ptr = this->abardata;
+	sgui_color rgba;
 	int x, y, a, c;
 
-	hsv_to_rgb(this->hsva[0], this->hsva[1], this->hsva[2], rgb);
+	rgba = hsva_to_rgba(this->hsva[0], this->hsva[1],
+				this->hsva[2], this->hsva[3]);
 
 	for (a = 0xFF, y = 0; y < IMAGE_H; ++y, a -= DELTA_A) {
 		for (x = 0; x < BAR_W; ++x, ptr += 3) {
 			c = (((x & 4) == 0) ^ ((y & 4) == 0)) * 0x80 + 0x80;
 
-			ptr[0] = (c * (0xFF - a) + rgb[0] * a) >> 8;
-			ptr[1] = (c * (0xFF - a) + rgb[1] * a) >> 8;
-			ptr[2] = (c * (0xFF - a) + rgb[2] * a) >> 8;
+			ptr[0] = (c * (0xFF - a) + rgba.c.r * a) >> 8;
+			ptr[1] = (c * (0xFF - a) + rgba.c.g * a) >> 8;
+			ptr[2] = (c * (0xFF - a) + rgba.c.b * a) >> 8;
 		}
 	}
 }
@@ -137,10 +144,10 @@ static void generate_a_bar(sgui_color_picker *this)
 static void color_picker_draw(sgui_widget *super)
 {
 	sgui_color_picker *this = (sgui_color_picker *)super;
-	unsigned char black[4] = { 0x00, 0x00, 0x00, 0xFF };
-	unsigned char white[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-	unsigned char gray[4] = { 0x80, 0x80, 0x80, 0xFF };
-	unsigned char rgba[4];
+	sgui_color black = { .c = { 0x00, 0x00, 0x00, 0xFF } };
+	sgui_color white = { .c = { 0xFF, 0xFF, 0xFF, 0xFF } };
+	sgui_color gray = { .c = { 0x80, 0x80, 0x80, 0xFF } };
+	sgui_color rgba;
 	int x, y, x1 ,y1;
 	sgui_rect r, r0;
 
@@ -166,46 +173,46 @@ static void color_picker_draw(sgui_widget *super)
 	sgui_canvas_draw_line(super->canvas,
 			super->area.left + this->hsva[0] / DELTA_H - 5,
 			super->area.top + (0xFF - this->hsva[1]) / DELTA_S,
-			11, 1, black, SGUI_RGB8);
+			11, 1, black, 0);
 
 	sgui_canvas_draw_line(super->canvas,
 			super->area.left + this->hsva[0] / DELTA_H,
 			super->area.top + (0xFF - this->hsva[1]) / DELTA_S - 5,
-			11, 0, black, SGUI_RGB8);
+			11, 0, black, 0);
 
 	/* value selector */
 	sgui_canvas_draw_line(super->canvas,
 			super->area.left + IMAGE_W + BAR_W / 2 - BAR_W / 4,
 			super->area.top + (0xFF - this->hsva[2]) / DELTA_V,
-			BAR_W + BAR_W / 2, 1, black, SGUI_RGB8);
+			BAR_W + BAR_W / 2, 1, black, 0);
 
 	/* alpha selector */
 	sgui_canvas_draw_line(super->canvas,
 			super->area.left + IMAGE_W + 2 * BAR_W - BAR_W / 4,
 			super->area.top + (0xFF - this->hsva[3]) / DELTA_A,
-			BAR_W + BAR_W / 2, 1, black, SGUI_RGB8);
+			BAR_W + BAR_W / 2, 1, black, 0);
 
 	/* color display */
-	hsv_to_rgb(this->hsva[0], this->hsva[1], this->hsva[2], rgba);
-	rgba[3] = this->hsva[3];
+	rgba = hsva_to_rgba(this->hsva[0], this->hsva[1],
+				this->hsva[2], this->hsva[3]);
 
 	r.left = super->area.left;
 	r.right = super->area.left + DISP_W - 1;
 	r.top = super->area.top + IMAGE_H + DISP_GAP;
 	r.bottom = super->area.bottom;
-	sgui_canvas_draw_box(super->canvas, &r, rgba, SGUI_RGB8);
+	sgui_canvas_draw_box(super->canvas, &r, rgba, 0);
 
-	white[0] = (white[0] * (0xFF - rgba[3]) + rgba[0] * rgba[3]) >> 8;
-	white[1] = (white[1] * (0xFF - rgba[3]) + rgba[1] * rgba[3]) >> 8;
-	white[2] = (white[2] * (0xFF - rgba[3]) + rgba[2] * rgba[3]) >> 8;
+	white.c.r = (white.c.r * (0xFF - rgba.c.a) + rgba.c.r * rgba.c.a) >> 8;
+	white.c.g = (white.c.g * (0xFF - rgba.c.a) + rgba.c.g * rgba.c.a) >> 8;
+	white.c.b = (white.c.b * (0xFF - rgba.c.a) + rgba.c.b * rgba.c.a) >> 8;
 
-	gray[0] = (gray[0] * (0xFF - rgba[3]) + rgba[0] * rgba[3]) >> 8;
-	gray[1] = (gray[1] * (0xFF - rgba[3]) + rgba[1] * rgba[3]) >> 8;
-	gray[2] = (gray[2] * (0xFF - rgba[3]) + rgba[2] * rgba[3]) >> 8;
+	gray.c.r = (gray.c.r * (0xFF - rgba.c.a) + rgba.c.r * rgba.c.a) >> 8;
+	gray.c.g = (gray.c.g * (0xFF - rgba.c.a) + rgba.c.g * rgba.c.a) >> 8;
+	gray.c.b = (gray.c.b * (0xFF - rgba.c.a) + rgba.c.b * rgba.c.a) >> 8;
 
 	r.left += DISP_W + DISP_GAP_H;
 	r.right += DISP_W + DISP_GAP_H;
-	sgui_canvas_draw_box(super->canvas, &r, white, SGUI_RGB8);
+	sgui_canvas_draw_box(super->canvas, &r, white, 0);
 
 	for (y = 0; y < DISP_H; y += 4) {
 		y1 = (y + 3) >= DISP_H ? (DISP_H - 1) : (y + 3);
@@ -220,8 +227,8 @@ static void color_picker_draw(sgui_widget *super)
 			r0.right = r.left + x1;
 
 			if (((x & 4) == 0) ^ ((y & 4) == 0)) {
-				sgui_canvas_draw_box(super->canvas, &r0, gray,
-							SGUI_RGB8);
+				sgui_canvas_draw_box(super->canvas, &r0,
+							gray, 0);
 			}
 		}
 	}
@@ -248,6 +255,7 @@ static void color_picker_on_event(sgui_widget *super, const sgui_event *e)
 	sgui_color_picker *this = (sgui_color_picker *)super;
 	unsigned char hsva[4];
 	int fire_event = 0;
+	sgui_color col;
 	sgui_event ev;
 
 	sgui_internal_lock_mutex();
@@ -326,12 +334,15 @@ static void color_picker_on_event(sgui_widget *super, const sgui_event *e)
 		ev.src.widget = super;
 		sgui_event_post(&ev);
 
-		hsv_to_rgb(this->hsva[0], this->hsva[1], this->hsva[2],
-				ev.arg.color);
+		col = hsva_to_rgba(this->hsva[0], this->hsva[1],
+					this->hsva[2], this->hsva[3]);
 
 		ev.type = SGUI_RGBA_CHANGED_EVENT;
 		ev.src.widget = super;
-		ev.arg.color[3] = this->hsva[3];
+		ev.arg.color[0] = col.c.r;
+		ev.arg.color[1] = col.c.g;
+		ev.arg.color[2] = col.c.b;
+		ev.arg.color[3] = col.c.a;
 		sgui_event_post(&ev);
 	}
 out:
@@ -406,6 +417,7 @@ sgui_widget *sgui_color_picker_create(int x, int y)
 	sgui_color_picker *this = calloc(1, sizeof(*this));
 	sgui_widget *super = (sgui_widget *)this;
 	unsigned char *ptr;
+	sgui_color col;
 	int i, j, h, s;
 
 	if (!this)
@@ -433,8 +445,12 @@ sgui_widget *sgui_color_picker_create(int x, int y)
 	ptr = this->hsdata;
 
 	for (s = 0xFF, i = 0; i < IMAGE_H; ++i, s -= DELTA_S) {
-		for (h = 0, j = 0; j < IMAGE_W; ++j, ptr += 3, h += DELTA_H)
-			hsv_to_rgb(h, s, 0xFF, ptr);
+		for (h = 0, j = 0; j < IMAGE_W; ++j, ptr += 3, h += DELTA_H) {
+			col = hsva_to_rgba(h, s, 0xFF, 0xFF);
+			ptr[0] = col.c.r;
+			ptr[1] = col.c.g;
+			ptr[2] = col.c.b;
+		}
 	}
 
 	generate_v_bar(this);
@@ -554,12 +570,15 @@ void sgui_color_picker_get_hsv(const sgui_widget *super, unsigned char *hsva)
 void sgui_color_picker_get_rgb(const sgui_widget *super, unsigned char *rgba)
 {
 	sgui_color_picker *this = (sgui_color_picker *)super;
-	unsigned char hsva[4];
+	sgui_color col;
 
-	memcpy(hsva, this->hsva, 4);
+	col = hsva_to_rgba(this->hsva[0], this->hsva[1],
+				this->hsva[2], this->hsva[3]);
 
-	hsv_to_rgb(hsva[0], hsva[1], hsva[2], rgba);
-	rgba[3] = hsva[3];
+	rgba[0] = col.c.r;
+	rgba[1] = col.c.g;
+	rgba[2] = col.c.b;
+	rgba[3] = col.c.a;
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
 sgui_widget *sgui_color_picker_create(int x, int y)

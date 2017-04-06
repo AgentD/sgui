@@ -35,6 +35,7 @@
 
 #include "sgui_predef.h"
 #include "sgui_icon_cache.h"
+#include "sgui_color.h"
 
 
 
@@ -91,7 +92,7 @@ SGUI_DLL int sgui_font_cache_draw_glyph( sgui_icon_cache* cache,
                                          sgui_font* font,
                                          unsigned int codepoint,
                                          int x, int y, sgui_canvas* canvas,
-                                         const unsigned char* color );
+                                         const sgui_color color );
 
 /**
  * \brief Make sure a certain glyph is loaded into a font cache

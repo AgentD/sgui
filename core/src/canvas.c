@@ -414,34 +414,28 @@ void sgui_canvas_clear(sgui_canvas *this, const sgui_rect *r)
 }
 
 void sgui_canvas_draw_box(sgui_canvas *this, const sgui_rect *r,
-			const unsigned char *color, int format)
+				sgui_color color, int op)
 {
 	sgui_rect r1;
 
 	if (!(this->flags & SGUI_CANVAS_BEGAN))
 		return;
 
-	if (format == SGUI_RGBA8 && color[3] == 0xFF)
-		format = SGUI_RGB8;
-
 	r1 = *r;
 	sgui_rect_add_offset(&r1, this->ox, this->oy);
 
 	if (sgui_rect_get_intersection(&r1, &this->sc, &r1))
-		this->draw_box(this, &r1, color, format);
+		this->draw_box(this, &r1, color, op);
 }
 
 void sgui_canvas_draw_line(sgui_canvas *this, int x, int y,
 				unsigned int length, int horizontal,
-				const unsigned char *color, int format)
+				sgui_color color, int op)
 {
 	sgui_rect r;
 
 	if (!(this->flags & SGUI_CANVAS_BEGAN))
 		return;
-
-	if (format == SGUI_RGBA8 && color[3] == 0xFF)
-		format = SGUI_RGB8;
 
 	if (horizontal) {
 		sgui_rect_set_size(&r, x + this->ox, y + this->oy, length, 1);
@@ -450,7 +444,7 @@ void sgui_canvas_draw_line(sgui_canvas *this, int x, int y,
 	}
 
 	if (sgui_rect_get_intersection(&r, &this->sc, &r))
-		this->draw_box(this, &r, color, format);
+		this->draw_box(this, &r, color, op);
 }
 
 void sgui_canvas_draw_pixmap(sgui_canvas *this, int x, int y,
@@ -484,7 +478,7 @@ void sgui_canvas_draw_pixmap(sgui_canvas *this, int x, int y,
 
 int sgui_canvas_draw_text_plain(sgui_canvas *this, int x, int y,
 				int bold, int italic,
-				const unsigned char *color,
+				const sgui_color color,
 				const char *text, unsigned int length)
 {
 	sgui_font *font = sgui_skin_get_default_font(bold, italic);

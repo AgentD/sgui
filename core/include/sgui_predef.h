@@ -55,12 +55,14 @@
     #define SGUI_INLINE __forceinline
     #define sgui_strdup _strdup
 
+    typedef unsigned __int8 sgui_u8;
     typedef unsigned __int32 sgui_u32;
     typedef unsigned __int64 sgui_u64;
 #else
     #define SGUI_INLINE __inline__ __attribute__((always_inline))
     #define sgui_strdup strdup
 
+    typedef uint8_t sgui_u8;
     typedef uint32_t sgui_u32;
     typedef uint64_t sgui_u64;
 #endif
@@ -82,6 +84,7 @@ typedef struct sgui_window_description sgui_window_description;
 typedef struct sgui_model sgui_model;
 typedef struct sgui_item sgui_item;
 typedef struct sgui_dialog sgui_dialog;
+typedef union sgui_color sgui_color;
 
 typedef void(* sgui_funptr )( );
 

@@ -67,24 +67,26 @@ static void canvas_xrender_set_clip_rect(sgui_canvas_x11 *super,
 }
 
 static void canvas_xrender_draw_box(sgui_canvas *super, const sgui_rect *r,
-					const unsigned char *color, int format)
+					sgui_color color, int op)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
 	XRenderColor c;
+	int xop;
 
-	if (format == SGUI_RGB8 || format == SGUI_RGBA8) {
-		c.red = color[0] << 8;
-		c.green = color[1] << 8;
-		c.blue = color[2] << 8;
-		c.alpha = (format == SGUI_RGBA8) ? (color[3] << 8) : 0xFFFF;
+	c.red = color.c.r << 8;
+	c.green = color.c.g << 8;
+	c.blue = color.c.b << 8;
+
+	if (op == SGUI_CANVAS_BLEND) {
+		c.alpha = color.c.a << 8;
+		xop = PictOpOver;
 	} else {
-		c.red = c.green = c.blue = color[0] << 8;
 		c.alpha = 0xFFFF;
+		xop = PictOpSrc;
 	}
 
 	sgui_internal_lock_mutex();
-	XRenderFillRectangle(x11.dpy, PictOpOver, this->pic, &c,
-				r->left, r->top,
+	XRenderFillRectangle(x11.dpy, xop, this->pic, &c, r->left, r->top,
 				SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r));
 	sgui_internal_unlock_mutex();
 }
@@ -116,14 +118,14 @@ static void canvas_xrender_blit(sgui_canvas *super, int x, int y,
 static void canvas_xrender_blend_glyph(sgui_canvas *super, int x, int y,
 					const sgui_pixmap *pixmap,
 					const sgui_rect *r,
-					const unsigned char* color)
+					const sgui_color color)
 {
 	sgui_canvas_xrender *this = (sgui_canvas_xrender *)super;
 	XRenderColor c;
 
-	c.red = color[0] << 8;
-	c.green = color[1] << 8;
-	c.blue = color[2] << 8;
+	c.red = color.c.r << 8;
+	c.green = color.c.g << 8;
+	c.blue = color.c.b << 8;
 	c.alpha = 0xFFFF;
 
 	sgui_internal_lock_mutex();

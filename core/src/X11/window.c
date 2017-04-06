@@ -445,8 +445,8 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 	unsigned long color = 0;
 	XWindowAttributes attr;
 	sgui_window_xlib *this;
-	unsigned char rgb[3];
 	sgui_window *super;
+	sgui_color rgb;
 
 	if (!desc->width || !desc->height)
 		return NULL;
@@ -474,8 +474,8 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 		this->wnd = create_glx_window(super, desc, x_parent);
 		break;
 	default:
-		memcpy(rgb, sgui_skin_get()->window_color, 3);
-		color = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2]);
+		rgb = sgui_skin_get()->window_color;
+		color = (rgb.c.r << 16) | (rgb.c.g << 8) | (rgb.c.b);
 
 		this->wnd = XCreateSimpleWindow(x11.dpy, x_parent, 0, 0,
 						desc->width, desc->height,
