@@ -49,11 +49,18 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 	unsigned long r, g, b, a, c;
 	unsigned char *dst;
 	unsigned int i, j;
+	sgui_rect locked;
+	XRectangle r;
 
 	if (this->is_stencil && format != SGUI_A8)
 		return;
 
 	sgui_internal_lock_mutex();
+
+	r.x = r.y = 0;
+	r.width = super->width;
+	r.height = super->height;
+	XSetClipRectangles(x11.dpy, this->owner->gc, 0, 0, &r, 1, Unsorted);
 
 	if (this->is_stencil) {
 		dst = this->data.pixels + (dsty * super->width + dstx);
@@ -91,6 +98,15 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 		}
 	}
 
+	if (((sgui_canvas *)this->owner)->flags & SGUI_CANVAS_BEGAN) {
+		locked = ((sgui_canvas *)this->owner)->locked;
+		r.x = locked.left;
+		r.y = locked.top;
+		r.width = SGUI_RECT_WIDTH(locked);
+		r.height = SGUI_RECT_WIDTH(locked);
+		XSetClipRectangles(x11.dpy, this->owner->gc, 0, 0,
+					&r, 1, Unsorted);
+	}
 	sgui_internal_unlock_mutex();
 }
 
