@@ -343,17 +343,6 @@ void sgui_canvas_resize(sgui_canvas *this, unsigned int width,
 	sgui_internal_unlock_mutex();
 }
 
-sgui_pixmap *sgui_canvas_create_pixmap(sgui_canvas *this,
-					unsigned int width,
-					unsigned int height,
-					int format)
-{
-	if (!width || !height)
-		return NULL;
-
-	return this->create_pixmap(this, width, height, format);
-}
-
 void sgui_canvas_set_scissor_rect(sgui_canvas *this, const sgui_rect *r)
 {
 	if (!(this->flags & SGUI_CANVAS_BEGAN))
@@ -382,16 +371,6 @@ void sgui_canvas_begin(sgui_canvas *this, const sgui_rect *r)
 		this->sc = r0;
 		this->locked = r0;
 		this->flags |= SGUI_CANVAS_BEGAN;
-	}
-}
-
-void sgui_canvas_end(sgui_canvas *this)
-{
-	if (this->flags & SGUI_CANVAS_BEGAN) {
-		this->flags &= ~SGUI_CANVAS_BEGAN;
-
-		if (this->end)
-			this->end(this);
 	}
 }
 

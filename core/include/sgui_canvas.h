@@ -435,10 +435,16 @@ SGUI_DLL void sgui_canvas_resize( sgui_canvas* canvas, unsigned int width,
  *
  * \return A pointer to a new pixmap object on success, NULL on error.
  */
-SGUI_DLL sgui_pixmap* sgui_canvas_create_pixmap( sgui_canvas* canvas,
-                                                 unsigned int width,
-                                                 unsigned int height,
-                                                 int format );
+static SGUI_INLINE
+sgui_pixmap* sgui_canvas_create_pixmap(sgui_canvas* canvas, unsigned int width,
+                                       unsigned int height, int format)
+{
+    if( !width || !height )
+        return NULL;
+
+    return canvas->create_pixmap(canvas, width, height, format);
+}
+
 
 /**
  * \brief Get a pointer to the currently used drawing scissor rectangle
@@ -524,7 +530,13 @@ SGUI_DLL void sgui_canvas_begin( sgui_canvas* canvas, const sgui_rect* r );
  *
  * \see sgui_canvas_begin
  */
-SGUI_DLL void sgui_canvas_end( sgui_canvas* canvas );
+static SGUI_INLINE void sgui_canvas_end(sgui_canvas* cv)
+{
+	if ((cv->flags & SGUI_CANVAS_BEGAN) && cv->end)
+		cv->end(cv);
+
+	cv->flags &= ~SGUI_CANVAS_BEGAN;
+}
 
 
 
