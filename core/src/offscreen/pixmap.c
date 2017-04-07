@@ -49,7 +49,7 @@ static void mem_pixmap_load_rgb8(sgui_pixmap *super, int dstx, int dsty,
 	mem_pixmap *this = (mem_pixmap *)super;
 	unsigned char temp, *dst, *dstrow;
 	const unsigned char *src, *row;
-	unsigned int i, j, alpha;
+	unsigned int i, j;
 
 	dst = this->buffer + (dstx + dsty * super->width) * 3;
 	src = data;
@@ -77,10 +77,9 @@ static void mem_pixmap_load_rgb8(sgui_pixmap *super, int dstx, int dsty,
 			row = src;
 
 			for (i = 0; i < width; ++i) {
-				alpha = row[3];
-				dstrow[0] = (row[0] * alpha) >> 8;
-				dstrow[1] = (row[1] * alpha) >> 8;
-				dstrow[2] = (row[2] * alpha) >> 8;
+				dstrow[0] = row[0];
+				dstrow[1] = row[1];
+				dstrow[2] = row[2];
 				row += 4;
 				dstrow += 3;
 			}
@@ -111,75 +110,57 @@ static void mem_pixmap_load_rgba8(sgui_pixmap *super, int dstx, int dsty,
 				unsigned int height, int format)
 {
 	mem_pixmap *this = (mem_pixmap *)super;
-	unsigned char temp, *dst, *dstrow;
+	sgui_color *dst, *dstrow;
 	const unsigned char *src, *row;
 	unsigned int i, j;
 	int val;
 
-	dst = this->buffer + (dstx + dsty * super->width) * 4;
+	dst = (sgui_color *)(this->buffer + (dstx + dsty * super->width) * 4);
 	src = data;
 
 	if (format == SGUI_A8) {
         	for (j = 0; j < height; ++j) {
         		dstrow = dst;
         		row = src;
-			for (i = 0; i < width; ++i) {
+			for (i = 0; i < width; ++i, ++dstrow) {
 				val = *(row++);
-				dstrow[0] = val;
-				dstrow[1] = val;
-				dstrow[2] = val;
-				dstrow[3] = val;
-				dstrow += 4;
+				*dstrow = sgui_color_set(val, val, val, val);
 			}
 			src += scan;
-			dst += super->width * 4;
+			dst += super->width;
 		}
 	} else if (format == SGUI_RGB8) {
 		for (j = 0; j<height; ++j) {
 			dstrow = dst;
 			row = src;
 			for (i = 0; i < width; ++i) {
-				dstrow[0] = row[0];
-				dstrow[1] = row[1];
-				dstrow[2] = row[2];
-				dstrow[3] = 0xFF;
+				*(dstrow++) = sgui_color_load3(row);
 				row += 3;
-				dstrow += 4;
 			}
 			src += scan * 3;
-			dst += super->width * 4;
+			dst += super->width;
 		}
 	} else {
 		for (j = 0; j < height; ++j) {
-			dstrow = dst;
-			row = src;
+			memcpy(dst, src, width * 4);
 
-			for (i = 0; i < width; ++i) {
-				dstrow[0] = (row[0] * row[3]) >>8;
-				dstrow[1] = (row[1] * row[3]) >>8;
-				dstrow[2] = (row[2] * row[3]) >>8;
-				dstrow[3] = row[3];
-
-				row += 4;
-				dstrow += 4;
-			}
 			src += scan * 4;
-			dst += super->width * 4;
+			dst += super->width;
 		}
 	}
 
 	if (this->swaprb && format != SGUI_A8) {
-		dst = this->buffer + (dstx + dsty * super->width) * 4;
+		dst = (sgui_color *)this->buffer + dstx + dsty * super->width;
 
 		for (j = 0; j < height; ++j) {
 			dstrow = dst;
 			for (i = 0; i < width; ++i) {
-				temp = dstrow[0];
-				dstrow[0] = dstrow[2];
-				dstrow[2] = temp;
-				dstrow += 4;
+				val = dstrow->c.r;
+				dstrow->c.r = dstrow->c.b;
+				dstrow->c.b = val;
+				++dstrow;
 			}
-			dst += super->width * 4;
+			dst += super->width;
 		}
 	}
 }

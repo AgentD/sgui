@@ -64,23 +64,15 @@ static void canvas_xlib_draw_box(sgui_canvas *super, const sgui_rect *r,
 				sgui_color color, int op)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
-	unsigned long R, G, B, A, iA;
+	unsigned int xcol;
 
-	if (op == SGUI_CANVAS_BLEND) {
-		A = color.c.a;
-		iA = 0xFF - A;
+	if (op == SGUI_CANVAS_BLEND)
+		color = sgui_color_mix(this->bg, color, color.c.a);
 
-		R = ((color.c.r * A + this->bg.c.r * iA) >> 8) & 0x00FF;
-		G = ((color.c.g * A + this->bg.c.g * iA) >> 8) & 0x00FF;
-		B = ((color.c.b * A + this->bg.c.b * iA) >> 8) & 0x00FF;
-	} else {
-		R = color.c.r;
-		G = color.c.g;
-		B = color.c.b;
-	}
+	xcol = (color.c.r << 16) | (color.c.g << 8) | color.c.b;
 
 	sgui_internal_lock_mutex();
-	XSetForeground(x11.dpy, this->gc, (R<<16) | (G<<8) | B);
+	XSetForeground(x11.dpy, this->gc, xcol);
 	XFillRectangle(x11.dpy, ((sgui_canvas_x11 *)this)->wnd,
 			this->gc, r->left, r->top,
 			SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r));

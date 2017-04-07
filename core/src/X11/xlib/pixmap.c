@@ -46,10 +46,10 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 {
 	xlib_pixmap *this = (xlib_pixmap *)super;
 	const unsigned char *src, *row;
-	unsigned long r, g, b, a, c;
+	unsigned int i, j, c;
 	unsigned char *dst;
-	unsigned int i, j;
 	sgui_rect locked;
+	sgui_color pt;
 	XRectangle r;
 
 	if (this->is_stencil && format != SGUI_A8)
@@ -73,12 +73,12 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 	} else if (format == SGUI_RGBA8) {
 		for (src = data, j = 0; j < height; ++j, src += scan * 4) {
 			for (row = src, i = 0; i < width; ++i, row += 4) {
-				a = row[3];
-				r = ((row[0] * a) >> 8) & 0x00FF;
-				g = ((row[1] * a) >> 8) & 0x00FF;
-				b = ((row[2] * a) >> 8) & 0x00FF;
+				pt = *((sgui_color *)row);
 
-				c = (r << 16) | (g << 8) | b;
+				pt = sgui_color_mix(this->owner->bg,
+							pt, pt.c.a);
+
+				c = (pt.c.r << 16) | (pt.c.g << 8) | pt.c.b;
 				XSetForeground(x11.dpy, this->owner->gc, c);
 
 				XDrawPoint(x11.dpy, this->data.xpm,

@@ -66,32 +66,29 @@ static void canvas_mem_clear(sgui_canvas *super, const sgui_rect *r)
 static void canvas_mem_draw_box_rgb(sgui_canvas *super, const sgui_rect *r,
 					sgui_color color, int op)
 {
-	unsigned int R = 0, G = 0, B = 0, A = 0, iA = 0, pitch;
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned char *dst, *row;
+	unsigned int pitch;
+	sgui_color pt;
 	int i, j;
 
 	pitch = this->pitch ? this->pitch : super->width * 3;
 	dst = this->data + (r->top - this->starty) * pitch;
 	dst += (r->left - this->startx) * 3;
 
-	R = this->swaprb ? color.c.b : color.c.r;
-	G = color.c.g;
-	B = this->swaprb ? color.c.r : color.c.b;
-	A = color.c.a;
+	if (this->swaprb) {
+		i = color.c.r;
+		color.c.r = color.c.b;
+		color.c.b = i;
+	}
 
-	if (op == SGUI_CANVAS_BLEND && A < 0xFF) {
-		iA = 0xFF - A;
-		R *= A;
-		G *= A;
-		B *= A;
-
+	if (op == SGUI_CANVAS_BLEND && color.c.a < 0xFF) {
 		for (j = r->top; j <= r->bottom; ++j) {
 			row = dst;
 			for (i = r->left; i <= r->right; ++i) {
-				row[0] = (row[0] * iA + R)>>8;
-				row[1] = (row[1] * iA + G)>>8;
-				row[2] = (row[2] * iA + B)>>8;
+				pt = sgui_color_load3(row);
+				pt = sgui_color_mix(pt, color, color.c.a);
+				sgui_color_store3(row, pt);
 				row += 3;
 			}
 			dst += pitch;
@@ -100,9 +97,7 @@ static void canvas_mem_draw_box_rgb(sgui_canvas *super, const sgui_rect *r,
 		for (j = r->top; j <= r->bottom; ++j) {
 			row = dst;
 			for (i = r->left; i <= r->right; ++i) {
-				row[0] = R;
-				row[1] = G;
-				row[2] = B;
+				sgui_color_store3(row, color);
 				row += 3;
 			}
 			dst += pitch;
@@ -122,7 +117,7 @@ static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width*3;
 	unsigned int scan, lines;
-	int iA;
+	sgui_color pt;
 
 	sgui_pixmap_get_size(pixmap, &scan, &lines);
 
@@ -136,11 +131,9 @@ static void canvas_mem_blit_rgb(sgui_canvas *super, int x, int y,
 			row = dst;
 
 			for (i = 0; i < w; ++i) {
-				iA = 0xFF - srow[3];
-
-				row[0] = ((row[0] * iA) >> 8) + srow[0];
-				row[1] = ((row[1] * iA) >> 8) + srow[1];
-				row[2] = ((row[2] * iA) >> 8) + srow[2];
+				pt = sgui_color_load3(row);
+				pt = sgui_color_mix(pt, *((sgui_color *)srow), ((sgui_color *)srow)->c.a);
+				sgui_color_store3(row, pt);
 
 				row += 3;
 				srow += 4;
@@ -183,11 +176,15 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
                                           sgui_color color )
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
-	unsigned char A, iA, *src, *row, *dst;
+	unsigned char *src, *row, *dst;
 	unsigned int i, j, pitch;
-	unsigned int R = this->swaprb ? color.c.b : color.c.r;
-	unsigned int G = color.c.g;
-	unsigned int B = this->swaprb ? color.c.r : color.c.b;
+	sgui_color pt;
+
+	if (this->swaprb) {
+		i = color.c.r;
+		color.c.r = color.c.b;
+		color.c.b = i;
+	}
 
 	pitch = this->pitch ? this->pitch : super->width * 3;
 	dst = this->data + (y - this->starty) * pitch + (x - this->startx) * 3;
@@ -197,12 +194,9 @@ static void canvas_mem_blend_stencil_rgb( sgui_canvas* super,
 		row = dst;
 
 		for (i = 0; i < w; ++i) {
-			A = *(src++);
-			iA = 0xFF-A;
-
-			row[0] = (row[0] * iA + R * A) >> 8;
-			row[1] = (row[1] * iA + G * A) >> 8;
-			row[2] = (row[2] * iA + B * A) >> 8;
+			pt = sgui_color_load3(row);
+			pt = sgui_color_mix(pt, color, *(src++));
+			sgui_color_store3(row, pt);
 			row += 3;
 		}
 
@@ -217,47 +211,35 @@ static void canvas_mem_draw_box_rgba(sgui_canvas *super, const sgui_rect *r,
 					sgui_color color, int op)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
-	unsigned int R = 0, G = 0, B = 0, A = 0, iA = 0, pitch;
-	unsigned char *dst, *row;
+	unsigned int pitch;
+	unsigned char *dst;
+	sgui_color *row;
 	int i, j;
 
 	pitch = this->pitch ? this->pitch : super->width * 4;
 	dst = this->data + (r->top - this->starty) * pitch;
 	dst += (r->left - this->startx)*4;
 
-	R = this->swaprb ? color.c.b : color.c.r;
-	G = color.c.g;
-	B = this->swaprb ? color.c.r : color.c.b;
-	A = color.c.a;
+	if (this->swaprb) {
+		i = color.c.r;
+		color.c.r = color.c.b;
+		color.c.b = i;
+	}
 
-	if (op == SGUI_CANVAS_BLEND && A < 0xFF) {
-		iA = 0xFF - A;
-		R *= A;
-		G *= A;
-		B *= A;
-		A = A << 8;
-
+	if (op == SGUI_CANVAS_BLEND && color.c.a < 0xFF) {
 		for (j = r->top; j <= r->bottom; ++j) {
-			row = dst;
+			row = (sgui_color *)dst;
 			for(i = r->left; i <= r->right; ++i) {
-				row[0] = (row[0] * iA + R) >> 8;
-				row[1] = (row[1] * iA + G) >> 8;
-				row[2] = (row[2] * iA + B) >> 8;
-				row[3] = (row[3] * iA + A) >> 8;
-				row += 4;
+				*row = sgui_color_mix(*row, color, color.c.a);
+				++row;
 			}
 			dst += pitch;
 		}
 	} else {
 		for (j = r->top; j <= r->bottom; ++j) {
-			row = dst;
-			for(i = r->left; i <= r->right; ++i) {
-				row[0] = R;
-				row[1] = G;
-				row[2] = B;
-				row[3] = A;
-				row += 4;
-			}
+			row = (sgui_color *)dst;
+			for(i = r->left; i <= r->right; ++i)
+				*(row++) = color;
 			dst += pitch;
 		}
 	}
@@ -270,12 +252,12 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 	unsigned int w = SGUI_RECT_WIDTH_V(srcrect);
 	unsigned int h = SGUI_RECT_HEIGHT_V(srcrect);
-	unsigned char *dst, *row;
-	const unsigned char *src = mem_pixmap_buffer(pixmap), *srow;
+	unsigned char *dst;
+	const unsigned char *src = mem_pixmap_buffer(pixmap);
 	unsigned int format = mem_pixmap_format(pixmap), i, j;
 	unsigned int dy = this->pitch ? this->pitch : super->width * 4;
 	unsigned int scan, lines;
-	int iA;
+	sgui_color *row, *srow;
 
 	sgui_pixmap_get_size(pixmap, &scan, &lines);
 
@@ -285,19 +267,13 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 		src += (srcrect->top * scan + srcrect->left) * 4;
 
 		for (j = 0; j < h; ++j) {
-			srow = src;
-			row = dst;
+			srow = (sgui_color *)src;
+			row = (sgui_color *)dst;
 
 			for (i=0; i < w; ++i) {
-				iA = 0xFF - srow[3];
-
-				row[0] = ((row[0] * iA) >> 8) + srow[0];
-				row[1] = ((row[1] * iA) >> 8) + srow[1];
-				row[2] = ((row[2] * iA) >> 8) + srow[2];
-				row[3] = ((row[3] * iA) >> 8) + srow[3];
-
-				row += 4;
-				srow += 4;
+				*row = sgui_color_mix(*row, *srow, srow->c.a);
+				++row;
+				++srow;
 			}
 
 			src += scan * 4;
@@ -308,11 +284,11 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 
 		for (j = 0; j < h; ++j) {
 			memcpy(dst, src, w * 4);
-			row = dst;
+			row = (sgui_color *)dst;
 
 			for (i = 0; i < w; ++i) {
-				row[3] = 0xFF;
-				row += 4;
+				row->c.a = 0xFF;
+				++row;
 			}
 
 			src += scan * 4;
@@ -322,13 +298,12 @@ static void canvas_mem_blit_rgba(sgui_canvas *super, int x, int y,
 		src += (srcrect->top * scan + srcrect->left) * 3;
 
 		for (j = 0; j < h; ++j) {
-			srow = src;
-			row = dst;
+			row = (sgui_color *)dst;
 			for (i=0; i < w; ++i) {
-				*(row++) = *(srow++);
-				*(row++) = *(srow++);
-				*(row++) = *(srow++);
-				*(row++) = 0xFF;
+				*(row++) = sgui_color_set((src + i * 3)[0],
+							(src + i * 3)[1],
+							(src + i * 3)[2],
+							0xFF);
 			}
 			src += scan * 3;
 			dst += dy;
@@ -342,29 +317,26 @@ static void canvas_mem_blend_stencil_rgba(sgui_canvas *super,
 					unsigned int scan, sgui_color color)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
-	unsigned char A, iA, *src, *row, *dst;
+	unsigned char *src, *dst;
 	unsigned int i, j, pitch;
-	unsigned int R = this->swaprb ? color.c.b : color.c.r;
-	unsigned int G = color.c.g;
-	unsigned int B = this->swaprb ? color.c.r : color.c.b;
+	sgui_color *row;
+
+	if (this->swaprb) {
+		i = color.c.r;
+		color.c.r = color.c.b;
+		color.c.b = i;
+	}
 
 	pitch = this->pitch ? this->pitch : super->width * 4;
 	dst = this->data + (y - this->starty) * pitch + (x - this->startx) * 4;
 
 	for (j = 0; j < h; ++j) {
 		src = buffer;
-		row = dst;
+		row = (sgui_color *)dst;
 
 		for (i = 0; i < w; ++i) {
-			A = *(src++);
-			iA = 0xFF - A;
-
-			row[0] = (row[0] * iA +  R * A) >> 8;
-			row[1] = (row[1] * iA +  G * A) >> 8;
-			row[2] = (row[2] * iA +  B * A) >> 8;
-			row[3] = (row[3] * iA + (A << 8)) >> 8;
-            
-			row += 4;
+			*row = sgui_color_mix(*row, color, *(src++));
+			++row;
 		}
 		buffer += scan;
 		dst += pitch;

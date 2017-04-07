@@ -53,6 +53,7 @@
 
 #ifdef _MSC_VER
     #define SGUI_INLINE __forceinline
+    #define SGUI_CONST_INLINE
     #define sgui_strdup _strdup
 
     typedef unsigned __int8 sgui_u8;
@@ -60,6 +61,7 @@
     typedef unsigned __int64 sgui_u64;
 #else
     #define SGUI_INLINE __inline__ __attribute__((always_inline))
+    #define SGUI_CONST_INLINE __attribute__((const)) __inline__
     #define sgui_strdup strdup
 
     typedef uint8_t sgui_u8;

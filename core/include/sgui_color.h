@@ -55,6 +55,47 @@ union sgui_color
     sgui_u32 uival;
 };
 
+static SGUI_INLINE sgui_color sgui_color_load3(const unsigned char *ptr)
+{
+	sgui_color ret;
+	ret.v[0] = ptr[0];
+	ret.v[1] = ptr[1];
+	ret.v[2] = ptr[2];
+	ret.v[3] = 0xFF;
+	return ret;
+}
+
+static SGUI_INLINE void sgui_color_store3(unsigned char *ptr,
+						const sgui_color col)
+{
+	ptr[0] = col.v[0];
+	ptr[1] = col.v[1];
+	ptr[2] = col.v[2];
+}
+
+static SGUI_CONST_INLINE sgui_color sgui_color_set(int r, int g, int b, int a)
+{
+	sgui_color ret;
+	ret.v[0] = r;
+	ret.v[1] = g;
+	ret.v[2] = b;
+	ret.v[3] = a;
+	return ret;
+}
+
+static SGUI_CONST_INLINE sgui_color sgui_color_mix(const sgui_color lower,
+							const sgui_color upper,
+							const int alpha)
+{
+	sgui_color ret;
+
+	ret.c.r = (upper.c.r * alpha + lower.c.r * (0xFF - alpha)) >> 8;
+	ret.c.g = (upper.c.g * alpha + lower.c.g * (0xFF - alpha)) >> 8;
+	ret.c.b = (upper.c.b * alpha + lower.c.b * (0xFF - alpha)) >> 8;
+	ret.c.a = (upper.c.a * alpha + lower.c.a * (0xFF - alpha)) >> 8;
+
+	return ret;
+}
 
 #endif /* SGUI_COLOR_H */
 
