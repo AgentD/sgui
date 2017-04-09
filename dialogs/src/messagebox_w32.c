@@ -29,20 +29,16 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-
-
 #ifndef SGUI_NO_NATIVE_MESSAGEBOX
-void sgui_message_box_emergency( const char* caption, const char* text )
+void sgui_message_box_emergency(const char *caption, const char *text)
 {
-    MessageBox( 0, text, caption, MB_OK|MB_ICONEXCLAMATION );
+	MessageBox(0, text, caption, MB_OK | MB_ICONEXCLAMATION);
 }
 #elif defined(SGUI_NOP_IMPLEMENTATIONS)
-void sgui_message_box_emergency( const char* caption, const char* text )
+void sgui_message_box_emergency(const char *caption, const char *text)
 {
-    (void)caption;
-    (void)text;
+	(void)caption; (void)text;
 }
 #endif /* !SGUI_NO_NATIVE_MESSAGEBOX */
 
 #endif /* SGUI_WINDOWS */
-
