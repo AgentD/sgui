@@ -34,14 +34,20 @@
 #include <ctype.h>
 
 
-static void xlib_window_size_hints(Window wnd, unsigned int w, unsigned int h)
+static void xlib_window_size_hints(Window wnd, unsigned int w, unsigned int h,
+					unsigned int min_w, unsigned int min_h,
+					unsigned int max_w, unsigned int max_h)
 {
 	XSizeHints hints;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.flags = PSize | PMinSize | PMaxSize;
-	hints.min_width = hints.base_width = hints.max_width = (int)w;
-	hints.min_height = hints.base_height = hints.max_height = (int)h;
+	hints.min_width = min_w;
+	hints.min_height = min_h;
+	hints.base_width = w;
+	hints.base_height = h;
+	hints.max_width = max_w;
+	hints.max_height = max_h;
 
 	XSetWMNormalHints(x11.dpy, wnd, &hints);
 }
@@ -69,17 +75,40 @@ static void xlib_window_set_mouse_position(sgui_window *this, int x, int y)
 	sgui_internal_unlock_mutex();
 }
 
-static void xlib_window_set_visible(sgui_window *this, int visible)
+static int xlib_window_toggle_flags(sgui_window *super, int diff)
 {
-	sgui_internal_lock_mutex();
+	sgui_window_xlib *this = (sgui_window_xlib *)super;
+	int ret = 1;
 
-	if (visible) {
-		XMapWindow(x11.dpy, TO_X11(this)->wnd);
-	} else {
-		XUnmapWindow(x11.dpy, TO_X11(this)->wnd);
+	sgui_internal_lock_mutex();
+	if (diff & SGUI_DOUBLEBUFFERED) {
+		ret = 0;
+		goto out;
 	}
 
+	if (diff & SGUI_VISIBLE) {
+		if (super->flags & SGUI_VISIBLE) {
+			XUnmapWindow(x11.dpy, this->wnd);
+		} else {
+			XMapWindow(x11.dpy, this->wnd);
+		}
+	}
+
+	if (diff & SGUI_FIXED_SIZE) {
+		if (super->flags & SGUI_FIXED_SIZE) {
+			xlib_window_size_hints(this->wnd, super->w, super->h,
+						0, 0, INT_MAX, INT_MAX);
+		} else {
+			xlib_window_size_hints(this->wnd, super->w, super->h,
+						super->w, super->h,
+						super->w, super->h);
+		}
+	}
+
+	super->flags ^= diff;
+out:
 	sgui_internal_unlock_mutex();
+	return ret;
 }
 
 static void xlib_window_set_title(sgui_window *this, const char *title)
@@ -96,8 +125,10 @@ static void xlib_window_set_size(sgui_window *this, unsigned int width,
 
 	sgui_internal_lock_mutex();
 
-	if (this->flags & SGUI_FIXED_SIZE)
-		xlib_window_size_hints(TO_X11(this)->wnd, width, height);
+	if (this->flags & SGUI_FIXED_SIZE) {
+		xlib_window_size_hints(TO_X11(this)->wnd, width, height,
+					width, height, width, height);
+	}
 
 	XResizeWindow(x11.dpy, TO_X11(this)->wnd, width, height);
 	XFlush(x11.dpy);
@@ -486,8 +517,11 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 	if (!this->wnd)
 		goto fail;
 
-	if (desc->flags & SGUI_FIXED_SIZE)
-		xlib_window_size_hints(this->wnd, desc->width, desc->height);
+	if (desc->flags & SGUI_FIXED_SIZE) {
+		xlib_window_size_hints(this->wnd, desc->width, desc->height,
+					desc->width, desc->height,
+					desc->width, desc->height);
+	}
 
 	XGetWindowAttributes(x11.dpy, this->wnd, &attr);
 
@@ -533,7 +567,7 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 
 	super->get_mouse_position = xlib_window_get_mouse_position;
 	super->set_mouse_position = xlib_window_set_mouse_position;
-	super->set_visible = xlib_window_set_visible;
+	super->toggle_flags = xlib_window_toggle_flags;
 	super->set_title = xlib_window_set_title;
 	super->set_size = xlib_window_set_size;
 	super->move_center = xlib_window_move_center;

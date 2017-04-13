@@ -116,11 +116,54 @@ static void w32_window_set_mouse_position(sgui_window *this, int x, int y)
 	sgui_internal_unlock_mutex();
 }
 
-static void w32_window_set_visible(sgui_window *this, int visible)
+static int w32_window_toggle_flags(sgui_window *super, int diff)
 {
+	sgui_window_w32 *this = (sgui_window_w32 *)super;
+	int ret = 1;
+	LONG lv;
+
 	sgui_internal_lock_mutex();
-	ShowWindow(TO_W32(this)->hWnd, visible ? SW_SHOWNORMAL : SW_HIDE);
+	if (diff & SGUI_DOUBLEBUFFERED) {
+		ret = 0;
+		goto out;
+	}
+
+	if (diff & SGUI_VISIBLE) {
+		ShowWindow(this->hWnd, (super->flags & SGUI_VISIBLE) ?
+					SW_HIDE : SW_SHOWNORMAL);
+
+		super->flags ^= SGUI_VISIBLE;
+	}
+
+	if (diff & SGUI_FIXED_SIZE) {
+		lv = GetWindowLongA(this->hWnd, GWL_STYLE);
+		if (!lv) {
+			ret = 0;
+			goto out;
+		}
+
+		if (lv & WS_CHILD)
+			goto out;
+
+		lv &= ~(WS_CAPTION | WS_SYSMENU | WS_OVERLAPPEDWINDOW);
+
+		if (super->flags & SGUI_FIXED_SIZE) {
+			lv |= WS_OVERLAPPEDWINDOW;
+		} else {
+			lv |= (WS_CAPTION | WS_SYSMENU);
+		}
+
+		if (!SetWindowLongA(this->hWnd, GWL_STYLE, lv)) {
+			ret = 0;
+			goto out;
+		}
+
+		super->flags ^= SGUI_FIXED_SIZE;
+	}
+
+out:
 	sgui_internal_unlock_mutex();
+	return ret;
 }
 
 static void w32_window_set_title(sgui_window *this, const char *title)
@@ -505,8 +548,11 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 	if (desc->parent) {
 		style |= WS_CHILD;
 	} else {
-		style |= (desc->flags & SGUI_FIXED_SIZE) ?
-			(WS_CAPTION | WS_SYSMENU) : WS_OVERLAPPEDWINDOW;
+		if (desc->flags & SGUI_FIXED_SIZE) {
+			style |= (WS_CAPTION | WS_SYSMENU);
+		} else {
+			style |= WS_OVERLAPPEDWINDOW;
+		}
 		AdjustWindowRect(&r, style, FALSE);
 	}
 
@@ -554,7 +600,7 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 	super->flags = desc->flags;
 	super->get_mouse_position = w32_window_get_mouse_position;
 	super->set_mouse_position = w32_window_set_mouse_position;
-	super->set_visible = w32_window_set_visible;
+	super->toggle_flags = w32_window_toggle_flags;
 	super->set_title = w32_window_set_title;
 	super->set_size = w32_window_set_size;
 	super->move_center = w32_window_move_center;

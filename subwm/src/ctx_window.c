@@ -46,9 +46,10 @@ static void set_mouse_position( sgui_window* this, int x, int y )
                                     x + this->x, y + this->y, 0 );
 }
 
-static void set_visible( sgui_window* this, int visible )
+static int toggle_flags(sgui_window *this, int diff)
 {
-    (void)this; (void)visible;
+	this->flags ^= diff;
+	return 1;
 }
 
 static void set_title( sgui_window* this, const char* title )
@@ -188,7 +189,7 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
     /* hook callbacks */
     super->get_mouse_position = get_mouse_position;
     super->set_mouse_position = set_mouse_position;
-    super->set_visible        = set_visible;
+    super->toggle_flags       = toggle_flags;
     super->set_title          = set_title;
     super->set_size           = set_size;
     super->move_center        = move_center;

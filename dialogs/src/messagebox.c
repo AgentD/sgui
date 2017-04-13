@@ -67,7 +67,7 @@ static void message_box_button_pressed(sgui_dialog *super, int button)
 		break;
 	}
 
-	sgui_window_set_visible(super->window, SGUI_INVISIBLE);
+	sgui_window_set_visible(super->window, 0);
 	sgui_event_post(&ev);
 }
 

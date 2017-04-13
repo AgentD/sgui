@@ -164,22 +164,10 @@ typedef enum
      */
     SGUI_DOUBLEBUFFERED = 0x02,
 
-    /**
-     * \brief If set as a window flag, the window is initially visible
-     *
-     * Can also be passed to sgui_window_set_visible for improoved
-     * readability.
-     */
+    /** \brief If set, the window is initially visible */
     SGUI_VISIBLE = 0x04,
 
-    /** \brief A bit mask to mask out all valid flags for cearing windows */
-    SGUI_ALL_WINDOW_FLAGS = 0x07,
-
-    /**
-     * \brief Provided as an opposite of SGUI_VISIBLE to explictly make clear
-     *        that a window is not visible
-     */
-    SGUI_INVISIBLE = 0x00
+    SGUI_ALL_WINDOW_FLAGS = 0x07
 }
 SGUI_WINDOW_FLAG;
 
@@ -247,8 +235,16 @@ struct sgui_window
      */
     void (* set_mouse_position )( sgui_window* wnd, int x, int y );
 
-    /** Called by \ref sgui_window_set_visible */
-    void (* set_visible )( sgui_window* wnd, int visible );
+    /**
+     * \brief Alter the currently set flags
+     *
+     * \param wnd   Pointer to the window itself
+     * \param flags The new flags to set. A combination
+     *              of \ref SGUI_WINDOW_FLAG that are to be \b inverted.
+     *
+     * \return Non-zero on success, zero on failure.
+     */
+    int (* toggle_flags )( sgui_window* wnd, int flags );
 
     /** Called by \ref sgui_window_set_visible */
     void (* set_title )( sgui_window* wnd, const char* title );
@@ -538,7 +534,25 @@ SGUI_DLL void sgui_window_get_mouse_position( sgui_window* wnd,
 SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
                                               int send_event );
 
-
+/**
+ * \brief Alter the flags of a window after creation
+ *
+ * If the window visibility is changed from visible to invisible, a
+ * \ref SGUI_API_INVISIBLE_EVENT event is generated.
+ *
+ * \note This function invertes flags. Calling it a second time with the exact
+ *       same values undoes the previous changes.
+ *
+ * \note This function is not atomic, i.e. even if it fails, \b some changes
+ *       may have been applied sucessfully.
+ *
+ * \param wnd A pointer to a window
+ * \param flags A combination of \ref SGUI_WINDOW_FLAG values that are
+ *              to be inverted.
+ *
+ * \return Non-zero on success, zero on failure.
+ */
+SGUI_DLL int sgui_window_toggle_flags(sgui_window *wnd, int flags);
 
 /**
  * \brief Make a window visible or invisible
@@ -548,15 +562,19 @@ SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
  * This function shows or hides a window. The window is hidden by default
  * after creation.
  *
- * If the window is set invisible, the window close event is triggered with
- * the parameter SGUI_API_MADE_INVISIBLE.
+ * If the window is set invisible, a \ref SGUI_API_INVISIBLE_EVENT is
+ * generated.
  *
  * \param wnd     A pointer to the window
- * \param visible Non-zero to turn the window visible, zero to turn it
- *                invisible. The symbolic constants SGUI_VISIBLE and
- *                SGUI_INVISIBLE can be used to generat more readable code.
+ * \param visible Non-zero to turn the window visible,
+ *                zero to turn it invisible.
  */
-SGUI_DLL void sgui_window_set_visible( sgui_window* wnd, int visible );
+static SGUI_INLINE void sgui_window_set_visible(sgui_window *wnd, int visible)
+{
+	visible = visible ? SGUI_VISIBLE : 0;
+	if ((wnd->flags & SGUI_VISIBLE) != visible)
+		sgui_window_toggle_flags(wnd, SGUI_VISIBLE);
+}
 
 /**
  * \brief Returns non-zero if a given window is visible, zero otherwise

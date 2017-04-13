@@ -185,24 +185,31 @@ void sgui_window_set_mouse_position(sgui_window *this, int x, int y,
 	sgui_internal_unlock_mutex();
 }
 
-void sgui_window_set_visible(sgui_window *this, int visible)
+int sgui_window_toggle_flags(sgui_window *this, int diff)
 {
+	int old_flags, ret = 1;
 	sgui_event ev;
 
+	if (diff & ~SGUI_ALL_WINDOW_FLAGS)
+		return 0;
+	if (!diff)
+		return 1;
+
 	sgui_internal_lock_mutex();
-	if (!(((this->flags & SGUI_VISIBLE) != 0) ^ (visible != 0)))
+	old_flags = this->flags;
+
+	ret = this->toggle_flags(this, diff);
+	if (!ret)
 		goto out;
 
-	this->set_visible(this, visible);
-	this->flags ^= SGUI_VISIBLE;
-
-	if (!visible) {
+	if (old_flags & diff & SGUI_VISIBLE) {
 		ev.src.window = this;
 		ev.type = SGUI_API_INVISIBLE_EVENT;
 		sgui_internal_window_fire_event(this, &ev);
 	}
 out:
 	sgui_internal_unlock_mutex();
+	return ret;
 }
 
 void sgui_window_set_size(sgui_window *this,

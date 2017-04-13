@@ -103,7 +103,7 @@ int main( )
      */
     sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_set_visible, wnd,
-                        SGUI_INT, SGUI_INVISIBLE );
+                        SGUI_INT, 0 );
 
     /*
         Register a window event callback.

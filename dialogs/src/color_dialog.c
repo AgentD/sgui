@@ -126,7 +126,7 @@ static void color_dialog_handle_button(sgui_dialog *super, int idx)
 		break;
 	}
 
-	sgui_window_set_visible(super->window, SGUI_INVISIBLE);
+	sgui_window_set_visible(super->window, 0);
 }
 
 static void sgui_color_dialog_destroy(sgui_dialog *super)
