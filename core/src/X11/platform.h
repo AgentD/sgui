@@ -29,6 +29,7 @@
 
 #include "sgui_skin.h"
 #include "sgui_rect.h"
+#include "sgui_lib.h"
 
 #include "opengl.h"
 #include "window.h"
@@ -52,33 +53,35 @@
 
 #define DOUBLE_CLICK_MS 750
 
-extern struct x11_state
-{
-    XIM im;                         /* X11 input method */
-    Display* dpy;                   /* X11 Display connection */
-    Window root;                    /* root window */
-    int screen;                     /* default screen of root window */
+typedef struct {
+	sgui_lib super;
 
-    char* clipboard_buffer;
-    unsigned int clipboard_size;
-    unsigned int clipboard_strlen;
+	XIM im;                         /* X11 input method */
+	Display *dpy;                   /* X11 Display connection */
+	Window root;                    /* root window */
+	int screen;                     /* default screen of root window */
 
-    Atom atom_wm_delete;
-    Atom atom_targets;
-    Atom atom_text;
-    Atom atom_pty;
-    Atom atom_inc;
-    Atom atom_UTF8;
-    Atom atom_clipboard;
+	char *clipboard_buffer;
+	unsigned int clipboard_size;
+	unsigned int clipboard_strlen;
 
-    sgui_window_xlib* clicked;      /* last window clicked for double click */
-    unsigned long click_time;       /* last click time for double click */
+	Atom atom_wm_delete;
+	Atom atom_targets;
+	Atom atom_text;
+	Atom atom_pty;
+	Atom atom_inc;
+	Atom atom_UTF8;
+	Atom atom_clipboard;
 
-    pthread_mutex_t mutex;          /* global mutex */
+	sgui_window_xlib *clicked;  /* last window clicked for double click */
+	unsigned long click_time;   /* last click time for double click */
 
-    sgui_window_xlib* list;         /* internal list of Xlib windows */
-}
-x11;
+	pthread_mutex_t mutex;          /* global mutex */
+
+	sgui_window_xlib* list;         /* internal list of Xlib windows */
+} sgui_lib_x11;
+
+extern sgui_lib_x11 x11;
 
 #ifdef __cplusplus
 extern "C" {

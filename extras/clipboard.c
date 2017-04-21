@@ -35,8 +35,9 @@ int main( void )
     sgui_widget* rb;
     sgui_widget* wb;
     sgui_widget* eb;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window */
     wnd = sgui_window_create( NULL, 320, 150, 0 );
@@ -63,14 +64,14 @@ int main( void )
                         write_clipboard, wnd, SGUI_POINTER, eb );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     sgui_window_destroy( wnd );
     sgui_widget_destroy( rb );
     sgui_widget_destroy( wb );
     sgui_widget_destroy( eb );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

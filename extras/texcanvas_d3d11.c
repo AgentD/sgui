@@ -157,8 +157,9 @@ int main( void )
     ID3D11Texture2D* tex;
     UINT stride, offset;
     sgui_window* wnd;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /*************** create a window ***************/
     desc.parent         = NULL;
@@ -323,7 +324,7 @@ int main( void )
     ID3D11Device_CreateSamplerState( ctx->dev, &sampdesc, &sampler );
 
     /*************** main loop ***************/
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         /* redraw dirty canvas widgets */
         sgui_canvas_redraw_widgets( texcanvas, 1 );
@@ -375,7 +376,7 @@ int main( void )
     rsstate->lpVtbl->Release( rsstate );
 
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

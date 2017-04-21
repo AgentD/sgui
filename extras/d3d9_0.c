@@ -69,9 +69,10 @@ int main( void )
     IDirect3DDevice9* dev;
     sgui_context* ctx;
     sgui_window* wnd;
+    sgui_lib* lib;
     VOID* pVoid;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window. See gl0.c for furhter explanation */
     desc.parent         = NULL;
@@ -113,13 +114,13 @@ int main( void )
                         puts, "Readraw!", SGUI_VOID );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     IDirect3DVertexBuffer9_Release( v_buffer );
 
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

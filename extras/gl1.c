@@ -20,10 +20,11 @@
 
 int main( void )
 {
+    sgui_lib* lib;
     sgui_window* wnd;
     sgui_window_description desc;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window */
     desc.parent         = NULL;
@@ -54,7 +55,7 @@ int main( void )
     /*
         Enter a manuall drawing loop.
 
-        The function sgui_main_loop_step( ) fetches a message from the window
+        The function main_loop_step( ) fetches a message from the window
         systems, processes it and flushes the internal message queue.
 
         The function does not wait for system messages and returns
@@ -63,7 +64,7 @@ int main( void )
         If at least one window is visible, the function returns non-zero. It
         returns zero after the last window got set invisible.
      */
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         /* draw a triangle, rotate it a bit every frame */
         glClear( GL_COLOR_BUFFER_BIT );
@@ -87,7 +88,7 @@ int main( void )
     /* clean up */
     sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

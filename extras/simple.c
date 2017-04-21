@@ -38,12 +38,13 @@ int main( )
     sgui_window* wnd;
     sgui_widget* text;
     sgui_widget* button;
+    sgui_lib* lib;
 
     /*
         Initialize the sgui library backend. Always call this function before
         any other sgui function.
      */
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /*
         Create a window.
@@ -126,7 +127,7 @@ int main( )
 
         This function returnes once all windows are closed.
      */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* Cleanup all windows and widgets we created before */
     sgui_window_destroy( wnd );
@@ -139,7 +140,7 @@ int main( )
         Call this functon once you are done using sgui, after all other sgui
         functions.
      */
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

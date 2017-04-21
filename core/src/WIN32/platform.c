@@ -26,7 +26,7 @@
 #include "sgui.h"
 #include "platform.h"
 
-struct w32_state w32;
+sgui_lib_w32 w32;
 
 static LRESULT CALLBACK WindowProcFun(HWND hWnd, UINT msg,
 					WPARAM wp, LPARAM lp)
@@ -47,9 +47,9 @@ out:
 	return result;
 }
 
-static int is_window_active(void)
+static int is_window_active(sgui_lib_w32 *lib)
 {
-	sgui_window_w32 *i = w32.list;
+	sgui_window_w32 *i = lib->list;
 
 	sgui_internal_lock_mutex();
 	while (i != NULL && !(i->super.flags & SGUI_VISIBLE)) {
@@ -60,13 +60,13 @@ static int is_window_active(void)
 	return i != NULL;
 }
 
-static void update_windows(void)
+static void update_windows(sgui_lib_w32 *lib)
 {
 	sgui_window_w32 *i;
 
 	sgui_internal_lock_mutex();
 
-	for (i = w32.list; i != NULL; i = i->next)
+	for (i = lib->list; i != NULL; i = i->next)
 		update_window(i);
 
 	sgui_internal_unlock_mutex();
@@ -208,9 +208,63 @@ void sgui_internal_unlock_mutex(void)
 	LeaveCriticalSection(&w32.mutex);
 }
 
-int sgui_init(void)
+static void w32_destroy(sgui_lib *lib)
+{
+	sgui_lib_w32 *w32_lib = (sgui_lib_w32 *)lib;
+
+	sgui_event_reset();
+	sgui_interal_skin_deinit_default();
+	sgui_internal_memcanvas_cleanup();
+	font_deinit();
+
+	UnregisterClassA(w32_lib->wndclass, w32_lib->hInstance);
+	DeleteCriticalSection(&w32_lib->mutex);
+	free(w32_lib->clipboard);
+
+	memset(w32_lib, 0, sizeof(*w32_lib));
+}
+
+static int w32_main_loop_step(sgui_lib *lib)
+{
+	sgui_lib_w32 *w32_lib = (sgui_lib_w32 *)lib;
+	MSG msg;
+
+	update_windows(w32_lib);
+
+	if (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessageA(&msg);
+	}
+
+	sgui_event_process();
+
+	return is_window_active(w32_lib) || sgui_event_queued();
+}
+
+static void w32_main_loop(sgui_lib *lib)
+{
+	sgui_lib_w32 *w32_lib = (sgui_lib_w32 *)lib;
+	MSG msg;
+
+	while (is_window_active(w32_lib)) {
+		update_windows(w32_lib);
+		GetMessageA(&msg, 0, 0, 0);
+		TranslateMessage(&msg);
+		DispatchMessageA(&msg);
+		sgui_event_process();
+	}
+
+	while (sgui_event_queued()) {
+		sgui_event_process();
+	}
+}
+
+sgui_lib *sgui_init(void *arg)
 {
 	WNDCLASSEXA wc;
+
+	if (arg)
+		return NULL;
 
 	memset(&w32, 0, sizeof(w32));
 	w32.wndclass = "sgui_wnd_class";
@@ -237,55 +291,12 @@ int sgui_init(void)
 
 	sgui_interal_skin_init_default();
 	sgui_event_reset();
-	return 1;
+
+	((sgui_lib *)&w32)->destroy = w32_destroy;
+	((sgui_lib *)&w32)->main_loop = w32_main_loop;
+	((sgui_lib *)&w32)->main_loop_step = w32_main_loop_step;
+	return (sgui_lib *)&w32;
 fail:
-	sgui_deinit();
-	return 0;
-}
-
-void sgui_deinit(void)
-{
-	sgui_event_reset();
-	sgui_interal_skin_deinit_default();
-	sgui_internal_memcanvas_cleanup();
-	font_deinit();
-
-	UnregisterClassA(w32.wndclass, w32.hInstance);
-	DeleteCriticalSection(&w32.mutex);
-	free(w32.clipboard);
-
-	memset(&w32, 0, sizeof(w32));
-}
-
-int sgui_main_loop_step(void)
-{
-	MSG msg;
-
-	update_windows();
-
-	if (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
-		TranslateMessage(&msg);
-		DispatchMessageA(&msg);
-	}
-
-	sgui_event_process();
-
-	return is_window_active() || sgui_event_queued();
-}
-
-void sgui_main_loop(void)
-{
-	MSG msg;
-
-	while (is_window_active()) {
-		update_windows();
-		GetMessageA(&msg, 0, 0, 0);
-		TranslateMessage(&msg);
-		DispatchMessageA(&msg);
-		sgui_event_process();
-	}
-
-	while (sgui_event_queued()) {
-		sgui_event_process();
-	}
+	w32_destroy((sgui_lib *)&w32);
+	return NULL;
 }

@@ -1,3 +1,4 @@
+
 /*
     This file is part of the sgui samples collection. I, David Oberhollenzer,
     author of this file hereby place the contents of this file into
@@ -111,9 +112,10 @@ int main( void )
     sgui_window* wnd;
     GLuint* texture;
     float a = 0.0f;
+    sgui_lib* lib;
     int i;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window with an OpenGL context, compatibillity profile */
     desc.parent         = NULL;
@@ -185,7 +187,7 @@ int main( void )
                         SGUI_FROM_EVENT, SGUI_EVENT );
 
     /************************ main loop ************************/
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         /* redraw dirty canvas widgets */
         sgui_canvas_redraw_widgets( texcanvas, 1 );
@@ -224,7 +226,7 @@ int main( void )
 
     sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

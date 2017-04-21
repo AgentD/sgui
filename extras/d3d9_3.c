@@ -95,8 +95,9 @@ int main( void )
     HANDLE thread = 0;
     sgui_widget* text;
     sgui_window* wnd;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create an ordinary window window */
     wnd = sgui_window_create( NULL, 200, 160, SGUI_FIXED_SIZE );
@@ -120,7 +121,7 @@ int main( void )
     thread = CreateThread( 0, 0, d3d9_drawing_thread, 0, 0, 0 );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* wait for the thread to terminate */
     running = 0;
@@ -131,7 +132,7 @@ int main( void )
     sgui_window_destroy( wnd );
     sgui_widget_destroy( subview );
     sgui_widget_destroy( text );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

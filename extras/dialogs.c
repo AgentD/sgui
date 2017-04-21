@@ -31,8 +31,9 @@ int main( void )
 {
     sgui_dialog* cp;
     sgui_dialog* mb;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /*
         Create a message box.
@@ -98,12 +99,12 @@ int main( void )
     /* display dialogs and enter main loop */
     sgui_dialog_display( mb );
     sgui_dialog_display( cp );
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* cleanup */
     sgui_dialog_destroy( cp );
     sgui_dialog_destroy( mb );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     /*
         Create emergency fallback message box. This function displays a

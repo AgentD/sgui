@@ -58,10 +58,11 @@ void draw_callback( sgui_window* window )
 
 int main( void )
 {
+    sgui_lib* lib;
     sgui_window* wnd;
     sgui_window_description desc;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /*
         Create a window.
@@ -103,12 +104,12 @@ int main( void )
                         puts, "Readraw!", SGUI_VOID );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

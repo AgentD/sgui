@@ -65,11 +65,12 @@ int main( void )
     sgui_widget* text;
     sgui_context* ctx;
     sgui_window* wnd;
+    sgui_lib* lib;
     VOID* pVoid;
 
     srand( time(NULL) );
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create an ordinary window */
     wnd = sgui_window_create( NULL, 200, 200, SGUI_FIXED_SIZE );
@@ -111,7 +112,7 @@ int main( void )
     sgui_window_add_widget( wnd, subview );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     IDirect3DVertexBuffer9_Release( v_buffer );
@@ -120,7 +121,7 @@ int main( void )
     sgui_widget_destroy( subview );
     sgui_widget_destroy( text );
     sgui_widget_destroy( button );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

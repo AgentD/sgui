@@ -140,6 +140,7 @@ void print_slider( const char* name, int value )
  */
 int main( int argc, char** argv )
 {
+    sgui_lib* lib;
     sgui_widget* t;
     int x, y, nogl=0;
     sgui_window_description desc = {NULL, NULL, 100, 100, 0, 0, 32, 24, 8, 4};
@@ -151,7 +152,7 @@ int main( int argc, char** argv )
             nogl = 1;
     }
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create windows */
     b = sgui_window_create_desc( &desc );
@@ -407,7 +408,7 @@ int main( int argc, char** argv )
                         sgui_window_make_topmost, b, SGUI_VOID );
 
     /* enter main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* cleanup */
     if( !nogl )
@@ -427,7 +428,7 @@ int main( int argc, char** argv )
     sgui_model_destroy( model );
     sgui_icon_cache_destroy( ic );
 
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

@@ -84,8 +84,9 @@ int main( void )
     UINT stride, offset;
     ID3D11Buffer* vbo;
     sgui_window* wnd;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window. See gl0.c for further explanation */
     desc.parent         = NULL;
@@ -171,7 +172,7 @@ int main( void )
                         puts, "Redraw!", SGUI_VOID );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     ID3D11Buffer_Release( vbo );
@@ -183,7 +184,7 @@ int main( void )
     psblob->lpVtbl->Release( psblob );
 
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

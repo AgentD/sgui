@@ -19,10 +19,11 @@ int main( void )
     unsigned char image[ 64*64*3 ], *ptr;
     sgui_widget *b1, *b2, *b3, *b4, *img;
     sgui_window* wnd;
+    sgui_lib* lib;
     int i, j;
 
     /* initialize and create window */
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     wnd = sgui_window_create( NULL, 200, 130, SGUI_FIXED_SIZE );
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
@@ -117,7 +118,7 @@ int main( void )
                         printf, "%s\n", SGUI_FROM_EVENT, SGUI_UTF8 );
 
     /* enter main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     sgui_window_destroy( wnd );
@@ -126,7 +127,7 @@ int main( void )
     sgui_widget_destroy( b3 );
     sgui_widget_destroy( b4 );
     sgui_widget_destroy( img );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

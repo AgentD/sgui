@@ -30,6 +30,7 @@
 #include "sgui_rect.h"
 #include "sgui_internal.h"
 #include "sgui_pixmap.h"
+#include "sgui_lib.h"
 
 #include "font.h"
 #include "window.h"
@@ -62,13 +63,17 @@
 	#define MAPVK_VSC_TO_VK_EX 3
 #endif
 
-extern struct w32_state {
+typedef struct {
+	sgui_lib super;
+
 	HINSTANCE hInstance;		/* instance handle */
 	const char *wndclass;		/* window class name */
 	sgui_window_w32 *list;		/* global list of all windows */
 	CRITICAL_SECTION mutex;		/* global sgui mutex */
 	char *clipboard;		/* clipboard translaton buffer */
-} w32;
+} sgui_lib_w32;
+
+extern sgui_lib_w32 w32;
 
 #ifdef __cplusplus
 extern "C" {

@@ -63,8 +63,9 @@ int main( void )
     UINT stride, offset;
     ID3D11Buffer* vbo;
     sgui_window* wnd;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window. See gl1.c for further explanation */
     desc.parent         = NULL;
@@ -144,7 +145,7 @@ int main( void )
     ID3D11DeviceContext_PSSetShader( ctx->ctx, ps, NULL, 0 );
 
     /* main loop. See gl1.c for further explanation */
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         /* background color animation */
         r += dr;
@@ -186,7 +187,7 @@ int main( void )
     psblob->lpVtbl->Release( psblob );
 
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

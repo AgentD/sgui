@@ -39,9 +39,10 @@ int main( void )
     sgui_d3d9_context* ctx;
     IDirect3DDevice9* dev;
     sgui_window* wnd;
+    sgui_lib* lib;
     VOID* pVoid;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window. See gl1.c for further explanation */
     desc.parent         = NULL;
@@ -80,7 +81,7 @@ int main( void )
     IDirect3DVertexBuffer9_Unlock( v_buffer );
 
     /* main loop. See gl1.c for further explanation */
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         /* background color animation */
         r += dr;
@@ -118,7 +119,7 @@ int main( void )
     IDirect3DVertexBuffer9_Release( v_buffer );
 
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
     return 0;
 }
 

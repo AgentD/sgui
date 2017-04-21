@@ -198,8 +198,9 @@ int main( void )
 {
     sgui_window* wnd;
     sgui_widget* clk;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window */
     wnd = sgui_window_create( NULL, 130, 50, SGUI_FIXED_SIZE );
@@ -214,12 +215,12 @@ int main( void )
     sgui_window_add_widget( wnd, clk );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* clean up */
     sgui_window_destroy( wnd );
     sgui_widget_destroy( clk );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

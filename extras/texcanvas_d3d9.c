@@ -109,11 +109,12 @@ int main( void )
     sgui_widget* check;
     sgui_widget* butt;
     sgui_window* wnd;
+    sgui_lib *lib;
     float a=0.0f;
     VOID* pVoid;
     float m[16];
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /*************************** create a window **************************/
     desc.parent         = NULL;
@@ -205,7 +206,7 @@ int main( void )
     IDirect3DDevice9_SetSamplerState(dev,0,D3DSAMP_MAGFILTER,D3DTEXF_LINEAR);
 
     /****************************** main loop *****************************/
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         /* redraw widgets in dirty areas */
         sgui_canvas_redraw_widgets( texcanvas, 1 );
@@ -242,7 +243,7 @@ int main( void )
     IDirect3DVertexBuffer9_Release( v_buffer );
 
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
     return 0;
 }
 

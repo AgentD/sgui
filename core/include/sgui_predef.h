@@ -86,6 +86,7 @@ typedef struct sgui_window_description sgui_window_description;
 typedef struct sgui_model sgui_model;
 typedef struct sgui_item sgui_item;
 typedef struct sgui_dialog sgui_dialog;
+typedef struct sgui_lib sgui_lib;
 typedef union sgui_color sgui_color;
 
 typedef void(* sgui_funptr )( );

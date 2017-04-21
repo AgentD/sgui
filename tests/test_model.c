@@ -154,8 +154,10 @@ static void check_items( sgui_model* model, sgui_item* parent, int level,
 int main( void )
 {
     sgui_model* model;
+    sgui_lib* lib;
 
-    if( !sgui_init( ) )
+    lib = sgui_init(NULL);
+    if( !lib )
         fail( "sgui_init\n" );
 
     /* sgui_simple_model_create */
@@ -197,7 +199,7 @@ int main( void )
     check_items( model, NULL, 0, 1 );
     sgui_model_destroy( model );
 
-    sgui_deinit( );
+    lib->destroy(lib);
     return EXIT_SUCCESS;
 }
 

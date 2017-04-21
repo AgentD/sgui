@@ -103,8 +103,9 @@ int main( void )
     thread_type thread = 0;
     sgui_widget* text;
     sgui_window* wnd;
+    sgui_lib* lib;
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window */
     wnd = sgui_window_create( NULL, 200, 160, SGUI_FIXED_SIZE );
@@ -131,7 +132,7 @@ int main( void )
     CREATE_THREAD( thread, gl_drawing_thread );
 
     /* main loop */
-    sgui_main_loop( );
+    lib->main_loop(lib);
 
     /* wait for thread to terminate */
     running = 0;
@@ -141,7 +142,7 @@ int main( void )
     sgui_window_destroy( wnd );
     sgui_widget_destroy( gl_view );
     sgui_widget_destroy( text );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }

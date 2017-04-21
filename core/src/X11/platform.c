@@ -30,7 +30,7 @@
 #include <pthread.h>
 #include <time.h>
 
-struct x11_state x11;
+sgui_lib_x11 x11;
 
 static int resize_clipboard_buffer(unsigned int additional)
 {
@@ -55,9 +55,9 @@ static Bool filter_event(Display *display, XEvent *event, XPointer arg)
 }
 
 /* receives Xlib events and returns when a certain event is in the queue */
-static void wait_for_event(XEvent *ret, int type)
+static void wait_for_event(sgui_lib_x11 *lib, XEvent *ret, int type)
 {
-	XIfEvent(x11.dpy, ret, filter_event, (XPointer)&type);
+	XIfEvent(lib->dpy, ret, filter_event, (XPointer)&type);
 }
 
 /* Xlib error callback to prevent xlib from crashing our program on error */
@@ -105,15 +105,15 @@ static void handle_selection_event(XEvent *e)
 }
 
 /* fetch and process the next Xlib event */
-static void handle_events(void)
+static void handle_events(sgui_lib_x11 *lib)
 {
 	sgui_window_xlib *i;
 	XEvent e;
 
-	while (XPending(x11.dpy) > 0) {
-		XNextEvent(x11.dpy, &e);
+	while (XPending(lib->dpy) > 0) {
+		XNextEvent(lib->dpy, &e);
 
-		if (e.type==SelectionRequest) {
+		if (e.type == SelectionRequest) {
 			handle_selection_event(&e);
 			continue;
 		}
@@ -121,7 +121,7 @@ static void handle_events(void)
 		if (XFilterEvent(&e, None))
 			continue;
 
-		for (i = x11.list; i != NULL; i = i->next) {
+		for (i = lib->list; i != NULL; i = i->next) {
 			if (i->wnd == e.xany.window)
 				break;
 		}
@@ -132,12 +132,12 @@ static void handle_events(void)
 }
 
 /* returns non-zero if there's at least 1 window still active */
-static int have_active_windows(void)
+static int have_active_windows(sgui_lib_x11 *lib)
 {
 	sgui_window_xlib* i;
 
 	sgui_internal_lock_mutex();
-	for (i = x11.list; i != NULL; i=i->next ) {
+	for (i = lib->list; i != NULL; i = i->next) {
 		if (i->super.flags & SGUI_VISIBLE)
 			break;
 	}
@@ -244,7 +244,7 @@ const char* xlib_window_clipboard_read(sgui_window *this)
 				TO_X11(this)->wnd, CurrentTime);
 	XFlush(x11.dpy);
 
-	wait_for_event(&evt, SelectionNotify);
+	wait_for_event(&x11, &evt, SelectionNotify);
 
 	if (evt.xselection.property == None) {
 		target = XA_STRING;
@@ -252,7 +252,7 @@ const char* xlib_window_clipboard_read(sgui_window *this)
 					x11.atom_pty, TO_X11(this)->wnd,
 					CurrentTime);
 		XFlush(x11.dpy);
-		wait_for_event(&evt, SelectionNotify);
+		wait_for_event(&x11, &evt, SelectionNotify);
 		convert = 1;
 	}
 
@@ -269,7 +269,7 @@ const char* xlib_window_clipboard_read(sgui_window *this)
 		while( 1 )
 		{
 		/* wait for next package */
-		wait_for_event( &evt, PropertyNotify );
+		wait_for_event(&x11, &evt, PropertyNotify);
 
 		if( evt.xproperty.state!=PropertyNewValue )
 		continue;
@@ -409,9 +409,75 @@ void sgui_internal_unlock_mutex(void)
 	pthread_mutex_unlock(&x11.mutex);
 }
 
-int sgui_init(void)
+static void destroy_x11(sgui_lib *lib)
+{
+	sgui_lib_x11 *libx11 = (sgui_lib_x11 *)lib;
+
+	sgui_event_reset();
+	canvas_cleanup_skin_pixmap();
+	sgui_internal_memcanvas_cleanup();
+	sgui_interal_skin_deinit_default();
+	font_deinit();
+	pthread_mutex_destroy(&libx11->mutex);
+
+	if (libx11->im)
+		XCloseIM(libx11->im);
+
+	if (libx11->dpy)
+		XCloseDisplay(libx11->dpy);
+
+	free(libx11->clipboard_buffer);
+	memset(libx11, 0, sizeof(*libx11));
+}
+
+static int main_loop_step_x11(sgui_lib *lib)
+{
+	sgui_lib_x11 *libx11 = (sgui_lib_x11 *)lib;
+
+	sgui_internal_lock_mutex();
+	handle_events(libx11);
+	XFlush(libx11->dpy);
+	sgui_internal_unlock_mutex();
+
+	sgui_event_process();
+
+	return have_active_windows(libx11) || sgui_event_queued();
+}
+
+static void main_loop_x11(sgui_lib *lib)
+{
+	sgui_lib_x11 *libx11 = (sgui_lib_x11 *)lib;
+	int x11_fd = XConnectionNumber(libx11->dpy);
+	struct timeval tv;
+	fd_set in_fds;
+
+	while (have_active_windows(libx11)) {
+		sgui_internal_lock_mutex();
+		handle_events(libx11);
+		XFlush(libx11->dpy);
+		sgui_internal_unlock_mutex();
+
+		sgui_event_process();
+
+		/* wait for X11 events, one second time out */
+		FD_ZERO(&in_fds);
+		FD_SET(x11_fd, &in_fds);
+
+		tv.tv_usec = 0;
+		tv.tv_sec = 1;
+		select(x11_fd + 1, &in_fds, 0, 0, &tv);
+	}
+
+	while (sgui_event_queued())
+		sgui_event_process();
+}
+
+sgui_lib *sgui_init(void *arg)
 {
 	pthread_mutexattr_t attr;
+
+	if (arg)
+		return NULL;
 
 	memset(&x11, 0, sizeof(x11));
 
@@ -445,66 +511,12 @@ int sgui_init(void)
 	x11.atom_clipboard = XInternAtom(x11.dpy, "CLIPBOARD", False);
 	x11.root = DefaultRootWindow(x11.dpy);
 	x11.screen = DefaultScreen(x11.dpy);
-	return 1;
+
+	((sgui_lib *)&x11)->destroy = destroy_x11;
+	((sgui_lib *)&x11)->main_loop = main_loop_x11;
+	((sgui_lib *)&x11)->main_loop_step = main_loop_step_x11;
+	return (sgui_lib *)&x11;
 fail:
-	sgui_deinit();
-	return 0;
-}
-
-void sgui_deinit(void)
-{
-	sgui_event_reset();
-	canvas_cleanup_skin_pixmap();
-	sgui_internal_memcanvas_cleanup();
-	sgui_interal_skin_deinit_default();
-	font_deinit();
-	pthread_mutex_destroy(&x11.mutex);
-
-	if (x11.im)
-		XCloseIM(x11.im);
-
-	if (x11.dpy)
-		XCloseDisplay(x11.dpy);
-
-	free(x11.clipboard_buffer);
-	memset(&x11, 0, sizeof(x11));
-}
-
-int sgui_main_loop_step(void)
-{
-	sgui_internal_lock_mutex();
-	handle_events();
-	XFlush(x11.dpy);
-	sgui_internal_unlock_mutex();
-
-	sgui_event_process();
-
-	return have_active_windows() || sgui_event_queued();
-}
-
-void sgui_main_loop(void)
-{
-	int x11_fd = XConnectionNumber(x11.dpy);
-	struct timeval tv;
-	fd_set in_fds;
-
-	while (have_active_windows()) {
-		sgui_internal_lock_mutex();
-		handle_events();
-		XFlush(x11.dpy);
-		sgui_internal_unlock_mutex();
-
-		sgui_event_process();
-
-		/* wait for X11 events, one second time out */
-		FD_ZERO(&in_fds);
-		FD_SET(x11_fd, &in_fds);
-
-		tv.tv_usec = 0;
-		tv.tv_sec = 1;
-		select(x11_fd + 1, &in_fds, 0, 0, &tv);
-	}
-
-	while (sgui_event_queued())
-		sgui_event_process();
+	destroy_x11((sgui_lib *)&x11);
+	return NULL;
 }

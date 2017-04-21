@@ -27,6 +27,45 @@
 
 #include "sgui_predef.h"
 
+/**
+ * \struct sgui_lib
+ *
+ * \brief Encapsulates the global library state, provides backend entry points
+ *
+ * This structure is created by the backend and provides both an interface for
+ * the backend and contains the global state of the backend.
+ */
+struct sgui_lib {
+	/**
+	 * \brief Uninitialise the backend and clean up all internal state
+	 *
+	 * Call this once you are done using sgui.
+	 */
+	void (*destroy)(sgui_lib *lib);
+
+	/**
+	 * \brief Enter the sgui main loop
+	 *
+	 * This function processes window system messages, relays them to
+	 * windows and asks them to update. The function does not return
+	 * as long as there are windows visible.
+	 */
+	void (*main_loop)(sgui_lib *lib);
+
+	/**
+	 * \brief Execute a single step of the main loop
+	 *
+	 * This function checks if there are system messages present and
+	 * returns immediately if not. If there are system messages, a
+	 * single one is fetched and processed and sgui events are processed,
+	 * essentially executing one iteration of the regular main loop.
+	 *
+	 * \return Non-zero if there is at least one window visible,
+	 *         zero if there are no more visible windows.
+	 */
+	int (*main_loop_step)(sgui_lib *lib);
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,39 +75,11 @@ extern "C" {
  *
  * Call this before any other sgui function.
  *
- * \return Non-zero on success, zero on error.
- */
-SGUI_DLL int sgui_init( void );
-
-/**
- * \brief Uninitialise sgui
+ * \param arg Reserved for future use. Must be NULL.
  *
- * Call this once you are done using sgui.
+ * \return A pointer to an \ref sgui_lib instance on success, NULL on failure.
  */
-SGUI_DLL void sgui_deinit( void );
-
-/**
- * \brief Enter the sgui main loop
- *
- * This function processes window system messages, relays them to windows and
- * asks them to update. The function does not return as long as there are
- * windows visible.
- */
-SGUI_DLL void sgui_main_loop( void );
-
-/**
- * \brief Execute a single step of the main loop
- *
- * This function executes a single step of the main loop inside the
- * sgui_main_loop function, but returns after processing a single system
- * message.
- * Unlike the main loop function, it does not wait for system messages and
- * returns immediately if there are no messages left.
- *
- * \return Non-zero if there is at least one window visible, zero if there
- *         are no more visible windows.
- */
-SGUI_DLL int sgui_main_loop_step( void );
+SGUI_DLL sgui_lib *sgui_init(void *arg);
 
 #ifdef __cplusplus
 }

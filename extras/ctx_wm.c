@@ -49,6 +49,7 @@ int main( void )
     sgui_window* subwnd2;
     sgui_context* ctx;
     sgui_window* wnd;
+    sgui_lib* lib;
     int selection;
 
     puts( "Select rendering backend: " );
@@ -70,7 +71,7 @@ int main( void )
         return 0;
     }
 
-    sgui_init( );
+    lib = sgui_init(NULL);
 
     /* create a window */
     memset( &desc, 0, sizeof(desc) );
@@ -132,7 +133,7 @@ int main( void )
     sgui_window_add_widget( subwnd2, label );
 
     /* main loop */
-    while( sgui_main_loop_step( ) )
+    while( lib->main_loop_step(lib) )
     {
         renderer_draw( selection, ctx );
 
@@ -153,7 +154,7 @@ int main( void )
     sgui_ctx_wm_destroy( wm );
     sgui_window_release_current( wnd );
     sgui_window_destroy( wnd );
-    sgui_deinit( );
+    lib->destroy(lib);
 
     return 0;
 }
