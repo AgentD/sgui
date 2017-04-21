@@ -34,8 +34,6 @@
 #ifndef SGUI_H
 #define SGUI_H
 
-
-
 #include "sgui_canvas.h"
 #include "sgui_color.h"
 #include "sgui_context.h"
@@ -43,6 +41,7 @@
 #include "sgui_font.h"
 #include "sgui_icon_cache.h"
 #include "sgui_keycodes.h"
+#include "sgui_lib.h"
 #include "sgui_model.h"
 #include "sgui_pixmap.h"
 #include "sgui_predef.h"
@@ -71,55 +70,6 @@
 #include "sgui_dialog.h"
 #include "sgui_color_dialog.h"
 #include "sgui_messagebox.h"
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * \brief Initialise sgui
- *
- * Call this before any other sgui function.
- *
- * \return Non-zero on success, zero on error.
- */
-SGUI_DLL int sgui_init( void );
-
-/**
- * \brief Uninitialise sgui
- *
- * Call this once you are done using sgui.
- */
-SGUI_DLL void sgui_deinit( void );
-
-/**
- * \brief Enter the sgui main loop
- *
- * This function processes window system messages, relays them to windows and
- * asks them to update. The function does not return as long as there are
- * windows visible.
- */
-SGUI_DLL void sgui_main_loop( void );
-
-/**
- * \brief Execute a single step of the main loop
- *
- * This function executes a single step of the main loop inside the
- * sgui_main_loop function, but returns after processing a single system
- * message.
- * Unlike the main loop function, it does not wait for system messages and
- * returns immediately if there are no messages left.
- *
- * \return Non-zero if there is at least one window visible, zero if there
- *         are no more visible windows.
- */
-SGUI_DLL int sgui_main_loop_step( void );
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* SGUI_H */
 
