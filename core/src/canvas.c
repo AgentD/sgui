@@ -61,7 +61,7 @@ static void redirect_mouse_event(sgui_widget *w, const sgui_event *e)
 
 /****************************************************************************/
 
-int sgui_canvas_init(sgui_canvas *this, unsigned int width,
+int sgui_canvas_init(sgui_canvas *this, sgui_lib *lib, unsigned int width,
 			unsigned int height)
 {
 	this->dirty = calloc(SGUI_CANVAS_MAX_DIRTY, sizeof(sgui_rect));
@@ -69,6 +69,7 @@ int sgui_canvas_init(sgui_canvas *this, unsigned int width,
 	if (!this->dirty)
 		return 0;
 
+	this->lib = lib;
 	this->width = width;
 	this->height = height;
 

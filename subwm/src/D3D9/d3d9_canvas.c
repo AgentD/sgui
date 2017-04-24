@@ -71,7 +71,7 @@ void d3d9_canvas_end( sgui_canvas* super )
 
 
 
-sgui_canvas* sgui_d3d9_canvas_create( sgui_context* ctx,
+sgui_canvas* sgui_d3d9_canvas_create( sgui_lib *lib, sgui_context* ctx,
                                       unsigned width, unsigned int height )
 {
     sgui_d3d9_canvas* this = calloc( 1, sizeof(sgui_d3d9_canvas) );
@@ -82,7 +82,7 @@ sgui_canvas* sgui_d3d9_canvas_create( sgui_context* ctx,
         return NULL;
 
     /* initialize base structure */
-    if( !sgui_memory_canvas_init( (sgui_canvas*)this, NULL,
+    if( !sgui_memory_canvas_init( (sgui_canvas*)this, lib, NULL,
                                   width, height, SGUI_RGBA8, 1 ) )
     {
         free( this );

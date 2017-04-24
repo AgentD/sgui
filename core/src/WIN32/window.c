@@ -44,7 +44,7 @@ static void resize_pixmap(sgui_window_w32 *this)
 	sgui_memory_canvas_set_buffer(super->ctx.canvas, TO_W32(this)->data);
 }
 
-static void create_canvas(sgui_window_w32 *this,
+static void create_canvas(sgui_window_w32 *this, sgui_lib *lib,
 			const sgui_window_description *desc)
 {
 	sgui_window *super = (sgui_window *)this;
@@ -73,8 +73,9 @@ static void create_canvas(sgui_window_w32 *this,
 	if (!this->bgbrush)
 		goto faildib;
 
-	super->ctx.canvas = sgui_memory_canvas_create(this->data, desc->width,
-						desc->height, SGUI_RGBA8, 1);
+	super->ctx.canvas = sgui_memory_canvas_create(lib, this->data,
+						desc->width, desc->height,
+						SGUI_RGBA8, 1);
 	if (!super->ctx.canvas)
 		goto failbrush;
 
@@ -567,7 +568,7 @@ sgui_window *window_create_w32(sgui_lib *slib,
 
 	switch (desc->backend) {
 	case SGUI_NATIVE:
-		create_canvas(this, desc);
+		create_canvas(this, slib, desc);
 		if (!super->ctx.canvas)
 			goto failcv;
 		break;

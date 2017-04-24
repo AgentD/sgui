@@ -28,10 +28,11 @@
 void xrender_pixmap_destroy(sgui_pixmap *super)
 {
 	xrender_pixmap *this = (xrender_pixmap *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 
 	sgui_internal_lock_mutex();
-	XRenderFreePicture(x11.dpy, this->pic);
-	XFreePixmap(x11.dpy, this->pix);
+	XRenderFreePicture(lib->dpy, this->pic);
+	XFreePixmap(lib->dpy, this->pix);
 	sgui_internal_unlock_mutex();
 	free(this);
 }
@@ -41,6 +42,7 @@ void xrender_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 			unsigned int width, unsigned int height, int format)
 {
 	xrender_pixmap *this = (xrender_pixmap *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 	const unsigned char *src, *row;
 	unsigned int i, j;
 	XRenderColor c;
@@ -60,7 +62,7 @@ void xrender_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 				c.blue = row[2] * row[3];
 				c.alpha = row[3] << 8;
 
-				XRenderFillRectangle(x11.dpy, PictOpSrc, pic,
+				XRenderFillRectangle(lib->dpy, PictOpSrc, pic,
 							&c, dstx + i, dsty + j,
 							1, 1);
 			}
@@ -73,7 +75,7 @@ void xrender_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 				c.blue = row[2] << 8;
 				c.alpha = 0xFFFF;
 
-				XRenderFillRectangle(x11.dpy, PictOpSrc, pic,
+				XRenderFillRectangle(lib->dpy, PictOpSrc, pic,
 							&c, dstx + i, dsty + j,
 							1, 1);
 			}
@@ -84,7 +86,7 @@ void xrender_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 				val = (*row) << 8;
 				c.red = c.green = c.blue = c.alpha = val;
 
-				XRenderFillRectangle(x11.dpy, PictOpSrc, pic,
+				XRenderFillRectangle(lib->dpy, PictOpSrc, pic,
 							&c, dstx + i, dsty + j,
 							1, 1);
 			}
@@ -98,6 +100,7 @@ sgui_pixmap *xrender_pixmap_create(sgui_canvas *cv, unsigned int width,
 				unsigned int height, int format)
 {
 	Drawable wnd = ((sgui_canvas_x11 *)cv)->wnd;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)cv->lib;
 	xrender_pixmap *this = calloc(1, sizeof(*this));
 	sgui_pixmap *super = (sgui_pixmap *)this;
 	XRenderPictFormat *fmt;
@@ -113,7 +116,7 @@ sgui_pixmap *xrender_pixmap_create(sgui_canvas *cv, unsigned int width,
 
 	sgui_internal_lock_mutex();
 
-	this->pix = XCreatePixmap(x11.dpy, wnd, width, height,
+	this->pix = XCreatePixmap(lib->dpy, wnd, width, height,
 				format == SGUI_RGBA8 ? 32 :
 				format == SGUI_RGB8 ? 24 : 8);
 
@@ -123,14 +126,15 @@ sgui_pixmap *xrender_pixmap_create(sgui_canvas *cv, unsigned int width,
 	type = (format == SGUI_RGBA8) ? PictStandardARGB32 :
 		(format == SGUI_RGB8 ? PictStandardRGB24 : PictStandardA8);
 
-	fmt = XRenderFindStandardFormat(x11.dpy, type);
-	this->pic = XRenderCreatePicture(x11.dpy, this->pix, fmt, 0, NULL);
+	fmt = XRenderFindStandardFormat(lib->dpy, type);
+	this->pic = XRenderCreatePicture(lib->dpy, this->pix, fmt, 0, NULL);
 
 	if (!this->pic) {
-		XFreePixmap(x11.dpy, this->pix);
+		XFreePixmap(lib->dpy, this->pix);
 		goto fail;
 	}
 
+	this->lib = cv->lib;
 	sgui_internal_unlock_mutex();
 	return (sgui_pixmap*)this;
 fail:

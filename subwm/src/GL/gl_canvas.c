@@ -84,7 +84,8 @@ void* gl_canvas_get_texture( sgui_canvas* this )
 
 
 
-sgui_canvas* sgui_gl_canvas_create( unsigned width, unsigned int height )
+sgui_canvas* sgui_gl_canvas_create(sgui_lib *lib, unsigned width,
+					unsigned int height)
 {
     sgui_gl_canvas* this;
     GLuint old;
@@ -104,7 +105,7 @@ sgui_canvas* sgui_gl_canvas_create( unsigned width, unsigned int height )
     }
 
     /* initialize base structure */
-    if( !sgui_memory_canvas_init( (sgui_canvas*)this, this->buffer,
+    if( !sgui_memory_canvas_init( (sgui_canvas*)this, lib, this->buffer,
                                   width, height, SGUI_RGBA8, 0 ) )
     {
         free( this->buffer );

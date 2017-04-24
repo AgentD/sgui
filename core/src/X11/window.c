@@ -563,7 +563,7 @@ sgui_window *x11_window_create(sgui_lib *lib,
 
 	switch (desc->backend) {
 	case SGUI_NATIVE:
-		super->ctx.canvas = canvas_x11_create(this->wnd,
+		super->ctx.canvas = canvas_x11_create(lib, this->wnd,
 							attr.width,
 							attr.height, 1);
 		if (!super->ctx.canvas)

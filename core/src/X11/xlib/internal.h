@@ -40,6 +40,7 @@ typedef struct {
 	int is_stencil;
 
 	sgui_canvas_xlib *owner;
+	sgui_lib *lib;
 
 	union {
 		Pixmap xpm;

@@ -39,6 +39,7 @@ typedef struct {
 
 typedef struct {
 	sgui_pixmap super;
+	sgui_lib *lib;
 
 	Pixmap pix;
 	Picture pic;

@@ -64,6 +64,9 @@ SGUI_CANVAS_OP;
  */
 struct sgui_canvas
 {
+    /** \brief \ref sgui_lib instance that created the canvas */
+    sgui_lib *lib;
+
     int ox;                     /**< \brief Drawing offset from the left */
     int oy;                     /**< \brief Drawing offset from the top */
     unsigned int width;         /**< \brief Width of the canvas in pixels */
@@ -270,11 +273,13 @@ extern "C"
  * \memberof sgui_canvas
  *
  * \param cv     A pointer to the canvas structure
+ * \param lib    A pointer to the sgui_lib implementation that
+ *               created the canvas
  * \param width  The width of the canvas
  * \param height The height of the canvas
  */
-SGUI_DLL int sgui_canvas_init( sgui_canvas* cv, unsigned int width,
-                               unsigned int height );
+SGUI_DLL int sgui_canvas_init( sgui_canvas* cv, sgui_lib *lib,
+                               unsigned int width, unsigned int height );
 
 /**
  * \brief Destroy a canvas
@@ -628,6 +633,8 @@ SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
  *
  * \memberof sgui_mem_canvas
  *
+ * \param lib A pointer to the \ref sgui_lib implementation that
+ *            owns the canvas
  * \param buffer A pointer to a buffer to draw to
  * \param width  The width of the memory buffer
  * \param height The height of the memory buffer
@@ -636,7 +643,8 @@ SGUI_DLL int sgui_canvas_draw_text_plain( sgui_canvas* canvas, int x, int y,
  *
  * \return A pointer to a canvas on success, NULL on failure
  */
-SGUI_DLL sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
+SGUI_DLL sgui_canvas* sgui_memory_canvas_create( sgui_lib *lib,
+                                                 unsigned char* buffer,
                                                  unsigned int width,
                                                  unsigned int height,
                                                  int format,
@@ -651,6 +659,8 @@ SGUI_DLL sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
  * This is usefull for canvases that inherit the memory canvas to initialize
  * the sgui_mem_canvas fields.
  *
+ * \param lib A pointer to the \ref sgui_lib implementation that
+ *            owns the canvas
  * \param buffer A pointer to a buffer to draw to
  * \param width  The width of the memory buffer
  * \param height The height of the memory buffer
@@ -659,7 +669,7 @@ SGUI_DLL sgui_canvas* sgui_memory_canvas_create( unsigned char* buffer,
  *
  * \return Non-zero on success, zero on failur (invalid arguments)
  */
-SGUI_DLL int sgui_memory_canvas_init( sgui_canvas* cv,
+SGUI_DLL int sgui_memory_canvas_init( sgui_canvas* cv, sgui_lib *lib,
                                       unsigned char* buffer,
                                       unsigned int width,
                                       unsigned int height,

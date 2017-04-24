@@ -61,7 +61,8 @@ sgui_gl_canvas;
 extern "C" {
 #endif
 
-sgui_canvas* sgui_gl_canvas_create( unsigned width, unsigned int height );
+sgui_canvas* sgui_gl_canvas_create(sgui_lib *lib, unsigned width,
+					unsigned int height);
 
 #ifdef __cplusplus
 }

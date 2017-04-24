@@ -428,7 +428,7 @@ void sgui_internal_memcanvas_cleanup(void)
 
 /****************************************************************************/
 
-sgui_canvas *sgui_memory_canvas_create(unsigned char *buffer,
+sgui_canvas *sgui_memory_canvas_create(sgui_lib *lib, unsigned char *buffer,
 					unsigned int width,
 					unsigned int height,
 					int format, int swaprb)
@@ -439,7 +439,7 @@ sgui_canvas *sgui_memory_canvas_create(unsigned char *buffer,
 	if (!this)
 		return NULL;
 
-	if (!sgui_memory_canvas_init(super, buffer, width, height,
+	if (!sgui_memory_canvas_init(super, lib, buffer, width, height,
 					format, swaprb)) {
 		free(this);
 		this = NULL;
@@ -447,9 +447,9 @@ sgui_canvas *sgui_memory_canvas_create(unsigned char *buffer,
 	return (sgui_canvas *)this;
 }
 
-int sgui_memory_canvas_init(sgui_canvas *super, unsigned char *buffer,
-				unsigned int width, unsigned int height,
-				int format, int swaprb)
+int sgui_memory_canvas_init(sgui_canvas *super, sgui_lib *lib,
+				unsigned char *buffer, unsigned int width,
+				unsigned int height, int format, int swaprb)
 {
 	sgui_mem_canvas *this = (sgui_mem_canvas *)super;
 
@@ -459,7 +459,7 @@ int sgui_memory_canvas_init(sgui_canvas *super, unsigned char *buffer,
 	if (format != SGUI_RGBA8 && format != SGUI_RGB8)
 		return 0;
 
-	if (!sgui_canvas_init(super, width, height))
+	if (!sgui_canvas_init(super, lib, width, height))
 		return 0;
 
 	this->data = buffer;
@@ -479,6 +479,7 @@ int sgui_memory_canvas_init(sgui_canvas *super, unsigned char *buffer,
 		this->blend_stencil = canvas_mem_blend_stencil_rgb;
 	}
 
+	super->lib = lib;
 	super->destroy = (void(*)(sgui_canvas*))free;
 	super->resize = canvas_mem_resize;
 	super->clear = canvas_mem_clear;

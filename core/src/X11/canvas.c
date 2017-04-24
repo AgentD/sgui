@@ -129,11 +129,13 @@ static int canvas_x11_begin(sgui_canvas *super, const sgui_rect *r)
 	return 1;
 }
 /****************************************************************************/
-sgui_canvas *canvas_xrender_create(Drawable wnd, unsigned int width,
-					unsigned int height, int sendexpose);
+sgui_canvas *canvas_xrender_create(sgui_lib *slib, Drawable wnd,
+				unsigned int width, unsigned int height,
+				int sendexpose);
 
-sgui_canvas *canvas_xlib_create(Drawable wnd, unsigned int width,
-					unsigned int height, int sendexpose);
+sgui_canvas *canvas_xlib_create(sgui_lib *slib, Drawable wnd,
+				unsigned int width, unsigned int height,
+				int sendexpose);
 
 
 void canvas_xrender_cleanup_skin_pixmap(void);
@@ -141,8 +143,9 @@ void canvas_xrender_cleanup_skin_pixmap(void);
 void canvas_xlib_cleanup_skin_pixmap(void);
 
 static struct {
-	sgui_canvas *(* create )(Drawable wnd, unsigned int width,
-				unsigned int height, int sendexpose);
+	sgui_canvas *(* create )(sgui_lib *slib, Drawable wnd,
+				unsigned int width, unsigned int height,
+				int sendexpose);
 
 	void (* cleanup_skin_pixmap )(void);
 } x11_drivers[] = {
@@ -152,14 +155,16 @@ static struct {
 	{ canvas_xlib_create, canvas_xlib_cleanup_skin_pixmap },
 };
 
-sgui_canvas *canvas_x11_create(Drawable wnd, unsigned int width,
-				unsigned int height, int sendexpose)
+sgui_canvas *canvas_x11_create(sgui_lib *lib, Drawable wnd,
+				unsigned int width, unsigned int height,
+				int sendexpose)
 {
 	sgui_canvas *cv = NULL;
 	unsigned int i;
 
 	for (i = 0; i < sizeof(x11_drivers) / sizeof(x11_drivers[0]); ++i) {
-		cv = x11_drivers[i].create(wnd, width, height, sendexpose);
+		cv = x11_drivers[i].create(lib, wnd, width, height,
+						sendexpose);
 
 		if (cv)
 			break;

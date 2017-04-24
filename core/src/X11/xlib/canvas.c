@@ -32,12 +32,13 @@ static sgui_pixmap *skin_pixmap = NULL;
 static void canvas_xlib_destroy(sgui_canvas *super)
 {
     	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)super->lib;
 
 	sgui_internal_lock_mutex();
 	if (((sgui_canvas_x11 *)this)->cache)
 		sgui_icon_cache_destroy(((sgui_canvas_x11 *)this)->cache);
 
-	XFreeGC(x11.dpy, this->gc);
+	XFreeGC(lib->dpy, this->gc);
 	sgui_internal_unlock_mutex();
 
 	free(this);
@@ -48,6 +49,7 @@ static void canvas_xlib_set_clip_rect(sgui_canvas_x11 *super,
 					int width, int height)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)((sgui_canvas *)super)->lib;
 	XRectangle r;
 
 	r.x = left;
@@ -56,7 +58,7 @@ static void canvas_xlib_set_clip_rect(sgui_canvas_x11 *super,
 	r.height = height;
 
 	sgui_internal_lock_mutex();
-	XSetClipRectangles(x11.dpy, this->gc, 0, 0, &r, 1, Unsorted);
+	XSetClipRectangles(lib->dpy, this->gc, 0, 0, &r, 1, Unsorted);
 	sgui_internal_unlock_mutex();
 }
 
@@ -64,6 +66,7 @@ static void canvas_xlib_draw_box(sgui_canvas *super, const sgui_rect *r,
 				sgui_color color, int op)
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)super->lib;
 	unsigned int xcol;
 
 	if (op == SGUI_CANVAS_BLEND)
@@ -72,8 +75,8 @@ static void canvas_xlib_draw_box(sgui_canvas *super, const sgui_rect *r,
 	xcol = (color.c.r << 16) | (color.c.g << 8) | color.c.b;
 
 	sgui_internal_lock_mutex();
-	XSetForeground(x11.dpy, this->gc, xcol);
-	XFillRectangle(x11.dpy, ((sgui_canvas_x11 *)this)->wnd,
+	XSetForeground(lib->dpy, this->gc, xcol);
+	XFillRectangle(lib->dpy, ((sgui_canvas_x11 *)this)->wnd,
 			this->gc, r->left, r->top,
 			SGUI_RECT_WIDTH_V(r), SGUI_RECT_HEIGHT_V(r));
 	sgui_internal_unlock_mutex();
@@ -85,13 +88,14 @@ static void canvas_xlib_blit(sgui_canvas *super, int x, int y,
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
 	xlib_pixmap *pix = (xlib_pixmap *)pixmap;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)super->lib;
 	(void)op;
 
 	if (pix->is_stencil)
 		return;
 
 	sgui_internal_lock_mutex();
-	XCopyArea(x11.dpy, pix->data.xpm, ((sgui_canvas_x11 *)this)->wnd,
+	XCopyArea(lib->dpy, pix->data.xpm, ((sgui_canvas_x11 *)this)->wnd,
 		this->gc, srcrect->left, srcrect->top,
 		SGUI_RECT_WIDTH_V(srcrect), SGUI_RECT_HEIGHT_V(srcrect), x, y);
 	sgui_internal_unlock_mutex();
@@ -104,6 +108,7 @@ static void canvas_xlib_blend_glyph(sgui_canvas *super, int x, int y,
 
 {
 	sgui_canvas_xlib *this = (sgui_canvas_xlib *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)super->lib;
 	xlib_pixmap *pix = (xlib_pixmap *)pixmap;
 	unsigned char *src, *src_row;
 	int X, Y, C[4], sc;
@@ -130,8 +135,8 @@ static void canvas_xlib_blend_glyph(sgui_canvas *super, int x, int y,
 
 			sc = C[(*src_row) >> 6];
 
-			XSetForeground(x11.dpy, this->gc, sc);
-			XDrawPoint(x11.dpy, ((sgui_canvas_x11 *)this)->wnd,
+			XSetForeground(lib->dpy, this->gc, sc);
+			XDrawPoint(lib->dpy, ((sgui_canvas_x11 *)this)->wnd,
 				this->gc, x + X - r->left, y + Y - r->top);
 		}
 	}
@@ -168,21 +173,23 @@ void canvas_xlib_cleanup_skin_pixmap(void)
 		skin_pixmap->destroy(skin_pixmap);
 }
 
-sgui_canvas *canvas_xlib_create(Drawable wnd, unsigned int width,
-				unsigned int height, int sendexpose)
+sgui_canvas *canvas_xlib_create(sgui_lib *slib, Drawable wnd,
+				unsigned int width, unsigned int height,
+				int sendexpose)
 {
 	sgui_canvas_xlib *this = calloc(1, sizeof(*this));
 	sgui_canvas *super = (sgui_canvas *)this;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)slib;
 
 	if (!this)
 		return NULL;
 
 	sgui_internal_lock_mutex();
 
-	if (!(this->gc = XCreateGC(x11.dpy, wnd, 0, NULL)))
+	if (!(this->gc = XCreateGC(lib->dpy, wnd, 0, NULL)))
 		goto fail;
 
-	if (!sgui_canvas_init(super, width, height))
+	if (!sgui_canvas_init(super, slib, width, height))
 		goto fail;
 
 	this->bg = sgui_skin_get()->window_color;
@@ -200,7 +207,7 @@ sgui_canvas *canvas_xlib_create(Drawable wnd, unsigned int width,
 	return (sgui_canvas *)this;
 fail:
 	if (this->gc)
-		XFreeGC(x11.dpy, this->gc);
+		XFreeGC(lib->dpy, this->gc);
 	sgui_internal_unlock_mutex();
 	free(this);
 	return NULL;

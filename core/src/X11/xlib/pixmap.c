@@ -28,12 +28,13 @@
 void xlib_pixmap_destroy(sgui_pixmap *super)
 {
 	xlib_pixmap *this = (xlib_pixmap *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 
 	if (this->is_stencil) {
 		free(this->data.pixels);
 	} else {
 		sgui_internal_lock_mutex();
-		XFreePixmap(x11.dpy, this->data.xpm);
+		XFreePixmap(lib->dpy, this->data.xpm);
 		sgui_internal_unlock_mutex();
 	}
 
@@ -45,6 +46,7 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 			unsigned int width, unsigned int height, int format)
 {
 	xlib_pixmap *this = (xlib_pixmap *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 	const unsigned char *src, *row;
 	unsigned int i, j, c;
 	unsigned char *dst;
@@ -60,7 +62,7 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 	r.x = r.y = 0;
 	r.width = super->width;
 	r.height = super->height;
-	XSetClipRectangles(x11.dpy, this->owner->gc, 0, 0, &r, 1, Unsorted);
+	XSetClipRectangles(lib->dpy, this->owner->gc, 0, 0, &r, 1, Unsorted);
 
 	if (this->is_stencil) {
 		dst = this->data.pixels + (dsty * super->width + dstx);
@@ -79,9 +81,9 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 							pt, pt.c.a);
 
 				c = (pt.c.r << 16) | (pt.c.g << 8) | pt.c.b;
-				XSetForeground(x11.dpy, this->owner->gc, c);
+				XSetForeground(lib->dpy, this->owner->gc, c);
 
-				XDrawPoint(x11.dpy, this->data.xpm,
+				XDrawPoint(lib->dpy, this->data.xpm,
 						this->owner->gc,
 						dstx + i, dsty + j);
 			}
@@ -91,8 +93,8 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 			for (row = src, i = 0; i < width; ++i, row += 3) {
 				c = (row[0]<<16) | (row[1]<<8) | row[2];
 
-				XSetForeground(x11.dpy, this->owner->gc, c);
-				XDrawPoint(x11.dpy, this->data.xpm,
+				XSetForeground(lib->dpy, this->owner->gc, c);
+				XDrawPoint(lib->dpy, this->data.xpm,
 					this->owner->gc, dstx + i, dsty + j);
 			}
 		}
@@ -104,7 +106,7 @@ void xlib_pixmap_load(sgui_pixmap *super, int dstx, int dsty,
 		r.y = locked.top;
 		r.width = SGUI_RECT_WIDTH(locked);
 		r.height = SGUI_RECT_WIDTH(locked);
-		XSetClipRectangles(x11.dpy, this->owner->gc, 0, 0,
+		XSetClipRectangles(lib->dpy, this->owner->gc, 0, 0,
 					&r, 1, Unsorted);
 	}
 	sgui_internal_unlock_mutex();
@@ -117,6 +119,7 @@ sgui_pixmap *xlib_pixmap_create(sgui_canvas *cv, unsigned int width,
 	xlib_pixmap *this = calloc(1, sizeof(*this));
 	Drawable wnd = ((sgui_canvas_x11 *)cv)->wnd;
 	sgui_pixmap *super = (sgui_pixmap *)this;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)cv->lib;
 
 	if (!this)
 		return NULL;
@@ -128,12 +131,13 @@ sgui_pixmap *xlib_pixmap_create(sgui_canvas *cv, unsigned int width,
 
 	this->is_stencil = format == SGUI_A8;
 	this->owner = owner;
+	this->lib = cv->lib;
 
 	if (format == SGUI_A8) {
 		this->data.pixels = malloc(width * height);
 	} else {
 		sgui_internal_lock_mutex();
-		this->data.xpm = XCreatePixmap(x11.dpy, wnd,
+		this->data.xpm = XCreatePixmap(lib->dpy, wnd,
 						width, height, 24);
 		sgui_internal_unlock_mutex();
 	}

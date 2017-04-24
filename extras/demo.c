@@ -419,15 +419,14 @@ int main( int argc, char** argv )
 
     sgui_window_release_current( a );
 
-    sgui_window_destroy( a );
-    sgui_window_destroy( b );
-
     sgui_widget_destroy_all_children( tab );
     sgui_widget_destroy( tab );
 
     sgui_model_destroy( model );
     sgui_icon_cache_destroy( ic );
 
+    sgui_window_destroy( a );
+    sgui_window_destroy( b );
     lib->destroy(lib);
 
     return 0;

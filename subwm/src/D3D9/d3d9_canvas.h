@@ -51,7 +51,7 @@ sgui_d3d9_canvas;
 extern "C" {
 #endif
 
-sgui_canvas* sgui_d3d9_canvas_create( sgui_context* ctx,
+sgui_canvas* sgui_d3d9_canvas_create( sgui_lib *lib, sgui_context* ctx,
                                       unsigned width, unsigned int height );
 
 #ifdef __cplusplus

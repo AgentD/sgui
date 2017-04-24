@@ -48,17 +48,17 @@ sgui_canvas* sgui_tex_canvas_create( sgui_window* wnd,
     case SGUI_OPENGL_CORE:
     case SGUI_OPENGL_COMPAT:
         (void)wnd; (void)ctx;
-        return sgui_gl_canvas_create( width, height );
+        return sgui_gl_canvas_create( wnd->lib, width, height );
 #endif
 
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D9)
     case SGUI_DIRECT3D_9:
-        return sgui_d3d9_canvas_create( ctx, width, height );
+        return sgui_d3d9_canvas_create( wnd->lib, ctx, width, height );
 #endif
 
 #if defined(SGUI_WINDOWS) && !defined(SGUI_NO_D3D11)
     case SGUI_DIRECT3D_11:
-        return sgui_d3d11_canvas_create( ctx, width, height );
+        return sgui_d3d11_canvas_create( wnd->lib, ctx, width, height );
 #endif
     }
 
