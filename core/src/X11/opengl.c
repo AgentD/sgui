@@ -73,25 +73,38 @@ static void set_attributes(int *attr, int bpp, int depth, int stencil,
 static sgui_context *gl_context_create_share(sgui_context *super)
 {
 	sgui_context_gl *this = (sgui_context_gl *)super;
-	return gl_context_create(this->wnd, this->wnd->backend, super);
+	return gl_context_create(this->wnd, this->wnd->lib,
+				this->wnd->backend, super);
 }
 
-static void gl_context_destroy(sgui_context *this)
+static void gl_context_destroy(sgui_context *super)
 {
+	sgui_context_gl *this = (sgui_context_gl *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->wnd->lib;
+
 	sgui_internal_lock_mutex();
-	glXDestroyContext(x11.dpy, ((sgui_context_gl *)this)->gl);
+	glXDestroyContext(lib->dpy, this->gl);
 	sgui_internal_unlock_mutex();
 
 	free(this);
 }
 
-static void gl_context_make_current(sgui_context *this, sgui_window *wnd)
+static void gl_context_make_current(sgui_context *super, sgui_window *wnd)
 {
-	GLXContext ctx = this ? ((sgui_context_gl *)this)->gl : 0;
-	Drawable dst = wnd ? TO_X11(wnd)->wnd : None;
+	sgui_context_gl *this = (sgui_context_gl *)super;
+	sgui_lib_x11 *lib;
+	GLXContext ctx;
+	Drawable dst;
+
+	if (this->wnd->lib != wnd->lib)
+		return;
+
+	lib = (sgui_lib_x11 *)this->wnd->lib;
+	ctx = this->gl;
+	dst = TO_X11(wnd)->wnd;
 
 	sgui_internal_lock_mutex();
-	glXMakeContextCurrent(x11.dpy, dst, dst, ctx);
+	glXMakeContextCurrent(lib->dpy, dst, dst, ctx);
 	sgui_internal_unlock_mutex();
 }
 
@@ -100,11 +113,13 @@ static void *gl_context_get_internal(sgui_context *this)
 	return &(((sgui_context_gl *)this)->gl);
 }
 
-static void gl_context_release_current(sgui_context *this)
+static void gl_context_release_current(sgui_context *super)
 {
-	(void)this;
+	sgui_context_gl *this = (sgui_context_gl *)super;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->wnd->lib;
+
 	sgui_internal_lock_mutex();
-	glXMakeContextCurrent(x11.dpy, None, None, 0);
+	glXMakeContextCurrent(lib->dpy, None, None, 0);
 	sgui_internal_unlock_mutex();
 }
 
@@ -117,6 +132,7 @@ static sgui_funptr gl_context_load(sgui_context *this, const char *name)
 static void gl_set_vsync(sgui_window *this, int interval)
 {
 	void(* SwapIntervalEXT )(Display*, GLXDrawable, int);
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 
 	sgui_internal_lock_mutex();
 
@@ -124,13 +140,15 @@ static void gl_set_vsync(sgui_window *this, int interval)
 				LOAD_GLFUN("glXSwapIntervalEXT");
 
 	if (SwapIntervalEXT)
-		SwapIntervalEXT(x11.dpy, TO_X11(this)->wnd, interval);
+		SwapIntervalEXT(lib->dpy, TO_X11(this)->wnd, interval);
 
 	sgui_internal_unlock_mutex();
 }
 
 static void gl_swap_buffers(sgui_window *this)
 {
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
+
 	sgui_internal_lock_mutex();
 
 	/*
@@ -143,16 +161,17 @@ static void gl_swap_buffers(sgui_window *this)
 	*/
 	glFlush();
 
-	glXSwapBuffers(x11.dpy, TO_X11(this)->wnd);
+	glXSwapBuffers(lib->dpy, TO_X11(this)->wnd);
 	sgui_internal_unlock_mutex();
 }
 /****************************************************************************/
-sgui_context *gl_context_create(sgui_window *wnd, int backend,
+sgui_context *gl_context_create(sgui_window *wnd, sgui_lib *slib, int backend,
 				sgui_context *share)
 {
 	CREATECONTEXTATTRIBSPROC CreateContextAttribs;
 	sgui_context_gl *this = calloc(1, sizeof(*this));
 	sgui_context *super = (sgui_context *)this;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)slib;
 	GLXContext sctx = share ? ((sgui_context_gl *)share)->gl : 0;
 	int attribs[10];
 	unsigned int i;
@@ -178,7 +197,7 @@ sgui_context *gl_context_create(sgui_window *wnd, int backend,
 		for (i = 0; i < sizeof(versions) / sizeof(versions[0]); ++i) {
 			attribs[1] = versions[i][0];
 			attribs[3] = versions[i][1];
-			this->gl = CreateContextAttribs(x11.dpy,
+			this->gl = CreateContextAttribs(lib->dpy,
 							TO_GLX(wnd)->cfg,
 							sctx, True, attribs);
 			if (this->gl)
@@ -187,7 +206,7 @@ sgui_context *gl_context_create(sgui_window *wnd, int backend,
 	}
 
 	if (!this->gl) {
-		this->gl = glXCreateNewContext(x11.dpy, TO_GLX(wnd)->cfg,
+		this->gl = glXCreateNewContext(lib->dpy, TO_GLX(wnd)->cfg,
 						GLX_RGBA_TYPE, sctx, GL_TRUE);
 	}
 
@@ -212,10 +231,11 @@ fail:
 	return NULL;
 }
 
-Window create_glx_window(sgui_window *this,
+Window create_glx_window(sgui_window *this, sgui_lib *slib,
 			const sgui_window_description *desc, Window parent)
 {
 	int fbcount, attr[20], samples = desc->samples;
+	sgui_lib_x11 *lib = (sgui_lib_x11 *)slib;
 	XSetWindowAttributes swa;
 	GLXFBConfig *fbl = NULL;
 	XVisualInfo *vi = NULL;
@@ -226,7 +246,7 @@ Window create_glx_window(sgui_window *this,
 				desc->stencil_bits,
 				desc->flags & SGUI_DOUBLEBUFFERED, samples--);
 
-		fbl = glXChooseFBConfig(x11.dpy, x11.screen, attr, &fbcount);
+		fbl = glXChooseFBConfig(lib->dpy, lib->screen, attr, &fbcount);
 	}
 
 	if (!fbl)
@@ -235,19 +255,19 @@ Window create_glx_window(sgui_window *this,
 		goto outfbl;
 
 	TO_GLX(this)->cfg = fbl[0];
-	vi = glXGetVisualFromFBConfig(x11.dpy, fbl[0]);
+	vi = glXGetVisualFromFBConfig(lib->dpy, fbl[0]);
 
 	if (!vi)
 		goto outfbl;
 
 	swa.border_pixel = 0;
-	swa.colormap = XCreateColormap(x11.dpy,
-					RootWindow(x11.dpy, vi->screen),
+	swa.colormap = XCreateColormap(lib->dpy,
+					RootWindow(lib->dpy, vi->screen),
 					vi->visual, AllocNone);
 	if (!swa.colormap)
 		goto out;
 
-	wnd = XCreateWindow(x11.dpy, parent, 0, 0, desc->width, desc->height,
+	wnd = XCreateWindow(lib->dpy, parent, 0, 0, desc->width, desc->height,
 				0, vi->depth, InputOutput, vi->visual,
 				CWBorderPixel|CWColormap, &swa);
 out:
@@ -257,17 +277,17 @@ outfbl:
 	return wnd;
 }
 #else
-Window create_glx_window(sgui_window *wnd, const sgui_window_description *desc,
-			Window parent)
+Window create_glx_window(sgui_window *wnd, sgui_lib *lib,
+			const sgui_window_description *desc, Window parent)
 {
-	(void)wnd; (void)desc; (void)parent;
+	(void)wnd; (void)desc; (void)parent; (void)lib;
 	return 0;
 }
 
-sgui_context *gl_context_create(sgui_window *wnd, int backend,
+sgui_context *gl_context_create(sgui_window *wnd, sgui_lib *lib, int backend,
 				sgui_context *share)
 {
-	(void)wnd; (void)backend; (void)share;
+	(void)wnd; (void)backend; (void)share; (void)lib;
 	return NULL;
 }
 #endif /* SGUI_NO_OPENGL */

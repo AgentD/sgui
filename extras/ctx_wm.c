@@ -83,7 +83,7 @@ int main( void )
     desc.bits_per_pixel = 32;
     desc.depth_bits     = 16;
 
-    wnd = sgui_window_create_desc( &desc );
+    wnd = lib->create_window(lib, &desc);
 
     sgui_window_set_title( wnd, "subwm" );
     sgui_window_move_center( wnd );

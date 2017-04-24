@@ -58,6 +58,9 @@ void update_window(sgui_window_w32 *wnd);
 /* in window.c: handle window messages */
 int handle_window_events(sgui_window_w32 *wnd, UINT msg, WPARAM wp, LPARAM lp);
 
+sgui_window *window_create_w32(sgui_lib *lib,
+				const sgui_window_description *desc);
+
 #ifdef __cplusplus
 }
 #endif

@@ -172,8 +172,8 @@ static void sgui_color_dialog_destroy(sgui_dialog *super)
 
 /****************************************************************************/
 
-sgui_dialog *sgui_color_dialog_create(const char *caption, const char *accept,
-					const char *reject)
+sgui_dialog *sgui_color_dialog_create(sgui_lib *lib, const char *caption,
+					const char *accept, const char *reject)
 {
 	sgui_color_dialog *this = calloc(1, sizeof(*this));
 	sgui_dialog *super = (sgui_dialog *)this;
@@ -232,7 +232,8 @@ sgui_dialog *sgui_color_dialog_create(const char *caption, const char *accept,
 
 	w = SGUI_RECT_WIDTH(r) + 10;
 	h = SGUI_RECT_HEIGHT(r) + 10;
-	super->window = sgui_window_create(NULL, w, h, SGUI_FIXED_SIZE);
+	super->window = sgui_window_create_simple(lib, NULL, w, h,
+							SGUI_FIXED_SIZE);
 
 	if (!super->window)
 		goto fail;

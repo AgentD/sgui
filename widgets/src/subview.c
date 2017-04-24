@@ -27,6 +27,7 @@
 #include "sgui_event.h"
 #include "sgui_widget.h"
 #include "sgui_internal.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -149,7 +150,7 @@ sgui_widget *sgui_subview_create(sgui_window *parent, int x, int y,
 	desc.parent = parent;
 	desc.flags |= SGUI_FIXED_SIZE;
 
-	this->subwnd = sgui_window_create_desc(&desc);
+	this->subwnd = parent->lib->create_window(parent->lib, &desc);
 
 	if (!this->subwnd) {
 		free(this);

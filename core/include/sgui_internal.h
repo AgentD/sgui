@@ -84,6 +84,7 @@ SGUI_DLL void sgui_internal_unlock_mutex( void );
  * \param backend The backend to store in the structure
  */
 SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
+                                              sgui_lib *lib,
                                               unsigned int width,
                                               unsigned int height,
                                               int backend );

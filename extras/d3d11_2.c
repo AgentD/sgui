@@ -93,7 +93,7 @@ int main( void )
     lib = sgui_init(NULL);
 
     /* create an ordinary window */
-    wnd = sgui_window_create( NULL, 200, 200, SGUI_FIXED_SIZE );
+    wnd = sgui_window_create_simple(lib, NULL, 200, 200, SGUI_FIXED_SIZE);
 
     sgui_window_set_title( wnd, "D3D11 widget" );
     sgui_window_move_center( wnd );

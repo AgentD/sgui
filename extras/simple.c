@@ -58,7 +58,7 @@ int main( )
         The last argument is a field of various flags. We don't
         need any fancy stuff, so we set this to 0.
      */
-    wnd = sgui_window_create( NULL, 400, 300, 0 );
+    wnd = sgui_window_create_simple( lib, NULL, 400, 300, 0 );
 
     /*
         Set the window title bar text and move it to the center

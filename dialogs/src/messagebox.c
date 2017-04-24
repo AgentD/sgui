@@ -81,7 +81,8 @@ static void sgui_message_box_destroy(sgui_dialog *super)
 
 /****************************************************************************/
 
-sgui_dialog *sgui_message_box_create(int icon, const char *caption,
+sgui_dialog *sgui_message_box_create(sgui_lib *lib,
+				int icon, const char *caption,
 				const char *text, const char *button1,
 				const char *button2, const char *button3)
 {
@@ -120,7 +121,8 @@ sgui_dialog *sgui_message_box_create(int icon, const char *caption,
 	h = 10 + MAX(text_h, icon_h) + 5;
 
 	/* create the message box window */
-	super->window = sgui_window_create(NULL, w, h, SGUI_FIXED_SIZE);
+	super->window = sgui_window_create_simple(lib, NULL, w, h,
+							SGUI_FIXED_SIZE);
 
 	if (!super->window)
 		goto fail;

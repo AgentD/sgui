@@ -57,11 +57,11 @@ extern "C" {
 #endif
 
 /* set the GLXFBConfig of an sgui_xlib_window and create a window */
-Window create_glx_window(sgui_window *wnd,
+Window create_glx_window(sgui_window *wnd, sgui_lib *lib,
 			const sgui_window_description *desc, Window parent);
 
 /* create an OpenGL context for an Xlib window */
-sgui_context *gl_context_create(sgui_window *wnd, int backend,
+sgui_context *gl_context_create(sgui_window *wnd, sgui_lib *lib, int backend,
 				sgui_context *share);
 
 #ifdef __cplusplus

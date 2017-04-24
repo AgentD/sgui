@@ -52,7 +52,7 @@ int main( void )
         text inside the message box. Since we only need two buttons, the
         third caption is set to NULL.
      */
-    mb = sgui_message_box_create( SGUI_ICON_MB_WARNING, "Test", text,
+    mb = sgui_message_box_create( lib, SGUI_ICON_MB_WARNING, "Test", text,
                                   "Ok", "Foobar", NULL );
 
     /*
@@ -62,7 +62,7 @@ int main( void )
         argument is the text written on the accept button, the third argument
         the text written on the reject button.
      */
-    cp = sgui_color_dialog_create( "color picker", "Ok", "Cancel" );
+    cp = sgui_color_dialog_create( lib, "color picker", "Ok", "Cancel" );
 
     /*
         The message box triggers an SGUI_MESSAGE_BOX_BUTTON1_EVENT when the

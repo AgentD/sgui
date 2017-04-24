@@ -38,7 +38,7 @@ int main( void )
     desc.stencil_bits   = 0;
     desc.samples        = 0;
 
-    wnd = sgui_window_create_desc( &desc );
+    wnd = lib->create_window(lib, &desc);
 
     /* set window title and make it visible */
     sgui_window_set_title( wnd, "OpenGL Sample" );

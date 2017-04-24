@@ -58,13 +58,15 @@ extern "C" {
  *
  * \memberof sgui_color_dialog
  *
+ * \param lib     An \ref sgui_lib instance through which to create a window.
  * \param caption The caption to write onto the window
  * \param accept  The text to write onto the accept button
  * \param reject  The text to write onto the reject button
  *
  * \return A pointer to a new color dialog on success, NULL on failure
  */
-SGUI_DLL sgui_dialog* sgui_color_dialog_create( const char* caption,
+SGUI_DLL sgui_dialog* sgui_color_dialog_create( sgui_lib *lib,
+                                                const char* caption,
                                                 const char* accept,
                                                 const char* reject );
 

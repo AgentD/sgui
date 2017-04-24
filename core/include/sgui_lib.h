@@ -64,6 +64,23 @@ struct sgui_lib {
 	 *         zero if there are no more visible windows.
 	 */
 	int (*main_loop_step)(sgui_lib *lib);
+
+	/**
+	 * \brief Create a window
+	 *
+	 * Creates a window using the platforms native window system. The
+	 * window has to be destroyed again using sgui_window_destroy( ).
+	 *
+	 * \note There is an easier to use wrapper function called
+	 *       \ref sgui_window_create_simple
+	 *
+	 * \param desc A pointer to a structure holding a description of the
+	 *             window that is to be created.
+	 *
+	 * \return Either a valid pointer to a window or NULL on error
+	 */
+	sgui_window *(*create_window)(sgui_lib *lib,
+					const sgui_window_description *desc);
 };
 
 #ifdef __cplusplus

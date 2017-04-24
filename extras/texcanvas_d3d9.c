@@ -128,7 +128,7 @@ int main( void )
     desc.stencil_bits   = 0;
     desc.samples        = 0;
 
-    wnd = sgui_window_create_desc( &desc );
+    wnd = lib->create_window(lib, &desc);
 
     sgui_window_set_title( wnd, "Direct3D 9 Texture Canvas" );
     sgui_window_move_center( wnd );

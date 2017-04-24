@@ -178,6 +178,9 @@ SGUI_WINDOW_FLAG;
  */
 struct sgui_window
 {
+    /** \brief The \ref sgui_lib implementation that this window belongs to */
+    sgui_lib *lib;
+
     /**
      * \brief A window can have either an sgui_canvas implementation, or an
      *        sgui_context implementation, not both
@@ -395,12 +398,13 @@ extern "C" {
  * to be destroyed again using sgui_window_destroy( ), thus freeing up it's
  * resources.
  *
- * This function internally sets up an sgui_window_description structure and
- * calls sgui_window_create_desc( ).
+ * This function internally sets up an \ref sgui_window_description structure
+ * and creates the window through the \ref sgui_lib instance.
  *
- * \note The window is created invisible and has to be made visible by calling
- *       sgui_window_set_visible( ) unless the SGUI_VISIBLE flag is set.
+ * \note Unless the SGUI_VISIBLE flag is set, the window is created invisible
+ *       and has to be made visible by calling \ref sgui_window_set_visible( ).
  *
+ * \param lib    A \ref sgui_lib instance
  * \param parent A pointer to the parent window, or NULL for root window.
  *               If a window has a parent, it is not decorted by the systems
  *               window manager, positioned relative to its parent and only
@@ -411,30 +415,11 @@ extern "C" {
  *
  * \return Either a valid pointer to a window or NULL if there was an error
  */
-SGUI_DLL sgui_window* sgui_window_create( sgui_window* parent,
-                                          unsigned int width,
-                                          unsigned int height,
-                                          int flags );
-
-/**
- * \brief Create a window using a pointer to a description structure
- *
- * \memberof sgui_window
- *
- * Creates a window using the platforms native window system. The window has
- * to be destroyed again using sgui_window_destroy( ), thus freeing up it's
- * resources.
- *
- * \note The window is created invisible and has to be made visible by calling
- *       sgui_window_set_visible( ) unless the SGUI_VISIBLE flag is set.
- *
- * \param desc A pointer to a structure holding a description of the window
- *             that is to be created.
- *
- * \return Either a valid pointer to a window or NULL if there was an error
- */
-SGUI_DLL
-sgui_window* sgui_window_create_desc( const sgui_window_description* desc );
+SGUI_DLL sgui_window* sgui_window_create_simple( sgui_lib *lib,
+                                                 sgui_window* parent,
+                                                 unsigned int width,
+                                                 unsigned int height,
+                                                 int flags );
 
 /**
  * \brief Make the rendering context for a window current

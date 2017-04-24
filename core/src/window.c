@@ -30,6 +30,7 @@
 #include "sgui_skin.h"
 #include "sgui_context.h"
 #include "sgui_widget.h"
+#include "sgui_lib.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -41,13 +42,15 @@
 #define CUT_KEY SGUI_KC_X
 
 
-void sgui_internal_window_post_init(sgui_window *this, unsigned int width,
+void sgui_internal_window_post_init(sgui_window *this, sgui_lib *lib,
+					unsigned int width,
 					unsigned int height, int backend)
 {
 	this->w = width;
 	this->h = height;
 	this->backend = backend;
 	this->modmask = 0;
+	this->lib = lib;
 
 	if (this->backend == SGUI_NATIVE) {
 		sgui_canvas_begin(this->ctx.canvas, NULL);
@@ -135,8 +138,9 @@ void sgui_internal_window_fire_event(sgui_window *this, const sgui_event *e)
 
 /****************************************************************************/
 
-sgui_window *sgui_window_create(sgui_window *parent, unsigned int width,
-				unsigned int height, int flags)
+sgui_window *sgui_window_create_simple(sgui_lib *lib, sgui_window *parent,
+				unsigned int width, unsigned int height,
+				int flags)
 {
 	sgui_window_description desc;
 
@@ -151,7 +155,7 @@ sgui_window *sgui_window_create(sgui_window *parent, unsigned int width,
 	desc.depth_bits = 24;
 	desc.stencil_bits = 8;
 
-	return sgui_window_create_desc(&desc);
+	return lib->create_window(lib, &desc);
 }
 
 void sgui_window_get_mouse_position(sgui_window *this, int *x, int *y)

@@ -284,7 +284,7 @@ static void w32_window_make_topmost(sgui_window *this)
 static void w32_window_destroy(sgui_window *this)
 {
 	sgui_internal_lock_mutex();
-	remove_window(TO_W32(this));
+	remove_window((sgui_lib_w32 *)this->lib, TO_W32(this));
 	SET_USER_PTR(TO_W32(this)->hWnd, NULL);
 
 	switch (this->backend) {
@@ -522,10 +522,12 @@ send_ev:
 
 /****************************************************************************/
 
-sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
+sgui_window *window_create_w32(sgui_lib *slib,
+				const sgui_window_description *desc)
 {
 	HWND parent_hnd = desc->parent ? TO_W32(desc->parent)->hWnd : 0;
 	DWORD style = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+	sgui_lib_w32 *lib = (sgui_lib_w32 *)slib;
 	sgui_window_w32 *this;
 	sgui_window *super;
 	RECT r;
@@ -556,9 +558,9 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 		AdjustWindowRect(&r, style, FALSE);
 	}
 
-	this->hWnd = CreateWindowExA(0, w32.wndclass, "", style, 0, 0,
+	this->hWnd = CreateWindowExA(0, lib->wndclass, "", style, 0, 0,
 					r.right - r.left, r.bottom - r.top,
-					parent_hnd, 0, w32.hInstance, 0);
+					parent_hnd, 0, lib->hInstance, 0);
 
 	if (!this->hWnd)
 		goto failwnd;
@@ -571,7 +573,7 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 		break;
 	case SGUI_OPENGL_CORE:
 	case SGUI_OPENGL_COMPAT:
-		if (!set_pixel_format(this, desc))
+		if (!set_pixel_format(this, slib, desc))
 			break;
 		super->ctx.ctx = gl_context_create(this, desc->backend,
 							desc->share);
@@ -594,7 +596,7 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 		ShowWindow(this->hWnd, SW_SHOWNORMAL);
 
 	SET_USER_PTR(this->hWnd, this);
-	sgui_internal_window_post_init((sgui_window *)this, desc->width,
+	sgui_internal_window_post_init((sgui_window *)this, slib, desc->width,
 					desc->height, desc->backend);
 
 	super->flags = desc->flags;
@@ -612,7 +614,7 @@ sgui_window *sgui_window_create_desc(const sgui_window_description *desc)
 	super->write_clipboard = w32_window_write_clipboard;
 	super->read_clipboard = w32_window_read_clipboard;
 
-	add_window(this);
+	add_window(lib, this);
 	sgui_internal_unlock_mutex();
 	return (sgui_window *)this;
 faildc:

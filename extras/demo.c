@@ -155,10 +155,10 @@ int main( int argc, char** argv )
     lib = sgui_init(NULL);
 
     /* create windows */
-    b = sgui_window_create_desc( &desc );
+    b = lib->create_window(lib, &desc);
 
     desc.flags |= SGUI_FIXED_SIZE;
-    a = sgui_window_create_desc( &desc );
+    a = lib->create_window(lib, &desc);
 
     sgui_window_set_visible( a, SGUI_VISIBLE );
     sgui_window_set_visible( b, SGUI_VISIBLE );

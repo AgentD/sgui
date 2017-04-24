@@ -72,6 +72,9 @@ typedef struct {
 extern "C" {
 #endif
 
+sgui_window *x11_window_create(sgui_lib *lib,
+				const sgui_window_description *desc);
+
 void handle_window_events(sgui_window_xlib *wnd, XEvent *e);
 
 #ifdef __cplusplus

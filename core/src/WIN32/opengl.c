@@ -164,7 +164,8 @@ static int get_descriptor_from_array(PIXELFORMATDESCRIPTOR *pfd,
     This function abstracts all of this and determines the unique ID for
     a key-value array.
  */
-static int determine_pixel_format(int *pixel_attribs, int only_new)
+static int determine_pixel_format(sgui_lib_w32 *lib, int *pixel_attribs,
+				int only_new)
 {
 	WGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 	int pixelformat = 0, format, need_new = 0;
@@ -176,8 +177,8 @@ static int determine_pixel_format(int *pixel_attribs, int only_new)
 
 	need_new = get_descriptor_from_array(&pfd, pixel_attribs);
 
-	tempwnd = CreateWindow(w32.wndclass, "", 0, 0, 0, 100, 100, 0, 0,
-				w32.hInstance, 0);
+	tempwnd = CreateWindow(lib->wndclass, "", 0, 0, 0, 100, 100, 0, 0,
+				lib->hInstance, 0);
 	if (!tempwnd)
 		goto out;
 
@@ -262,7 +263,7 @@ static void set_attributes(int *attr, int bpp, int depth, int stencil,
 #undef ATTRIB
 }
 
-int set_pixel_format(sgui_window_w32 *this,
+int set_pixel_format(sgui_window_w32 *this, sgui_lib *lib,
 			const sgui_window_description *desc)
 {
 	int attribs[20], format = 0, samples = desc->samples;
@@ -276,11 +277,14 @@ int set_pixel_format(sgui_window_w32 *this,
 				desc->stencil_bits,
 				desc->flags & SGUI_DOUBLEBUFFERED, samples--);
 
-		format = determine_pixel_format(attribs, 1);
+		format = determine_pixel_format((sgui_lib_w32 *)lib,
+						attribs, 1);
 	}
 
-	if (!format && !(format = determine_pixel_format(attribs, 0)))
+	if (!format && !(format = determine_pixel_format((sgui_lib_w32 *)lib,
+							attribs, 0))) {
 		goto fail;
+	}
 
 	SetPixelFormat(this->hDC, format, NULL);
 	return 1;

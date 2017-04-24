@@ -25,7 +25,7 @@ int main( void )
     /* initialize and create window */
     lib = sgui_init(NULL);
 
-    wnd = sgui_window_create( NULL, 200, 130, SGUI_FIXED_SIZE );
+    wnd = sgui_window_create_simple(lib, NULL, 200, 130, SGUI_FIXED_SIZE);
     sgui_window_set_visible( wnd, SGUI_VISIBLE );
     sgui_window_set_title( wnd, "Signals & Slots" );
 

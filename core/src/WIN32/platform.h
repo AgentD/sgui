@@ -93,10 +93,10 @@ void w32_window_write_clipboard(sgui_window *wnd, const char *text,
 const char *w32_window_read_clipboard(sgui_window *wnd);
 
 /* add a window to the list used by the main loop */
-void add_window(sgui_window_w32 *wnd);
+void add_window(sgui_lib_w32 *lib, sgui_window_w32 *wnd);
 
 /* remove a window from the list used by the main loop */
-void remove_window(sgui_window_w32 *wnd);
+void remove_window(sgui_lib_w32 *lib, sgui_window_w32 *wnd);
 
 #ifdef __cplusplus
 }

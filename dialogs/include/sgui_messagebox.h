@@ -60,6 +60,7 @@ extern "C" {
  *
  * \memberof sgui_message_box
  *
+ * \param lib     An \ref sgui_lib instance through which to create a window.
  * \param icon    The icon to display (SGUI_ICON_MB_INFO, SGUI_ICON_MB_WARNING,
  *                SGUI_ICON_MB_CRITICAL or SGUI_ICON_MB_QUESTION).
  * \param caption The caption to print onto the window title bar.
@@ -71,7 +72,7 @@ extern "C" {
  *
  * \return A pointer to a message box
  */
-SGUI_DLL sgui_dialog* sgui_message_box_create( int icon,
+SGUI_DLL sgui_dialog* sgui_message_box_create( sgui_lib *lib, int icon,
                                                const char* caption,
                                                const char* text,
                                                const char* button1,

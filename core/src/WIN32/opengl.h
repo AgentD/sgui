@@ -113,7 +113,7 @@ extern "C" {
 #endif
 
 /* set a pixel format for a window */
-int set_pixel_format(sgui_window_w32 *wnd,
+int set_pixel_format(sgui_window_w32 *wnd, sgui_lib *lib,
 			const sgui_window_description *desc);
 
 /* create an OpenGL context */

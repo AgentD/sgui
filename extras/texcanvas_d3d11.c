@@ -173,7 +173,7 @@ int main( void )
     desc.stencil_bits   = 0;
     desc.samples        = 4;
 
-    wnd = sgui_window_create_desc( &desc );
+    wnd = lib->create_window(lib, &desc);
 
     if( !wnd )
     {

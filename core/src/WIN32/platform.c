@@ -147,14 +147,15 @@ out:
 
 const char *w32_window_read_clipboard(sgui_window *this)
 {
+	sgui_lib_w32 *lib = (sgui_lib_w32 *)this->lib;
 	WCHAR *buffer = NULL;
 	HANDLE hDATA;
 	(void)this;
 
 	sgui_internal_lock_mutex();
 
-	free(w32.clipboard);
-	w32.clipboard = NULL;
+	free(lib->clipboard);
+	lib->clipboard = NULL;
 
 	if (!OpenClipboard(NULL))
 		goto out;
@@ -167,29 +168,29 @@ const char *w32_window_read_clipboard(sgui_window *this)
 	if (!buffer)
 		goto out_close;
 
-	w32.clipboard = utf16_to_utf8(buffer);
+	lib->clipboard = utf16_to_utf8(buffer);
 	GlobalUnlock(hDATA);
 out_close:
 	CloseClipboard();
 out:
 	sgui_internal_unlock_mutex();
-	return w32.clipboard;
+	return lib->clipboard;
 }
 
-void add_window(sgui_window_w32 *this)
+void add_window(sgui_lib_w32 *lib, sgui_window_w32 *this)
 {
-	this->next = w32.list;
-	w32.list = this;
+	this->next = lib->list;
+	lib->list = this;
 }
 
-void remove_window(sgui_window_w32 *this)
+void remove_window(sgui_lib_w32 *lib, sgui_window_w32 *this)
 {
 	sgui_window_w32 *i;
 
-	if (w32.list == this) {
-		w32.list = w32.list->next;
+	if (lib->list == this) {
+		lib->list = lib->list->next;
 	} else {
-		for (i = w32.list; i->next != NULL; i = i->next) {
+		for (i = lib->list; i->next != NULL; i = i->next) {
 			if (i->next == this) {
 				i->next = this->next;
 				break;
@@ -295,6 +296,7 @@ sgui_lib *sgui_init(void *arg)
 	((sgui_lib *)&w32)->destroy = w32_destroy;
 	((sgui_lib *)&w32)->main_loop = w32_main_loop;
 	((sgui_lib *)&w32)->main_loop_step = w32_main_loop_step;
+	((sgui_lib *)&w32)->create_window = window_create_w32;
 	return (sgui_lib *)&w32;
 fail:
 	w32_destroy((sgui_lib *)&w32);

@@ -95,10 +95,10 @@ void xlib_window_clipboard_write(sgui_window *super, const char *text,
 const char *xlib_window_clipboard_read(sgui_window *super);
 
 /* add a window to the list for the main loop */
-void add_window(sgui_window_xlib *window);
+void add_window(sgui_lib *lib, sgui_window_xlib *wnd);
 
 /* remove a window from the list */
-void remove_window(sgui_window_xlib *window);
+void remove_window(sgui_lib *lib, sgui_window_xlib *wnd);
 
 /* called from window.c when window is clicked,
    returns non-zero if double click */
@@ -106,7 +106,7 @@ int check_double_click(sgui_window_xlib *window);
 
 /* called from window.c when mouse moves or
    otherwise interrupts double click */
-void interrupt_double_click(void);
+void interrupt_double_click(sgui_lib *lib);
 
 #ifdef __cplusplus
 }
