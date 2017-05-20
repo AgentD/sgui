@@ -285,7 +285,7 @@ static void w32_window_make_topmost(sgui_window *this)
 static void w32_window_destroy(sgui_window *this)
 {
 	sgui_internal_lock_mutex();
-	remove_window((sgui_lib_w32 *)this->lib, TO_W32(this));
+	sgui_internal_remove_window(this->lib, this);
 	SET_USER_PTR(TO_W32(this)->hWnd, NULL);
 
 	switch (this->backend) {
@@ -597,8 +597,6 @@ sgui_window *window_create_w32(sgui_lib *slib,
 		ShowWindow(this->hWnd, SW_SHOWNORMAL);
 
 	SET_USER_PTR(this->hWnd, this);
-	sgui_internal_window_post_init((sgui_window *)this, slib, desc->width,
-					desc->height, desc->backend);
 
 	super->flags = desc->flags;
 	super->get_mouse_position = w32_window_get_mouse_position;
@@ -615,7 +613,9 @@ sgui_window *window_create_w32(sgui_lib *slib,
 	super->write_clipboard = w32_window_write_clipboard;
 	super->read_clipboard = w32_window_read_clipboard;
 
-	add_window(lib, this);
+	sgui_internal_window_post_init((sgui_window *)this, slib, desc->width,
+					desc->height, desc->backend);
+	sgui_internal_add_window(slib, super);
 	sgui_internal_unlock_mutex();
 	return (sgui_window *)this;
 faildc:

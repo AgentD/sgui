@@ -77,8 +77,6 @@ typedef struct {
 	unsigned long click_time;   /* last click time for double click */
 
 	pthread_mutex_t mutex;          /* global mutex */
-
-	sgui_window_xlib* list;         /* internal list of Xlib windows */
 } sgui_lib_x11;
 
 extern sgui_lib_x11 x11;
@@ -93,12 +91,6 @@ void xlib_window_clipboard_write(sgui_window *super, const char *text,
 
 /* implementation of window clipboard_read */
 const char *xlib_window_clipboard_read(sgui_window *super);
-
-/* add a window to the list for the main loop */
-void add_window(sgui_lib *lib, sgui_window_xlib *wnd);
-
-/* remove a window from the list */
-void remove_window(sgui_lib *lib, sgui_window_xlib *wnd);
 
 /* called from window.c when window is clicked,
    returns non-zero if double click */

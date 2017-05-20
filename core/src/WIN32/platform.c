@@ -47,27 +47,14 @@ out:
 	return result;
 }
 
-static int is_window_active(sgui_lib_w32 *lib)
+static void update_windows(sgui_lib *lib)
 {
-	sgui_window_w32 *i = lib->list;
-
-	sgui_internal_lock_mutex();
-	while (i != NULL && !(i->super.flags & SGUI_VISIBLE)) {
-		i = i->next;
-	}
-	sgui_internal_unlock_mutex();
-
-	return i != NULL;
-}
-
-static void update_windows(sgui_lib_w32 *lib)
-{
-	sgui_window_w32 *i;
+	sgui_window *i;
 
 	sgui_internal_lock_mutex();
 
-	for (i = lib->list; i != NULL; i = i->next)
-		update_window(i);
+	for (i = lib->wndlist; i != NULL; i = i->next)
+		update_window((sgui_window_w32 *)i);
 
 	sgui_internal_unlock_mutex();
 }
@@ -177,28 +164,6 @@ out:
 	return lib->clipboard;
 }
 
-void add_window(sgui_lib_w32 *lib, sgui_window_w32 *this)
-{
-	this->next = lib->list;
-	lib->list = this;
-}
-
-void remove_window(sgui_lib_w32 *lib, sgui_window_w32 *this)
-{
-	sgui_window_w32 *i;
-
-	if (lib->list == this) {
-		lib->list = lib->list->next;
-	} else {
-		for (i = lib->list; i->next != NULL; i = i->next) {
-			if (i->next == this) {
-				i->next = this->next;
-				break;
-			}
-		}
-	}
-}
-
 void sgui_internal_lock_mutex(void)
 {
 	EnterCriticalSection(&w32.mutex);
@@ -227,10 +192,9 @@ static void w32_destroy(sgui_lib *lib)
 
 static int w32_main_loop_step(sgui_lib *lib)
 {
-	sgui_lib_w32 *w32_lib = (sgui_lib_w32 *)lib;
 	MSG msg;
 
-	update_windows(w32_lib);
+	update_windows(lib);
 
 	if (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
@@ -239,16 +203,15 @@ static int w32_main_loop_step(sgui_lib *lib)
 
 	sgui_event_process();
 
-	return is_window_active(w32_lib) || sgui_event_queued();
+	return sgui_lib_have_active_windows(lib) || sgui_event_queued();
 }
 
 static void w32_main_loop(sgui_lib *lib)
 {
-	sgui_lib_w32 *w32_lib = (sgui_lib_w32 *)lib;
 	MSG msg;
 
-	while (is_window_active(w32_lib)) {
-		update_windows(w32_lib);
+	while (sgui_lib_have_active_windows(lib)) {
+		update_windows(lib);
 		GetMessageA(&msg, 0, 0, 0);
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);

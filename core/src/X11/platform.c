@@ -107,7 +107,7 @@ static void handle_selection_event(sgui_lib_x11 *lib, XEvent *e)
 /* fetch and process the next Xlib event */
 static void handle_events(sgui_lib_x11 *lib)
 {
-	sgui_window_xlib *i;
+	sgui_window *i;
 	XEvent e;
 
 	while (XPending(lib->dpy) > 0) {
@@ -121,55 +121,13 @@ static void handle_events(sgui_lib_x11 *lib)
 		if (XFilterEvent(&e, None))
 			continue;
 
-		for (i = lib->list; i != NULL; i = i->next) {
-			if (i->wnd == e.xany.window)
+		for (i = ((sgui_lib *)lib)->wndlist; i != NULL; i = i->next) {
+			if (((sgui_window_xlib *)i)->wnd == e.xany.window)
 				break;
 		}
 
 		if (i != NULL)
-			handle_window_events(i, &e);
-	}
-}
-
-/* returns non-zero if there's at least 1 window still active */
-static int have_active_windows(sgui_lib_x11 *lib)
-{
-	sgui_window_xlib* i;
-
-	sgui_internal_lock_mutex();
-	for (i = lib->list; i != NULL; i = i->next) {
-		if (i->super.flags & SGUI_VISIBLE)
-			break;
-	}
-	sgui_internal_unlock_mutex();
-
-	return i != NULL;
-}
-
-/****************************************************************************/
-
-void add_window(sgui_lib *slib, sgui_window_xlib *wnd)
-{
-	sgui_lib_x11 *lib = (sgui_lib_x11 *)slib;
-
-	wnd->next = lib->list;
-	lib->list = wnd;
-}
-
-void remove_window(sgui_lib *slib, sgui_window_xlib *wnd)
-{
-	sgui_lib_x11 *lib = (sgui_lib_x11 *)slib;
-	sgui_window_xlib *i;
-
-	if (lib->list == wnd) {
-		lib->list = lib->list->next;
-	} else {
-		for (i = lib->list; i->next != NULL; i = i->next) {
-			if (i->next == wnd) {
-				i->next = wnd->next;
-				break;
-			}
-		}
+			handle_window_events((sgui_window_xlib *)i, &e);
 	}
 }
 
@@ -451,7 +409,7 @@ static int main_loop_step_x11(sgui_lib *lib)
 
 	sgui_event_process();
 
-	return have_active_windows(libx11) || sgui_event_queued();
+	return sgui_lib_have_active_windows(lib) || sgui_event_queued();
 }
 
 static void main_loop_x11(sgui_lib *lib)
@@ -461,7 +419,7 @@ static void main_loop_x11(sgui_lib *lib)
 	struct timeval tv;
 	fd_set in_fds;
 
-	while (have_active_windows(libx11)) {
+	while (sgui_lib_have_active_windows(lib)) {
 		sgui_internal_lock_mutex();
 		handle_events(libx11);
 		XFlush(libx11->dpy);

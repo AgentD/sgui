@@ -56,8 +56,6 @@ typedef struct _sgui_window_xlib {
 	XIC ic;
 
 	unsigned int mouse_warped;       /* mouse warp counter */
-
-	struct _sgui_window_xlib* next;
 } sgui_window_xlib;
 
 #ifndef SGUI_NO_OPENGL

@@ -68,7 +68,6 @@ typedef struct {
 
 	HINSTANCE hInstance;		/* instance handle */
 	const char *wndclass;		/* window class name */
-	sgui_window_w32 *list;		/* global list of all windows */
 	CRITICAL_SECTION mutex;		/* global sgui mutex */
 	char *clipboard;		/* clipboard translaton buffer */
 } sgui_lib_w32;
@@ -91,12 +90,6 @@ void w32_window_write_clipboard(sgui_window *wnd, const char *text,
 
 /* implementation of the clipboard read function */
 const char *w32_window_read_clipboard(sgui_window *wnd);
-
-/* add a window to the list used by the main loop */
-void add_window(sgui_lib_w32 *lib, sgui_window_w32 *wnd);
-
-/* remove a window from the list used by the main loop */
-void remove_window(sgui_lib_w32 *lib, sgui_window_w32 *wnd);
 
 #ifdef __cplusplus
 }

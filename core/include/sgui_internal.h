@@ -89,6 +89,12 @@ SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
                                               unsigned int height,
                                               int backend );
 
+SGUI_DLL void sgui_internal_remove_window(sgui_lib *lib, sgui_window *wnd);
+
+SGUI_DLL void sgui_internal_add_window(sgui_lib *lib, sgui_window *wnd);
+
+SGUI_DLL int sgui_lib_have_active_windows(sgui_lib *lib);
+
 /**
  * \brief Propagate a window event
  *

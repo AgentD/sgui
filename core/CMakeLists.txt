@@ -41,6 +41,7 @@ set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/widget.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/window.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/lib.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/skins/default.c
 
               ${CORE_PLATFORM_SRC}

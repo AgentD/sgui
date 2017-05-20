@@ -1,5 +1,5 @@
 /*
- * window.h
+ * lib.c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -22,46 +22,44 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef W32_WINDOW_H
-#define W32_WINDOW_H
-
+#define SGUI_BUILDING_DLL
 #include "sgui_internal.h"
-#include "sgui_window.h"
-
-#define TO_W32(window) ((sgui_window_w32 *)window)
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-typedef struct _sgui_window_w32 {
-	sgui_window super;
-
-	HWND hWnd;
-	HDC hDC;
-
-	void *data;
-	BITMAPINFO info;
-	HBITMAP bitmap;
-	HBRUSH bgbrush;
-} sgui_window_w32;
+#include "sgui_lib.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-/* in window.c: invalidate all dirty rects of the canvas */
-void update_window(sgui_window_w32 *wnd);
-
-/* in window.c: handle window messages */
-int handle_window_events(sgui_window_w32 *wnd, UINT msg, WPARAM wp, LPARAM lp);
-
-sgui_window *window_create_w32(sgui_lib *lib,
-				const sgui_window_description *desc);
-
-#ifdef __cplusplus
+void sgui_internal_add_window(sgui_lib *lib, sgui_window *wnd)
+{
+	wnd->next = lib->wndlist;
+	lib->wndlist = wnd;
 }
-#endif
 
-#endif /* W32_WINDOW_H */
+void sgui_internal_remove_window(sgui_lib *lib, sgui_window *wnd)
+{
+	sgui_window *i;
 
+	if (lib->wndlist == wnd) {
+		lib->wndlist = wnd->next;
+	} else {
+		for (i = lib->wndlist; i->next != NULL; i = i->next) {
+			if (i->next == wnd) {
+				i->next = wnd->next;
+				break;
+			}
+		}
+	}
+}
+
+int sgui_lib_have_active_windows(sgui_lib *lib)
+{
+	sgui_window *i;
+
+	sgui_internal_lock_mutex();
+	for (i = lib->wndlist; i != NULL; i = i->next) {
+		if (i->flags & SGUI_VISIBLE)
+			break;
+	}
+	sgui_internal_unlock_mutex();
+
+	return i != NULL;
+}

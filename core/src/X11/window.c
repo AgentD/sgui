@@ -198,7 +198,7 @@ static void xlib_window_destroy(sgui_window *this)
 	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 
 	sgui_internal_lock_mutex();
-	remove_window(this->lib, TO_X11(this));
+	sgui_internal_remove_window(this->lib, this);
 
 	if (this->backend == SGUI_NATIVE) {
 		sgui_canvas_destroy(this->ctx.canvas);
@@ -586,9 +586,6 @@ sgui_window *x11_window_create(sgui_lib *lib,
 	super->y = attr.y;
 	super->flags = desc->flags | (desc->parent != NULL ? IS_CHILD : 0);
 
-	sgui_internal_window_post_init(super, lib, attr.width, attr.height,
-					desc->backend);
-
 	super->get_mouse_position = xlib_window_get_mouse_position;
 	super->set_mouse_position = xlib_window_set_mouse_position;
 	super->toggle_flags = xlib_window_toggle_flags;
@@ -603,7 +600,9 @@ sgui_window *x11_window_create(sgui_lib *lib,
 	super->make_topmost = xlib_window_make_topmost;
 	super->destroy = xlib_window_destroy;
 
-	add_window(lib, this);
+	sgui_internal_window_post_init(super, lib, attr.width, attr.height,
+					desc->backend);
+	sgui_internal_add_window(lib, super);
 	sgui_internal_unlock_mutex();
 	return (sgui_window *)this;
 failcv:

@@ -178,6 +178,9 @@ SGUI_WINDOW_FLAG;
  */
 struct sgui_window
 {
+    /** \brief Linked list pointer for window list in \ref sgui_lib */
+    sgui_window *next;
+
     /** \brief The \ref sgui_lib implementation that this window belongs to */
     sgui_lib *lib;
 

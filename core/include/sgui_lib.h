@@ -36,6 +36,9 @@
  * the backend and contains the global state of the backend.
  */
 struct sgui_lib {
+	/** \brief Linked list of windows managed by this instance */
+	sgui_window *wndlist;
+
 	/**
 	 * \brief Uninitialise the backend and clean up all internal state
 	 *
