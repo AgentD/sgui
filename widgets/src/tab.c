@@ -145,7 +145,8 @@ static void tab_group_on_event(sgui_widget *super, const sgui_event *e)
 			x -= ((sgui_tab *)i)->caption_width;
 		}
 
-		sgui_widget_set_visible(i, 1);
+		if (i)
+			sgui_widget_set_visible(i, 1);
 		sgui_internal_unlock_mutex();
 	} else if (e->type == SGUI_KEY_RELEASED_EVENT && this->current) {
 		if (e->arg.i != SGUI_KC_LEFT && e->arg.i != SGUI_KC_RIGHT)
