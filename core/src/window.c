@@ -42,23 +42,6 @@
 #define CUT_KEY SGUI_KC_X
 
 
-void sgui_internal_window_post_init(sgui_window *this, sgui_lib *lib,
-					unsigned int width,
-					unsigned int height, int backend)
-{
-	this->w = width;
-	this->h = height;
-	this->backend = backend;
-	this->modmask = 0;
-	this->lib = lib;
-
-	if (this->backend == SGUI_NATIVE) {
-		sgui_canvas_begin(this->ctx.canvas, NULL);
-		sgui_canvas_clear(this->ctx.canvas, NULL);
-		sgui_canvas_end(this->ctx.canvas);
-	}
-}
-
 static void send_raw_event(sgui_window *this, const sgui_event *e)
 {
 	if (this->event_fun)

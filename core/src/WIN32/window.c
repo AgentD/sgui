@@ -612,9 +612,18 @@ sgui_window *window_create_w32(sgui_lib *slib,
 	super->destroy = w32_window_destroy;
 	super->write_clipboard = w32_window_write_clipboard;
 	super->read_clipboard = w32_window_read_clipboard;
+	super->w = desc->width;
+	super->h = desc->height;
+	super->backend = desc->backend;
+	super->modmask = 0;
+	super->lib = slib;
 
-	sgui_internal_window_post_init((sgui_window *)this, slib, desc->width,
-					desc->height, desc->backend);
+	if (desc->backend == SGUI_NATIVE) {
+		sgui_canvas_begin(super->ctx.canvas, NULL);
+		sgui_canvas_clear(super->ctx.canvas, NULL);
+		sgui_canvas_end(super->ctx.canvas);
+	}
+
 	sgui_internal_add_window(slib, super);
 	sgui_internal_unlock_mutex();
 	return (sgui_window *)this;

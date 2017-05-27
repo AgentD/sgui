@@ -599,9 +599,18 @@ sgui_window *x11_window_create(sgui_lib *lib,
 	super->read_clipboard = xlib_window_clipboard_read;
 	super->make_topmost = xlib_window_make_topmost;
 	super->destroy = xlib_window_destroy;
+	super->w = attr.width;
+	super->h = attr.height;
+	super->backend = desc->backend;
+	super->modmask = 0;
+	super->lib = lib;
 
-	sgui_internal_window_post_init(super, lib, attr.width, attr.height,
-					desc->backend);
+	if (desc->backend == SGUI_NATIVE) {
+		sgui_canvas_begin(super->ctx.canvas, NULL);
+		sgui_canvas_clear(super->ctx.canvas, NULL);
+		sgui_canvas_end(super->ctx.canvas);
+	}
+
 	sgui_internal_add_window(lib, super);
 	sgui_internal_unlock_mutex();
 	return (sgui_window *)this;

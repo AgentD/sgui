@@ -69,26 +69,6 @@ SGUI_DLL void sgui_internal_lock_mutex( void );
  */
 SGUI_DLL void sgui_internal_unlock_mutex( void );
 
-/**
- * \brief Perform common operations at the end of sgui_window_create
- *
- * \memberof sgui_window
- * \protected
- *
- * This function stores the size and backend of a window in a window
- * structure.
- *
- * \param window  A pointer to a window structure
- * \param width   The width to store in the structure
- * \param height  The height to store in the structure
- * \param backend The backend to store in the structure
- */
-SGUI_DLL void sgui_internal_window_post_init( sgui_window* window,
-                                              sgui_lib *lib,
-                                              unsigned int width,
-                                              unsigned int height,
-                                              int backend );
-
 SGUI_DLL void sgui_internal_remove_window(sgui_lib *lib, sgui_window *wnd);
 
 SGUI_DLL void sgui_internal_add_window(sgui_lib *lib, sgui_window *wnd);
