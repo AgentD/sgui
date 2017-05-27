@@ -63,6 +63,9 @@ static void xlib_window_get_mouse_position(sgui_window *this, int *x, int *y)
 	sgui_internal_lock_mutex();
 	XQueryPointer(lib->dpy, TO_X11(this)->wnd, &t1, &t2, &t3, &t4,
 			x, y, &t5);
+
+	*x = *x < 0 ? 0 : (*x >= (int)this->w ? (int)this->w - 1 : *x);
+	*y = *y < 0 ? 0 : (*y >= (int)this->h ? (int)this->h - 1 : *y);
 	sgui_internal_unlock_mutex();
 }
 
@@ -71,11 +74,13 @@ static void xlib_window_set_mouse_position(sgui_window *this, int x, int y)
 	sgui_lib_x11 *lib = (sgui_lib_x11 *)this->lib;
 
 	sgui_internal_lock_mutex();
-	XWarpPointer(lib->dpy, None, TO_X11(this)->wnd, 0, 0,
-			this->w, this->h, x, y);
-	XFlush(lib->dpy);
+	if (this->flags & SGUI_VISIBLE) {
+		XWarpPointer(lib->dpy, None, TO_X11(this)->wnd, 0, 0,
+				this->w, this->h, x, y);
+		XFlush(lib->dpy);
 
-	++(TO_X11(this)->mouse_warped);
+		++(TO_X11(this)->mouse_warped);
+	}
 	sgui_internal_unlock_mutex();
 }
 
@@ -83,7 +88,11 @@ static int xlib_window_toggle_flags(sgui_window *super, int diff)
 {
 	sgui_window_xlib *this = (sgui_window_xlib *)super;
 	sgui_lib_x11 *lib = (sgui_lib_x11 *)super->lib;
+	sgui_event ev;
 	int ret = 1;
+
+	if (diff & ~SGUI_ALL_WINDOW_FLAGS)
+		return 0;
 
 	sgui_internal_lock_mutex();
 	if (diff & SGUI_DOUBLEBUFFERED) {
@@ -94,6 +103,10 @@ static int xlib_window_toggle_flags(sgui_window *super, int diff)
 	if (diff & SGUI_VISIBLE) {
 		if (super->flags & SGUI_VISIBLE) {
 			XUnmapWindow(lib->dpy, this->wnd);
+
+			ev.src.window = super;
+			ev.type = SGUI_API_INVISIBLE_EVENT;
+			sgui_internal_window_fire_event(super, &ev);
 		} else {
 			XMapWindow(lib->dpy, this->wnd);
 		}
@@ -148,6 +161,9 @@ static void xlib_window_set_size(sgui_window *this, unsigned int width,
 	this->w = (unsigned int)attr.width;
 	this->h = (unsigned int)attr.height;
 
+	if (this->canvas)
+		sgui_canvas_resize(this->canvas, this->w, this->h);
+
 	sgui_internal_unlock_mutex();
 }
 
@@ -169,6 +185,9 @@ static void xlib_window_move(sgui_window *this, int x, int y)
 
 	sgui_internal_lock_mutex();
 	XMoveWindow(lib->dpy, TO_X11(this)->wnd, x, y);
+
+	this->x = x;
+	this->y = y;
 	sgui_internal_unlock_mutex();
 }
 

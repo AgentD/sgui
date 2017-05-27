@@ -35,6 +35,7 @@
 
 #include "sgui_predef.h"
 #include "sgui_canvas.h"
+#include "sgui_context.h"
 
 
 
@@ -428,7 +429,11 @@ SGUI_DLL sgui_window* sgui_window_create_simple( sgui_lib *lib,
  *
  * \see sgui_context
  */
-SGUI_DLL void sgui_window_make_current( sgui_window* window );
+static SGUI_INLINE void sgui_window_make_current(sgui_window *window)
+{
+	if (window->ctx && window->ctx->make_current)
+		window->ctx->make_current(window->ctx, window);
+}
 
 /**
  * \brief Release the rendering context for a window
@@ -440,7 +445,11 @@ SGUI_DLL void sgui_window_make_current( sgui_window* window );
  * sgui_window_make_current( ), this function releases the context from the
  * calling thread.
  */
-SGUI_DLL void sgui_window_release_current( sgui_window* window );
+static SGUI_INLINE void sgui_window_release_current(sgui_window *window)
+{
+	if (window->ctx && window->ctx->release_current)
+		window->ctx->release_current(window->ctx);
+}
 
 /**
  * \brief Swap the back and the front buffer of a window
@@ -483,13 +492,11 @@ static SGUI_INLINE void sgui_window_set_vsync( sgui_window* wnd,
  *
  * The window is closed and all it's resources are freed up, so the window
  * pointer itself is nolonger valid after a call to this function.
- *
- * This function triggers the window close event with SGUI_API_DESTROYED as
- * how paramter, no matter whether the window is visible or not.
  */
-SGUI_DLL void sgui_window_destroy( sgui_window* wnd );
-
-
+static SGUI_INLINE void sgui_window_destroy(sgui_window *wnd)
+{
+	wnd->destroy(wnd);
+}
 
 /**
  * \brief Get the position of the mouse pointer within a window
@@ -499,8 +506,11 @@ SGUI_DLL void sgui_window_destroy( sgui_window* wnd );
  * \param x Returns the distance of the pointer from the left of the window
  * \param y Returns the distance of the pointer from the top of the window
  */
-SGUI_DLL void sgui_window_get_mouse_position( sgui_window* wnd,
-                                              int* x, int* y );
+static SGUI_INLINE void sgui_window_get_mouse_position( sgui_window* wnd,
+                                                        int* x, int* y )
+{
+	wnd->get_mouse_position(wnd, x, y);
+}
 
 /**
  * \brief Set the mouse pointer to a position within a window
@@ -533,7 +543,10 @@ SGUI_DLL void sgui_window_set_mouse_position( sgui_window* wnd, int x, int y,
  *
  * \return Non-zero on success, zero on failure.
  */
-SGUI_DLL int sgui_window_toggle_flags(sgui_window *wnd, int flags);
+static SGUI_INLINE int sgui_window_toggle_flags(sgui_window *wnd, int flags)
+{
+	return wnd->toggle_flags(wnd, flags);
+}
 
 /**
  * \brief Make a window visible or invisible
@@ -602,8 +615,12 @@ static SGUI_INLINE void sgui_window_set_title( sgui_window* wnd,
  * \param height  The height of the window(without borders and decoration)
  *                If zero, the entire screen height is used.
  */
-SGUI_DLL void sgui_window_set_size( sgui_window* wnd,
-                                    unsigned int width, unsigned int height );
+static SGUI_INLINE
+void sgui_window_set_size(sgui_window *wnd, unsigned int width,
+				unsigned int height)
+{
+	wnd->set_size(wnd, width, height);
+}
 
 /**
  * \brief Get the size of a window
@@ -640,7 +657,10 @@ static SGUI_INLINE void sgui_window_move_center( sgui_window* wnd )
  * \param x   The distance of the left of the window to the left of the screen
  * \param y   The distance to the top of the window to the top of the screen
  */
-SGUI_DLL void sgui_window_move( sgui_window* wnd, int x, int y );
+static SGUI_INLINE void sgui_window_move( sgui_window* wnd, int x, int y )
+{
+	wnd->move(wnd, x, y);
+}
 
 /**
  * \brief Get the position of a window
@@ -668,7 +688,11 @@ static SGUI_INLINE void sgui_window_get_position( const sgui_window* wnd,
  * \param wnd A pointer to a window
  * \param r   A pointer to a rect holding the outlines of the redraw area
  */
-SGUI_DLL void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r );
+static SGUI_INLINE
+void sgui_window_force_redraw( sgui_window* wnd, sgui_rect* r )
+{
+	wnd->force_redraw(wnd, r);
+}
 
 /**
  * \brief Set a window's event callback
@@ -732,7 +756,12 @@ static SGUI_INLINE void* sgui_window_get_userptr( const sgui_window* wnd )
  * \param wnd    The window to add the widget to
  * \param widget The widget to add
  */
-SGUI_DLL void sgui_window_add_widget( sgui_window* wnd, sgui_widget* widget );
+static SGUI_INLINE void sgui_window_add_widget(sgui_window* wnd,
+                                               sgui_widget* widget)
+{
+	if (wnd->canvas)
+		sgui_widget_add_child(&wnd->canvas->root, widget);
+}
 
 /**
  * \brief Write a fraction of text to the system clipboard

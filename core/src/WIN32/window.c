@@ -98,10 +98,13 @@ static void w32_window_get_mouse_position(sgui_window *this, int *x, int *y)
 	sgui_internal_lock_mutex();
 	GetCursorPos(&pos);
 	ScreenToClient(TO_W32(this)->hWnd, &pos);
-	sgui_internal_unlock_mutex();
 
 	*x = pos.x;
 	*y = pos.y;
+
+	*x = *x < 0 ? 0 : (*x >= (int)this->w ? (int)this->w - 1 : *x);
+	*y = *y < 0 ? 0 : (*y >= (int)this->h ? (int)this->h - 1 : *y);
+	sgui_internal_unlock_mutex();
 }
 
 static void w32_window_set_mouse_position(sgui_window *this, int x, int y)
@@ -112,16 +115,22 @@ static void w32_window_set_mouse_position(sgui_window *this, int x, int y)
 	pos.y = y;
 
 	sgui_internal_lock_mutex();
-	ClientToScreen(TO_W32(this)->hWnd, &pos);
-	SetCursorPos(pos.x, pos.y);
+	if (this->flags & SGUI_VISIBLE) {
+		ClientToScreen(TO_W32(this)->hWnd, &pos);
+		SetCursorPos(x, y);
+	}
 	sgui_internal_unlock_mutex();
 }
 
 static int w32_window_toggle_flags(sgui_window *super, int diff)
 {
 	sgui_window_w32 *this = (sgui_window_w32 *)super;
+	sgui_event ev;
 	int ret = 1;
 	LONG lv;
+
+	if (diff & ~SGUI_ALL_WINDOW_FLAGS)
+		return 0;
 
 	sgui_internal_lock_mutex();
 	if (diff & SGUI_DOUBLEBUFFERED) {
@@ -134,6 +143,12 @@ static int w32_window_toggle_flags(sgui_window *super, int diff)
 					SW_HIDE : SW_SHOWNORMAL);
 
 		super->flags ^= SGUI_VISIBLE;
+
+		if (!(super->flags & SGUI_VISIBLE)) {
+			ev.src.window = super;
+			ev.type = SGUI_API_INVISIBLE_EVENT;
+			sgui_internal_window_fire_event(super, &ev);
+		}
 	}
 
 	if (diff & SGUI_FIXED_SIZE) {
@@ -215,6 +230,7 @@ static void w32_window_set_size(sgui_window *this,
 	if (this->canvas) {
 		resize_pixmap(TO_W32(this));
 		sgui_canvas_resize(this->canvas, width, height);
+		sgui_canvas_draw_widgets(this->canvas, 1);
 	}
 
 	if (this->backend == SGUI_DIRECT3D_11)
@@ -255,6 +271,8 @@ static void w32_window_move(sgui_window *this, int x, int y)
 	MoveWindow(TO_W32(this)->hWnd, x, y, r.right - r.left,
 		r.bottom - r.top, TRUE);
 
+	this->x = x;
+	this->y = y;
 	sgui_internal_unlock_mutex();
 }
 

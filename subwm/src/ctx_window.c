@@ -25,6 +25,7 @@
 #include "sgui_ctx_window.h"
 #include "sgui_tex_canvas.h"
 #include "sgui_subwm_skin.h"
+#include "sgui_internal.h"
 #include "sgui_ctx_wm.h"
 #include "sgui_event.h"
 
@@ -38,6 +39,9 @@ static void get_mouse_position( sgui_window* this, int* x, int* y )
     sgui_window_get_mouse_position( ((sgui_ctx_window*)this)->parent, x, y );
     *x -= this->x;
     *y -= this->y;
+
+    *x = *x < 0 ? 0 : (*x >= (int)this->w ? (int)this->w - 1 : *x);
+    *y = *y < 0 ? 0 : (*y >= (int)this->h ? (int)this->h - 1 : *y);
 }
 
 static void set_mouse_position( sgui_window* this, int x, int y )
@@ -48,7 +52,18 @@ static void set_mouse_position( sgui_window* this, int x, int y )
 
 static int toggle_flags(sgui_window *this, int diff)
 {
+	sgui_event ev;
+
+	if (diff & ~SGUI_ALL_WINDOW_FLAGS)
+		return 0;
+
 	this->flags ^= diff;
+
+	if (!(this->flags & SGUI_VISIBLE) && (diff & SGUI_VISIBLE)) {
+		ev.src.window = this;
+		ev.type = SGUI_API_INVISIBLE_EVENT;
+		sgui_internal_window_fire_event(this, &ev);
+	}
 	return 1;
 }
 

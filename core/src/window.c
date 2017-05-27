@@ -141,124 +141,23 @@ sgui_window *sgui_window_create_simple(sgui_lib *lib, sgui_window *parent,
 	return lib->create_window(lib, &desc);
 }
 
-void sgui_window_get_mouse_position(sgui_window *this, int *x, int *y)
-{
-	this->get_mouse_position(this, x, y);
-
-	*x = *x < 0 ? 0 : (*x >= (int)this->w ? ((int)this->w - 1) : *x);
-	*y = *y < 0 ? 0 : (*y >= (int)this->h ? ((int)this->h - 1) : *y);
-}
-
 void sgui_window_set_mouse_position(sgui_window *this, int x, int y,
 					int send_event)
 {
 	sgui_event e;
 
-	sgui_internal_lock_mutex();
-	if (this->flags & SGUI_VISIBLE) {
-		x = x < 0 ? 0 : (x >= (int)this->w ? ((int)this->w - 1) : x);
-		y = y < 0 ? 0 : (y >= (int)this->h ? ((int)this->h - 1) : y);
+	this->set_mouse_position(this, x, y);
 
-		this->set_mouse_position(this, x, y);
-
-		if (send_event) {
-			e.arg.i2.x = x;
-			e.arg.i2.y = y;
-			e.src.window = this;
-			e.type = SGUI_MOUSE_MOVE_EVENT;
-			sgui_internal_window_fire_event(this, &e);
-		}
+	if (send_event) {
+		e.arg.i2.x = x;
+		e.arg.i2.y = y;
+		e.src.window = this;
+		e.type = SGUI_MOUSE_MOVE_EVENT;
+		sgui_internal_window_fire_event(this, &e);
 	}
-	sgui_internal_unlock_mutex();
-}
-
-int sgui_window_toggle_flags(sgui_window *this, int diff)
-{
-	int old_flags, ret = 1;
-	sgui_event ev;
-
-	if (diff & ~SGUI_ALL_WINDOW_FLAGS)
-		return 0;
-	if (!diff)
-		return 1;
-
-	sgui_internal_lock_mutex();
-	old_flags = this->flags;
-
-	ret = this->toggle_flags(this, diff);
-	if (!ret)
-		goto out;
-
-	if (old_flags & diff & SGUI_VISIBLE) {
-		ev.src.window = this;
-		ev.type = SGUI_API_INVISIBLE_EVENT;
-		sgui_internal_window_fire_event(this, &ev);
-	}
-out:
-	sgui_internal_unlock_mutex();
-	return ret;
-}
-
-void sgui_window_set_size(sgui_window *this,
-				unsigned int width, unsigned int height)
-{
-	sgui_internal_lock_mutex();
-	if (width && height && (width != this->w || height != this->h)) {
-		this->set_size(this, width, height);
-
-		if (this->canvas) {
-			sgui_canvas_resize(this->canvas, this->w, this->h);
-			sgui_canvas_draw_widgets(this->canvas, 1);
-		}
-	}
-	sgui_internal_unlock_mutex();
-}
-
-void sgui_window_move(sgui_window *this, int x, int y)
-{
-	sgui_internal_lock_mutex();
-	this->move(this, x, y);
-	this->x = x;
-	this->y = y;
-	sgui_internal_unlock_mutex();
-}
-
-void sgui_window_make_current(sgui_window *this)
-{
-	if (this->ctx && this->ctx->make_current)
-		this->ctx->make_current(this->ctx, this);
-}
-
-void sgui_window_release_current(sgui_window *this)
-{
-	if (this->ctx && this->ctx->release_current)
-		this->ctx->release_current(this->ctx);
-}
-
-void sgui_window_destroy(sgui_window *this)
-{
-	this->destroy(this);
-}
-
-void sgui_window_force_redraw(sgui_window *this, sgui_rect *r)
-{
-	sgui_rect r0;
-
-	r0.left = MIN(r->left, 0);
-	r0.top = MIN(r->top, 0);
-	r0.right = MAX(r->right, (int)this->w - 1);
-	r0.bottom = MAX(r->bottom, (int)this->h - 1);
-
-	this->force_redraw(this, &r0);
 }
 
 /****************************************************************************/
-
-void sgui_window_add_widget(sgui_window *this, sgui_widget *widget)
-{
-	if (this->canvas)
-		sgui_widget_add_child(&this->canvas->root, widget);
-}
 
 void sgui_window_pack(sgui_window *this)
 {
