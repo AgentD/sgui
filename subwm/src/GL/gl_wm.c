@@ -466,7 +466,7 @@ sgui_ctx_wm* gl_wm_create_core( sgui_window* wnd )
 
     /* load extensions */
     gl = &(this->gl);
-    if( !sgui_gl_functions_load( gl, wnd->ctx.ctx ) )
+    if( !sgui_gl_functions_load( gl, wnd->ctx ) )
     {
         free( this );
         return NULL;

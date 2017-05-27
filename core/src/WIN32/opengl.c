@@ -322,7 +322,7 @@ static sgui_context *context_gl_create_share(sgui_context *super)
 	sgui_gl_context *this = (sgui_gl_context *)super;
 
 	return gl_context_create(this->wnd, this->wnd->super.backend,
-				this->wnd->super.ctx.ctx);
+				this->wnd->super.ctx);
 }
 
 static void context_gl_destroy(sgui_context *this)

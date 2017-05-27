@@ -49,8 +49,8 @@ static void send_raw_event(sgui_window *this, const sgui_event *e)
 
 	sgui_event_post(e);
 
-	if (this->backend == SGUI_NATIVE)
-		sgui_canvas_send_window_event(this->ctx.canvas, e);
+	if (this->canvas)
+		sgui_canvas_send_window_event(this->canvas, e);
 }
 
 void sgui_internal_window_fire_event(sgui_window *this, const sgui_event *e)
@@ -206,9 +206,9 @@ void sgui_window_set_size(sgui_window *this,
 	if (width && height && (width != this->w || height != this->h)) {
 		this->set_size(this, width, height);
 
-		if (this->backend == SGUI_NATIVE) {
-			sgui_canvas_resize(this->ctx.canvas, this->w, this->h);
-			sgui_canvas_draw_widgets(this->ctx.canvas, 1);
+		if (this->canvas) {
+			sgui_canvas_resize(this->canvas, this->w, this->h);
+			sgui_canvas_draw_widgets(this->canvas, 1);
 		}
 	}
 	sgui_internal_unlock_mutex();
@@ -225,14 +225,14 @@ void sgui_window_move(sgui_window *this, int x, int y)
 
 void sgui_window_make_current(sgui_window *this)
 {
-	if(this->backend != SGUI_NATIVE && this->ctx.ctx->make_current)
-		this->ctx.ctx->make_current(this->ctx.ctx, this);
+	if (this->ctx && this->ctx->make_current)
+		this->ctx->make_current(this->ctx, this);
 }
 
 void sgui_window_release_current(sgui_window *this)
 {
-	if (this->backend != SGUI_NATIVE && this->ctx.ctx->release_current)
-		this->ctx.ctx->release_current(this->ctx.ctx);
+	if (this->ctx && this->ctx->release_current)
+		this->ctx->release_current(this->ctx);
 }
 
 void sgui_window_destroy(sgui_window *this)
@@ -262,8 +262,8 @@ void sgui_window_force_redraw(sgui_window *this, sgui_rect *r)
 
 void sgui_window_add_widget(sgui_window *this, sgui_widget *widget)
 {
-	if (this->backend == SGUI_NATIVE)
-		sgui_widget_add_child(&this->ctx.canvas->root, widget);
+	if (this->canvas)
+		sgui_widget_add_child(&this->canvas->root, widget);
 }
 
 void sgui_window_pack(sgui_window *this)
@@ -274,10 +274,10 @@ void sgui_window_pack(sgui_window *this)
 
 	sgui_internal_lock_mutex();
 
-	if (this->backend != SGUI_NATIVE)
+	if (this->canvas)
 		goto done;
 
-	if (!(w = this->ctx.canvas->root.children))
+	if (!(w = this->canvas->root.children))
 		goto done;
 
 	/* get bounding rectangle for all widgets */

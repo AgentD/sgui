@@ -226,14 +226,14 @@ static void *context_d3d11_get_internal(sgui_context *ctx)
 
 static void d3d11_swap_buffers(sgui_window *wnd)
 {
-	sgui_d3d11_context *ctx = (sgui_d3d11_context *)wnd->ctx.ctx;
+	sgui_d3d11_context *ctx = (sgui_d3d11_context *)wnd->ctx;
 
 	ctx->swapchain->Present(ctx->syncrate, 0);
 }
 
 static void d3d11_set_vsync(sgui_window *wnd, int interval)
 {
-	sgui_d3d11_context *ctx = (sgui_d3d11_context *)wnd->ctx.ctx;
+	sgui_d3d11_context *ctx = (sgui_d3d11_context *)wnd->ctx;
 
 	ctx->syncrate = interval ? 1 : 0;
 }

@@ -184,16 +184,9 @@ struct sgui_window
     /** \brief The \ref sgui_lib implementation that this window belongs to */
     sgui_lib *lib;
 
-    /**
-     * \brief A window can have either an sgui_canvas implementation, or an
-     *        sgui_context implementation, not both
-     */
-    union
-    {
-        sgui_canvas* canvas;       /**< \brief pointer to a canvas */
-        sgui_context* ctx;         /**< \brief Pointer to rendering context */
-    }
-    ctx;
+    sgui_canvas* canvas;       /**< \brief pointer to a canvas */
+
+    sgui_context* ctx;         /**< \brief Pointer to rendering context */
 
     sgui_window_callback event_fun; /**< \brief the window event callback */
 
@@ -780,7 +773,7 @@ static SGUI_INLINE const char* sgui_window_read_clipboard( sgui_window* wnd )
  */
 static SGUI_INLINE sgui_canvas* sgui_window_get_canvas(const sgui_window* wnd)
 {
-    return wnd->backend==SGUI_NATIVE ? wnd->ctx.canvas : NULL;
+    return wnd->canvas;
 }
 
 /**
@@ -824,7 +817,7 @@ static SGUI_INLINE void sgui_window_get_platform_data( const sgui_window* wnd,
 static SGUI_INLINE
 sgui_context* sgui_window_get_context( const sgui_window* wnd )
 {
-    return wnd->backend!=SGUI_NATIVE ? wnd->ctx.ctx : NULL;
+    return wnd->ctx;
 }
 
 /**

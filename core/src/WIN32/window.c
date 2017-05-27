@@ -41,7 +41,7 @@ static void resize_pixmap(sgui_window_w32 *this)
 
 	SelectObject(this->hDC, this->bitmap);
 
-	sgui_memory_canvas_set_buffer(super->ctx.canvas, TO_W32(this)->data);
+	sgui_memory_canvas_set_buffer(super->canvas, TO_W32(this)->data);
 }
 
 static void create_canvas(sgui_window_w32 *this, sgui_lib *lib,
@@ -73,10 +73,10 @@ static void create_canvas(sgui_window_w32 *this, sgui_lib *lib,
 	if (!this->bgbrush)
 		goto faildib;
 
-	super->ctx.canvas = sgui_memory_canvas_create(lib, this->data,
+	super->canvas = sgui_memory_canvas_create(lib, this->data,
 						desc->width, desc->height,
 						SGUI_RGBA8, 1);
-	if (!super->ctx.canvas)
+	if (!super->canvas)
 		goto failbrush;
 
 	SelectObject(this->hDC, this->bitmap);
@@ -212,12 +212,13 @@ static void w32_window_set_size(sgui_window *this,
 	this->w = width;
 	this->h = height;
 
-	if (this->backend == SGUI_NATIVE) {
+	if (this->canvas) {
 		resize_pixmap(TO_W32(this));
-		sgui_canvas_resize(this->ctx.canvas, width, height);
-	} else if (this->backend == SGUI_DIRECT3D_11) {
-		d3d11_resize(this->ctx.ctx);
+		sgui_canvas_resize(this->canvas, width, height);
 	}
+
+	if (this->backend == SGUI_DIRECT3D_11)
+		d3d11_resize(this->ctx);
 
 	sgui_internal_unlock_mutex();
 }
@@ -288,9 +289,14 @@ static void w32_window_destroy(sgui_window *this)
 	sgui_internal_remove_window(this->lib, this);
 	SET_USER_PTR(TO_W32(this)->hWnd, NULL);
 
+	if (this->canvas)
+		sgui_canvas_destroy(this->canvas);
+
+	if (this->ctx)
+		this->ctx->destroy(this->ctx);
+
 	switch (this->backend) {
 	case SGUI_NATIVE:
-		sgui_canvas_destroy(this->ctx.canvas);
 		SelectObject(TO_W32(this)->hDC, 0);
 		DeleteObject(TO_W32(this)->bitmap);
 		DeleteObject(TO_W32(this)->bgbrush);
@@ -298,13 +304,7 @@ static void w32_window_destroy(sgui_window *this)
 		break;
 	case SGUI_OPENGL_CORE:
 	case SGUI_OPENGL_COMPAT:
-		this->ctx.ctx->destroy(this->ctx.ctx);
 		ReleaseDC(TO_W32(this)->hWnd, TO_W32(this)->hDC);
-		break;
-	case SGUI_CUSTOM:
-		break;
-	default:
-		this->ctx.ctx->destroy(this->ctx.ctx);
 		break;
 	}
 
@@ -323,21 +323,22 @@ void update_window(sgui_window_w32 *this)
 	sgui_rect sr;
 	RECT r;
 
-	if (super->backend == SGUI_NATIVE) {
-		num = sgui_canvas_num_dirty_rects(super->ctx.canvas);
+	if (super->canvas) {
+		num = sgui_canvas_num_dirty_rects(super->canvas);
 
 		for (i = 0; i < num; ++i) {
-			sgui_canvas_get_dirty_rect(super->ctx.canvas, &sr, i);
+			sgui_canvas_get_dirty_rect(super->canvas, &sr, i);
 
 			SetRect(&r, sr.left, sr.top,
 				sr.right + 1, sr.bottom + 1);
 			InvalidateRect(this->hWnd, &r, TRUE);
 		}
 
-		sgui_canvas_redraw_widgets(super->ctx.canvas, 1);
-	} else if (super->backend == SGUI_DIRECT3D_9) {
-		send_event_if_d3d9_lost(super);
+		sgui_canvas_redraw_widgets(super->canvas, 1);
 	}
+
+	if (super->backend == SGUI_DIRECT3D_9)
+		send_event_if_d3d9_lost(super);
 }
 
 static int handle_key_event(sgui_window_w32 *this, UINT msg,
@@ -419,17 +420,19 @@ static int handle_resize(sgui_window_w32 *this, LPARAM lp)
 	e.arg.ui2.x = super->w;
 	e.arg.ui2.y = super->h;
 
-	if (super->backend == SGUI_NATIVE) {
+	if (super->backend == SGUI_NATIVE)
 		resize_pixmap(this);
-		sgui_canvas_resize(super->ctx.canvas, super->w, super->h);
-	} else if (super->backend == SGUI_DIRECT3D_11) {
-		d3d11_resize(super->ctx.ctx);
-	}
+
+	if (super->canvas)
+		sgui_canvas_resize(super->canvas, super->w, super->h);
+
+	if (super->backend == SGUI_DIRECT3D_11)
+		d3d11_resize(super->ctx);
 
 	sgui_internal_window_fire_event(super, &e);
 
 	if (super->backend == SGUI_NATIVE)
-		sgui_canvas_draw_widgets(super->ctx.canvas, 1);
+		sgui_canvas_draw_widgets(super->canvas, 1);
 	return 0;
 }
 
@@ -569,26 +572,26 @@ sgui_window *window_create_w32(sgui_lib *slib,
 	switch (desc->backend) {
 	case SGUI_NATIVE:
 		create_canvas(this, slib, desc);
-		if (!super->ctx.canvas)
+		if (!super->canvas)
 			goto failcv;
 		break;
 	case SGUI_OPENGL_CORE:
 	case SGUI_OPENGL_COMPAT:
 		if (!set_pixel_format(this, slib, desc))
 			break;
-		super->ctx.ctx = gl_context_create(this, desc->backend,
+		super->ctx = gl_context_create(this, desc->backend,
 							desc->share);
-		if (!super->ctx.ctx)
+		if (!super->ctx)
 			goto faildc;
 		break;
 	case SGUI_DIRECT3D_9:
-		super->ctx.ctx = d3d9_context_create(super, desc);
-		if (!super->ctx.ctx)
+		super->ctx = d3d9_context_create(super, desc);
+		if (!super->ctx)
 			goto failcv;
 		break;
 	case SGUI_DIRECT3D_11:
-		super->ctx.ctx = d3d11_context_create(super, desc);
-		if (!super->ctx.ctx)
+		super->ctx = d3d11_context_create(super, desc);
+		if (!super->ctx)
 			goto failcv;
 		break;
 	}
@@ -618,10 +621,10 @@ sgui_window *window_create_w32(sgui_lib *slib,
 	super->modmask = 0;
 	super->lib = slib;
 
-	if (desc->backend == SGUI_NATIVE) {
-		sgui_canvas_begin(super->ctx.canvas, NULL);
-		sgui_canvas_clear(super->ctx.canvas, NULL);
-		sgui_canvas_end(super->ctx.canvas);
+	if (super->canvas) {
+		sgui_canvas_begin(super->canvas, NULL);
+		sgui_canvas_clear(super->canvas, NULL);
+		sgui_canvas_end(super->canvas);
 	}
 
 	sgui_internal_add_window(slib, super);

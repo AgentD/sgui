@@ -103,7 +103,7 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
  */
 static SGUI_INLINE void sgui_ctx_window_update_canvas( sgui_window* wnd )
 {
-    sgui_canvas_redraw_widgets( wnd->ctx.canvas, 1 );
+    sgui_canvas_redraw_widgets( wnd->canvas, 1 );
 }
 
 /**
@@ -119,7 +119,7 @@ static SGUI_INLINE void sgui_ctx_window_update_canvas( sgui_window* wnd )
  */
 static SGUI_INLINE void* sgui_ctx_window_get_texture( sgui_window* wnd )
 {
-    return sgui_tex_canvas_get_texture( wnd->ctx.canvas );
+    return sgui_tex_canvas_get_texture( wnd->canvas );
 }
 
 /**

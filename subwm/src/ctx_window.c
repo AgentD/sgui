@@ -61,9 +61,9 @@ static void set_title( sgui_window* this, const char* title )
 
     sgui_rect_set_size( &r, 0, 0, this->w, skin->get_titlebar_height(skin) );
 
-    sgui_canvas_begin( this->ctx.canvas, &r );
-    skin->draw_title_bar( skin, this->ctx.canvas, title );
-    sgui_canvas_end( this->ctx.canvas );
+    sgui_canvas_begin( this->canvas, &r );
+    skin->draw_title_bar( skin, this->canvas, title );
+    sgui_canvas_end( this->canvas );
 }
 
 static void set_size( sgui_window* super,
@@ -99,7 +99,7 @@ static void destroy( sgui_window* super )
     if( this->wm )
         sgui_ctx_wm_remove_window( this->wm, super );
 
-    sgui_canvas_destroy( super->ctx.canvas );
+    sgui_canvas_destroy( super->canvas );
     free( this );
 }
 
@@ -162,18 +162,18 @@ sgui_window* sgui_ctx_window_create( sgui_window* parent,
         return NULL;
 
     /* create canvas */
-    super->ctx.canvas = sgui_tex_canvas_create( parent, width, height );
+    super->canvas = sgui_tex_canvas_create( parent, width, height );
 
-    if( !super->ctx.canvas )
+    if( !super->canvas )
     {
         free( this );
         return NULL;
     }
 
     /* clear canvas */
-    sgui_canvas_begin( super->ctx.canvas, NULL );
-    sgui_canvas_clear( super->ctx.canvas, NULL );
-    sgui_canvas_end( super->ctx.canvas );
+    sgui_canvas_begin( super->canvas, NULL );
+    sgui_canvas_clear( super->canvas, NULL );
+    sgui_canvas_end( super->canvas );
 
     /* initialize */
     sgui_window_get_size( parent, &pw, &ph );
@@ -222,6 +222,6 @@ void sgui_ctx_window_inject_event( sgui_window* this, const sgui_event* ev )
         copy.arg.i3.y -= this->y;
     }
 
-    sgui_canvas_send_window_event( this->ctx.canvas, &copy );
+    sgui_canvas_send_window_event( this->canvas, &copy );
 }
 

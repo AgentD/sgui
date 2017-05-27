@@ -221,7 +221,7 @@ static void d3d9_swap_buffers(sgui_window *wnd)
 	IDirect3DDevice9 *dev;
 
 	sgui_internal_lock_mutex();
-	dev = ((sgui_d3d9_context *)wnd->ctx.ctx)->device;
+	dev = ((sgui_d3d9_context *)wnd->ctx)->device;
 
 	dev->Present(NULL, NULL, NULL, NULL);
 	sgui_internal_unlock_mutex();
@@ -229,7 +229,7 @@ static void d3d9_swap_buffers(sgui_window *wnd)
 
 static void d3d9_set_vsync(sgui_window *wnd, int interval)
 {
-	sgui_d3d9_context *ctx = (sgui_d3d9_context *)wnd->ctx.ctx;
+	sgui_d3d9_context *ctx = (sgui_d3d9_context *)wnd->ctx;
 
 	sgui_internal_lock_mutex();
 	if (interval) {
@@ -299,7 +299,7 @@ fail:
 
 void send_event_if_d3d9_lost(sgui_window *wnd)
 {
-	IDirect3DDevice9 *dev = ((sgui_d3d9_context *)wnd->ctx.ctx)->device;
+	IDirect3DDevice9 *dev = ((sgui_d3d9_context *)wnd->ctx)->device;
 	sgui_event e;
 
 	if (dev->TestCooperativeLevel() == D3DERR_DEVICELOST) {

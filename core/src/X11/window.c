@@ -200,11 +200,11 @@ static void xlib_window_destroy(sgui_window *this)
 	sgui_internal_lock_mutex();
 	sgui_internal_remove_window(this->lib, this);
 
-	if (this->backend == SGUI_NATIVE) {
-		sgui_canvas_destroy(this->ctx.canvas);
-	} else if (this->backend != SGUI_CUSTOM) {
-		this->ctx.ctx->destroy(this->ctx.ctx);
-	}
+	if (this->canvas)
+		sgui_canvas_destroy(this->canvas);
+
+	if (this->ctx)
+		this->ctx->destroy(this->ctx);
 
 	XDestroyIC(TO_X11(this)->ic);
 	XDestroyWindow(lib->dpy, TO_X11(this)->wnd);
@@ -373,8 +373,8 @@ static void handle_resize(sgui_window_xlib *this, XEvent *e)
 	super->w = (unsigned int)e->xconfigure.width;
 	super->h = (unsigned int)e->xconfigure.height;
 
-	if (super->backend == SGUI_NATIVE)
-		sgui_canvas_resize(super->ctx.canvas, super->w, super->h);
+	if (super->canvas)
+		sgui_canvas_resize(super->canvas, super->w, super->h);
 
 	sgui_internal_window_fire_event(super, &se);
 }
@@ -427,10 +427,10 @@ static void handle_expose(sgui_window_xlib *this, XEvent *e)
 	sgui_event se;
 	sgui_rect r;
 
-	if (super->backend == SGUI_NATIVE) {
+	if (super->canvas) {
 		sgui_rect_set_size(&r, e->xexpose.x, e->xexpose.y,
 					e->xexpose.width, e->xexpose.height);
-		sgui_canvas_redraw_area(super->ctx.canvas, &r, 1);
+		sgui_canvas_redraw_area(super->canvas, &r, 1);
 	} else {
 		se.type = SGUI_EXPOSE_EVENT;
 		se.src.window = super;
@@ -563,18 +563,17 @@ sgui_window *x11_window_create(sgui_lib *lib,
 
 	switch (desc->backend) {
 	case SGUI_NATIVE:
-		super->ctx.canvas = canvas_x11_create(lib, this->wnd,
-							attr.width,
+		super->canvas = canvas_x11_create(lib, this->wnd, attr.width,
 							attr.height, 1);
-		if (!super->ctx.canvas)
+		if (!super->canvas)
 			goto failcv;
 		break;
 	case SGUI_OPENGL_CORE:
 	case SGUI_OPENGL_COMPAT:
-		super->ctx.ctx = gl_context_create(super, lib, desc->backend,
-							desc->share);
+		super->ctx = gl_context_create(super, lib, desc->backend,
+						desc->share);
 
-		if (!super->ctx.ctx)
+		if (!super->ctx)
 			goto failcv;
 		break;
 	}
@@ -605,10 +604,10 @@ sgui_window *x11_window_create(sgui_lib *lib,
 	super->modmask = 0;
 	super->lib = lib;
 
-	if (desc->backend == SGUI_NATIVE) {
-		sgui_canvas_begin(super->ctx.canvas, NULL);
-		sgui_canvas_clear(super->ctx.canvas, NULL);
-		sgui_canvas_end(super->ctx.canvas);
+	if (super->canvas) {
+		sgui_canvas_begin(super->canvas, NULL);
+		sgui_canvas_clear(super->canvas, NULL);
+		sgui_canvas_end(super->canvas);
 	}
 
 	sgui_internal_add_window(lib, super);
