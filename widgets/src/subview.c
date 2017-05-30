@@ -66,7 +66,6 @@ static void subview_on_subwindow_event(sgui_subview *this,
 {
 	switch (e->type) {
 	case SGUI_USER_CLOSED_EVENT:	/* sub window -> not possible */
-	case SGUI_API_DESTROY_EVENT:	/* caused by sgui_widget_destroy */
 		break;
 	case SGUI_SIZE_CHANGE_EVENT:
 	case SGUI_EXPOSE_EVENT:

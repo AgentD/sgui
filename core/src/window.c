@@ -237,12 +237,6 @@ void sgui_window_release_current(sgui_window *this)
 
 void sgui_window_destroy(sgui_window *this)
 {
-	sgui_event ev;
-
-	ev.src.window = this;
-	ev.type = SGUI_API_DESTROY_EVENT;
-	sgui_internal_window_fire_event(this, &ev);
-
 	this->destroy(this);
 }
 
