@@ -189,12 +189,14 @@ static void button_on_event(sgui_widget *super, const sgui_event *e)
 	case SGUI_KEY_RELEASED_EVENT:
 		if (e->arg.i != SGUI_KC_RETURN && e->arg.i != SGUI_KC_SPACE)
 			break;
+		/* falls through */
 	case SGUI_MOUSE_RELEASE_EVENT:
 		button_select(this, 0, 1);
 		break;
 	case SGUI_KEY_PRESSED_EVENT:
 		if (e->arg.i != SGUI_KC_RETURN && e->arg.i != SGUI_KC_SPACE)
 			break;
+		/* falls through */
 	case SGUI_MOUSE_PRESS_EVENT:
 		button_select(this, 1, 0);
 		break;

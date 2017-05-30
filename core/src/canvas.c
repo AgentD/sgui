@@ -290,7 +290,8 @@ void sgui_canvas_send_window_event(sgui_canvas *this, const sgui_event *e)
 				sgui_canvas_set_focus(this, i);
 				break;
 			}
-		}			/* XXX: fallthrough */
+		}
+		/* falls through */
 	case SGUI_KEY_PRESSED_EVENT:
 	case SGUI_CHAR_EVENT:
 		if (!this->focus)

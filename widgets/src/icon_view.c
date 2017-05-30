@@ -548,6 +548,7 @@ static void icon_view_on_event(sgui_widget *super, const sgui_event *e)
 	case SGUI_MOUSE_RELEASE_EVENT:
 		if (e->arg.i3.z != SGUI_MOUSE_BUTTON_LEFT)
 			break;
+		/* falls through */
 	case SGUI_MOUSE_LEAVE_EVENT:
 		if (this->drag) {
 			sgui_widget_get_absolute_rect(super, &r);

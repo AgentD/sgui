@@ -75,6 +75,7 @@ static void subview_on_subwindow_event(sgui_subview *this,
 			sgui_window_swap_buffers(this->subwnd);
 			sgui_window_release_current(this->subwnd);
 		}
+		/* falls through */
 	default:
 		if (this->window_fun)
 			this->window_fun((sgui_widget *)this, e);

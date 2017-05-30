@@ -154,6 +154,7 @@ void sgui_message_box_emergency(const char *caption, const char *text)
 				if (!offset)
 					run = 0;
 			}
+			/* falls through */
 		case Expose:
 		case MapNotify:
 			XClearWindow(dpy, wnd);
