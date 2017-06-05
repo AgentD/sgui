@@ -32,6 +32,7 @@
 #include "sgui_label.h"
 #include "sgui_event.h"
 #include "sgui_rect.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -68,7 +69,7 @@ static void message_box_button_pressed(sgui_dialog *super, int button)
 	}
 
 	sgui_window_set_visible(super->window, 0);
-	sgui_event_post(&ev);
+	sgui_event_post(super->window->lib->ev, &ev);
 }
 
 static void sgui_message_box_destroy(sgui_dialog *super)

@@ -102,7 +102,7 @@ int main( )
         In short, when "button" sends an SGUI_BUTTON_OUT_EVENT, the event
         system calls "sgui_window_set_visible( wnd, SGUI_INVISIBLE )"
      */
-    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, button, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_set_visible, wnd,
                         SGUI_INT, 0 );
 

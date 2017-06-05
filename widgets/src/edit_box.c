@@ -29,6 +29,7 @@
 #include "sgui_internal.h"
 #include "sgui_widget.h"
 #include "sgui_utf8.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -184,11 +185,15 @@ static void edit_box_draw(sgui_widget *super)
 
 static void edit_box_text_changed(sgui_edit_box *this, int type)
 {
+	sgui_canvas *cv = ((sgui_widget *)this)->canvas;
 	sgui_event se;
 
-	se.src.widget = (sgui_widget *)this;
-	se.type = type;
-	sgui_event_post(&se);
+	if (cv && cv->lib) {
+		se.src.widget = (sgui_widget *)this;
+		se.type = type;
+	
+		sgui_event_post(cv->lib->ev, &se);
+	}
 }
 
 static void edit_box_on_event(sgui_widget *super, const sgui_event *e)

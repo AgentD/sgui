@@ -32,6 +32,7 @@
 #include "sgui_label.h"
 #include "sgui_event.h"
 #include "sgui_skin.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -114,15 +115,15 @@ static void color_dialog_handle_button(sgui_dialog *super, int idx)
 	case 0:
 		ev.type = SGUI_COLOR_SELECTED_RGBA_EVENT;
 		sgui_color_picker_get_rgb(this->picker, ev.arg.color);
-		sgui_event_post(&ev);
+		sgui_event_post(super->window->lib->ev, &ev);
 
 		ev.type = SGUI_COLOR_SELECTED_HSVA_EVENT;
 		sgui_color_picker_get_hsv(this->picker, ev.arg.color);
-		sgui_event_post(&ev);
+		sgui_event_post(super->window->lib->ev, &ev);
 		break;
 	default:
 		ev.type = SGUI_DIALOG_REJECTED;
-		sgui_event_post(&ev);
+		sgui_event_post(super->window->lib->ev, &ev);
 		break;
 	}
 
@@ -132,24 +133,25 @@ static void color_dialog_handle_button(sgui_dialog *super, int idx)
 static void sgui_color_dialog_destroy(sgui_dialog *super)
 {
 	sgui_color_dialog *this = (sgui_color_dialog *)super;
+	sgui_event_queue *ev = super->window->lib->ev;
 
-	sgui_event_disconnect(this->picker, SGUI_HSVA_CHANGED_EVENT,
+	sgui_event_disconnect(ev, this->picker, SGUI_HSVA_CHANGED_EVENT,
 			(sgui_function)sgui_color_dialog_set_hsva, this);
-	sgui_event_disconnect(this->picker, SGUI_RGBA_CHANGED_EVENT,
+	sgui_event_disconnect(ev, this->picker, SGUI_RGBA_CHANGED_EVENT,
 			(sgui_function)sgui_color_dialog_set_rgba, this);
-	sgui_event_disconnect(this->spin_h, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_h, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_hsv_from_spinbox, this);
-	sgui_event_disconnect(this->spin_s, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_s, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_hsv_from_spinbox, this);
-	sgui_event_disconnect(this->spin_v, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_v, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_hsv_from_spinbox, this);
-	sgui_event_disconnect(this->spin_a, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_a, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_hsv_from_spinbox, this);
-	sgui_event_disconnect(this->spin_r, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_r, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_rgb_from_spinbox, this);
-	sgui_event_disconnect(this->spin_g, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_g, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_rgb_from_spinbox, this);
-	sgui_event_disconnect(this->spin_b, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_disconnect(ev, this->spin_b, SGUI_EDIT_VALUE_CHANGED,
 			(sgui_function)update_rgb_from_spinbox, this);
 
 	sgui_widget_destroy(this->picker);
@@ -261,25 +263,25 @@ sgui_dialog *sgui_color_dialog_create(sgui_lib *lib, const char *caption,
 	sgui_window_add_widget(super->window, this->label_a);
 
 	/* events */
-	sgui_event_connect(this->picker, SGUI_HSVA_CHANGED_EVENT,
+	sgui_event_connect(lib->ev, this->picker, SGUI_HSVA_CHANGED_EVENT,
 				sgui_color_dialog_set_hsva, this,
 				SGUI_FROM_EVENT, SGUI_COLOR);
-	sgui_event_connect(this->picker, SGUI_RGBA_CHANGED_EVENT,
+	sgui_event_connect(lib->ev, this->picker, SGUI_RGBA_CHANGED_EVENT,
 				sgui_color_dialog_set_rgba, this,
 				SGUI_FROM_EVENT, SGUI_COLOR);
-	sgui_event_connect(this->spin_h, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_h, SGUI_EDIT_VALUE_CHANGED,
 				update_hsv_from_spinbox, this, SGUI_VOID);
-	sgui_event_connect(this->spin_s, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_s, SGUI_EDIT_VALUE_CHANGED,
 				update_hsv_from_spinbox, this, SGUI_VOID);
-	sgui_event_connect(this->spin_v, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_v, SGUI_EDIT_VALUE_CHANGED,
 				update_hsv_from_spinbox, this, SGUI_VOID);
-	sgui_event_connect(this->spin_a, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_a, SGUI_EDIT_VALUE_CHANGED,
 				update_hsv_from_spinbox, this, SGUI_VOID);
-	sgui_event_connect(this->spin_r, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_r, SGUI_EDIT_VALUE_CHANGED,
 				update_rgb_from_spinbox, this, SGUI_VOID);
-	sgui_event_connect(this->spin_g, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_g, SGUI_EDIT_VALUE_CHANGED,
 				update_rgb_from_spinbox, this, SGUI_VOID);
-	sgui_event_connect(this->spin_b, SGUI_EDIT_VALUE_CHANGED,
+	sgui_event_connect(lib->ev, this->spin_b, SGUI_EDIT_VALUE_CHANGED,
 				update_rgb_from_spinbox, this, SGUI_VOID);
 
 	/* init */

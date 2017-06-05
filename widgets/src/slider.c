@@ -28,6 +28,7 @@
 #include "sgui_widget.h"
 #include "sgui_canvas.h"
 #include "sgui_event.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,7 @@ static int value_from_position(sgui_widget *super, int x, int y)
 static void slider_on_event( sgui_widget* super, const sgui_event* e )
 {
 	sgui_slider *this = (sgui_slider *)super;
+	sgui_canvas *cv = super->canvas;
 	int delta, old_val, new_val;
 	sgui_event ev;
 	sgui_rect r;
@@ -160,11 +162,11 @@ static void slider_on_event( sgui_widget* super, const sgui_event* e )
 
 	sgui_slider_set_value(super, new_val);
 
-	if (old_val != this->value) {
+	if (old_val != this->value && cv && cv->lib) {
 		ev.type = SGUI_SLIDER_CHANGED_EVENT;
 		ev.src.widget = super;
 		ev.arg.i = this->value;
-		sgui_event_post(&ev);
+		sgui_event_post(cv->lib->ev, &ev);
 	}
 
 	sgui_internal_unlock_mutex();

@@ -29,6 +29,7 @@
 #include "sgui_canvas.h"
 #include "sgui_pixmap.h"
 #include "sgui_event.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -253,6 +254,7 @@ static void color_picker_destroy(sgui_widget *super)
 static void color_picker_on_event(sgui_widget *super, const sgui_event *e)
 {
 	sgui_color_picker *this = (sgui_color_picker *)super;
+	sgui_canvas *cv = super->canvas;
 	unsigned char hsva[4];
 	int fire_event = 0;
 	sgui_color col;
@@ -328,11 +330,11 @@ static void color_picker_on_event(sgui_widget *super, const sgui_event *e)
 
 	sgui_color_picker_set_hsv(super, hsva);
 
-	if (fire_event) {
+	if (fire_event && cv && cv->lib) {
 		memcpy(ev.arg.color, this->hsva, 4);
 		ev.type = SGUI_HSVA_CHANGED_EVENT;
 		ev.src.widget = super;
-		sgui_event_post(&ev);
+		sgui_event_post(cv->lib->ev, &ev);
 
 		col = hsva_to_rgba(this->hsva[0], this->hsva[1],
 					this->hsva[2], this->hsva[3]);
@@ -343,7 +345,7 @@ static void color_picker_on_event(sgui_widget *super, const sgui_event *e)
 		ev.arg.color[1] = col.c.g;
 		ev.arg.color[2] = col.c.b;
 		ev.arg.color[3] = col.c.a;
-		sgui_event_post(&ev);
+		sgui_event_post(cv->lib->ev, &ev);
 	}
 out:
 	sgui_internal_unlock_mutex();

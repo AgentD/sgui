@@ -31,29 +31,32 @@
 #include "sgui_event.h"
 #include "sgui_skin.h"
 #include "sgui_rect.h"
+#include "sgui_lib.h"
 
 void sgui_dialog_destroy(sgui_dialog *this)
 {
+	sgui_event_queue *ev = this->window->lib->ev;
+
 	if (this->b0) {
-		sgui_event_disconnect(this->b0, SGUI_BUTTON_OUT_EVENT,
+		sgui_event_disconnect(ev, this->b0, SGUI_BUTTON_OUT_EVENT,
 				(sgui_function)this->handle_button, this);
 		sgui_widget_remove_from_parent(this->b0);
 		sgui_widget_destroy(this->b0);
 	}
 	if (this->b1) {
-		sgui_event_disconnect(this->b1, SGUI_BUTTON_OUT_EVENT,
+		sgui_event_disconnect(ev, this->b1, SGUI_BUTTON_OUT_EVENT,
 				(sgui_function)this->handle_button, this);
 		sgui_widget_remove_from_parent(this->b1);
 		sgui_widget_destroy(this->b1);
 	}
 	if (this->b2) {
-		sgui_event_disconnect(this->b2, SGUI_BUTTON_OUT_EVENT,
+		sgui_event_disconnect(ev, this->b2, SGUI_BUTTON_OUT_EVENT,
 				(sgui_function)this->handle_button, this);
 		sgui_widget_remove_from_parent(this->b2);
 		sgui_widget_destroy(this->b2);
 	}
 
-	sgui_event_disconnect(this->window, SGUI_USER_CLOSED_EVENT,
+	sgui_event_disconnect(ev, this->window, SGUI_USER_CLOSED_EVENT,
 				(sgui_function)this->handle_button, this);
 
 	sgui_window_destroy(this->window);
@@ -73,6 +76,7 @@ int sgui_dialog_init(sgui_dialog *this, const char *button0,
 			int allignment)
 {
 	unsigned int total_width = 0, total_height = 0, count = 0;
+	sgui_event_queue *ev = this->window->lib->ev;
 	unsigned int height, w, h, x, y;
 	sgui_rect r0, r1, r2;
 
@@ -165,25 +169,25 @@ int sgui_dialog_init(sgui_dialog *this, const char *button0,
 		sgui_widget_set_position(this->b0, x, y);
 		sgui_window_add_widget(this->window, this->b0);
 		x += SGUI_RECT_WIDTH(r0) + 15;
-		sgui_event_connect(this->b0, SGUI_BUTTON_OUT_EVENT,
+		sgui_event_connect(ev, this->b0, SGUI_BUTTON_OUT_EVENT,
 				this->handle_button, this, SGUI_INT, 0);
 	}
 	if (button1) {
 		sgui_widget_set_position(this->b1, x, y);
 		sgui_window_add_widget(this->window, this->b1);
 		x += SGUI_RECT_WIDTH(r1) + 15;
-		sgui_event_connect(this->b1, SGUI_BUTTON_OUT_EVENT,
+		sgui_event_connect(ev, this->b1, SGUI_BUTTON_OUT_EVENT,
 				this->handle_button, this, SGUI_INT, 1);
 	}
 	if (button2) {
 		sgui_widget_set_position(this->b2, x, y);
 		sgui_window_add_widget(this->window, this->b2);
-		sgui_event_connect(this->b2, SGUI_BUTTON_OUT_EVENT,
+		sgui_event_connect(ev, this->b2, SGUI_BUTTON_OUT_EVENT,
 				this->handle_button, this, SGUI_INT, 2);
 	}
 
 	/* connect window closing event */
-	sgui_event_connect(this->window, SGUI_USER_CLOSED_EVENT,
+	sgui_event_connect(ev, this->window, SGUI_USER_CLOSED_EVENT,
 				this->handle_button, this, SGUI_INT, -1);
 	return 1;
 }

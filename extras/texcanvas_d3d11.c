@@ -287,17 +287,17 @@ int main( void )
     sgui_widget_add_child( &texcanvas->root, check2 );
 
     /* redirect keyboard events to the texture canvas */
-    sgui_event_connect( wnd, SGUI_KEY_PRESSED_EVENT,
-                        sgui_canvas_send_window_event, texcanvas,
-                        SGUI_FROM_EVENT, SGUI_EVENT );
+    sgui_connect( lib, wnd, SGUI_KEY_PRESSED_EVENT,
+                       sgui_canvas_send_window_event, texcanvas,
+                       SGUI_FROM_EVENT, SGUI_EVENT );
 
-    sgui_event_connect( wnd, SGUI_KEY_RELEASED_EVENT,
-                        sgui_canvas_send_window_event, texcanvas,
-                        SGUI_FROM_EVENT, SGUI_EVENT );
+    sgui_connect( lib, wnd, SGUI_KEY_RELEASED_EVENT,
+                       sgui_canvas_send_window_event, texcanvas,
+                       SGUI_FROM_EVENT, SGUI_EVENT );
 
-    sgui_event_connect( wnd, SGUI_CHAR_EVENT,
-                        sgui_canvas_send_window_event, texcanvas,
-                        SGUI_FROM_EVENT, SGUI_EVENT );
+    sgui_connect( lib, wnd, SGUI_CHAR_EVENT,
+                       sgui_canvas_send_window_event, texcanvas,
+                       SGUI_FROM_EVENT, SGUI_EVENT );
 
     /*************** create resource view and sampler ***************/
     tex = sgui_tex_canvas_get_texture( texcanvas );

@@ -150,17 +150,17 @@ int main( void )
     sgui_widget_add_child( &texcanvas->root, check2 );
 
     /************** connect keyboard input to texture canvas **************/
-    sgui_event_connect( wnd, SGUI_KEY_PRESSED_EVENT,
-                        sgui_canvas_send_window_event, texcanvas,
-                        SGUI_FROM_EVENT, SGUI_EVENT );
+    sgui_connect( lib, wnd, SGUI_KEY_PRESSED_EVENT,
+                       sgui_canvas_send_window_event, texcanvas,
+                       SGUI_FROM_EVENT, SGUI_EVENT );
 
-    sgui_event_connect( wnd, SGUI_KEY_RELEASED_EVENT,
-                        sgui_canvas_send_window_event, texcanvas,
-                        SGUI_FROM_EVENT, SGUI_EVENT );
+    sgui_connect( lib, wnd, SGUI_KEY_RELEASED_EVENT,
+                       sgui_canvas_send_window_event, texcanvas,
+                       SGUI_FROM_EVENT, SGUI_EVENT );
 
-    sgui_event_connect( wnd, SGUI_CHAR_EVENT,
-                        sgui_canvas_send_window_event, texcanvas,
-                        SGUI_FROM_EVENT, SGUI_EVENT );
+    sgui_connect( lib, wnd, SGUI_CHAR_EVENT,
+                       sgui_canvas_send_window_event, texcanvas,
+                       SGUI_FROM_EVENT, SGUI_EVENT );
 
     /*************************** Direct3D setup ***************************/
     /* get the device context, set new present parameters */

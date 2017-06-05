@@ -189,7 +189,7 @@ int main( int argc, char** argv )
     item2 = sgui_simple_model_add_item( model, NULL );
     sgui_simple_item_set_text( model, item2, 0, "bar" );
     sgui_simple_item_set_icon( model, item2, 0, sgui_icon_map_find(ic,1) );
-    sgui_event_connect( item2, SGUI_ICON_SELECTED_EVENT,
+    sgui_connect( lib, item2, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 2 selected -> sort icons", SGUI_VOID );
 
     item3 = sgui_simple_model_add_item( model, NULL );
@@ -381,30 +381,30 @@ int main( int argc, char** argv )
     sgui_window_add_widget( a, tab );
 
     /* hook callbacks */
-    sgui_event_connect( butt, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, butt, SGUI_BUTTON_OUT_EVENT,
                         print_password, ebp, SGUI_VOID );
-    sgui_event_connect( ebp, SGUI_EDIT_BOX_TEXT_ENTERED,
+    sgui_connect( lib, ebp, SGUI_EDIT_BOX_TEXT_ENTERED,
                         print_password, ebp, SGUI_VOID );
 
-    sgui_event_connect( s1, SGUI_SLIDER_CHANGED_EVENT,
+    sgui_connect( lib, s1, SGUI_SLIDER_CHANGED_EVENT,
                         print_slider, "slider 1", SGUI_FROM_EVENT, SGUI_I );
-    sgui_event_connect( s2, SGUI_SLIDER_CHANGED_EVENT,
+    sgui_connect( lib, s2, SGUI_SLIDER_CHANGED_EVENT,
                         print_slider, "slider 2", SGUI_FROM_EVENT, SGUI_I );
-    sgui_event_connect( s3, SGUI_SLIDER_CHANGED_EVENT,
+    sgui_connect( lib, s3, SGUI_SLIDER_CHANGED_EVENT,
                         print_slider, "slider 3", SGUI_FROM_EVENT, SGUI_I );
-    sgui_event_connect( s4, SGUI_SLIDER_CHANGED_EVENT,
+    sgui_connect( lib, s4, SGUI_SLIDER_CHANGED_EVENT,
                         print_slider, "slider 4", SGUI_FROM_EVENT, SGUI_I );
 
-    sgui_event_connect( item1, SGUI_ICON_SELECTED_EVENT,
+    sgui_connect( lib, item1, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 1 selected -> snap to grid", SGUI_VOID );
-    sgui_event_connect( item1, SGUI_ICON_SELECTED_EVENT,
+    sgui_connect( lib, item1, SGUI_ICON_SELECTED_EVENT,
                         sgui_icon_view_snap_to_grid, iv, SGUI_VOID );
-    sgui_event_connect( item2, SGUI_ICON_SELECTED_EVENT,
+    sgui_connect( lib, item2, SGUI_ICON_SELECTED_EVENT,
                         sgui_icon_view_sort, iv, SGUI_POINTER, NULL );
-    sgui_event_connect( item3, SGUI_ICON_SELECTED_EVENT,
+    sgui_connect( lib, item3, SGUI_ICON_SELECTED_EVENT,
                         puts, "Icon 3 selected", SGUI_VOID );
 
-    sgui_event_connect( b, SGUI_MOUSE_MOVE_EVENT,
+    sgui_connect( lib, b, SGUI_MOUSE_MOVE_EVENT,
                         sgui_window_make_topmost, b, SGUI_VOID );
 
     /* enter main loop */

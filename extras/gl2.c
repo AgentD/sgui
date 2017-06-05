@@ -88,7 +88,7 @@ int main( void )
         The functon sgui_subview_refresh forces the window of the
         sub-view to redraw itself.
      */
-    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, button, SGUI_BUTTON_OUT_EVENT,
                         sgui_subview_refresh, gl_view, SGUI_VOID );
 
     /* add widgets to the window */

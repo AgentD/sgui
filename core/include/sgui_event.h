@@ -455,13 +455,34 @@ SGUI_ARG_TYPE;
 typedef void (* sgui_function )( void* object, ... );
 
 
+/**
+ * \struct sgui_event_queue
+ *
+ * \brief Manages a queue of events and event to event-handler mappings
+ */
+struct sgui_event_queue {
+	/** \brief Destroy an event queue and free all allocated memory */
+	void (*destroy)(sgui_event_queue *queue);
+};
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
+ * \brief Create an event queue
+ *
+ * \memberof sgui_event_queue
+ *
+ * \return A pointer to an \ref sgui_event_queue on success, NULL on failure
+ */
+sgui_event_queue *sgui_event_queue_create(void);
+
+/**
  * \brief Connect an event with a callback
+ *
+ * \memberof sgui_event_queue
  *
  * To supply arguments to a callback function, simply pass a datatype
  * identifyer after the callback (e.g. SGUI_CHAR for char, SGUI_INT for int
@@ -474,6 +495,7 @@ extern "C" {
  * When the callback is called, the receiver object is passed as first
  * argument, followed by the supplied arguments.
  *
+ * \param ev        The event queue in which to store the mapping
  * \param sender    A pointer to the sender object, or NULL for any
  * \param eventtype The event identifyer to listen to
  * \param ...       A pointer to a callback function, followed by a pointer to
@@ -484,49 +506,59 @@ extern "C" {
  *
  * \return Non-zero on success, zero if out of memory
  */
-SGUI_DLL int sgui_event_connect( void* sender, int eventtype, ... );
+SGUI_DLL int sgui_event_connect(sgui_event_queue *ev,
+				void *sender, int eventtype, ...);
 
 /**
  * \brief Disconnect an event from a callback
+ *
+ * \memberof sgui_event_queue
  *
  * Given a sender, event type, receiver and callback, this function runs
  * through the internal list of event connections and disconnects all matching
  * connections.
  *
+ * \param ev        The event queue that this mapping was created for
  * \param sender    A pointer to the sender object
  * \param eventtype The event identifyer to listen to
  * \param callback  A pointer to a callback function
  * \param receiver  A pointer to the receiver object
  */
-SGUI_DLL void sgui_event_disconnect( void* sender, int eventtype,
-                                     sgui_function callback, void* receiver );
+SGUI_DLL void sgui_event_disconnect(sgui_event_queue *ev, void *sender,
+					int eventtype, sgui_function callback,
+					void *receiver);
 
 /**
- * \brief Post an event to the event queue
+ * \brief Post an event to an \ref sgui_event_queue
  *
+ * \memberof sgui_event_queue
+ *
+ * \param ev The event queue to post the event to
  * \param event A pointer to an event structure
  *
  * \return Non-zero on success, zero if out of memory
  */
-SGUI_DLL int sgui_event_post( const sgui_event* event );
-
-/** \brief Get the number of events still waiting for processing */
-SGUI_DLL unsigned int sgui_event_queued( void );
+SGUI_DLL int sgui_event_post(sgui_event_queue *ev, const sgui_event *event);
 
 /**
- * \brief Called from the sgui_init/sgui_deinit implementation
- *        to reset event connections
+ * \brief Get the number of events still waiting for processing
  *
- * Frees the internal event queue and all listener connections, i.e. reset the
- * entire event subsystem.
+ * \memberof sgui_event_queue
+ *
+ * \param ev The event queue to query
+ *
+ * \return Number of unprocessed events in the queue
  */
-SGUI_DLL void sgui_event_reset( void );
+SGUI_DLL unsigned int sgui_event_queued(sgui_event_queue *ev);
 
 /**
- * \brief Called from sgui_main_loop and sgui_main_loop_step to process the
- *        event queue and event connections
+ * \brief Process the queued events and forward them to handlers
+ *
+ * \memberof sgui_event_queue
+ *
+ * \param ev A pointer to an event queue
  */
-SGUI_DLL void sgui_event_process( void );
+SGUI_DLL void sgui_event_process(sgui_event_queue *ev);
 
 #ifdef __cplusplus
 }

@@ -47,7 +47,7 @@ static void send_raw_event(sgui_window *this, const sgui_event *e)
 	if (this->event_fun)
 		this->event_fun(this->userptr, e);
 
-	sgui_event_post(e);
+	sgui_event_post(this->lib->ev, e);
 
 	if (this->canvas)
 		sgui_canvas_send_window_event(this->canvas, e);

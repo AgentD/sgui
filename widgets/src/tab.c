@@ -24,6 +24,7 @@
  */
 #define SGUI_BUILDING_DLL
 #include "sgui_tab.h"
+#include "sgui_lib.h"
 #include "sgui_skin.h"
 #include "sgui_utf8.h"
 #include "sgui_event.h"
@@ -73,7 +74,11 @@ static void tab_update_current(sgui_widget *super)
 
 static void tab_on_state_change(sgui_widget *this, int change)
 {
+	sgui_canvas *cv = this->canvas;
 	sgui_event ev;
+
+	if (!cv || !cv->lib)
+		return;
 
 	if (change & SGUI_WIDGET_VISIBILLITY_CHANGED) {
 		if (this->parent)
@@ -82,7 +87,7 @@ static void tab_on_state_change(sgui_widget *this, int change)
 		ev.type = (this->flags & SGUI_WIDGET_VISIBLE) ?
 				SGUI_TAB_SELECTED : SGUI_TAB_DESELECTED;
 		ev.src.widget = this;
-		sgui_event_post(&ev);
+		sgui_event_post(cv->lib->ev, &ev);
 	}
 }
 

@@ -32,6 +32,7 @@
 #include "sgui_widget.h"
 #include "sgui_utf8.h"
 #include "sgui_icon_cache.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -72,13 +73,15 @@ static void button_toggle(sgui_button *this, int postevent)
 	if (cv) {
 		sgui_widget_get_absolute_rect((sgui_widget *)this, &r);
 		sgui_canvas_add_dirty_rect(cv, &r);
-	}
 
-	if (postevent) {
-		ev.src.widget = (sgui_widget *)this;
-		ev.type = this->selected ? SGUI_BUTTON_IN_EVENT :
-						SGUI_BUTTON_OUT_EVENT;
-		sgui_event_post(&ev);
+		if (postevent) {
+			ev.src.widget = (sgui_widget *)this;
+			ev.type = this->selected ? SGUI_BUTTON_IN_EVENT :
+							SGUI_BUTTON_OUT_EVENT;
+
+			if (cv->lib)
+				sgui_event_post(cv->lib->ev, &ev);
+		}
 	}
 }
 

@@ -161,8 +161,8 @@ int main( void )
 
     /* hook callbacks. See gl2.c for further explanation */
     sgui_subview_set_draw_callback( subview, d3dview_on_draw );
-    sgui_event_connect( button, SGUI_BUTTON_OUT_EVENT,
-                        sgui_subview_refresh, subview, SGUI_VOID );
+    sgui_connect( lib, button, SGUI_BUTTON_OUT_EVENT,
+                       sgui_subview_refresh, subview, SGUI_VOID );
 
     /* add widgets to the window */
     sgui_window_add_widget( wnd, text );

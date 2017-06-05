@@ -39,6 +39,8 @@ struct sgui_lib {
 	/** \brief Linked list of windows managed by this instance */
 	sgui_window *wndlist;
 
+	sgui_event_queue *ev;
+
 	/**
 	 * \brief Uninitialise the backend and clean up all internal state
 	 *
@@ -85,6 +87,26 @@ struct sgui_lib {
 	sgui_window *(*create_window)(sgui_lib *lib,
 					const sgui_window_description *desc);
 };
+
+
+/**
+ * \brief Connect an event to a callback for an \ref sgui_lib event queue
+ *
+ * A macro that wraps \ref sgui_event_connect for the event queue inside an
+ * \ref sgui_lib
+ */
+#define sgui_connect(lib, sender, type, ...) \
+	sgui_event_connect(lib->ev, sender, type, __VA_ARGS__)
+
+/**
+ * \brief Disconnect an event from a callback for an \ref sgui_lib event queue
+ *
+ * A macro that wraps \ref sgui_event_connect for the event queue inside an
+ * \ref sgui_lib
+ */
+#define sgui_disconnect(lib, sender, type, callback, receiver) \
+	sgui_event_disconnect(lib->ev, sender, type, callback, receiver)
+
 
 #ifdef __cplusplus
 extern "C" {

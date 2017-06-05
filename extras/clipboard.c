@@ -57,10 +57,10 @@ int main( void )
     sgui_window_add_widget( wnd, eb );
 
     /* hook event callbacks */
-    sgui_event_connect( rb, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, rb, SGUI_BUTTON_OUT_EVENT,
                         read_clipboard, wnd, SGUI_VOID );
 
-    sgui_event_connect( wb, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, wb, SGUI_BUTTON_OUT_EVENT,
                         write_clipboard, wnd, SGUI_POINTER, eb );
 
     /* main loop */

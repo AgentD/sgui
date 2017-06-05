@@ -178,7 +178,9 @@ static void w32_destroy(sgui_lib *lib)
 {
 	sgui_lib_w32 *w32_lib = (sgui_lib_w32 *)lib;
 
-	sgui_event_reset();
+	if (lib->ev)
+		lib->ev->destroy(lib->ev);
+
 	sgui_interal_skin_deinit_default();
 	sgui_internal_memcanvas_cleanup();
 	font_deinit();
@@ -201,9 +203,9 @@ static int w32_main_loop_step(sgui_lib *lib)
 		DispatchMessageA(&msg);
 	}
 
-	sgui_event_process();
+	sgui_event_process(lib->ev);
 
-	return sgui_lib_have_active_windows(lib) || sgui_event_queued();
+	return sgui_lib_have_active_windows(lib) || sgui_event_queued(lib->ev);
 }
 
 static void w32_main_loop(sgui_lib *lib)
@@ -215,11 +217,11 @@ static void w32_main_loop(sgui_lib *lib)
 		GetMessageA(&msg, 0, 0, 0);
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
-		sgui_event_process();
+		sgui_event_process(lib->ev);
 	}
 
-	while (sgui_event_queued()) {
-		sgui_event_process();
+	while (sgui_event_queued(lib->ev)) {
+		sgui_event_process(lib->ev);
 	}
 }
 
@@ -254,7 +256,9 @@ sgui_lib *sgui_init(void *arg)
 		goto fail;
 
 	sgui_interal_skin_init_default();
-	sgui_event_reset();
+	((sgui_lib *)&w32)->ev = sgui_event_queue_create();
+	if (!((sgui_lib *)&w32)->ev)
+		goto fail;
 
 	((sgui_lib *)&w32)->destroy = w32_destroy;
 	((sgui_lib *)&w32)->main_loop = w32_main_loop;

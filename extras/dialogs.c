@@ -73,10 +73,10 @@ int main( void )
         If the message box window gets closed without the user pressing
         a button, an SGUI_DIALOG_REJECTED is generated.
      */
-    sgui_event_connect( mb, SGUI_MESSAGE_BOX_BUTTON1_EVENT,
+    sgui_connect( lib, mb, SGUI_MESSAGE_BOX_BUTTON1_EVENT,
                         puts, "Okay", SGUI_VOID );
 
-    sgui_event_connect( mb, SGUI_MESSAGE_BOX_BUTTON2_EVENT,
+    sgui_connect( lib, mb, SGUI_MESSAGE_BOX_BUTTON2_EVENT,
                         puts, "Foobar", SGUI_VOID );
 
     /*
@@ -87,13 +87,13 @@ int main( void )
         an SGUI_COLOR_SELECTED_RGBA_EVENT with an RGBA color argument, and
         an SGUI_COLOR_SELECTED_HSVA_EVENT with an HSVA color argument.
      */
-    sgui_event_connect( cp, SGUI_DIALOG_REJECTED,
+    sgui_connect( lib, cp, SGUI_DIALOG_REJECTED,
                         puts, "Color dialog rejected", SGUI_VOID );
 
-    sgui_event_connect( cp, SGUI_COLOR_SELECTED_RGBA_EVENT,
+    sgui_connect( lib, cp, SGUI_COLOR_SELECTED_RGBA_EVENT,
                         print_color, "RGBA", SGUI_FROM_EVENT, SGUI_COLOR );
 
-    sgui_event_connect( cp, SGUI_COLOR_SELECTED_HSVA_EVENT,
+    sgui_connect( lib, cp, SGUI_COLOR_SELECTED_HSVA_EVENT,
                         print_color, "HSVA", SGUI_FROM_EVENT, SGUI_COLOR );
 
     /* display dialogs and enter main loop */

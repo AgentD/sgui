@@ -31,6 +31,7 @@
 #include "sgui_event.h"
 #include "sgui_model.h"
 #include "sgui_skin.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -210,14 +211,18 @@ static icon *icon_from_point(icon_view *this, int x, int y)
 
 static void event_for_each_selected(icon_view *this, int type)
 {
+	sgui_canvas *cv = ((sgui_widget *)this)->canvas;
 	unsigned int i;
 	sgui_event ev;
+
+	if (!cv || !cv->lib)
+		return;
 
 	for (i = 0; i < this->num_icons; ++i) {
 		if (this->icons[i].selected) {
 			ev.src.other = (void *)this->icons[i].item;
 			ev.type = type;
-			sgui_event_post(&ev);
+			sgui_event_post(cv->lib->ev, &ev);
 		}
 	}
 }
@@ -272,6 +277,7 @@ static void mark_selection_dirty(icon_view *this)
 static void icon_view_on_key_release(icon_view *this, const sgui_event *e)
 {
 	int offset = sgui_scroll_bar_get_offset(this->v_bar);
+	sgui_canvas *cv = ((sgui_widget *)this)->canvas;
 	unsigned int i;
 	sgui_event ev;
 	sgui_rect r;
@@ -338,7 +344,9 @@ static void icon_view_on_key_release(icon_view *this, const sgui_event *e)
 	case SGUI_KC_PASTE:
 		ev.src.other = this;
 		ev.type = SGUI_ICON_PASTE_EVENT;
-		sgui_event_post(&ev);
+
+		if (cv && cv->lib)
+			sgui_event_post(cv->lib->ev, &ev);
 		break;
 	case SGUI_KC_CUT:
 		event_for_each_selected(this, SGUI_ICON_CUT_EVENT);
@@ -431,6 +439,7 @@ static void update_selection(icon_view *this, const sgui_rect *r, int offset)
 static void icon_view_on_event(sgui_widget *super, const sgui_event *e)
 {
 	icon_view *this = (icon_view *)super;
+	sgui_canvas *cv = super->canvas;
 	int x, y, dx, dy, offset;
 	sgui_rect r, r1;
 	sgui_event ev;
@@ -474,11 +483,11 @@ static void icon_view_on_event(sgui_widget *super, const sgui_event *e)
 		this->selectbox = 0;
 		new = icon_from_point(this, x, y);
 
-		if (new) {
+		if (new && cv && cv->lib) {
 			new->selected = 1;
 			ev.type = SGUI_ICON_SELECTED_EVENT;
 			ev.src.other = (void*)new->item;
-			sgui_event_post(&ev);
+			sgui_event_post(cv->lib->ev, &ev);
 		}
 		break;
 	case SGUI_MOUSE_WHEEL_EVENT:

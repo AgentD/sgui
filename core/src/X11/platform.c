@@ -381,7 +381,9 @@ static void destroy_x11(sgui_lib *lib)
 {
 	sgui_lib_x11 *libx11 = (sgui_lib_x11 *)lib;
 
-	sgui_event_reset();
+	if (lib->ev)
+		lib->ev->destroy(lib->ev);
+
 	canvas_cleanup_skin_pixmap();
 	sgui_internal_memcanvas_cleanup();
 	sgui_interal_skin_deinit_default();
@@ -407,9 +409,9 @@ static int main_loop_step_x11(sgui_lib *lib)
 	XFlush(libx11->dpy);
 	sgui_internal_unlock_mutex();
 
-	sgui_event_process();
+	sgui_event_process(lib->ev);
 
-	return sgui_lib_have_active_windows(lib) || sgui_event_queued();
+	return sgui_lib_have_active_windows(lib) || sgui_event_queued(lib->ev);
 }
 
 static void main_loop_x11(sgui_lib *lib)
@@ -425,7 +427,7 @@ static void main_loop_x11(sgui_lib *lib)
 		XFlush(libx11->dpy);
 		sgui_internal_unlock_mutex();
 
-		sgui_event_process();
+		sgui_event_process(lib->ev);
 
 		/* wait for X11 events, one second time out */
 		FD_ZERO(&in_fds);
@@ -436,8 +438,8 @@ static void main_loop_x11(sgui_lib *lib)
 		select(x11_fd + 1, &in_fds, 0, 0, &tv);
 	}
 
-	while (sgui_event_queued())
-		sgui_event_process();
+	while (sgui_event_queued(lib->ev))
+		sgui_event_process(lib->ev);
 }
 
 sgui_lib *sgui_init(void *arg)
@@ -452,6 +454,10 @@ sgui_lib *sgui_init(void *arg)
 	pthread_mutexattr_init(&attr);
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&x11.mutex, &attr);
+
+	((sgui_lib *)&x11)->ev = sgui_event_queue_create();
+	if (!((sgui_lib *)&x11)->ev)
+		goto fail;
 
 	if (!font_init())
 		goto fail;
@@ -468,7 +474,6 @@ sgui_lib *sgui_init(void *arg)
 
 	init_keycodes();
 	sgui_interal_skin_init_default();
-	sgui_event_reset();
 
 	x11.atom_wm_delete = XInternAtom(x11.dpy, "WM_DELETE_WINDOW", True);
 	x11.atom_pty = XInternAtom(x11.dpy, "SGUI_CLIP", False);

@@ -107,10 +107,10 @@ int main( void )
     IDirect3DVertexBuffer9_Unlock( v_buffer );
 
     /* hook event callbacks. See gl0.c for furhter explanation */
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
+    sgui_connect( lib, wnd, SGUI_EXPOSE_EVENT,
                         draw_callback, wnd, SGUI_VOID );
 
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
+    sgui_connect( lib, wnd, SGUI_EXPOSE_EVENT,
                         puts, "Readraw!", SGUI_VOID );
 
     /* main loop */

@@ -67,10 +67,10 @@ int main( void )
         Simply put, when b1 sends an SGUI_BUTTON_OUT_EVENT event,
         the event system calls "sgui_widget_set_visible( img, 1 )"
      */
-    sgui_event_connect( b1, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, b1, SGUI_BUTTON_OUT_EVENT,
                         sgui_widget_set_visible, img, SGUI_INT, 1 );
 
-    sgui_event_connect( b2, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, b2, SGUI_BUTTON_OUT_EVENT,
                         sgui_widget_set_visible, img, SGUI_INT, 0 );
 
     /*
@@ -80,10 +80,10 @@ int main( void )
         Simply put, when b3 sends an SGUI_BUTTON_OUT_EVENT event,
         the event system calls "sgui_widget_move( wnd, 50, 100 )"
      */
-    sgui_event_connect( b3, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, b3, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_move, wnd, SGUI_INT2, 50, 100 );
 
-    sgui_event_connect( b4, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, b4, SGUI_BUTTON_OUT_EVENT,
                         sgui_window_set_visible, wnd, SGUI_INT, 0 );
 
     /*
@@ -95,7 +95,7 @@ int main( void )
         The value SGUI_VOID indicates that there is no further argument to the
         callback function.
      */
-    sgui_event_connect( b4, SGUI_BUTTON_OUT_EVENT,
+    sgui_connect( lib, b4, SGUI_BUTTON_OUT_EVENT,
                         puts, "Hello World!", SGUI_VOID );
 
     /*
@@ -114,7 +114,7 @@ int main( void )
         Simply put, when "wnd" sends an SGUI_CHAR_EVENT, the event system
         calls printf( "%s\n", event->arg.utf8 );
      */
-    sgui_event_connect( wnd, SGUI_CHAR_EVENT,
+    sgui_connect( lib, wnd, SGUI_CHAR_EVENT,
                         printf, "%s\n", SGUI_FROM_EVENT, SGUI_UTF8 );
 
     /* enter main loop */

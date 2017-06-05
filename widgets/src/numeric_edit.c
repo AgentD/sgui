@@ -27,6 +27,7 @@
 #include "sgui_internal.h"
 #include "sgui_event.h"
 #include "sgui_utf8.h"
+#include "sgui_lib.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -133,14 +134,17 @@ static void remove_selection(sgui_edit_box *super)
 
 static void numeric_edit_text_changed(sgui_edit_box *this, int type)
 {
+	sgui_canvas *cv = ((sgui_widget *)this)->canvas;
 	sgui_event se;
 	(void)type;
 
-	se.src.widget = (sgui_widget *)this;
-	se.arg.i = sgui_numeric_edit_get_value((sgui_widget *)this);
-	se.type = SGUI_EDIT_VALUE_CHANGED;
+	if (cv && cv->lib) {
+		se.src.widget = (sgui_widget *)this;
+		se.arg.i = sgui_numeric_edit_get_value((sgui_widget *)this);
+		se.type = SGUI_EDIT_VALUE_CHANGED;
 
-	sgui_event_post(&se);
+		sgui_event_post(cv->lib->ev, &se);
+	}
 }
 
 static unsigned int offset_from_position(sgui_edit_box *this, int x)

@@ -97,10 +97,10 @@ int main( void )
         Redirect the redraw request to our redraw callback
         and print a string to show that we are redrawing.
      */
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
+    sgui_connect( lib, wnd, SGUI_EXPOSE_EVENT,
                         draw_callback, wnd, SGUI_VOID );
 
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
+    sgui_connect( lib, wnd, SGUI_EXPOSE_EVENT,
                         puts, "Readraw!", SGUI_VOID );
 
     /* main loop */

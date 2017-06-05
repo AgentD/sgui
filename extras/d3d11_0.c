@@ -165,10 +165,10 @@ int main( void )
     ID3D11DeviceContext_PSSetShader( ctx->ctx, ps, NULL, 0 );
 
     /* hook event callbacks. See gl0.c for further explanation */
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
+    sgui_connect( lib, wnd, SGUI_EXPOSE_EVENT,
                         draw_callback, wnd, SGUI_VOID );
 
-    sgui_event_connect( wnd, SGUI_EXPOSE_EVENT,
+    sgui_connect( lib, wnd, SGUI_EXPOSE_EVENT,
                         puts, "Redraw!", SGUI_VOID );
 
     /* main loop */

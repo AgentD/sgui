@@ -31,7 +31,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-
 struct listener {
 	void *sender;
 	void *receiver;
@@ -60,21 +59,26 @@ struct bucket {
 	struct bucket *next;
 };
 
+typedef struct {
+	sgui_event_queue super;
 
-static sgui_event *queue = NULL;
-static int queue_top = 0;
-static int queue_size = 0;
-static struct bucket *buckets = NULL;
+	sgui_event *queue;
+	int queue_top;
+	int queue_size;
+	struct bucket *buckets;
+} sgui_event_queue_priv;
 
 
-static int add_listener(struct listener *l, int eventtype)
+
+static int add_listener(sgui_event_queue_priv *this,
+			struct listener *l, int eventtype)
 {
 	struct bucket* b;
 	int ret = 0;
 
 	sgui_internal_lock_mutex();
 
-	for (b = buckets; b != NULL; b = b->next) {
+	for (b = this->buckets; b != NULL; b = b->next) {
 		if (b->event == eventtype)
 			break;
 	}
@@ -84,8 +88,8 @@ static int add_listener(struct listener *l, int eventtype)
 		if (!b)
 			goto out;
 		b->event = eventtype;
-		b->next = buckets;
-		buckets = b;
+		b->next = this->buckets;
+		this->buckets = b;
 	}
 
 	l->next = b->listeners;
@@ -96,8 +100,10 @@ out:
 	return ret;
 }
 
-int sgui_event_connect(void *sender, int eventtype, ...)
+int sgui_event_connect(sgui_event_queue *super,
+			void *sender, int eventtype, ...)
 {
+	sgui_event_queue_priv *this = (sgui_event_queue_priv *)super;
 	sgui_function callback;
 	struct listener *l;
 	int ret = 0;
@@ -156,22 +162,23 @@ int sgui_event_connect(void *sender, int eventtype, ...)
 		break;
 	}
 
-	ret = add_listener(l, eventtype);
+	ret = add_listener(this, l, eventtype);
 out_va:
 	va_end(va);
 	return ret;
 }
 
-void sgui_event_disconnect(void *sender, int eventtype,
-			sgui_function callback, void *receiver)
+void sgui_event_disconnect(sgui_event_queue *super, void *sender,
+			int eventtype, sgui_function callback, void *receiver)
 {
+	sgui_event_queue_priv *this = (sgui_event_queue_priv *)super;
 	struct listener *old = NULL;
 	struct listener *l;
 	struct bucket *b;
 
 	sgui_internal_lock_mutex();
 
-	for (b = buckets; b != NULL; b = b->next) {
+	for (b = this->buckets; b != NULL; b = b->next) {
 		if (b->event == eventtype)
 			break;
 	}
@@ -202,8 +209,9 @@ out:
 	sgui_internal_unlock_mutex();
 }
 
-int sgui_event_post(const sgui_event *event)
+int sgui_event_post(sgui_event_queue *super, const sgui_event *event)
 {
+	sgui_event_queue_priv *this = (sgui_event_queue_priv *)super;
 	sgui_event *new_queue;
 	int new_size, ret = 1;
 	struct listener *l;
@@ -212,7 +220,7 @@ int sgui_event_post(const sgui_event *event)
 	sgui_internal_lock_mutex();
 
 	/* if there is no one handling the event, drop it */
-	for (b = buckets; b != NULL; b = b->next) {
+	for (b = this->buckets; b != NULL; b = b->next) {
 		if (b->event == event->type)
 			break;
 	}
@@ -229,20 +237,21 @@ int sgui_event_post(const sgui_event *event)
 		goto out;
 
 	/* enlarge queue if necessary */
-	if (queue_top == queue_size) {
-		new_size = queue_size < 10 ? 10 : queue_size * 2;
-		new_queue = realloc(queue, sizeof(queue[0]) * new_size);
+	if (this->queue_top == this->queue_size) {
+		new_size = this->queue_size < 10 ? 10 : this->queue_size * 2;
+		new_queue = realloc(this->queue,
+					sizeof(this->queue[0]) * new_size);
 
 		if (!new_queue) {
 			ret = 0;
 			goto out;
 		}
 
-		queue_size = new_size;
-		queue = new_queue;
+		this->queue_size = new_size;
+		this->queue = new_queue;
 	}
 
-	queue[queue_top++] = (*event);
+	this->queue[this->queue_top++] = (*event);
 out:
 	sgui_internal_unlock_mutex();
 	return ret;
@@ -365,8 +374,9 @@ static void call(const struct listener *l, const sgui_event *e)
 	}
 }
 
-void sgui_event_process(void)
+void sgui_event_process(sgui_event_queue *super)
 {
+	sgui_event_queue_priv *this = (sgui_event_queue_priv *)super;
 	struct listener *l;
 	sgui_event *local;
 	struct bucket *b;
@@ -379,15 +389,15 @@ void sgui_event_process(void)
 		Handling events can trigger adding of new events, which
 		can trigger a realloc() of the event queue.
 	*/
-	local = queue;
-	count = queue_top;
+	local = this->queue;
+	count = this->queue_top;
 
-	queue_top = 0;
-	queue_size = 0;
-	queue = NULL;
+	this->queue_top = 0;
+	this->queue_size = 0;
+	this->queue = NULL;
 
 	for (e = local, i = 0; i < count; ++i, ++e) {
-		for (b = buckets; b != NULL; b = b->next) {
+		for (b = this->buckets; b != NULL; b = b->next) {
 			if (b->event == e->type)
 				break;
 		}
@@ -405,16 +415,17 @@ void sgui_event_process(void)
 	free(local);
 }
 
-void sgui_event_reset(void)
+static void event_queue_destroy(sgui_event_queue *super)
 {
+	sgui_event_queue_priv *this = (sgui_event_queue_priv *)super;
 	struct listener *l;
 	struct bucket *b;
 
 	sgui_internal_lock_mutex();
 
-	while (buckets != NULL) {
-		b = buckets;
-		buckets = buckets->next;
+	while (this->buckets != NULL) {
+		b = this->buckets;
+		this->buckets = this->buckets->next;
 
 		while (b->listeners != NULL) {
 			l = b->listeners;
@@ -425,21 +436,31 @@ void sgui_event_reset(void)
 		free(b);
 	}
 
-	free(queue);
+	free(this->queue);
 
-	queue = NULL;
-	queue_size = 0;
-	queue_top = 0;
+	free(this);
 	sgui_internal_unlock_mutex();
 }
 
-unsigned int sgui_event_queued(void)
+unsigned int sgui_event_queued(sgui_event_queue *this)
 {
 	unsigned int count;
 
 	sgui_internal_lock_mutex();
-	count = queue_top;
+	count = ((sgui_event_queue_priv *)this)->queue_top;
 	sgui_internal_unlock_mutex();
 
 	return count;
+}
+
+sgui_event_queue *sgui_event_queue_create(void)
+{
+	sgui_event_queue_priv *this = calloc(1, sizeof(*this));
+	sgui_event_queue *super = (sgui_event_queue *)this;
+
+	if (!this)
+		return NULL;
+
+	super->destroy = event_queue_destroy;
+	return super;
 }
