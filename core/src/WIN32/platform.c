@@ -183,7 +183,6 @@ static void w32_destroy(sgui_lib *lib)
 
 	sgui_interal_skin_deinit_default();
 	sgui_internal_memcanvas_cleanup();
-	font_deinit();
 
 	UnregisterClassA(w32_lib->wndclass, w32_lib->hInstance);
 	DeleteCriticalSection(&w32_lib->mutex);
@@ -236,9 +235,6 @@ sgui_lib *sgui_init(void *arg)
 	w32.wndclass = "sgui_wnd_class";
 
 	InitializeCriticalSection(&w32.mutex);
-
-	if (!font_init())
-		goto fail;
 
 	if (!(w32.hInstance = GetModuleHandleA(NULL)))
 		goto fail;

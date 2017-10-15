@@ -11,14 +11,12 @@ if( UNIX AND NOT APPLE )
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xrender/pixmap.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xlib/canvas.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/xlib/pixmap.c
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/font.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/keycode_translate.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/opengl.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/platform.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/X11/window.c )
 elseif( WIN32 )
   set( CORE_PLATFORM_SRC
-       ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/font.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/opengl.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/platform.c
        ${CMAKE_CURRENT_SOURCE_DIR}/src/WIN32/direct3d9.cxx
@@ -43,6 +41,7 @@ set( CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/canvas.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/window.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/lib.c
               ${CMAKE_CURRENT_SOURCE_DIR}/src/skins/default.c
+              ${CMAKE_CURRENT_SOURCE_DIR}/src/font/ttf.c
 
               ${CORE_PLATFORM_SRC}
      PARENT_SCOPE )

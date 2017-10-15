@@ -1,5 +1,5 @@
 /*
- * font.c
+ * ttf.c
  * This file is part of sgui
  *
  * Copyright (C) 2012 - David Oberhollenzer
@@ -23,34 +23,74 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #define SGUI_BUILDING_DLL
-#include "platform.h"
+#include "sgui_font.h"
+#include "sgui_internal.h"
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#ifdef SGUI_UNIX
+	#define SYS_FONT_PATH "/usr/share/fonts/TTF/"
+#elif defined SGUI_WINDOWS
+	#define SYS_FONT_PATH "C:\\Windows\\Fonts\\"
+#else
+	#define NO_SYS_FONT_PATH 1
+#endif
+
+typedef struct {
+	sgui_font super;
+	FT_Face face;
+	void *buffer;
+	unsigned int current_glyph;
+} sgui_ttf_font;
 
 static FT_Library freetype = 0;
+static unsigned int refcount = 0;
 
-int font_init(void)
+static int freetype_grab(void)
 {
-	return (FT_Init_FreeType(&freetype) == 0);
+	sgui_internal_lock_mutex();
+	if (refcount == 0) {
+		if (FT_Init_FreeType(&freetype)) {
+			sgui_internal_unlock_mutex();
+			return -1;
+		}
+	}
+
+	++refcount;
+	sgui_internal_unlock_mutex();
+	return 0;
 }
 
-void font_deinit(void)
+static void freetype_drop(void)
 {
-	if (freetype)
-		FT_Done_FreeType(freetype);
+	sgui_internal_lock_mutex();
 
-	freetype = 0;
+	if (refcount) {
+		--refcount;
+
+		if (refcount == 0) {
+			FT_Done_FreeType(freetype);
+			freetype = 0;
+		}
+	}
+
+	sgui_internal_unlock_mutex();
 }
 
-static void x11_font_destroy(sgui_font *this)
+static void font_destroy(sgui_font *this)
 {
-	FT_Done_Face(((sgui_x11_font*)this)->face);
+	FT_Done_Face(((sgui_ttf_font *)this)->face);
 
-	free(((sgui_x11_font*)this)->buffer);
+	free(((sgui_ttf_font *)this)->buffer);
 	free(this);
+
+	freetype_drop();
 }
 
-static void x11_font_load_glyph(sgui_font *super, unsigned int codepoint)
+static void font_load_glyph(sgui_font *super, unsigned int codepoint)
 {
-	sgui_x11_font *this = (sgui_x11_font *)super;
+	sgui_ttf_font *this = (sgui_ttf_font *)super;
 	FT_UInt i;
 
 	this->current_glyph = codepoint;
@@ -61,10 +101,10 @@ static void x11_font_load_glyph(sgui_font *super, unsigned int codepoint)
 	FT_Render_Glyph(this->face->glyph, FT_RENDER_MODE_NORMAL);
 }
 
-static int x11_font_get_kerning_distance(sgui_font *super, unsigned int first,
-					unsigned int second)
+static int font_get_kerning_distance(sgui_font *super, unsigned int first,
+				     unsigned int second)
 {
-	sgui_x11_font *this = (sgui_x11_font *)super;
+	sgui_ttf_font *this = (sgui_ttf_font *)super;
 	FT_UInt index_a, index_b;
 	FT_Vector delta;
 
@@ -80,10 +120,10 @@ static int x11_font_get_kerning_distance(sgui_font *super, unsigned int first,
 	return -((delta.x < 0 ? -delta.x : delta.x) >> 6);
 }
 
-static void x11_font_get_glyph_metrics(sgui_font *super, unsigned int *width,
-					unsigned int *height, int *bearing)
+static void font_get_glyph_metrics(sgui_font *super, unsigned int *width,
+				   unsigned int *height, int *bearing)
 {
-	sgui_x11_font *this = (sgui_x11_font *)super;
+	sgui_ttf_font *this = (sgui_ttf_font *)super;
 	unsigned int w = 0, h = 0;
 	int b = 0;
 
@@ -105,40 +145,44 @@ static void x11_font_get_glyph_metrics(sgui_font *super, unsigned int *width,
 		*bearing = b;
 }
 
-static unsigned char *x11_font_get_glyph(sgui_font *this)
+static unsigned char *font_get_glyph(sgui_font *this)
 {
-	if (((sgui_x11_font *)this)->current_glyph != ' ')
-		return ((sgui_x11_font*)this)->face->glyph->bitmap.buffer;
+	if (((sgui_ttf_font *)this)->current_glyph != ' ')
+		return ((sgui_ttf_font *)this)->face->glyph->bitmap.buffer;
 
 	return NULL;
 }
 
-static sgui_x11_font *sgui_font_load_common(unsigned int pixel_height)
+static sgui_ttf_font *font_load_common(unsigned int pixel_height)
 {
-	sgui_x11_font *this = calloc(1, sizeof(*this));
+	sgui_ttf_font *this = calloc(1, sizeof(*this));
 	sgui_font *super = (sgui_font *)this;
 
 	if (!this)
 		return NULL;
 
 	super->height = pixel_height;
-	super->destroy = x11_font_destroy;
-	super->load_glyph = x11_font_load_glyph;
-	super->get_kerning_distance = x11_font_get_kerning_distance;
-	super->get_glyph_metrics = x11_font_get_glyph_metrics;
-	super->get_glyph = x11_font_get_glyph;
+	super->destroy = font_destroy;
+	super->load_glyph = font_load_glyph;
+	super->get_kerning_distance = font_get_kerning_distance;
+	super->get_glyph_metrics = font_get_glyph_metrics;
+	super->get_glyph = font_get_glyph;
 	return this;
 }
 
 sgui_font *sgui_font_load(const char *filename, unsigned int pixel_height)
 {
+	sgui_ttf_font *this;
 	char buffer[512];
-	sgui_x11_font *this;
 
-	this = sgui_font_load_common(pixel_height);
-
-	if (!this)
+	if (freetype_grab())
 		return NULL;
+
+	this = font_load_common(pixel_height);
+	if (!this) {
+		freetype_drop();
+		return NULL;
+	}
 
 	if (!FT_New_Face(freetype, filename, 0, &this->face))
 		goto cont;
@@ -151,6 +195,7 @@ sgui_font *sgui_font_load(const char *filename, unsigned int pixel_height)
 #endif
 
 	free(this);
+	freetype_drop();
 	return NULL;
 cont:
 	FT_Set_Pixel_Sizes(this->face, 0, pixel_height);
@@ -160,15 +205,22 @@ cont:
 sgui_font *sgui_font_load_memory(const void *data, unsigned long size,
 				unsigned int pixel_height)
 {
-	sgui_x11_font *this = sgui_font_load_common(pixel_height);
+	sgui_ttf_font *this;
 
-	if (!this)
+	if (freetype_grab())
 		return NULL;
+
+	this = font_load_common(pixel_height);
+	if (!this) {
+		freetype_drop();
+		return NULL;
+	}
 
 	this->buffer = malloc(size);
 
 	if (!this->buffer) {
 		free(this);
+		freetype_drop();
 		return NULL;
 	}
 
@@ -177,6 +229,7 @@ sgui_font *sgui_font_load_memory(const void *data, unsigned long size,
 	if (FT_New_Memory_Face(freetype, this->buffer, size, 0, &this->face)) {
 		free(this->buffer);
 		free(this);
+		freetype_drop();
 		return NULL;
 	}
 

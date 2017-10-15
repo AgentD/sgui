@@ -29,16 +29,17 @@
 
 #include "sgui_skin.h"
 #include "sgui_rect.h"
+#include "sgui_font.h"
 #include "sgui_lib.h"
 
 #include "opengl.h"
 #include "window.h"
 #include "canvas.h"
-#include "font.h"
 #include "keycode_translate.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>

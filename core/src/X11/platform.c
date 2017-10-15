@@ -387,7 +387,6 @@ static void destroy_x11(sgui_lib *lib)
 	canvas_cleanup_skin_pixmap();
 	sgui_internal_memcanvas_cleanup();
 	sgui_interal_skin_deinit_default();
-	font_deinit();
 	pthread_mutex_destroy(&libx11->mutex);
 
 	if (libx11->im)
@@ -457,9 +456,6 @@ sgui_lib *sgui_init(void *arg)
 
 	((sgui_lib *)&x11)->ev = sgui_event_queue_create();
 	if (!((sgui_lib *)&x11)->ev)
-		goto fail;
-
-	if (!font_init())
 		goto fail;
 
 	XInitThreads();

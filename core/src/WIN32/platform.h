@@ -32,7 +32,6 @@
 #include "sgui_pixmap.h"
 #include "sgui_lib.h"
 
-#include "font.h"
 #include "window.h"
 #include "opengl.h"
 #include "direct3d9.h"
