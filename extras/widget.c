@@ -146,7 +146,7 @@ sgui_widget* clock_widget_create( int x, int y, int hour, int minute,
     sgui_widget* super;
 
     /* create widget */
-    this = malloc( sizeof(clock_widget) );
+    this = calloc( 1, sizeof(clock_widget) );
     super = (sgui_widget*)this;
 
     if( !this )
